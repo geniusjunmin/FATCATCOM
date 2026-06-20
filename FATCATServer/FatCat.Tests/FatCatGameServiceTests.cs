@@ -517,7 +517,7 @@ public sealed class FatCatGameServiceTests
         Assert.NotNull(profile);
         Assert.Equal(target.PlayerId.ToString("N"), profile.PlayerId);
         Assert.StartsWith("FC", profile.InviteCode);
-        Assert.Equal(34, profile.InviteCode.Length);
+        Assert.True(profile.InviteCode.Length is >= 10 and <= 20);
         Assert.NotNull(searchBefore);
         Assert.Equal("Beta Beans", searchBefore!.CompanyName);
         Assert.False(searchBefore.IsFriend);
@@ -527,6 +527,8 @@ public sealed class FatCatGameServiceTests
         Assert.True(searchAfter!.IsFriend);
         Assert.NotNull(selfSearch);
         Assert.True(selfSearch!.IsSelf);
+        Assert.Equal(2, dbContext.InviteCodes.Count());
+        Assert.Single(dbContext.FriendRelations.Where(item => item.PlayerId == player.PlayerId && item.FriendPlayerId == target.PlayerId));
     }
 
     [Fact]

@@ -77,6 +77,33 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         await dbContext.FriendSnapshots.AddAsync(friend, cancellationToken);
     }
 
+    public Task<PlayerInviteCode?> GetInviteCodeByPlayerIdAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        return dbContext.InviteCodes.FirstOrDefaultAsync(invite => invite.PlayerId == playerId, cancellationToken);
+    }
+
+    public Task<PlayerInviteCode?> GetInviteCodeByCodeAsync(string code, CancellationToken cancellationToken)
+    {
+        return dbContext.InviteCodes.FirstOrDefaultAsync(invite => invite.Code == code, cancellationToken);
+    }
+
+    public async Task AddInviteCodeAsync(PlayerInviteCode inviteCode, CancellationToken cancellationToken)
+    {
+        await dbContext.InviteCodes.AddAsync(inviteCode, cancellationToken);
+    }
+
+    public Task<PlayerFriendRelation?> GetFriendRelationAsync(Guid playerId, Guid friendPlayerId, CancellationToken cancellationToken)
+    {
+        return dbContext.FriendRelations.FirstOrDefaultAsync(
+            relation => relation.PlayerId == playerId && relation.FriendPlayerId == friendPlayerId,
+            cancellationToken);
+    }
+
+    public async Task AddFriendRelationAsync(PlayerFriendRelation relation, CancellationToken cancellationToken)
+    {
+        await dbContext.FriendRelations.AddAsync(relation, cancellationToken);
+    }
+
     public async Task AddSocialActivityAsync(PlayerSocialActivity activity, CancellationToken cancellationToken)
     {
         await dbContext.SocialActivities.AddAsync(activity, cancellationToken);

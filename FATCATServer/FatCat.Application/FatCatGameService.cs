@@ -28,6 +28,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             await EnsureResourceStateAsync(existing.Id, cancellationToken);
             await EnsureDefaultCatStateAsync(existing.Id, cancellationToken);
             await EnsureDefaultBuildingStatesAsync(existing.Id, cancellationToken);
+            await EnsureInviteCodeAsync(existing.Id, cancellationToken);
             return new AuthGuestResponse(existing.Id, CreateDevToken(existing.Id), false);
         }
 
@@ -42,6 +43,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         await EnsureResourceStateAsync(player.Id, cancellationToken);
         await EnsureDefaultCatStateAsync(player.Id, cancellationToken);
         await EnsureDefaultBuildingStatesAsync(player.Id, cancellationToken);
+        await EnsureInviteCodeAsync(player.Id, cancellationToken);
         return new AuthGuestResponse(player.Id, CreateDevToken(player.Id), true);
     }
 
@@ -959,12 +961,13 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             return null;
         }
 
-        if (!TryResolveFriendPlayerId(request, out var friendPlayerId) || friendPlayerId == playerId)
+        var friendPlayerId = await ResolveFriendPlayerIdAsync(request, cancellationToken);
+        if (friendPlayerId is null || friendPlayerId == playerId)
         {
             return null;
         }
 
-        var friendPlayer = await repository.FindPlayerByIdAsync(friendPlayerId, cancellationToken);
+        var friendPlayer = await repository.FindPlayerByIdAsync(friendPlayerId.Value, cancellationToken);
         if (friendPlayer is null)
         {
             return null;
@@ -976,6 +979,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         if (existing is not null)
         {
             await RefreshFriendSnapshotFromPlayerAsync(existing, friendPlayer, cancellationToken);
+            await EnsureFriendRelationAsync(playerId, friendPlayer.Id, existing.FriendKey, cancellationToken);
             await repository.SaveChangesAsync(cancellationToken);
             return ToFriendDto(existing);
         }
@@ -990,6 +994,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             IncomePerSecond = (int)Math.Floor(Math.Max(0, preview?.NetCoinPerSecond ?? 0)),
         };
         await repository.AddFriendAsync(friend, cancellationToken);
+        await EnsureFriendRelationAsync(playerId, friendPlayer.Id, friend.FriendKey, cancellationToken);
         await AddSocialActivityAsync(playerId, "friend_add", friend, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
         return ToFriendDto(friend);
@@ -1004,7 +1009,8 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         }
 
         var preview = await PreviewServerProductionAsync(player.Id, cancellationToken);
-        return ToPlayerSocialProfileDto(player, preview, true, false);
+        var invite = await EnsureInviteCodeAsync(player.Id, cancellationToken);
+        return ToPlayerSocialProfileDto(player, preview, invite.Code, true, false);
     }
 
     public async Task<FriendSearchResultDto?> SearchFriendAsync(Guid playerId, string? query, CancellationToken cancellationToken)
@@ -1014,12 +1020,13 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             return null;
         }
 
-        if (!TryResolveFriendQuery(query, out var friendPlayerId))
+        var friendPlayerId = await ResolveFriendQueryAsync(query, cancellationToken);
+        if (friendPlayerId is null)
         {
             return null;
         }
 
-        var player = await repository.FindPlayerByIdAsync(friendPlayerId, cancellationToken);
+        var player = await repository.FindPlayerByIdAsync(friendPlayerId.Value, cancellationToken);
         if (player is null)
         {
             return null;
@@ -1027,8 +1034,10 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
 
         var friendKey = CreateRealFriendKey(player.Id);
         var existing = await repository.GetFriendAsync(playerId, friendKey, cancellationToken);
+        var relation = await repository.GetFriendRelationAsync(playerId, player.Id, cancellationToken);
         var preview = await PreviewServerProductionAsync(player.Id, cancellationToken);
-        return ToFriendSearchResultDto(player, preview, player.Id == playerId, existing is not null);
+        var invite = await EnsureInviteCodeAsync(player.Id, cancellationToken);
+        return ToFriendSearchResultDto(player, preview, invite.Code, player.Id == playerId, existing is not null || relation is not null);
     }
 
     public async Task<FriendActionResponse?> VisitFriendAsync(Guid playerId, string friendId, CancellationToken cancellationToken)
@@ -1955,6 +1964,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
     private static PlayerSocialProfileDto ToPlayerSocialProfileDto(
         PlayerProfile player,
         ProductionPreviewResponse? preview,
+        string inviteCode,
         bool isSelf,
         bool isFriend)
     {
@@ -1963,7 +1973,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             player.CompanyName,
             player.Level,
             (int)Math.Floor(Math.Max(0, preview?.NetCoinPerSecond ?? 0)),
-            CreateInviteCode(player.Id),
+            inviteCode,
             isSelf,
             isFriend);
     }
@@ -1971,6 +1981,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
     private static FriendSearchResultDto ToFriendSearchResultDto(
         PlayerProfile player,
         ProductionPreviewResponse? preview,
+        string inviteCode,
         bool isSelf,
         bool isFriend)
     {
@@ -1979,7 +1990,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             player.CompanyName,
             player.Level,
             (int)Math.Floor(Math.Max(0, preview?.NetCoinPerSecond ?? 0)),
-            CreateInviteCode(player.Id),
+            inviteCode,
             isSelf,
             isFriend);
     }
@@ -2001,32 +2012,94 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         return Guid.TryParseExact(value?.Trim(), "N", out playerId);
     }
 
-    private static bool TryResolveFriendPlayerId(AddFriendRequest request, out Guid playerId)
+    private async Task<Guid?> ResolveFriendPlayerIdAsync(AddFriendRequest request, CancellationToken cancellationToken)
     {
-        if (TryResolveFriendQuery(request.InviteCode, out playerId))
+        return await ResolveFriendQueryAsync(request.InviteCode, cancellationToken)
+            ?? await ResolveFriendQueryAsync(request.FriendPlayerId, cancellationToken);
+    }
+
+    private async Task<Guid?> ResolveFriendQueryAsync(string? value, CancellationToken cancellationToken)
+    {
+        if (TryParsePlayerId(value, out var playerId))
         {
-            return true;
+            return playerId;
         }
 
-        return TryResolveFriendQuery(request.FriendPlayerId, out playerId);
-    }
-
-    private static bool TryResolveFriendQuery(string? value, out Guid playerId)
-    {
-        if (TryParsePlayerId(value, out playerId))
+        if (TryParseLegacyInviteCode(value, out playerId))
         {
-            return true;
+            return playerId;
         }
 
-        return TryParseInviteCode(value, out playerId);
+        var normalized = NormalizeInviteCode(value);
+        if (normalized.Length <= 0)
+        {
+            return null;
+        }
+
+        var invite = await repository.GetInviteCodeByCodeAsync(normalized, cancellationToken);
+        return invite?.PlayerId;
     }
 
-    private static string CreateInviteCode(Guid playerId)
+    private async Task<PlayerInviteCode> EnsureInviteCodeAsync(Guid playerId, CancellationToken cancellationToken)
     {
-        return $"FC{playerId:N}".ToUpperInvariant();
+        var existing = await repository.GetInviteCodeByPlayerIdAsync(playerId, cancellationToken);
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        foreach (var candidate in CreateInviteCodeCandidates(playerId))
+        {
+            var used = await repository.GetInviteCodeByCodeAsync(candidate, cancellationToken);
+            if (used is not null && used.PlayerId != playerId)
+            {
+                continue;
+            }
+
+            var invite = new PlayerInviteCode
+            {
+                PlayerId = playerId,
+                Code = candidate,
+                CreatedAt = DateTimeOffset.UtcNow,
+                UpdatedAt = DateTimeOffset.UtcNow,
+            };
+            await repository.AddInviteCodeAsync(invite, cancellationToken);
+            await repository.SaveChangesAsync(cancellationToken);
+            return invite;
+        }
+
+        throw new InvalidOperationException("Unable to allocate invite code.");
     }
 
-    private static bool TryParseInviteCode(string? value, out Guid playerId)
+    private async Task EnsureFriendRelationAsync(Guid playerId, Guid friendPlayerId, string friendKey, CancellationToken cancellationToken)
+    {
+        if (await repository.GetFriendRelationAsync(playerId, friendPlayerId, cancellationToken) is not null)
+        {
+            return;
+        }
+
+        await repository.AddFriendRelationAsync(new PlayerFriendRelation
+        {
+            PlayerId = playerId,
+            FriendPlayerId = friendPlayerId,
+            FriendKey = friendKey,
+            Status = "accepted",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+        }, cancellationToken);
+    }
+
+    private static IEnumerable<string> CreateInviteCodeCandidates(Guid playerId)
+    {
+        var normalized = playerId.ToString("N").ToUpperInvariant();
+        yield return $"FC{normalized[..8]}";
+        yield return $"FC{normalized[..10]}";
+        yield return $"FC{normalized[..12]}";
+        yield return $"FC{normalized[..16]}";
+        yield return $"FC{normalized[..18]}";
+    }
+
+    private static bool TryParseLegacyInviteCode(string? value, out Guid playerId)
     {
         playerId = Guid.Empty;
         var normalized = NormalizeInviteCode(value);

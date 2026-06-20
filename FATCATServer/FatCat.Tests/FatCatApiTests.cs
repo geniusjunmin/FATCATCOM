@@ -204,7 +204,7 @@ public sealed class FatCatApiTests
         Assert.Equal(HttpStatusCode.OK, profile.StatusCode);
         Assert.Equal(targetId.ToString("N"), profileData.GetProperty("playerId").GetString());
         Assert.StartsWith("FC", inviteCode);
-        Assert.Equal(34, inviteCode!.Length);
+        Assert.InRange(inviteCode!.Length, 10, 20);
         Assert.Equal(HttpStatusCode.OK, search.StatusCode);
         Assert.Equal("Beta Beans", searchData.GetProperty("companyName").GetString());
         Assert.False(searchData.GetProperty("isFriend").GetBoolean());

@@ -10,6 +10,8 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
     public DbSet<PlayerSaveSnapshot> SaveSnapshots => Set<PlayerSaveSnapshot>();
     public DbSet<PlayerMail> PlayerMails => Set<PlayerMail>();
     public DbSet<FriendSnapshot> FriendSnapshots => Set<FriendSnapshot>();
+    public DbSet<PlayerInviteCode> InviteCodes => Set<PlayerInviteCode>();
+    public DbSet<PlayerFriendRelation> FriendRelations => Set<PlayerFriendRelation>();
     public DbSet<PlayerSocialActivity> SocialActivities => Set<PlayerSocialActivity>();
     public DbSet<PlayerSettings> PlayerSettings => Set<PlayerSettings>();
     public DbSet<PlayerResourceState> ResourceStates => Set<PlayerResourceState>();
@@ -186,6 +188,40 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             CREATE INDEX IF NOT EXISTS "IX_SocialActivities_PlayerId_CreatedAt"
             ON "SocialActivities" ("PlayerId", "CreatedAt");
             """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "InviteCodes" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_InviteCodes" PRIMARY KEY,
+                "PlayerId" TEXT NOT NULL,
+                "Code" TEXT NOT NULL,
+                "CreatedAt" TEXT NOT NULL,
+                "UpdatedAt" TEXT NOT NULL,
+                CONSTRAINT "FK_InviteCodes_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
+            );
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_InviteCodes_PlayerId"
+            ON "InviteCodes" ("PlayerId");
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_InviteCodes_Code"
+            ON "InviteCodes" ("Code");
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "FriendRelations" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_FriendRelations" PRIMARY KEY,
+                "PlayerId" TEXT NOT NULL,
+                "FriendPlayerId" TEXT NOT NULL,
+                "FriendKey" TEXT NOT NULL,
+                "Status" TEXT NOT NULL,
+                "CreatedAt" TEXT NOT NULL,
+                "UpdatedAt" TEXT NOT NULL,
+                CONSTRAINT "FK_FriendRelations_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
+            );
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_FriendRelations_PlayerId_FriendPlayerId"
+            ON "FriendRelations" ("PlayerId", "FriendPlayerId");
+            """, cancellationToken);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -244,6 +280,30 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.HasOne(activity => activity.Player)
                 .WithMany()
                 .HasForeignKey(activity => activity.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlayerInviteCode>(entity =>
+        {
+            entity.HasKey(invite => invite.Id);
+            entity.HasIndex(invite => invite.PlayerId).IsUnique();
+            entity.HasIndex(invite => invite.Code).IsUnique();
+            entity.Property(invite => invite.Code).HasMaxLength(20);
+            entity.HasOne(invite => invite.Player)
+                .WithMany()
+                .HasForeignKey(invite => invite.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlayerFriendRelation>(entity =>
+        {
+            entity.HasKey(relation => relation.Id);
+            entity.HasIndex(relation => new { relation.PlayerId, relation.FriendPlayerId }).IsUnique();
+            entity.Property(relation => relation.FriendKey).HasMaxLength(120);
+            entity.Property(relation => relation.Status).HasMaxLength(40);
+            entity.HasOne(relation => relation.Player)
+                .WithMany()
+                .HasForeignKey(relation => relation.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

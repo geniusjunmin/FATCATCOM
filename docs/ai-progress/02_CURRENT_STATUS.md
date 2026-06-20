@@ -7,7 +7,7 @@ Updated: 2026-06-20
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Continue visual fidelity with generated/Cocos-managed art depth or HUD precision; social next move is dedicated relation table plus shorter invite/search UI polish. |
+| Best Next Move | Continue visual fidelity with generated/Cocos-managed art depth or HUD precision; social next move is polished in-panel invite/search UI or bidirectional friend requests. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -48,7 +48,7 @@ Updated: 2026-06-20
 - `SyncManager` now fetches `/api/friends` after login/save sync. The DOM friend panel renders server `FriendDto` snapshots when online and keeps local preview friends only as offline fallback.
 - DOM friend visit/gift buttons call `/api/friends/{friendId}/visit` and `/api/friends/{friendId}/gift` in online mode, then apply returned server timestamps to local feature state.
 - DOM friend panel now has an add-friend action. In online mode it searches an invite code or player id before confirming `/api/friends/add`, then inserts the returned real-player friend snapshot.
-- `SyncManager` supports `/api/social/profile` and `/api/friends/search`; `/api/friends/add` accepts either legacy player id or invite code.
+- `SyncManager` supports `/api/social/profile` and `/api/friends/search`; `/api/friends/add` accepts either legacy player id or persisted short invite code.
 - `SyncManager` fetches `/api/friends/activity`; the DOM friend panel shows recent add, visit, and gift activity from the server.
 - Friend visit/gift actions now return `FriendActionResponse`, apply server resource balances to the client, and enforce one reward per friend per UTC day.
 - `SyncManager` also fetches `/api/leaderboard` after login/save sync. The DOM friend panel now displays a server-backed income leaderboard with the current player highlighted when online.
@@ -65,8 +65,8 @@ Implemented server capabilities:
 - Mail list and claim.
 - Friend list, visit, and gift endpoints, with DOM friend-panel consumption.
 - Friend visit/gift rewards: first daily visit grants coin based on friend income, first daily gift grants cat food, and repeat same-day claims return `rewarded=false` with a limit reason.
-- Real-player friend add endpoint: `/api/friends/add`, accepting another player's id or invite code and storing the relationship as a `player:{guid}` friend snapshot.
-- Social profile and friend search endpoints: `/api/social/profile` returns the player's invite code and income snapshot; `/api/friends/search` resolves invite code/player id before add.
+- Real-player friend add endpoint: `/api/friends/add`, accepting another player's id or persisted short invite code and storing both a `player:{guid}` friend snapshot and `PlayerFriendRelation` row.
+- Social profile and friend search endpoints: `/api/social/profile` returns the player's persisted short invite code and income snapshot; `/api/friends/search` resolves invite code/player id before add.
 - Friend activity endpoint: `/api/friends/activity`, backed by `PlayerSocialActivity` and written by add, visit, and gift actions.
 - Income leaderboard endpoint: `/api/leaderboard`, combining current server-derived production with seeded friend snapshots and returning ranked entries plus the player's own row.
 - Settings get/update.
@@ -136,7 +136,7 @@ Latest verified checks:
 - 2026-06-20 real-friend contract pass: added `/api/friends/add`, player-id based real friend snapshots, refresh of real friend income/name/level from target player state, client add-friend API/sync/panel action, `tools/check-real-friend-contract.js`, `tools/check-real-friend-online.js`, and service/API coverage.
 - 2026-06-20 friend-activity contract pass: added `PlayerSocialActivity`, `/api/friends/activity`, activity writes for add/visit/gift, client activity fetch/rendering in the friend panel, `tools/check-friend-activity-contract.js`, and service/API coverage.
 - 2026-06-20 friend-reward contract pass: visit/gift now return `FriendActionResponse`, reward resources once per friend per UTC day, apply authoritative balances through `ResourceManager.applyServerSnapshot()`, extend online friend smoke coverage, and add `tools/check-friend-reward-contract.js`.
-- 2026-06-20 friend-invite contract pass: added `/api/social/profile`, `/api/friends/search`, reversible `FC...` invite codes, invite-code add compatibility, client API/sync search helpers, friend-panel search-confirm flow, `tools/check-friend-invite-contract.js`, and service/API coverage.
+- 2026-06-20 friend-invite contract pass: added `/api/social/profile`, `/api/friends/search`, persisted short `FC...` invite codes, `PlayerFriendRelation`, invite-code add compatibility, client API/sync search helpers, friend-panel search-confirm flow, `tools/check-friend-invite-contract.js`, and service/API coverage.
 - Cocos asset-db refreshed for `db://assets/scripts` after shop-state, friend-sync, leaderboard, real-friend, friend-activity, friend-reward, and friend-invite client TypeScript edits.
 
 - `dotnet test FATCATServer\FATCATServer.sln --no-restore`: 60/60 passed.
