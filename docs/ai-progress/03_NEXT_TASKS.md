@@ -1,6 +1,6 @@
 # Next Tasks
 
-Updated: 2026-06-17
+Updated: 2026-06-20
 
 ## Round Contract
 
@@ -18,7 +18,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
-| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green and expand next multiplayer-facing contracts. |
+| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state is done, next expand social/ranking contracts. |
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Add floor richness, HUD polish, and cat-page composition improvements. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Expand friends/gifts/ranking contracts after core economy is stable. |
@@ -32,7 +32,8 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - `tools/generate-server-balance.js` generates server `balance.json` from client config JSON.
 - `tools/check-balance-config-drift.js` verifies server/client config alignment.
 - `tools/check-balance-effect-coverage.js` verifies every client research/equipment effect type is explicitly covered by the server economy model.
-- `tools/quick-verify.ps1` runs focused client TS, generated balance, drift, effect coverage, and server tests together.
+- `tools/check-shop-state-contract.js` verifies `/api/shop/state` and client shop-state consumption.
+- `tools/quick-verify.ps1` runs focused client TS, generated balance, drift, effect coverage, client catalog metadata, shop-state contract, and server tests together.
 - Next move: consider loading a true single config source directly at build/runtime, or wire `tools/quick-verify.ps1` into CI once CI exists.
 
 ### 2. Server-Side Production Model
@@ -54,6 +55,8 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - Keep offline local play compatible with the same local cat data shape.
 
 ### 4. Persistent Online Action Regressions
+
+- `/api/shop/state` is now implemented and consumed after login/save sync. Keep it green with `node tools\check-shop-state-contract.js`.
 
 Keep these scripts in the regular set when touching related flows:
 

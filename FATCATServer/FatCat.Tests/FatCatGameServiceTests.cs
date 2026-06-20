@@ -97,6 +97,31 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task GetShopStateAsync_ReturnsAuthoritativeRemainingDailyCounts()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("shop-state-device", "FatCat"), CancellationToken.None);
+
+        var initial = await service.GetShopStateAsync(auth.PlayerId, CancellationToken.None);
+        await service.PurchaseShopItemAsync(auth.PlayerId, new ShopPurchaseRequest("shop_cat_food_1", 2), CancellationToken.None);
+        var afterPurchase = await service.GetShopStateAsync(auth.PlayerId, CancellationToken.None);
+
+        Assert.NotNull(initial);
+        var initialCatFood = Assert.Single(initial!, item => item.ShopItemId == "shop_cat_food_1");
+        Assert.Equal(5, initialCatFood.LimitDaily);
+        Assert.Equal(0, initialCatFood.PurchasedToday);
+        Assert.Equal(5, initialCatFood.RemainingDaily);
+        Assert.NotNull(afterPurchase);
+        var catFood = Assert.Single(afterPurchase!, item => item.ShopItemId == "shop_cat_food_1");
+        Assert.Equal("item_cat_food_pack", catFood.ItemId);
+        Assert.Equal("coin", catFood.PriceType);
+        Assert.Equal(500, catFood.PriceAmount);
+        Assert.Equal(2, catFood.PurchasedToday);
+        Assert.Equal(3, catFood.RemainingDaily);
+    }
+
+    [Fact]
     public async Task UpgradeCatAsync_DeductsCoinAndWritesTransaction()
     {
         await using var dbContext = CreateDbContext();

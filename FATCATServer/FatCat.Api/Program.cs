@@ -189,6 +189,17 @@ app.MapPost("/api/shop/purchase", async (
         : Results.Ok(ApiEnvelope<ShopPurchaseResponse>.Success(result));
 });
 
+app.MapGet("/api/shop/state", async (
+    Guid playerId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.GetShopStateAsync(playerId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<IReadOnlyList<ShopStateDto>>.Fail("player_not_found"))
+        : Results.Ok(ApiEnvelope<IReadOnlyList<ShopStateDto>>.Success(result));
+});
+
 app.MapPost("/api/cats/{catId}/upgrade", async (
     Guid playerId,
     string catId,

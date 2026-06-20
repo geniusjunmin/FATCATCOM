@@ -1315,7 +1315,7 @@ export class BottomNavUI extends Component {
             const serverPurchase = NetworkManager.canUseServer && NetworkManager.playerId
                 ? await SyncManager.purchaseServerShopItem(id, 1)
                 : null;
-            success = serverPurchase ? ShopManager.fulfillServerPurchase(id, serverPurchase.count) : ShopManager.buyItem(id);
+            success = serverPurchase ? ShopManager.fulfillServerPurchase(id, serverPurchase.count, serverPurchase.remainingDaily) : ShopManager.buyItem(id);
         } else if (action === "use") {
             success = InventoryManager.useItem(id);
         } else if (action === "research") {

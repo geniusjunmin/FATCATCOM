@@ -3,6 +3,7 @@ import { ConfigManager } from "./ConfigManager";
 import { SaveManager } from "./SaveManager";
 import { ResourceManager } from "./ResourceManager";
 import { InventoryManager } from "./InventoryManager";
+import { ShopStateDto } from "../net/ApiTypes";
 
 export class ShopManager {
     /**
@@ -56,12 +57,14 @@ export class ShopManager {
         return true;
     }
 
-    public static fulfillServerPurchase(shopItemId: string, count: number = 1): boolean {
+    public static fulfillServerPurchase(shopItemId: string, count: number = 1, remainingDaily?: number): boolean {
         const config = ConfigManager.shops.find(s => s.id === shopItemId);
         if (!config) return false;
 
-        const limit = this.getRemainingLimit(shopItemId);
-        if (limit < count) return false;
+        if (remainingDaily === undefined) {
+            const limit = this.getRemainingLimit(shopItemId);
+            if (limit < count) return false;
+        }
 
         const itemConfig = ConfigManager.items.find(i => i.id === config.itemId);
         if (itemConfig) {
@@ -69,10 +72,25 @@ export class ShopManager {
         }
 
         SaveManager.update(data => {
-            data.shopPurchaseHistory[shopItemId] = (data.shopPurchaseHistory[shopItemId] || 0) + count;
+            if (remainingDaily !== undefined && config.limitDaily > 0) {
+                data.shopPurchaseHistory[shopItemId] = Math.max(0, config.limitDaily - remainingDaily);
+            } else {
+                data.shopPurchaseHistory[shopItemId] = (data.shopPurchaseHistory[shopItemId] || 0) + count;
+            }
         });
 
         console.info(`[ShopManager] Fulfilled server purchase ${count} of ${shopItemId}`);
         return true;
+    }
+
+    public static applyServerSnapshot(states: ShopStateDto[]): void {
+        if (!states.length) return;
+        SaveManager.update(data => {
+            for (const state of states) {
+                const config = ConfigManager.shops.find(s => s.id === state.shopItemId);
+                if (!config || config.limitDaily <= 0) continue;
+                data.shopPurchaseHistory[state.shopItemId] = Math.max(0, Math.min(config.limitDaily, state.purchasedToday));
+            }
+        });
     }
 }

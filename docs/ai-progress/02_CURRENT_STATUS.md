@@ -1,13 +1,13 @@
 # Current Status
 
-Updated: 2026-06-17
+Updated: 2026-06-20
 
 ## Control Panel
 
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Continue visual fidelity with generated/Cocos-managed art depth or HUD precision, then return to multiplayer-facing server contracts. |
+| Best Next Move | Continue visual fidelity with generated/Cocos-managed art depth or HUD precision; server shop-state is now covered. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -17,7 +17,7 @@ Updated: 2026-06-17
 | Track | State | Signal |
 | --- | --- | --- |
 | Client UI | Playable and clickable | Main screen, cat page, feature panels, bottom nav, and four-size screenshot regressions exist. |
-| Server Authority | Advanced | Cats, equipment, buildings, research, launch, production preview, resources, and transactions are server-backed. |
+| Server Authority | Advanced | Cats, equipment, buildings, research, shop state, launch, production preview, resources, and transactions are server-backed. |
 | Economy Model | Covered | Production uses assignment, building level, equipment, research, skills, and mood. |
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
@@ -43,6 +43,8 @@ Updated: 2026-06-17
 - The client still supports offline local play when no API is configured.
 - In online mode, several important actions call the server first and then apply returned resource balances to the HUD.
 - `CatManager` and `ResearchManager` now overlay server catalog metadata from `/api/cats` and `/api/research` onto local configs, so production, unlock cost, skill, research cost, effect, and prerequisite reads can reflect server definitions while offline mode keeps using local JSON.
+- `SyncManager` now fetches `/api/shop/state` after login/save sync, and `ShopManager.applyServerSnapshot()` applies authoritative daily shop purchase counts into local save data.
+- Online shop purchases pass server `remainingDaily` into `ShopManager.fulfillServerPurchase()`, so the UI no longer double-increments local purchase history after a server-approved buy.
 
 ## Server
 
@@ -60,6 +62,7 @@ Implemented server capabilities:
 - Server-derived production preview: `/api/production/server-preview`, derived from persisted cat assignment, cat level/weight/equipment, mood, building levels/effects, research bonuses, and skill effects.
 - Launch settlement: `/api/launch`, including idempotent launch records.
 - Shop purchase: `/api/shop/purchase`, including daily limits.
+- Shop state: `/api/shop/state`, returning authoritative item id, price, daily limit, purchased-today count, and remaining daily count.
 - Cat upgrade: `/api/cats/{catId}/upgrade`, including coin spend, level update, and transaction ledger entry.
 - Cat feeding: `/api/cats/{catId}/feed`, including cat food spend, weight update, and transaction ledger entry.
 - Cat recruit/unlock: `/api/cats/{catId}/unlock`, including coin spend, cat state update, and transaction ledger entry.
@@ -115,9 +118,12 @@ Client/server building sync:
 Latest verified checks:
 
 - 2026-06-20 repository handoff check: root Git repository initialized on `main`, remote `origin` configured as `https://github.com/geniusjunmin/FATCATCOM.git`, initial import `f818a2e` pushed to GitHub. Root `.gitignore` excludes local archives, dependencies, build caches, local databases, and generated regression captures.
+- 2026-06-20 shop-state contract pass: added `/api/shop/state`, client `ShopStateDto`/`ApiClient.getShopState()`, `SyncManager.fetchServerShopState()`, `ShopManager.applyServerSnapshot()`, online purchase `remainingDaily` application, `tools/check-shop-state-contract.js`, and `AGENTS.md`.
+- Cocos asset-db refreshed for `db://assets/scripts` after shop-state client TypeScript edits.
 
-- `dotnet test FATCATServer\FATCATServer.sln --no-restore`: 48/48 passed.
-- `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`: passed; includes client TS, generated server balance, config drift, effect coverage, client catalog metadata consumption, and 48 server tests.
+- `dotnet test FATCATServer\FATCATServer.sln --no-restore`: 50/50 passed.
+- `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`: passed; includes client TS, generated server balance, config drift, effect coverage, client catalog metadata consumption, shop-state contract, and 50 server tests.
+- `node tools\check-shop-state-contract.js`: passed; verifies server route/DTO/service, client API/types, sync fetch, manager snapshot consumption, and online purchase `remainingDaily` use.
 - `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`: passed.
 - `node tools\check-client-catalog-metadata-consumption.js`: passed; verifies `CatManager`, `ResearchManager`, and `ResearchPanel` route through server metadata-aware config access.
 - `powershell -ExecutionPolicy Bypass -File .\tools\check-server-api.ps1 -ApiBaseUrl http://localhost:5144 -Origin http://localhost:7456`: passed with the built API DLL, including cat assignment, building snapshot, building upgrade, mood-adjusted `/api/production/server-preview`, and launch tamper resistance.

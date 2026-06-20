@@ -179,6 +179,36 @@ public sealed class FatCatApiTests
     }
 
     [Fact]
+    public async Task ShopState_ReturnsAuthoritativeDailyLimits()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-shop-state-device",
+            companyName = "FatCat",
+        });
+        var authBody = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync());
+        var playerId = authBody.RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+        await client.PostAsJsonAsync($"/api/shop/purchase?playerId={playerId}", new
+        {
+            shopItemId = "shop_cat_food_1",
+            count = 2,
+        });
+
+        var response = await client.GetAsync($"/api/shop/state?playerId={playerId}");
+        var data = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var catFood = data.EnumerateArray().Single(item => item.GetProperty("shopItemId").GetString() == "shop_cat_food_1");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("item_cat_food_pack", catFood.GetProperty("itemId").GetString());
+        Assert.Equal(5, catFood.GetProperty("limitDaily").GetInt32());
+        Assert.Equal(2, catFood.GetProperty("purchasedToday").GetInt32());
+        Assert.Equal(3, catFood.GetProperty("remainingDaily").GetInt32());
+    }
+
+    [Fact]
     public async Task ResourceTransactions_ReturnsRecentResourceChanges()
     {
         await using var factory = new FatCatApiFactory();

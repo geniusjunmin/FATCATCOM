@@ -1,6 +1,6 @@
 # Handoff
 
-Updated: 2026-06-17
+Updated: 2026-06-20
 
 ## 90-Second Boot
 
@@ -70,6 +70,7 @@ node tools\generate-server-balance.js --check
 node tools\check-balance-config-drift.js
 node tools\check-balance-effect-coverage.js
 node tools\check-client-catalog-metadata-consumption.js
+node tools\check-shop-state-contract.js
 ```
 
 Do not run multiple online scripts that spawn `http://localhost:5144` at the same time.
@@ -111,6 +112,7 @@ Server:
 - `tools/generate-server-balance.js`
 - `tools/check-balance-effect-coverage.js`
 - `tools/check-client-catalog-metadata-consumption.js`
+- `tools/check-shop-state-contract.js`
 - `tools/quick-verify.ps1`
 
 Client:
@@ -121,6 +123,7 @@ Client:
 - `FATCATUI/assets/scripts/manager/CatManager.ts`
 - `FATCATUI/assets/scripts/manager/ResearchManager.ts`
 - `FATCATUI/assets/scripts/manager/ResourceManager.ts`
+- `FATCATUI/assets/scripts/manager/ShopManager.ts`
 - `FATCATUI/assets/scripts/net/ApiClient.ts`
 - `FATCATUI/assets/scripts/net/ApiTypes.ts`
 
@@ -132,6 +135,9 @@ Client:
 - Large/generated local files are intentionally ignored: `FATCATCOM.rar`, `old/`, root Playwright capture PNGs, `node_modules/`, Cocos `library/temp/build/local/profiles/native`, .NET `bin/obj`, local `*.db*`, and regression screenshots.
 - Do not delete archived logs. Use `archive-2026-06-14/` when historical detail is needed.
 - For economic actions, prefer the established pattern: server validates, server spends resources, server records a transaction, server returns balances, frontend applies the returned snapshot.
+- `/api/shop/state` returns authoritative shop daily counts. `SyncManager.fetchServerShopState()` applies it through `ShopManager.applyServerSnapshot()` after login/save sync.
+- Online DOM shop purchase passes `ShopPurchaseResponse.remainingDaily` into `ShopManager.fulfillServerPurchase()`; preserve this so local history stays aligned with server state.
+- `tools/check-shop-state-contract.js` is part of `tools/quick-verify.ps1` and guards the route, DTOs, client API, sync fetch, and remaining-daily purchase path.
 - Cat upgrade, cat feed, and cat unlock now follow that pattern in the DOM cat overlay.
 - Server login and save sync now fetch `/api/cats`; `CatManager.applyServerSnapshot()` applies server cat unlocked state, level, and weight into the local save.
 - `/api/cats` now returns the full configured cat catalog with locked defaults and saved player state overlaid. It includes `assignedBuildingId`, equipment, equipment levels, rarity, role, base production, base bean cost, base salary, base weight, and skill id.

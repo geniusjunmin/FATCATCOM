@@ -1,5 +1,5 @@
 import { GameConfig } from "../core/GameConfig";
-import { ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendDto, LaunchRequest, LaunchResponse, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse } from "./ApiTypes";
+import { ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendDto, LaunchRequest, LaunchResponse, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
 
 export class ApiClient {
     private static _baseUrl: string = GameConfig.apiBaseUrl;
@@ -52,6 +52,10 @@ export class ApiClient {
 
     public static purchaseShopItem(playerId: string, request: ShopPurchaseRequest): Promise<ApiEnvelope<ShopPurchaseResponse>> {
         return this.post(`/api/shop/purchase?playerId=${encodeURIComponent(playerId)}`, request);
+    }
+
+    public static getShopState(playerId: string): Promise<ApiEnvelope<ShopStateDto[]>> {
+        return this.get(`/api/shop/state?playerId=${encodeURIComponent(playerId)}`);
     }
 
     public static upgradeCat(playerId: string, catId: string): Promise<ApiEnvelope<CatUpgradeResponse>> {

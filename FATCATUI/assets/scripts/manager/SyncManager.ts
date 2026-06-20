@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendDto, LaunchResponse, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendDto, LaunchResponse, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -10,6 +10,7 @@ import { ProductionManager } from "./ProductionManager";
 import { ResourceManager } from "./ResourceManager";
 import { CatManager } from "./CatManager";
 import { ResearchManager } from "./ResearchManager";
+import { ShopManager } from "./ShopManager";
 
 export type SyncSnapshot = {
     mode: "offline" | "ready" | "syncing" | "failed";
@@ -72,6 +73,7 @@ export class SyncManager {
         void this.fetchServerCats();
         void this.fetchServerBuildings();
         void this.fetchServerResearch();
+        void this.fetchServerShopState();
         return true;
     }
 
@@ -99,6 +101,7 @@ export class SyncManager {
         await this.fetchServerCats();
         await this.fetchServerBuildings();
         await this.fetchServerResearch();
+        await this.fetchServerShopState();
         this.refreshPendingFeatureChanges();
         this.emitSyncChanged();
         return true;
@@ -154,6 +157,18 @@ export class SyncManager {
             return [];
         }
         ResearchManager.applyServerSnapshot(response.data);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerShopState(): Promise<ShopStateDto[]> {
+        if (!this.canCallServer()) return [];
+        const response = await ApiClient.getShopState(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "shop_state_fetch_failed");
+            return [];
+        }
+        ShopManager.applyServerSnapshot(response.data);
         this.markReadyAfterServerCall();
         return response.data;
     }

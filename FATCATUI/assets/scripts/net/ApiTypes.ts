@@ -83,6 +83,17 @@ export type ShopPurchaseResponse = {
     serverTime: number;
 };
 
+export type ShopStateDto = {
+    shopItemId: string;
+    itemId: string;
+    priceType: string;
+    priceAmount: number;
+    limitDaily: number;
+    purchasedToday: number;
+    remainingDaily: number;
+    updatedAt: number;
+};
+
 export type CatUpgradeResponse = {
     catId: string;
     level: number;

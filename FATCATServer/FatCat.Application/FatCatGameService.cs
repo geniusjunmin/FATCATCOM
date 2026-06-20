@@ -58,7 +58,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -437,6 +437,34 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             resources.Diamond,
             resources.ResearchPoint,
             resources.UpdatedAt.ToUnixTimeMilliseconds());
+    }
+
+    public async Task<IReadOnlyList<ShopStateDto>?> GetShopStateAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        var today = ToUtcDate(DateTimeOffset.UtcNow);
+        var states = new List<ShopStateDto>();
+        foreach (var item in ShopItems.Values.OrderBy(item => item.ShopItemId))
+        {
+            var history = await repository.GetShopPurchaseHistoryAsync(playerId, item.ShopItemId, today, cancellationToken);
+            var purchasedToday = Math.Max(0, history?.Count ?? 0);
+            var remainingDaily = item.LimitDaily > 0 ? Math.Max(0, item.LimitDaily - purchasedToday) : 99;
+            states.Add(new ShopStateDto(
+                item.ShopItemId,
+                item.ItemId,
+                item.PriceType,
+                item.PriceAmount,
+                item.LimitDaily,
+                purchasedToday,
+                remainingDaily,
+                history?.UpdatedAt.ToUnixTimeMilliseconds() ?? 0));
+        }
+
+        return states;
     }
 
     public async Task<CatUpgradeResponse?> UpgradeCatAsync(Guid playerId, CatUpgradeRequest request, CancellationToken cancellationToken)

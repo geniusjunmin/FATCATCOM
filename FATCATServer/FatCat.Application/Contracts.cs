@@ -77,6 +77,16 @@ public sealed record ShopPurchaseResponse(
     double ResearchPointBalance,
     long ServerTime);
 
+public sealed record ShopStateDto(
+    string ShopItemId,
+    string ItemId,
+    string PriceType,
+    int PriceAmount,
+    int LimitDaily,
+    int PurchasedToday,
+    int RemainingDaily,
+    long UpdatedAt);
+
 public sealed record CatUpgradeRequest(string CatId);
 
 public sealed record CatUpgradeResponse(
