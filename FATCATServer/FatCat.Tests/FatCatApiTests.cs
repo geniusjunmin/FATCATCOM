@@ -123,6 +123,46 @@ public sealed class FatCatApiTests
     }
 
     [Fact]
+    public async Task AddFriend_CreatesRealPlayerFriendContract()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-real-friend-a",
+            companyName = "Alpha Cafe",
+        });
+        var targetResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-real-friend-b",
+            companyName = "Beta Beans",
+        });
+        var playerId = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+        var targetId = JsonDocument.Parse(await targetResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+
+        var add = await client.PostAsJsonAsync($"/api/friends/add?playerId={playerId}", new
+        {
+            friendPlayerId = targetId.ToString("N"),
+        });
+        var addData = JsonDocument.Parse(await add.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var friends = await client.GetAsync($"/api/friends?playerId={playerId}");
+        var friendData = JsonDocument.Parse(await friends.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var leaderboard = await client.GetAsync($"/api/leaderboard?playerId={playerId}&boardId=income");
+        var leaderboardEntries = JsonDocument.Parse(await leaderboard.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("entries");
+
+        Assert.Equal(HttpStatusCode.OK, add.StatusCode);
+        Assert.Equal($"player:{targetId:N}", addData.GetProperty("id").GetString());
+        Assert.Equal("Beta Beans", addData.GetProperty("name").GetString());
+        Assert.True(addData.GetProperty("incomePerSecond").GetInt32() > 0);
+        Assert.Equal(HttpStatusCode.OK, friends.StatusCode);
+        Assert.Equal(4, friendData.GetArrayLength());
+        Assert.Contains(friendData.EnumerateArray(), friend => friend.GetProperty("id").GetString() == $"player:{targetId:N}");
+        Assert.Equal(HttpStatusCode.OK, leaderboard.StatusCode);
+        Assert.Contains(leaderboardEntries.EnumerateArray(), entry => entry.GetProperty("playerId").GetString() == $"player:{targetId:N}");
+    }
+
+    [Fact]
     public async Task ClaimMail_UpdatesAuthoritativeResources()
     {
         await using var factory = new FatCatApiFactory();

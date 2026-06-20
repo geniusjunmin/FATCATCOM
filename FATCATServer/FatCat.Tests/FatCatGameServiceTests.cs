@@ -444,6 +444,32 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task AddFriendAsync_CreatesRealPlayerFriendSnapshot()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var player = await service.AuthGuestAsync(new AuthGuestRequest("real-friend-a", "Alpha Cafe"), CancellationToken.None);
+        var target = await service.AuthGuestAsync(new AuthGuestRequest("real-friend-b", "Beta Beans"), CancellationToken.None);
+
+        var added = await service.AddFriendAsync(player.PlayerId, new AddFriendRequest(target.PlayerId.ToString("N")), CancellationToken.None);
+        var duplicate = await service.AddFriendAsync(player.PlayerId, new AddFriendRequest(target.PlayerId.ToString()), CancellationToken.None);
+        var self = await service.AddFriendAsync(player.PlayerId, new AddFriendRequest(player.PlayerId.ToString("N")), CancellationToken.None);
+        var friends = await service.GetFriendsAsync(player.PlayerId, CancellationToken.None);
+        var leaderboard = await service.GetLeaderboardAsync(player.PlayerId, "income", CancellationToken.None);
+
+        Assert.NotNull(added);
+        Assert.Equal($"player:{target.PlayerId:N}", added!.Id);
+        Assert.Equal("Beta Beans", added.Name);
+        Assert.True(added.IncomePerSecond > 0);
+        Assert.NotNull(duplicate);
+        Assert.Null(self);
+        Assert.Equal(4, friends.Count);
+        Assert.Single(friends, friend => friend.Id == $"player:{target.PlayerId:N}");
+        Assert.NotNull(leaderboard);
+        Assert.Contains(leaderboard!.Entries, entry => entry.PlayerId == $"player:{target.PlayerId:N}");
+    }
+
+    [Fact]
     public void PreviewProduction_CalculatesNetIncomeAndBuildingBreakdown()
     {
         using var dbContext = CreateDbContext();

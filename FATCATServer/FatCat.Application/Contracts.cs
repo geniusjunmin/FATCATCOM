@@ -224,6 +224,8 @@ public sealed record FriendDto(
     long? LastVisitedAt,
     long? LastGiftAt);
 
+public sealed record AddFriendRequest(string FriendPlayerId);
+
 public sealed record LeaderboardEntryDto(
     string PlayerId,
     string CompanyName,

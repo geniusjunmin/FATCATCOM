@@ -72,6 +72,8 @@ node tools\check-balance-effect-coverage.js
 node tools\check-client-catalog-metadata-consumption.js
 node tools\check-shop-state-contract.js
 node tools\check-friend-sync-contract.js
+node tools\check-real-friend-contract.js
+node tools\check-real-friend-online.js
 node tools\check-leaderboard-contract.js
 ```
 
@@ -116,6 +118,8 @@ Server:
 - `tools/check-client-catalog-metadata-consumption.js`
 - `tools/check-shop-state-contract.js`
 - `tools/check-friend-sync-contract.js`
+- `tools/check-real-friend-contract.js`
+- `tools/check-real-friend-online.js`
 - `tools/check-leaderboard-contract.js`
 - `tools/quick-verify.ps1`
 
@@ -144,9 +148,13 @@ Client:
 - `tools/check-shop-state-contract.js` is part of `tools/quick-verify.ps1` and guards the route, DTOs, client API, sync fetch, and remaining-daily purchase path.
 - `/api/friends` is consumed by the DOM friend panel. `SyncManager.fetchServerFriends()` runs after login/save sync, and visit/gift buttons call `SyncManager.visitServerFriend()` / `SyncManager.sendServerFriendGift()` in online mode.
 - `tools/check-friend-sync-contract.js` is part of `tools/quick-verify.ps1` and guards friend API methods, friend panel server rendering, online action routing, and API coverage.
+- `/api/friends/add` creates a real-player friend snapshot from another player's id. Real friend keys use `player:{guidN}`. Duplicate adds return the existing snapshot; self-add and unknown ids fail.
+- The DOM friend panel has an `添加好友` action that prompts for another player's id and calls `SyncManager.addServerFriend()`. It is functional for dev/multiplayer testing, but should eventually become a nicer invite/search flow.
+- Real-player friend snapshots refresh name, level, and income from the target player during friend-list and leaderboard reads.
+- `tools/check-real-friend-contract.js` is part of `tools/quick-verify.ps1`; `tools/check-real-friend-online.js` starts the built API and verifies real add, duplicate add, self-add rejection, friend list inclusion, and leaderboard inclusion.
 - `/api/leaderboard` returns a server-backed income leaderboard. It currently combines the current player's server-derived net production with seeded friend snapshots, returns ranked entries and the player's own row, and is consumed by the DOM friend panel through `SyncManager.fetchServerLeaderboard()`.
 - `tools/check-leaderboard-contract.js` is part of `tools/quick-verify.ps1` and guards leaderboard DTOs, route/service, client API/types/sync fetch, friend-panel rendering, and service/API coverage.
-- The next social-server step should replace or augment seeded friend snapshots with real player relation records and richer social activity/history.
+- The next social-server step should add richer social activity/history and eventually a dedicated relation table/invite code layer instead of the temporary player-id prompt.
 - Cat upgrade, cat feed, and cat unlock now follow that pattern in the DOM cat overlay.
 - Server login and save sync now fetch `/api/cats`; `CatManager.applyServerSnapshot()` applies server cat unlocked state, level, and weight into the local save.
 - `/api/cats` now returns the full configured cat catalog with locked defaults and saved player state overlaid. It includes `assignedBuildingId`, equipment, equipment levels, rarity, role, base production, base bean cost, base salary, base weight, and skill id.

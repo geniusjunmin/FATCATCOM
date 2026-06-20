@@ -944,11 +944,54 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         }
 
         await EnsureDefaultFriendsAsync(playerId, cancellationToken);
+        await RefreshRealFriendSnapshotsAsync(playerId, cancellationToken);
         var friends = await repository.GetFriendsAsync(playerId, cancellationToken);
         return friends
             .OrderByDescending(friend => friend.IncomePerSecond)
             .Select(ToFriendDto)
             .ToArray();
+    }
+
+    public async Task<FriendDto?> AddFriendAsync(Guid playerId, AddFriendRequest request, CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        if (!TryParsePlayerId(request.FriendPlayerId, out var friendPlayerId) || friendPlayerId == playerId)
+        {
+            return null;
+        }
+
+        var friendPlayer = await repository.FindPlayerByIdAsync(friendPlayerId, cancellationToken);
+        if (friendPlayer is null)
+        {
+            return null;
+        }
+
+        await EnsureDefaultFriendsAsync(playerId, cancellationToken);
+        var friendKey = CreateRealFriendKey(friendPlayer.Id);
+        var existing = await repository.GetFriendAsync(playerId, friendKey, cancellationToken);
+        if (existing is not null)
+        {
+            await RefreshFriendSnapshotFromPlayerAsync(existing, friendPlayer, cancellationToken);
+            await repository.SaveChangesAsync(cancellationToken);
+            return ToFriendDto(existing);
+        }
+
+        var preview = await PreviewServerProductionAsync(friendPlayer.Id, cancellationToken);
+        var friend = new FriendSnapshot
+        {
+            PlayerId = playerId,
+            FriendKey = friendKey,
+            Name = friendPlayer.CompanyName,
+            Level = friendPlayer.Level,
+            IncomePerSecond = (int)Math.Floor(Math.Max(0, preview?.NetCoinPerSecond ?? 0)),
+        };
+        await repository.AddFriendAsync(friend, cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
+        return ToFriendDto(friend);
     }
 
     public async Task<FriendDto?> VisitFriendAsync(Guid playerId, string friendId, CancellationToken cancellationToken)
@@ -989,6 +1032,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
 
         var normalizedBoardId = NormalizeLeaderboardBoardId(boardId);
         await EnsureDefaultFriendsAsync(playerId, cancellationToken);
+        await RefreshRealFriendSnapshotsAsync(playerId, cancellationToken);
         var friends = await repository.GetFriendsAsync(playerId, cancellationToken);
         var selfPreview = await PreviewServerProductionAsync(playerId, cancellationToken);
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -1731,6 +1775,44 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         return settings;
     }
 
+    private async Task RefreshRealFriendSnapshotsAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        var friends = await repository.GetFriendsAsync(playerId, cancellationToken);
+        var realFriendIds = friends
+            .Select(friend => TryGetRealFriendPlayerId(friend.FriendKey, out var friendPlayerId) ? friendPlayerId : Guid.Empty)
+            .Where(friendPlayerId => friendPlayerId != Guid.Empty)
+            .Distinct()
+            .ToArray();
+        if (realFriendIds.Length <= 0)
+        {
+            return;
+        }
+
+        var players = await repository.FindPlayersByIdsAsync(realFriendIds, cancellationToken);
+        foreach (var friend in friends)
+        {
+            if (!TryGetRealFriendPlayerId(friend.FriendKey, out var friendPlayerId))
+            {
+                continue;
+            }
+
+            var player = players.FirstOrDefault(item => item.Id == friendPlayerId);
+            if (player is not null)
+            {
+                await RefreshFriendSnapshotFromPlayerAsync(friend, player, cancellationToken);
+            }
+        }
+        await repository.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task RefreshFriendSnapshotFromPlayerAsync(FriendSnapshot friend, PlayerProfile player, CancellationToken cancellationToken)
+    {
+        var preview = await PreviewServerProductionAsync(player.Id, cancellationToken);
+        friend.Name = player.CompanyName;
+        friend.Level = player.Level;
+        friend.IncomePerSecond = (int)Math.Floor(Math.Max(0, preview?.NetCoinPerSecond ?? 0));
+    }
+
     private static MailDto ToMailDto(PlayerMail mail)
     {
         return new MailDto(
@@ -1760,6 +1842,28 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         return string.Equals(boardId?.Trim(), "income", StringComparison.OrdinalIgnoreCase)
             ? "income"
             : "income";
+    }
+
+    private static bool TryParsePlayerId(string? value, out Guid playerId)
+    {
+        if (Guid.TryParse(value, out playerId))
+        {
+            return true;
+        }
+
+        return Guid.TryParseExact(value?.Trim(), "N", out playerId);
+    }
+
+    private static string CreateRealFriendKey(Guid playerId)
+    {
+        return $"player:{playerId:N}";
+    }
+
+    private static bool TryGetRealFriendPlayerId(string friendKey, out Guid playerId)
+    {
+        playerId = Guid.Empty;
+        return friendKey.StartsWith("player:", StringComparison.Ordinal)
+            && Guid.TryParseExact(friendKey["player:".Length..], "N", out playerId);
     }
 
     private static SettingsDto ToSettingsDto(PlayerSettings settings)

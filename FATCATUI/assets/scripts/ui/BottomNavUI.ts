@@ -1188,6 +1188,9 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay .leaderboard-row b { color:#fff6d8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-panel-overlay .leaderboard-row em { justify-self:end; font-style:normal; font-weight:900; color:#9fdb69; }
             #fatcat-dom-panel-overlay .leaderboard-row.self { background:rgba(133,184,77,.18); border-radius:8px; padding:0 2%; }
+            #fatcat-dom-panel-overlay .friend-tools { display:flex; align-items:center; justify-content:space-between; gap:2%; margin:0 0 2%; padding:1.6% 2.2%; border-radius:999px; background:rgba(75,49,32,.88); color:#ffe2a8; font-size:1.95%; font-weight:900; box-shadow:inset 0 0 0 2px rgba(255,226,170,.12), 0 2px 0 rgba(72,43,25,.22); }
+            #fatcat-dom-panel-overlay .friend-tools span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .friend-tools .tag { margin:0; flex:0 0 auto; }
             #fatcat-dom-panel-overlay .setting-row { display:grid; grid-template-columns:1fr 24%; gap:2%; align-items:center; }
             #fatcat-dom-panel-overlay .settings-shell .feature-card { min-height:84px; padding:2.2%; }
             #fatcat-dom-panel-overlay .settings-shell .setting-row { min-height:64px; }
@@ -1398,6 +1401,20 @@ export class BottomNavUI extends Component {
                 });
                 success = true;
             }
+        } else if (action === "addFriend") {
+            const friendPlayerId = typeof window !== "undefined"
+                ? window.prompt("输入对方玩家 ID")
+                : "";
+            const serverFriend = friendPlayerId
+                ? await SyncManager.addServerFriend(friendPlayerId.trim())
+                : null;
+            if (serverFriend) {
+                this.applyServerFriendSnapshot(serverFriend);
+                this._domPanelMessage = `Friend added: ${serverFriend.name}.`;
+                success = true;
+            } else {
+                this._domPanelMessage = NetworkManager.canUseServer ? "Friend add failed." : "Connect server before adding friends.";
+            }
         } else if (action === "toggleSetting") {
             SaveManager.update(data => {
                 const current = data.featureState.settings[id] ?? this.getDefaultSettingValue(id);
@@ -1570,12 +1587,16 @@ export class BottomNavUI extends Component {
     private renderFriendPanel(): string {
         const friends = this.getFriendPanelRows();
         const sourceLabel = this._serverFriends.length > 0 ? "服务端快照" : "本地预览";
+        const network = NetworkManager.getStatus();
+        const playerId = network.playerId ? network.playerId.replace(/-/g, "") : "未连接";
+        const playerHint = playerId === "未连接" ? playerId : `${playerId.slice(0, 8)}...${playerId.slice(-6)}`;
+        const friendTools = `<div class="friend-tools"><span>我的ID：${playerHint}</span><button class="tag" data-action="addFriend">添加好友</button></div>`;
         const rows = friends.map(friend => {
             const lastVisit = this.getFeatureTimestamp("friendVisits", friend.id);
             const lastGift = this.getFeatureTimestamp("friendGifts", friend.id);
             return `<div class="feature-card with-icon"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>${friend.name}</b><br>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒<br><span class="focus-tag">${friend.status}</span><span class="focus-tag">${lastVisit ? `已访问 ${lastVisit}` : "未访问"}</span><span class="focus-tag">${lastGift ? `已送礼 ${lastGift}` : "可送礼"}</span></div><div><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问</button><br><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再送" : "送礼"}</button></div></div>`;
         }).join("");
-        return `<div class="panel-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabel}：联网时访问和送礼会同步到 .NET 服务端。</div><span class="feature-badge">好友<br>${friends.length}</span></div>${this.renderLeaderboardPreview()}<div class="feature-list">${rows}</div></div>`;
+        return `<div class="panel-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabel}：联网时访问和送礼会同步到 .NET 服务端。</div><span class="feature-badge">好友<br>${friends.length}</span></div>${friendTools}${this.renderLeaderboardPreview()}<div class="feature-list">${rows}</div></div>`;
     }
 
     private getFriendPanelRows(): Array<{ id: string; name: string; level: number; income: number; status: string }> {

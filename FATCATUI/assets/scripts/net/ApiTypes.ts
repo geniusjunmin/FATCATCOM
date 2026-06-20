@@ -232,6 +232,10 @@ export type FriendDto = {
     lastGiftAt?: number;
 };
 
+export type AddFriendRequest = {
+    friendPlayerId: string;
+};
+
 export type LeaderboardEntryDto = {
     playerId: string;
     companyName: string;

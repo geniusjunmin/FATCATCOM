@@ -352,6 +352,18 @@ app.MapPost("/api/friends/{friendId}/gift", async (
         : Results.Ok(ApiEnvelope<FriendDto>.Success(result));
 });
 
+app.MapPost("/api/friends/add", async (
+    Guid playerId,
+    AddFriendRequest request,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.AddFriendAsync(playerId, request, cancellationToken);
+    return result is null
+        ? Results.BadRequest(ApiEnvelope<FriendDto>.Fail("friend_add_failed"))
+        : Results.Ok(ApiEnvelope<FriendDto>.Success(result));
+});
+
 app.MapGet("/api/leaderboard", async (
     Guid playerId,
     string? boardId,

@@ -16,6 +16,13 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         return dbContext.Players.FirstOrDefaultAsync(player => player.Id == playerId, cancellationToken);
     }
 
+    public Task<List<PlayerProfile>> FindPlayersByIdsAsync(IReadOnlyCollection<Guid> playerIds, CancellationToken cancellationToken)
+    {
+        return dbContext.Players
+            .Where(player => playerIds.Contains(player.Id))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddPlayerAsync(PlayerProfile player, CancellationToken cancellationToken)
     {
         await dbContext.Players.AddAsync(player, cancellationToken);

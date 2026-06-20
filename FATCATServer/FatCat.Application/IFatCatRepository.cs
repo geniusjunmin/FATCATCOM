@@ -6,6 +6,7 @@ public interface IFatCatRepository
 {
     Task<PlayerProfile?> FindPlayerByDeviceIdAsync(string deviceId, CancellationToken cancellationToken);
     Task<PlayerProfile?> FindPlayerByIdAsync(Guid playerId, CancellationToken cancellationToken);
+    Task<List<PlayerProfile>> FindPlayersByIdsAsync(IReadOnlyCollection<Guid> playerIds, CancellationToken cancellationToken);
     Task AddPlayerAsync(PlayerProfile player, CancellationToken cancellationToken);
     Task SaveSnapshotAsync(PlayerSaveSnapshot snapshot, CancellationToken cancellationToken);
     Task<PlayerSaveSnapshot?> GetLatestSnapshotAsync(Guid playerId, CancellationToken cancellationToken);
