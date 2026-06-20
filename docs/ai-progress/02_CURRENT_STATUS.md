@@ -114,6 +114,8 @@ Client/server building sync:
 
 Latest verified checks:
 
+- 2026-06-20 repository handoff check: root Git repository initialized on `main`, remote `origin` configured as `https://github.com/geniusjunmin/FATCATCOM.git`, initial import `f818a2e` pushed to GitHub. Root `.gitignore` excludes local archives, dependencies, build caches, local databases, and generated regression captures.
+
 - `dotnet test FATCATServer\FATCATServer.sln --no-restore`: 48/48 passed.
 - `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`: passed; includes client TS, generated server balance, config drift, effect coverage, client catalog metadata consumption, and 48 server tests.
 - `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`: passed.

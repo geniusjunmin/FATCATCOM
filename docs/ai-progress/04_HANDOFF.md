@@ -126,8 +126,10 @@ Client:
 
 ## Caveats
 
-- `D:\Desktop\FATCATCOM` and `FATCATServer` are not git repositories.
-- `FATCATUI` shows many untracked files as a historical project state. Do not clean or revert them casually.
+- `D:\Desktop\FATCATCOM` is now the root Git repository. Remote `origin` points to `https://github.com/geniusjunmin/FATCATCOM.git`, and `main` tracks `origin/main`.
+- The initial GitHub import was pushed on 2026-06-20. Commit `f818a2e` contains the client, server, docs, tools, target UI reference images, and generated in-game assets.
+- Historical nested Git metadata was moved non-destructively to `FATCATUI/.git.embedded-backup/` and `FATCATUI/extensions/cocos-mcp-server/.git.embedded-backup/`. These backup directories are ignored by the root repository; do not delete them unless the project owner confirms they are no longer needed.
+- Large/generated local files are intentionally ignored: `FATCATCOM.rar`, `old/`, root Playwright capture PNGs, `node_modules/`, Cocos `library/temp/build/local/profiles/native`, .NET `bin/obj`, local `*.db*`, and regression screenshots.
 - Do not delete archived logs. Use `archive-2026-06-14/` when historical detail is needed.
 - For economic actions, prefer the established pattern: server validates, server spends resources, server records a transaction, server returns balances, frontend applies the returned snapshot.
 - Cat upgrade, cat feed, and cat unlock now follow that pattern in the DOM cat overlay.
