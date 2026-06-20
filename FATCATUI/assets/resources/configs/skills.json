@@ -1,0 +1,37 @@
+[
+  {
+    "id": "s_001",
+    "name": "橘色风暴",
+    "description": "自身产量提升 20%",
+    "type": "production_boost",
+    "value": 20
+  },
+  {
+    "id": "s_002",
+    "name": "精准投篮",
+    "description": "自身金币产量提升 50%",
+    "type": "production_boost",
+    "value": 50
+  },
+  {
+    "id": "s_003",
+    "name": "洁癖",
+    "description": "咖啡豆消耗降低 30%",
+    "type": "bean_saver",
+    "value": 30
+  },
+  {
+    "id": "s_004",
+    "name": "领袖魅力",
+    "description": "同楼层所有猫咪产量提升 10%",
+    "type": "team_buff",
+    "value": 10
+  },
+  {
+    "id": "s_005",
+    "name": "警报",
+    "description": "自身金币产量提升 15%",
+    "type": "production_boost",
+    "value": 15
+  }
+]

@@ -1,0 +1,66 @@
+@FatCat.Api_HostAddress = http://localhost:5144
+
+GET {{FatCat.Api_HostAddress}}/health
+Accept: application/json
+
+###
+
+POST {{FatCat.Api_HostAddress}}/api/auth/guest
+Content-Type: application/json
+
+{
+  "deviceId": "fatcat-local-device",
+  "companyName": "肥猫咖啡公司"
+}
+
+###
+
+GET {{FatCat.Api_HostAddress}}/api/config/bootstrap
+Accept: application/json
+
+###
+
+GET {{FatCat.Api_HostAddress}}/api/mail?playerId=00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+###
+
+POST {{FatCat.Api_HostAddress}}/api/mail/welcome/claim?playerId=00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+###
+
+GET {{FatCat.Api_HostAddress}}/api/friends?playerId=00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+###
+
+POST {{FatCat.Api_HostAddress}}/api/settings?playerId=00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+
+{
+  "settings": {
+    "music": true,
+    "sfx": true,
+    "push": false,
+    "sync": true
+  }
+}
+
+###
+
+POST {{FatCat.Api_HostAddress}}/api/save/sync?playerId=00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+
+{
+  "clientVersion": 1,
+  "localUpdatedAt": 0,
+  "save": {
+    "version": 1,
+    "player": {
+      "companyName": "肥猫咖啡公司"
+    }
+  }
+}
+
+###

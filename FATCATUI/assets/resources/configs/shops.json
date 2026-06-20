@@ -1,0 +1,26 @@
+[
+  {
+    "id": "shop_cat_food_1",
+    "itemId": "item_cat_food_pack",
+    "category": "resource",
+    "priceType": "coin",
+    "priceAmount": 500,
+    "limitDaily": 5
+  },
+  {
+    "id": "shop_coin_pack_1",
+    "itemId": "item_coin_pack_small",
+    "category": "resource",
+    "priceType": "diamond",
+    "priceAmount": 10,
+    "limitDaily": 10
+  },
+  {
+    "id": "shop_shard_orange_1",
+    "itemId": "item_shard_orange",
+    "category": "item",
+    "priceType": "coin",
+    "priceAmount": 2000,
+    "limitDaily": 1
+  }
+]

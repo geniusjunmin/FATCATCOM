@@ -1,0 +1,38 @@
+{
+  "package_version": 2,
+  "version": "0.1.0",
+  "name": "fatcat-tools",
+  "description": "肥猫咖啡公司项目自动化工具",
+  "author": "Codex",
+  "main": "./dist/main.js",
+  "editor": ">=3.8.0",
+  "contributions": {
+    "menu": [
+      {
+        "path": "肥猫工具",
+        "label": "搭建当前场景灰盒",
+        "message": "setup-main-greybox"
+      },
+      {
+        "path": "肥猫工具",
+        "label": "打印使用说明",
+        "message": "print-guide"
+      }
+    ],
+    "messages": {
+      "setup-main-greybox": {
+        "methods": [
+          "setupMainGreybox"
+        ]
+      },
+      "print-guide": {
+        "methods": [
+          "printGuide"
+        ]
+      }
+    },
+    "scene": {
+      "script": "./dist/scene.js"
+    }
+  }
+}

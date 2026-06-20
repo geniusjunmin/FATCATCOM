@@ -1,0 +1,251 @@
+{
+  "researchDefinitions": {
+    "res_basic_prod": {
+      "researchId": "res_basic_prod",
+      "cost": 100,
+      "effectType": "coin_production_mult",
+      "effectValue": 10,
+      "parentResearchId": null
+    },
+    "res_bean_save": {
+      "researchId": "res_bean_save",
+      "cost": 150,
+      "effectType": "bean_reduce",
+      "effectValue": 5,
+      "parentResearchId": "res_basic_prod"
+    },
+    "res_cheap_upgrade": {
+      "researchId": "res_cheap_upgrade",
+      "cost": 200,
+      "effectType": "upgrade_cost_reduce",
+      "effectValue": 5,
+      "parentResearchId": "res_basic_prod"
+    }
+  },
+  "equipmentDefinitions": {
+    "equip_collar_green": {
+      "itemId": "equip_collar_green",
+      "slot": "collar",
+      "maxLevel": 5,
+      "upgradeCost": 80,
+      "effects": [
+        {
+          "type": "materialOutput",
+          "baseValue": 15,
+          "perLevel": 1
+        }
+      ]
+    },
+    "equip_collar_gold": {
+      "itemId": "equip_collar_gold",
+      "slot": "collar",
+      "maxLevel": 8,
+      "upgradeCost": 180,
+      "effects": [
+        {
+          "type": "mood",
+          "baseValue": 8,
+          "perLevel": 1
+        }
+      ]
+    },
+    "equip_cup_lucky": {
+      "itemId": "equip_cup_lucky",
+      "slot": "cup",
+      "maxLevel": 5,
+      "upgradeCost": 90,
+      "effects": [
+        {
+          "type": "catFoodCost",
+          "baseValue": -5,
+          "perLevel": -1
+        }
+      ]
+    },
+    "equip_cup_bean": {
+      "itemId": "equip_cup_bean",
+      "slot": "cup",
+      "maxLevel": 8,
+      "upgradeCost": 200,
+      "effects": [
+        {
+          "type": "materialOutput",
+          "baseValue": 10,
+          "perLevel": 2
+        }
+      ]
+    },
+    "equip_cushion_soft": {
+      "itemId": "equip_cushion_soft",
+      "slot": "cushion",
+      "maxLevel": 5,
+      "upgradeCost": 100,
+      "effects": [
+        {
+          "type": "mood",
+          "baseValue": 10,
+          "perLevel": 1
+        }
+      ]
+    },
+    "equip_cushion_sleepy": {
+      "itemId": "equip_cushion_sleepy",
+      "slot": "cushion",
+      "maxLevel": 8,
+      "upgradeCost": 220,
+      "effects": [
+        {
+          "type": "wageCost",
+          "baseValue": -5,
+          "perLevel": -1
+        }
+      ]
+    }
+  },
+  "defaultEquipment": {
+    "collar": "equip_collar_green",
+    "cup": "equip_cup_lucky",
+    "cushion": "equip_cushion_soft"
+  },
+  "buildingDefinitions": {
+    "building_storage_b1": {
+      "buildingId": "building_storage_b1",
+      "floor": "B1",
+      "level": 4,
+      "maxLevel": 50,
+      "effectType": "bean_capacity",
+      "baseValue": 1000,
+      "valuePerLevel": 50,
+      "costBase": 12000
+    },
+    "building_cafe_1f": {
+      "buildingId": "building_cafe_1f",
+      "floor": "1F",
+      "level": 6,
+      "maxLevel": 50,
+      "effectType": "order_coin",
+      "baseValue": 180,
+      "valuePerLevel": 10,
+      "costBase": 26000
+    },
+    "building_material_2f": {
+      "buildingId": "building_material_2f",
+      "floor": "2F",
+      "level": 7,
+      "maxLevel": 50,
+      "effectType": "base_production",
+      "baseValue": 45,
+      "valuePerLevel": 5,
+      "costBase": 46000
+    },
+    "building_ferment_3f": {
+      "buildingId": "building_ferment_3f",
+      "floor": "3F",
+      "level": 6,
+      "maxLevel": 50,
+      "effectType": "ferment_efficiency",
+      "baseValue": -8,
+      "valuePerLevel": -2,
+      "costBase": 66000
+    },
+    "building_roast_4f": {
+      "buildingId": "building_roast_4f",
+      "floor": "4F",
+      "level": 8,
+      "maxLevel": 50,
+      "effectType": "coffee_price",
+      "baseValue": 80,
+      "valuePerLevel": 5,
+      "costBase": 98000
+    },
+    "building_office_5f": {
+      "buildingId": "building_office_5f",
+      "floor": "5F",
+      "level": 5,
+      "maxLevel": 50,
+      "effectType": "salary_reduce",
+      "baseValue": 10,
+      "valuePerLevel": 1,
+      "costBase": 128000
+    }
+  },
+  "catDefinitions": {
+    "c_001": {
+      "catId": "c_001",
+      "rarity": "B",
+      "role": "producer",
+      "baseProduction": 10,
+      "baseBeanCost": 5,
+      "baseSalary": 1,
+      "baseWeight": 20,
+      "skillId": "s_001"
+    },
+    "c_002": {
+      "catId": "c_002",
+      "rarity": "A",
+      "role": "launcher",
+      "baseProduction": 15,
+      "baseBeanCost": 8,
+      "baseSalary": 2,
+      "baseWeight": 15,
+      "skillId": "s_002"
+    },
+    "c_003": {
+      "catId": "c_003",
+      "rarity": "A",
+      "role": "saver",
+      "baseProduction": 8,
+      "baseBeanCost": 3,
+      "baseSalary": 5,
+      "baseWeight": 18,
+      "skillId": "s_003"
+    },
+    "c_004": {
+      "catId": "c_004",
+      "rarity": "S",
+      "role": "producer",
+      "baseProduction": 30,
+      "baseBeanCost": 12,
+      "baseSalary": 10,
+      "baseWeight": 25,
+      "skillId": "s_004"
+    },
+    "c_005": {
+      "catId": "c_005",
+      "rarity": "B",
+      "role": "support",
+      "baseProduction": 12,
+      "baseBeanCost": 6,
+      "baseSalary": 1,
+      "baseWeight": 22,
+      "skillId": "s_005"
+    }
+  },
+  "skillDefinitions": {
+    "s_001": {
+      "skillId": "s_001",
+      "type": "production_boost",
+      "value": 20
+    },
+    "s_002": {
+      "skillId": "s_002",
+      "type": "production_boost",
+      "value": 50
+    },
+    "s_003": {
+      "skillId": "s_003",
+      "type": "bean_saver",
+      "value": 30
+    },
+    "s_004": {
+      "skillId": "s_004",
+      "type": "team_buff",
+      "value": 10
+    },
+    "s_005": {
+      "skillId": "s_005",
+      "type": "production_boost",
+      "value": 15
+    }
+  }
+}

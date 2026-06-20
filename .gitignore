@@ -1,0 +1,42 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local archives and temporary captures
+FATCATCOM.rar
+old/
+pw-cat-click*.png
+verification-*.png
+
+# Node dependencies
+node_modules/
+**/node_modules/
+
+# Cocos Creator generated folders
+FATCATUI/library/
+FATCATUI/temp/
+FATCATUI/local/
+FATCATUI/build/
+FATCATUI/profiles/
+FATCATUI/native/
+
+# Cocos extension generated output
+FATCATUI/extensions/cocos-mcp-server/dist/
+
+# .NET generated output and local databases
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo
+*.db
+*.db-shm
+*.db-wal
+
+# Local regression artifacts
+docs/verification/screenshots/
+
+# Nested repository backups kept locally while the root repository tracks sources.
+**/.git.embedded-backup/

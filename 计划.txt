@@ -1,0 +1,794 @@
+下面是一份基于当前所有界面图的**可直接交给 Codex 全自动开发的详细开发计划**。
+
+# 《肥猫咖啡公司》完整开发计划
+
+## 一、最终游戏形态
+
+游戏类型：
+
+**竖屏手机游戏 / 放置经营 / 猫咪收集 / 工厂升级 / 轻弹射互动**
+
+核心体验：
+
+玩家经营一栋多层“肥猫咖啡工厂”，招聘不同猫咪，让猫咪消耗咖啡豆生产猫屎咖啡，通过升级建筑、装备猫咪、研究科技、购买道具提升收益，并把胖猫弹射到好友工厂偷资源。
+
+---
+
+# 二、推荐技术路线
+
+## 首选方案：Cocos Creator 3.x
+
+更适合这个项目，因为：
+
+* 竖屏 2D UI 游戏非常合适
+* APK / iOS / Web 都容易导出
+* UI 复刻成本低
+* Codex 写 TypeScript 组件比较稳定
+* 比 Three.js 更适合大量按钮、弹窗、面板、资源系统
+
+## 备选方案：Three.js
+
+适合做更强的 2.5D 建筑表现，但 UI 系统要自己搭很多，开发成本更高。
+
+## 最终建议
+
+**用 Cocos Creator 3.x + TypeScript 开发。**
+
+---
+
+# 三、项目目录结构
+
+```text
+assets/
+  scenes/
+    Main.scene
+    Launch.scene
+
+  scripts/
+    core/
+      GameApp.ts
+      GameConfig.ts
+      EventBus.ts
+      TimerService.ts
+
+    data/
+      CatConfig.ts
+      BuildingConfig.ts
+      ItemConfig.ts
+      ResearchConfig.ts
+      ShopConfig.ts
+
+    model/
+      PlayerModel.ts
+      ResourceModel.ts
+      CatModel.ts
+      BuildingModel.ts
+      ItemModel.ts
+      ResearchModel.ts
+      FriendModel.ts
+
+    manager/
+      ResourceManager.ts
+      CatManager.ts
+      BuildingManager.ts
+      ProductionManager.ts
+      ShopManager.ts
+      InventoryManager.ts
+      ResearchManager.ts
+      SaveManager.ts
+      LaunchManager.ts
+      FriendManager.ts
+
+    ui/
+      MainUI.ts
+      TopBarUI.ts
+      BottomNavUI.ts
+      FactoryView.ts
+      CatDetailPanel.ts
+      BuildingDetailPanel.ts
+      ShopPanel.ts
+      InventoryPanel.ts
+      ResearchPanel.ts
+      LaunchPanel.ts
+      PopupManager.ts
+
+    components/
+      CatActor.ts
+      BuildingFloor.ts
+      ResourceCounter.ts
+      UpgradeButton.ts
+      ItemCard.ts
+      CatCard.ts
+      ResearchNode.ts
+
+  prefabs/
+    ui/
+    cats/
+    buildings/
+    items/
+    effects/
+
+  textures/
+    ui/
+    cats/
+    factory/
+    icons/
+    backgrounds/
+
+  resources/
+    configs/
+```
+
+---
+
+# 四、核心界面拆解
+
+## 1. 主工厂界面
+
+对应竖版主界面。
+
+### 必须包含
+
+* 顶部资源栏
+
+  * 金币
+  * 咖啡豆
+  * 猫粮
+  * 钻石
+* 左上角玩家等级
+* 中间多层猫咖工厂
+* 每层显示：
+
+  * 楼层编号
+  * 建筑名称
+  * 建筑等级
+  * 当前收益
+  * 加成说明
+* 左右快捷按钮：
+
+  * 任务
+  * 成就
+  * 邮件
+  * 好友
+  * 设置
+* 底部导航：
+
+  * 工厂
+  * 猫咪
+  * 建筑
+  * 商店
+  * 背包
+  * 研究
+* 底部中央大按钮：
+
+  * 发射猫咪
+
+### Codex 任务
+
+```text
+实现 MainUI 主界面。
+要求：
+1. 竖屏 1080x1920 适配。
+2. 顶部资源栏固定。
+3. 中间工厂区域支持纵向滚动。
+4. 每层楼为 BuildingFloor 组件。
+5. 底部导航切换不同面板。
+6. 发射猫咪按钮进入 Launch 场景或弹射面板。
+```
+
+---
+
+# 五、系统开发顺序
+
+## 第 1 阶段：项目基础框架
+
+目标：先让游戏能启动、能保存、能显示资源。
+
+### 开发内容
+
+* GameApp
+* EventBus
+* SaveManager
+* ResourceManager
+* PlayerModel
+* ResourceModel
+* TopBarUI
+
+### 验收标准
+
+* 进入游戏显示主界面
+* 金币、咖啡豆、猫粮、钻石正常显示
+* 点击测试按钮资源变化
+* 退出重进后资源不丢失
+
+---
+
+## 第 2 阶段：猫咪系统
+
+对应“猫咪详情界面”。
+
+### 猫咪数据
+
+```ts
+Cat {
+  id: string
+  name: string
+  rarity: "B" | "A" | "S" | "SS"
+  type: "生产型" | "省料型" | "弹射型" | "辅助型"
+  level: number
+  maxLevel: number
+  star: number
+  production: number
+  beanCost: number
+  salary: number
+  weight: number
+  mood: number
+  skillId: string
+  equipmentIds: string[]
+  skinId: string
+}
+```
+
+### 猫咪详情页功能
+
+* 猫咪大立绘
+* 稀有度
+* 等级
+* 星级
+* 产量
+* 咖啡豆消耗
+* 工资
+* 体重阶段
+* 心情
+* 技能
+* 装备
+* 猫咪故事
+* 更换猫咪
+* 升级猫咪
+* 喂猫粮
+
+### 体重阶段
+
+```text
+正常猫：产量 100%，弹射距离 100%
+胖猫：产量 130%，弹射距离 85%
+巨胖猫：产量 180%，弹射距离 60%，撞击力 150%
+```
+
+### Codex 任务
+
+```text
+实现 CatManager 和 CatDetailPanel。
+要求：
+1. 支持猫咪列表。
+2. 支持点击猫咪打开详情。
+3. 支持升级猫咪。
+4. 支持喂猫粮增加体重。
+5. 支持装备栏。
+6. 支持猫咪技能显示。
+7. 体重变化影响产量和弹射属性。
+```
+
+---
+
+## 第 3 阶段：生产系统
+
+### 生产链
+
+```text
+咖啡豆
+↓
+猫咪消耗
+↓
+猫屎原料
+↓
+发酵
+↓
+烘焙
+↓
+成品咖啡
+↓
+出售金币
+```
+
+### 简化 MVP 公式
+
+```text
+每秒收益 = 猫咪总产量 × 建筑加成 × 科技加成 × 道具加成
+```
+
+### 资源消耗
+
+```text
+每秒咖啡豆消耗 = 所有工作猫咪豆耗总和 × 减耗加成
+```
+
+### Codex 任务
+
+```text
+实现 ProductionManager。
+要求：
+1. 每秒自动结算一次。
+2. 猫咪消耗咖啡豆生产咖啡。
+3. 咖啡自动出售为金币。
+4. 咖啡豆不足时暂停生产。
+5. 主界面实时显示每层收益。
+6. 支持离线收益。
+```
+
+---
+
+## 第 4 阶段：建筑系统
+
+对应“建筑详情界面”。
+
+### 建筑列表
+
+| 建筑   | 功能       |
+| ---- | -------- |
+| 原料仓库 | 增加咖啡豆上限  |
+| 原料车间 | 增加基础生产   |
+| 发酵车间 | 增加原料转化效率 |
+| 烘焙车间 | 增加咖啡售价   |
+| 管理室  | 降低猫咪工资   |
+| 咖啡厅  | 增加订单金币   |
+| 弹射台  | 解锁弹射玩法   |
+| 防御设施 | 减少被偷资源   |
+
+### 建筑详情页
+
+* 建筑大图
+* 当前等级
+* 当前效果
+* 下一级效果
+* 升级条件
+* 升级消耗
+* 升级按钮
+
+### Codex 任务
+
+```text
+实现 BuildingManager 和 BuildingDetailPanel。
+要求：
+1. 建筑可升级。
+2. 升级消耗金币和资源。
+3. 升级后影响生产、售价、容量、工资。
+4. 主界面楼层显示随等级变化。
+5. 支持建筑外观皮肤切换。
+```
+
+---
+
+## 第 5 阶段：商店系统
+
+对应“商店详情界面”。
+
+### 商店分类
+
+* 资源商店
+* 道具商店
+* 猫咪商店
+* 装饰商店
+
+### 商品类型
+
+```text
+咖啡豆包
+高级咖啡豆包
+猫粮小包
+猫粮大袋
+钻石礼包
+生产加速器
+工资减免券
+防护罩
+猫咪碎片
+建筑皮肤
+```
+
+### Codex 任务
+
+```text
+实现 ShopManager 和 ShopPanel。
+要求：
+1. 支持分类标签。
+2. 支持金币购买。
+3. 支持钻石购买。
+4. 支持每日限购。
+5. 购买后进入资源或背包。
+6. 购买失败时弹出提示。
+```
+
+---
+
+## 第 6 阶段：背包系统
+
+对应“背包详情界面”。
+
+### 背包分类
+
+* 全部
+* 资源
+* 道具
+* 碎片
+* 装备
+* 其他
+
+### 物品操作
+
+* 查看详情
+* 使用
+* 批量使用
+* 合成猫咪碎片
+* 装备道具
+
+### Codex 任务
+
+```text
+实现 InventoryManager 和 InventoryPanel。
+要求：
+1. 显示背包物品网格。
+2. 支持分类筛选。
+3. 点击物品显示详情。
+4. 支持使用道具。
+5. 支持猫咪碎片合成。
+6. 支持装备类物品跳转猫咪详情。
+```
+
+---
+
+## 第 7 阶段：研究系统
+
+对应“研究详情界面”。
+
+### 研究分类
+
+* 生产研究
+* 经营研究
+* 猫咪研究
+* 特殊研究
+
+### 科技树示例
+
+```text
+咖啡萃取 I
+↓
+咖啡烘焙 I
+↓
+发酵技术 I
+↓
+高级萃取 II
+↓
+浓缩咖啡
+```
+
+### 研究消耗
+
+* 研究点
+* 金币
+* 咖啡豆
+* 时间
+
+### Codex 任务
+
+```text
+实现 ResearchManager 和 ResearchPanel。
+要求：
+1. 支持科技树节点显示。
+2. 支持前置科技条件。
+3. 支持研究消耗。
+4. 研究完成后提供全局加成。
+5. 支持锁定、可研究、已完成三种状态。
+```
+
+---
+
+## 第 8 阶段：弹射猫咪玩法
+
+### 玩法流程
+
+```text
+选择猫咪
+↓
+拖拽蓄力
+↓
+松开发射
+↓
+猫咪飞向好友工厂
+↓
+碰撞目标
+↓
+结算奖励
+```
+
+### 目标类型
+
+* 猫粮桶
+* 咖啡豆袋
+* 咖啡罐
+* 防御门
+* 工厂机器
+* 好友猫咪
+
+### 属性影响
+
+| 属性 | 影响       |
+| -- | -------- |
+| 体重 | 撞击力、飞行距离 |
+| 等级 | 奖励倍率     |
+| 技能 | 偷取概率     |
+| 心情 | 命中稳定性    |
+
+### Codex 任务
+
+```text
+实现 LaunchPanel 和 LaunchManager。
+要求：
+1. 支持选择猫咪。
+2. 支持拖拽蓄力。
+3. 支持抛物线预览。
+4. 猫咪按物理轨迹飞行。
+5. 碰撞不同目标产生不同奖励。
+6. 每日限制发射次数。
+```
+
+---
+
+# 六、UI 可复刻规范
+
+## 分辨率
+
+```text
+设计基准：1080 x 1920
+安全区域：顶部 120px，底部 180px
+主要内容区：1080 x 1620
+```
+
+## 色彩风格
+
+```text
+主色：咖啡棕
+辅色：奶油白
+强调色：橘黄色
+按钮色：绿色 / 橙色
+警告色：红色
+稀有度色：
+B = 蓝色
+A = 紫色
+S = 金色
+SS = 彩虹金
+```
+
+## UI 层级
+
+```text
+背景层
+工厂建筑层
+猫咪动画层
+收益浮字层
+主 UI 层
+弹窗遮罩层
+弹窗内容层
+提示层
+```
+
+## 组件复用
+
+必须拆成：
+
+```text
+ResourceCounter
+CatCard
+BuildingCard
+ItemCard
+ResearchNode
+UpgradeButton
+TabButton
+PopupPanel
+RewardToast
+```
+
+---
+
+# 七、配置表设计
+
+## CatConfig
+
+```json
+{
+  "id": "cat_orange_001",
+  "name": "大橘",
+  "rarity": "S",
+  "type": "生产型",
+  "baseProduction": 168,
+  "baseBeanCost": 92,
+  "baseSalary": 240,
+  "skillId": "skill_double_output",
+  "description": "一只越吃越胖、越胖越能生产咖啡的大橘猫。"
+}
+```
+
+## BuildingConfig
+
+```json
+{
+  "id": "building_roast",
+  "name": "烘焙车间",
+  "maxLevel": 50,
+  "effectType": "coffee_price",
+  "baseEffect": 0.4,
+  "upgradeCostBase": 1850000
+}
+```
+
+## ItemConfig
+
+```json
+{
+  "id": "item_speed_001",
+  "name": "生产加速器",
+  "type": "buff",
+  "effectType": "production_speed",
+  "effectValue": 1.5,
+  "duration": 300
+}
+```
+
+---
+
+# 八、Codex 自动开发总 Prompt
+
+```text
+你是资深 Cocos Creator 3.x + TypeScript 手机游戏开发工程师。
+
+我要开发一款竖屏手机游戏《肥猫咖啡公司》。
+
+游戏类型：
+放置经营 + 猫咪收集 + 建筑升级 + 背包道具 + 科技研究 + 弹射互动。
+
+画面风格：
+可爱卡通、猫咪咖啡工厂、多层建筑剖面、暖色咖啡风、UI 类似手机放置经营游戏。
+
+技术要求：
+1. 使用 Cocos Creator 3.x。
+2. 使用 TypeScript。
+3. 竖屏 1080x1920。
+4. 数据驱动，配置表使用 JSON。
+5. 本地存档使用 localStorage。
+6. 暂不接入真实联网。
+7. 所有系统必须模块化。
+8. 单个 TypeScript 文件尽量不超过 400 行。
+9. UI 组件必须可复用。
+10. 所有功能必须有测试入口或日志验证。
+
+必须实现的模块：
+Core
+Resource
+Cat
+Production
+Building
+Shop
+Inventory
+Research
+Launch
+Friend
+Save
+UI
+
+开发顺序：
+1. 项目基础框架
+2. 资源系统
+3. 主工厂界面
+4. 猫咪系统
+5. 猫咪详情界面
+6. 生产系统
+7. 建筑系统
+8. 建筑详情界面
+9. 商店系统
+10. 背包系统
+11. 研究系统
+12. 弹射猫咪玩法
+13. 假好友系统
+14. 离线收益
+15. 数值调优
+16. 打包 APK
+
+每次任务必须输出：
+1. 修改文件列表
+2. 新增文件列表
+3. 实现说明
+4. 测试步骤
+5. 验收标准
+
+禁止：
+1. 不要一次性写完整游戏。
+2. 不要引入未经说明的第三方库。
+3. 不要把所有逻辑写在一个 Manager。
+4. 不要硬编码 UI 数据。
+5. 不要跳过存档。
+```
+
+---
+
+# 九、建议开发里程碑
+
+## 第 1 周：可运行框架
+
+完成：
+
+* 主界面
+* 顶部资源栏
+* 底部导航
+* 本地存档
+* 基础资源变化
+
+## 第 2 周：经营核心
+
+完成：
+
+* 猫咪列表
+* 猫咪详情
+* 猫咪升级
+* 生产系统
+* 建筑升级
+
+## 第 3 周：功能面板
+
+完成：
+
+* 商店
+* 背包
+* 研究
+* 道具使用
+* 科技加成
+
+## 第 4 周：特色玩法
+
+完成：
+
+* 发射猫咪
+* 假好友
+* 奖励结算
+* 每日次数
+* 离线收益
+
+## 第 5 周：美术和体验
+
+完成：
+
+* 多层工厂动画
+* 猫咪动作
+* 收益浮字
+* 按钮音效
+* 新手引导
+* APK 打包
+
+---
+
+# 十、最小可发布 Demo 标准
+
+Demo 必须做到：
+
+* 可以进入主工厂
+* 可以自动生产金币
+* 可以招聘猫咪
+* 可以点击猫咪查看详情
+* 可以升级猫咪
+* 可以喂猫变胖
+* 可以升级建筑
+* 可以打开商店
+* 可以使用背包道具
+* 可以研究科技
+* 可以发射猫咪
+* 可以保存进度
+* 可以离线获得收益
+
+最小版本先不要做：
+
+* 真实好友联网
+* 内购
+* 广告
+* 复杂剧情
+* 多语言
+* 排行榜
+
+这份计划的重点是：**先让 Codex 做出完整灰盒版本，再逐步替换成当前图片里的精致 UI 和美术。**

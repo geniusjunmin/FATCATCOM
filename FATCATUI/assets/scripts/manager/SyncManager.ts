@@ -1,0 +1,562 @@
+import { GameConfig } from "../core/GameConfig";
+import { EventBus, GameEvents } from "../core/EventBus";
+import { ApiClient } from "../net/ApiClient";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendDto, LaunchResponse, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse } from "../net/ApiTypes";
+import { FeatureSaveData, GameSaveData } from "../model/SaveData";
+import { SaveManager } from "./SaveManager";
+import { NetworkManager } from "./NetworkManager";
+import { BuildingManager } from "./BuildingManager";
+import { ProductionManager } from "./ProductionManager";
+import { ResourceManager } from "./ResourceManager";
+import { CatManager } from "./CatManager";
+import { ResearchManager } from "./ResearchManager";
+
+export type SyncSnapshot = {
+    mode: "offline" | "ready" | "syncing" | "failed";
+    lastSyncAt: number;
+    lastError: string;
+    pendingFeatureChanges: number;
+};
+
+export class SyncManager {
+    private static _snapshot: SyncSnapshot = {
+        mode: "offline",
+        lastSyncAt: 0,
+        lastError: "",
+        pendingFeatureChanges: 0,
+    };
+
+    public static initialize(): SyncSnapshot {
+        this.refreshPendingFeatureChanges();
+        EventBus.on<GameSaveData>(GameEvents.SAVE_UPDATED, this.onSaveUpdated);
+        return this.getSnapshot();
+    }
+
+    public static destroy(): void {
+        EventBus.off<GameSaveData>(GameEvents.SAVE_UPDATED, this.onSaveUpdated);
+    }
+
+    public static getSnapshot(): SyncSnapshot {
+        return { ...this._snapshot };
+    }
+
+    public static getFeatureStateDto(): FeatureSaveData {
+        const featureState = SaveManager.isInitialized() ? SaveManager.data.featureState : undefined;
+        return {
+            claimedMails: { ...(featureState?.claimedMails ?? {}) },
+            settings: { ...(featureState?.settings ?? {}) },
+            friendGifts: { ...(featureState?.friendGifts ?? {}) },
+            friendVisits: { ...(featureState?.friendVisits ?? {}) },
+        };
+    }
+
+    public static async tryGuestLogin(): Promise<boolean> {
+        if (!NetworkManager.canUseServer || !SaveManager.isInitialized()) {
+            this.setOffline();
+            return false;
+        }
+        const response = await ApiClient.authGuest({
+            deviceId: NetworkManager.createGuestDeviceId(),
+            companyName: SaveManager.data.player.companyName,
+        });
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "guest_login_failed");
+            return false;
+        }
+        NetworkManager.setToken(response.data.token);
+        NetworkManager.setPlayerId(response.data.playerId);
+        NetworkManager.markReady();
+        this._snapshot.mode = "ready";
+        this.emitSyncChanged();
+        void this.fetchServerResources();
+        void this.fetchServerCats();
+        void this.fetchServerBuildings();
+        void this.fetchServerResearch();
+        return true;
+    }
+
+    public static async syncSave(): Promise<boolean> {
+        if (!NetworkManager.canUseServer || !SaveManager.isInitialized()) {
+            this.setOffline();
+            return false;
+        }
+        this._snapshot.mode = "syncing";
+        this.emitSyncChanged();
+        const save = SaveManager.snapshot();
+        const response = await ApiClient.syncSave(NetworkManager.playerId, {
+            clientVersion: GameConfig.saveVersion,
+            localUpdatedAt: save.updatedAt,
+            save,
+        });
+        if (!response.ok || !response.data?.accepted) {
+            this.markFailed(response.error ?? response.data?.conflictReason ?? "save_sync_failed");
+            return false;
+        }
+        this._snapshot.mode = "ready";
+        this._snapshot.lastError = "";
+        this._snapshot.lastSyncAt = Date.now();
+        await this.fetchServerResources();
+        await this.fetchServerCats();
+        await this.fetchServerBuildings();
+        await this.fetchServerResearch();
+        this.refreshPendingFeatureChanges();
+        this.emitSyncChanged();
+        return true;
+    }
+
+    public static async fetchServerResources(): Promise<ResourceStateDto | null> {
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.getResources(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "resources_fetch_failed");
+            return null;
+        }
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coin,
+            bean: response.data.bean,
+            catFood: response.data.catFood,
+            diamond: response.data.diamond,
+            researchPoint: response.data.researchPoint,
+        }, "server_resources");
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerCats(): Promise<CatStateDto[]> {
+        if (!this.canCallServer()) return [];
+        const response = await ApiClient.getCats(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "cats_fetch_failed");
+            return [];
+        }
+        CatManager.applyServerSnapshot(response.data);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerBuildings(): Promise<BuildingStateDto[]> {
+        if (!this.canCallServer()) return [];
+        const response = await ApiClient.getBuildings(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "buildings_fetch_failed");
+            return [];
+        }
+        BuildingManager.applyServerSnapshot(response.data);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerResearch(): Promise<ResearchStateDto[]> {
+        if (!this.canCallServer()) return [];
+        const response = await ApiClient.getResearch(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "research_fetch_failed");
+            return [];
+        }
+        ResearchManager.applyServerSnapshot(response.data);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerMail(): Promise<MailDto[]> {
+        if (!this.canCallServer()) return [];
+        const response = await ApiClient.getMail(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "mail_fetch_failed");
+            return [];
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async claimServerMail(mailId: string): Promise<ClaimMailResponse | null> {
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.claimMail(NetworkManager.playerId, mailId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "mail_claim_failed");
+            return null;
+        }
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, `server_mail_${mailId}`);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async purchaseServerShopItem(shopItemId: string, count = 1): Promise<ShopPurchaseResponse | null> {
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.purchaseShopItem(NetworkManager.playerId, { shopItemId, count });
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "shop_purchase_failed");
+            return null;
+        }
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, `server_shop_${shopItemId}`);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async upgradeServerCat(catId: string): Promise<CatUpgradeResponse | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.upgradeCat(NetworkManager.playerId, catId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "cat_upgrade_failed");
+            return null;
+        }
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, `server_cat_upgrade_${catId}`);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async feedServerCat(catId: string): Promise<CatFeedResponse | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.feedCat(NetworkManager.playerId, catId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "cat_feed_failed");
+            return null;
+        }
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, `server_cat_feed_${catId}`);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async unlockServerCat(catId: string): Promise<CatUnlockResponse | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.unlockCat(NetworkManager.playerId, catId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "cat_unlock_failed");
+            return null;
+        }
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, `server_cat_unlock_${catId}`);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async unlockServerResearch(researchId: string): Promise<ResearchUnlockResponse | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.unlockResearch(NetworkManager.playerId, researchId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "research_unlock_failed");
+            return null;
+        }
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, `server_research_${researchId}`);
+        ResearchManager.applyServerUnlock(response.data.researchId);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async upgradeServerEquipment(catId: string, itemId: string): Promise<EquipmentUpgradeResponse | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.upgradeEquipment(NetworkManager.playerId, catId, itemId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "equipment_upgrade_failed");
+            return null;
+        }
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, `server_equipment_upgrade_${response.data.itemId}`);
+        CatManager.applyServerEquipmentUpgrade(response.data.catId, response.data.itemId, response.data.level);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async assignServerCat(catId: string, buildingId: string): Promise<CatAssignmentResponse | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.assignCat(NetworkManager.playerId, catId, buildingId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "cat_assignment_failed");
+            return null;
+        }
+        CatManager.applyServerAssignment(response.data.catId, response.data.assignedBuildingId);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async upgradeServerBuilding(buildingId: string): Promise<BuildingUpgradeResponse | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.upgradeBuilding(NetworkManager.playerId, buildingId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "building_upgrade_failed");
+            return null;
+        }
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, `server_building_upgrade_${response.data.buildingId}`);
+        BuildingManager.applyServerUpgrade(response.data.buildingId, response.data.level);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerFriends(): Promise<FriendDto[]> {
+        if (!this.canCallServer()) return [];
+        const response = await ApiClient.getFriends(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "friends_fetch_failed");
+            return [];
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async visitServerFriend(friendId: string): Promise<FriendDto | null> {
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.visitFriend(NetworkManager.playerId, friendId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "friend_visit_failed");
+            return null;
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async sendServerFriendGift(friendId: string): Promise<FriendDto | null> {
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.sendFriendGift(NetworkManager.playerId, friendId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "friend_gift_failed");
+            return null;
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerSettings(): Promise<SettingsDto | null> {
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.getSettings(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "settings_fetch_failed");
+            return null;
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async pushServerSettings(settings: FeatureSaveData["settings"]): Promise<SettingsDto | null> {
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.updateSettings(NetworkManager.playerId, { settings });
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "settings_update_failed");
+            return null;
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async previewProduction(): Promise<ProductionPreviewResponse | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.previewServerProduction(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "production_preview_failed");
+            return null;
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async launch(seconds = 10): Promise<LaunchResponse | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const preview = await this.previewProduction();
+        if (!preview) {
+            return null;
+        }
+        const response = await ApiClient.launch(NetworkManager.playerId, {
+            clientRequestId: `client_${Date.now()}`,
+            launchSeconds: seconds,
+            availableBean: ResourceManager.get("bean"),
+            production: this.createProductionPreviewRequestFromPreview(preview),
+        });
+        if (!response.ok || !response.data?.accepted) {
+            this.markFailed(response.error ?? response.data?.rejectedReason ?? "launch_failed");
+            return response.data ?? null;
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    private static onSaveUpdated = (): void => {
+        this.refreshPendingFeatureChanges();
+        this.emitSyncChanged();
+    };
+
+    private static refreshPendingFeatureChanges(): void {
+        const featureState = this.getFeatureStateDto();
+        this._snapshot.pendingFeatureChanges =
+            Object.keys(featureState.claimedMails).length
+            + Object.keys(featureState.friendGifts).length
+            + Object.keys(featureState.friendVisits).length
+            + Object.keys(featureState.settings).length;
+    }
+
+    private static setOffline(): void {
+        this._snapshot.mode = "offline";
+        this._snapshot.lastError = "";
+        this.refreshPendingFeatureChanges();
+        this.emitSyncChanged();
+    }
+
+    private static canCallServer(): boolean {
+        if (!NetworkManager.canUseServer || !NetworkManager.playerId) {
+            this.setOffline();
+            return false;
+        }
+        return true;
+    }
+
+    private static createProductionPreviewRequest(): ProductionPreviewRequest {
+        const snapshot = ProductionManager.calculateSnapshot();
+        return {
+            grossCoinPerSecond: snapshot.grossCoinPerSecond,
+            wageCostPerSecond: snapshot.wageCostPerSecond,
+            beanCostPerSecond: snapshot.beanCostPerSecond,
+            includesClientModifiers: true,
+            buildings: BuildingManager.getAll().map(building => ({
+                buildingId: building.id,
+                grossCoinPerSecond: snapshot.buildingGrossCoinPerSecond[building.id] ?? 0,
+                wageCostPerSecond: snapshot.buildingWageCostPerSecond[building.id] ?? 0,
+                netCoinPerSecond: snapshot.buildingCoinPerSecond[building.id] ?? 0,
+                beanCostPerSecond: snapshot.buildingBeanCostPerSecond[building.id] ?? 0,
+            })),
+        };
+    }
+
+    private static createProductionPreviewRequestFromPreview(preview: ProductionPreviewResponse): ProductionPreviewRequest {
+        return {
+            grossCoinPerSecond: preview.grossCoinPerSecond,
+            wageCostPerSecond: preview.wageCostPerSecond,
+            beanCostPerSecond: preview.beanCostPerSecond,
+            includesClientModifiers: true,
+            buildings: preview.buildings.map(building => ({
+                buildingId: building.buildingId,
+                grossCoinPerSecond: building.grossCoinPerSecond,
+                wageCostPerSecond: building.wageCostPerSecond,
+                netCoinPerSecond: building.netCoinPerSecond,
+                beanCostPerSecond: building.beanCostPerSecond,
+            })),
+        };
+    }
+
+    private static markReadyAfterServerCall(): void {
+        NetworkManager.markReady();
+        this._snapshot.mode = "ready";
+        this._snapshot.lastError = "";
+        this._snapshot.lastSyncAt = Date.now();
+        this.refreshPendingFeatureChanges();
+        this.emitSyncChanged();
+    }
+
+    private static markFailed(error: string): void {
+        NetworkManager.markError(error);
+        this._snapshot.mode = "failed";
+        this._snapshot.lastError = error;
+        this.refreshPendingFeatureChanges();
+        this.emitSyncChanged();
+    }
+
+    private static emitSyncChanged(): void {
+        EventBus.emit(GameEvents.SYNC_STATUS_CHANGED, this.getSnapshot());
+    }
+}

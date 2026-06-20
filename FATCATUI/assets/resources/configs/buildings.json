@@ -1,0 +1,80 @@
+[
+  {
+    "id": "building_storage_b1",
+    "floor": "B1",
+    "name": "原料仓库",
+    "level": 4,
+    "maxLevel": 50,
+    "effectType": "bean_capacity",
+    "effectLabel": "仓库容量",
+    "baseValue": 1000,
+    "valuePerLevel": 50,
+    "costBase": 12000,
+    "description": "存放咖啡豆、猫粮和备用工具，是工厂稳定运转的底座。"
+  },
+  {
+    "id": "building_cafe_1f",
+    "floor": "1F",
+    "name": "咖啡厅",
+    "level": 6,
+    "maxLevel": 50,
+    "effectType": "order_coin",
+    "effectLabel": "订单金币",
+    "baseValue": 180,
+    "valuePerLevel": 10,
+    "costBase": 26000,
+    "description": "把成品咖啡卖给客人，提升订单金币收益。"
+  },
+  {
+    "id": "building_material_2f",
+    "floor": "2F",
+    "name": "原料车间",
+    "level": 7,
+    "maxLevel": 50,
+    "effectType": "base_production",
+    "effectLabel": "咖啡价值",
+    "baseValue": 45,
+    "valuePerLevel": 5,
+    "costBase": 46000,
+    "description": "筛选、研磨和分装咖啡豆，提升基础产出。"
+  },
+  {
+    "id": "building_ferment_3f",
+    "floor": "3F",
+    "name": "发酵车间",
+    "level": 6,
+    "maxLevel": 50,
+    "effectType": "ferment_efficiency",
+    "effectLabel": "咖啡豆消耗",
+    "baseValue": -8,
+    "valuePerLevel": -2,
+    "costBase": 66000,
+    "description": "用肥猫工艺处理原料，降低咖啡豆消耗。"
+  },
+  {
+    "id": "building_roast_4f",
+    "floor": "4F",
+    "name": "烘焙车间",
+    "level": 8,
+    "maxLevel": 50,
+    "effectType": "coffee_price",
+    "effectLabel": "原料产量",
+    "baseValue": 80,
+    "valuePerLevel": 5,
+    "costBase": 98000,
+    "description": "烘焙出香气浓郁的咖啡豆，提升咖啡售价。"
+  },
+  {
+    "id": "building_office_5f",
+    "floor": "5F",
+    "name": "管理室",
+    "level": 5,
+    "maxLevel": 50,
+    "effectType": "salary_reduce",
+    "effectLabel": "全局收益",
+    "baseValue": 10,
+    "valuePerLevel": 1,
+    "costBase": 128000,
+    "description": "安排猫咪排班和工厂运营，提升全局收益。"
+  }
+]

@@ -1,0 +1,131 @@
+[
+  {
+    "id": "equip_collar_green",
+    "slot": "项圈",
+    "kind": "collar",
+    "name": "猫咪项圈",
+    "rarity": "B",
+    "bonus": "原料 +15%",
+    "effects": [
+      {
+        "type": "materialOutput",
+        "label": "原料产量",
+        "baseValue": 15,
+        "perLevel": 1,
+        "unit": "%"
+      }
+    ],
+    "description": "基础项圈，适合刚入职的咖啡猫。",
+    "levelMax": 5,
+    "upgradeCost": 80,
+    "source": "新手任务",
+    "isDefault": true
+  },
+  {
+    "id": "equip_collar_gold",
+    "slot": "项圈",
+    "kind": "collar",
+    "name": "金铃项圈",
+    "rarity": "A",
+    "bonus": "心情 +8%",
+    "effects": [
+      {
+        "type": "mood",
+        "label": "心情上限",
+        "baseValue": 8,
+        "perLevel": 1,
+        "unit": "%"
+      }
+    ],
+    "description": "铃声清脆，能让猫咪保持好心情。",
+    "levelMax": 8,
+    "upgradeCost": 180,
+    "source": "商店兑换"
+  },
+  {
+    "id": "equip_cup_lucky",
+    "slot": "杯子",
+    "kind": "cup",
+    "name": "幸运杯子",
+    "rarity": "B",
+    "bonus": "猫粮 -5%",
+    "effects": [
+      {
+        "type": "catFoodCost",
+        "label": "猫粮消耗",
+        "baseValue": -5,
+        "perLevel": -1,
+        "unit": "%"
+      }
+    ],
+    "description": "每天都像刚泡好的第一杯咖啡。",
+    "levelMax": 5,
+    "upgradeCost": 90,
+    "source": "每日订单",
+    "isDefault": true
+  },
+  {
+    "id": "equip_cup_bean",
+    "slot": "杯子",
+    "kind": "cup",
+    "name": "豆纹杯",
+    "rarity": "A",
+    "bonus": "原料 +10%",
+    "effects": [
+      {
+        "type": "materialOutput",
+        "label": "原料产量",
+        "baseValue": 10,
+        "perLevel": 2,
+        "unit": "%"
+      }
+    ],
+    "description": "杯身有咖啡豆纹路，适合生产型猫咪。",
+    "levelMax": 8,
+    "upgradeCost": 200,
+    "source": "咖啡豆商店"
+  },
+  {
+    "id": "equip_cushion_soft",
+    "slot": "坐垫",
+    "kind": "cushion",
+    "name": "舒适坐垫",
+    "rarity": "B",
+    "bonus": "心情 +10%",
+    "effects": [
+      {
+        "type": "mood",
+        "label": "心情上限",
+        "baseValue": 10,
+        "perLevel": 1,
+        "unit": "%"
+      }
+    ],
+    "description": "柔软耐坐，可以缓解长时间值班。",
+    "levelMax": 5,
+    "upgradeCost": 100,
+    "source": "成就奖励",
+    "isDefault": true
+  },
+  {
+    "id": "equip_cushion_sleepy",
+    "slot": "坐垫",
+    "kind": "cushion",
+    "name": "午睡坐垫",
+    "rarity": "A",
+    "bonus": "工资 -5%",
+    "effects": [
+      {
+        "type": "wageCost",
+        "label": "工资消耗",
+        "baseValue": -5,
+        "perLevel": -1,
+        "unit": "%"
+      }
+    ],
+    "description": "午睡效率提高，工资压力略微降低。",
+    "levelMax": 8,
+    "upgradeCost": 220,
+    "source": "限时礼盒"
+  }
+]

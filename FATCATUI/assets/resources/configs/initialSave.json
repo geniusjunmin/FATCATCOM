@@ -1,0 +1,84 @@
+{
+  "player": {
+    "companyName": "肥猫咖啡公司",
+    "level": 28,
+    "exp": 2560,
+    "expToNext": 3200
+  },
+  "resources": {
+    "coin": 12450000,
+    "bean": 8240,
+    "catFood": 3510,
+    "diamond": 2580,
+    "researchPoint": 200
+  },
+  "cats": {
+    "c_001": {
+      "id": "c_001",
+      "level": 1,
+      "weight": 20,
+      "isUnlocked": true,
+      "assignedBuildingId": "building_cafe_1f"
+    }
+  },
+  "buildings": {
+    "building_storage_b1": {
+      "id": "building_storage_b1",
+      "level": 4
+    },
+    "building_cafe_1f": {
+      "id": "building_cafe_1f",
+      "level": 6
+    },
+    "building_material_2f": {
+      "id": "building_material_2f",
+      "level": 7
+    },
+    "building_ferment_3f": {
+      "id": "building_ferment_3f",
+      "level": 6
+    },
+    "building_roast_4f": {
+      "id": "building_roast_4f",
+      "level": 8
+    },
+    "building_office_5f": {
+      "id": "building_office_5f",
+      "level": 5
+    }
+  },
+  "inventory": {
+    "item_cat_food_pack": {
+      "itemId": "item_cat_food_pack",
+      "count": 2
+    },
+    "item_coin_pack_small": {
+      "itemId": "item_coin_pack_small",
+      "count": 5
+    },
+    "equip_collar_green": {
+      "itemId": "equip_collar_green",
+      "count": 1
+    },
+    "equip_collar_gold": {
+      "itemId": "equip_collar_gold",
+      "count": 1
+    },
+    "equip_cup_lucky": {
+      "itemId": "equip_cup_lucky",
+      "count": 1
+    },
+    "equip_cup_bean": {
+      "itemId": "equip_cup_bean",
+      "count": 1
+    },
+    "equip_cushion_soft": {
+      "itemId": "equip_cushion_soft",
+      "count": 1
+    },
+    "equip_cushion_sleepy": {
+      "itemId": "equip_cushion_sleepy",
+      "count": 1
+    }
+  }
+}

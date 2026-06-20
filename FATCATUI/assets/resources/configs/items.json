@@ -1,0 +1,32 @@
+[
+  {
+    "id": "item_cat_food_pack",
+    "name": "猫粮包",
+    "type": "resource",
+    "rarity": "B",
+    "description": "打开获得 100 猫粮",
+    "icon": "icon_cat_food",
+    "resourceType": "catFood",
+    "resourceAmount": 100
+  },
+  {
+    "id": "item_coin_pack_small",
+    "name": "小袋金币",
+    "type": "resource",
+    "rarity": "B",
+    "description": "打开获得 1000 金币",
+    "icon": "icon_coin",
+    "resourceType": "coin",
+    "resourceAmount": 1000
+  },
+  {
+    "id": "item_shard_orange",
+    "name": "大橘碎片",
+    "type": "shard",
+    "rarity": "A",
+    "description": "集齐 10 个可以解锁大橘",
+    "icon": "icon_shard",
+    "targetCatId": "cat_001",
+    "shardCountToUnlock": 10
+  }
+]

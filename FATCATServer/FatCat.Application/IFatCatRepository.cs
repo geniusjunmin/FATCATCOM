@@ -1,0 +1,38 @@
+using FatCat.Domain;
+
+namespace FatCat.Application;
+
+public interface IFatCatRepository
+{
+    Task<PlayerProfile?> FindPlayerByDeviceIdAsync(string deviceId, CancellationToken cancellationToken);
+    Task<PlayerProfile?> FindPlayerByIdAsync(Guid playerId, CancellationToken cancellationToken);
+    Task AddPlayerAsync(PlayerProfile player, CancellationToken cancellationToken);
+    Task SaveSnapshotAsync(PlayerSaveSnapshot snapshot, CancellationToken cancellationToken);
+    Task<PlayerSaveSnapshot?> GetLatestSnapshotAsync(Guid playerId, CancellationToken cancellationToken);
+    Task<List<PlayerMail>> GetMailsAsync(Guid playerId, CancellationToken cancellationToken);
+    Task<PlayerMail?> GetMailAsync(Guid playerId, string mailKey, CancellationToken cancellationToken);
+    Task AddMailAsync(PlayerMail mail, CancellationToken cancellationToken);
+    Task<List<FriendSnapshot>> GetFriendsAsync(Guid playerId, CancellationToken cancellationToken);
+    Task<FriendSnapshot?> GetFriendAsync(Guid playerId, string friendKey, CancellationToken cancellationToken);
+    Task AddFriendAsync(FriendSnapshot friend, CancellationToken cancellationToken);
+    Task<PlayerSettings?> GetSettingsAsync(Guid playerId, CancellationToken cancellationToken);
+    Task SetSettingsAsync(PlayerSettings settings, CancellationToken cancellationToken);
+    Task<PlayerResourceState?> GetResourceStateAsync(Guid playerId, CancellationToken cancellationToken);
+    Task SetResourceStateAsync(PlayerResourceState state, CancellationToken cancellationToken);
+    Task AddResourceTransactionAsync(PlayerResourceTransaction transaction, CancellationToken cancellationToken);
+    Task<List<PlayerResourceTransaction>> GetResourceTransactionsAsync(Guid playerId, int limit, CancellationToken cancellationToken);
+    Task<PlayerShopPurchaseHistory?> GetShopPurchaseHistoryAsync(Guid playerId, string shopItemId, int purchaseDate, CancellationToken cancellationToken);
+    Task AddShopPurchaseHistoryAsync(PlayerShopPurchaseHistory history, CancellationToken cancellationToken);
+    Task<PlayerCatState?> GetCatStateAsync(Guid playerId, string catKey, CancellationToken cancellationToken);
+    Task<List<PlayerCatState>> GetCatStatesAsync(Guid playerId, CancellationToken cancellationToken);
+    Task AddCatStateAsync(PlayerCatState cat, CancellationToken cancellationToken);
+    Task<PlayerBuildingState?> GetBuildingStateAsync(Guid playerId, string buildingKey, CancellationToken cancellationToken);
+    Task<List<PlayerBuildingState>> GetBuildingStatesAsync(Guid playerId, CancellationToken cancellationToken);
+    Task AddBuildingStateAsync(PlayerBuildingState building, CancellationToken cancellationToken);
+    Task<PlayerResearchState?> GetResearchStateAsync(Guid playerId, string researchKey, CancellationToken cancellationToken);
+    Task<List<PlayerResearchState>> GetResearchStatesAsync(Guid playerId, CancellationToken cancellationToken);
+    Task AddResearchStateAsync(PlayerResearchState research, CancellationToken cancellationToken);
+    Task<PlayerLaunchRecord?> GetLaunchRecordAsync(Guid playerId, string clientRequestId, CancellationToken cancellationToken);
+    Task AddLaunchRecordAsync(PlayerLaunchRecord record, CancellationToken cancellationToken);
+    Task SaveChangesAsync(CancellationToken cancellationToken);
+}

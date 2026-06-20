@@ -1,0 +1,31 @@
+[
+  {
+    "id": "res_basic_prod",
+    "name": "基础增产",
+    "description": "所有猫咪的金币产量提升 10%",
+    "icon": "icon_research_prod",
+    "cost": 100,
+    "effectType": "coin_production_mult",
+    "effectValue": 10
+  },
+  {
+    "id": "res_bean_save",
+    "name": "节约咖啡豆",
+    "description": "猫咪消耗的咖啡豆降低 5%",
+    "icon": "icon_research_bean",
+    "cost": 150,
+    "effectType": "bean_reduce",
+    "effectValue": 5,
+    "parentResearchId": "res_basic_prod"
+  },
+  {
+    "id": "res_cheap_upgrade",
+    "name": "廉价培训",
+    "description": "猫咪升级所需的金币降低 5%",
+    "icon": "icon_research_upgrade",
+    "cost": 200,
+    "effectType": "upgrade_cost_reduce",
+    "effectValue": 5,
+    "parentResearchId": "res_basic_prod"
+  }
+]
