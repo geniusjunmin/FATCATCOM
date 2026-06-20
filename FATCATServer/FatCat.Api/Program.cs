@@ -364,6 +364,18 @@ app.MapPost("/api/friends/add", async (
         : Results.Ok(ApiEnvelope<FriendDto>.Success(result));
 });
 
+app.MapGet("/api/friends/activity", async (
+    Guid playerId,
+    int? limit,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.GetFriendActivitiesAsync(playerId, limit ?? 10, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<IReadOnlyList<FriendActivityDto>>.Fail("player_not_found"))
+        : Results.Ok(ApiEnvelope<IReadOnlyList<FriendActivityDto>>.Success(result));
+});
+
 app.MapGet("/api/leaderboard", async (
     Guid playerId,
     string? boardId,

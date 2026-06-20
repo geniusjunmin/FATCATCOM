@@ -77,6 +77,22 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         await dbContext.FriendSnapshots.AddAsync(friend, cancellationToken);
     }
 
+    public async Task AddSocialActivityAsync(PlayerSocialActivity activity, CancellationToken cancellationToken)
+    {
+        await dbContext.SocialActivities.AddAsync(activity, cancellationToken);
+    }
+
+    public async Task<List<PlayerSocialActivity>> GetSocialActivitiesAsync(Guid playerId, int limit, CancellationToken cancellationToken)
+    {
+        var rows = await dbContext.SocialActivities
+            .Where(activity => activity.PlayerId == playerId)
+            .ToListAsync(cancellationToken);
+        return rows
+            .OrderByDescending(activity => activity.CreatedAt)
+            .Take(Math.Clamp(limit, 1, 50))
+            .ToList();
+    }
+
     public Task<PlayerSettings?> GetSettingsAsync(Guid playerId, CancellationToken cancellationToken)
     {
         return dbContext.PlayerSettings.FirstOrDefaultAsync(settings => settings.PlayerId == playerId, cancellationToken);

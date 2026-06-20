@@ -163,6 +163,49 @@ public sealed class FatCatApiTests
     }
 
     [Fact]
+    public async Task FriendActivity_ReturnsRecentSocialActionsContract()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-friend-activity-a",
+            companyName = "Alpha Cafe",
+        });
+        var targetResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-friend-activity-b",
+            companyName = "Beta Beans",
+        });
+        var playerId = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+        var targetId = JsonDocument.Parse(await targetResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+        var targetKey = $"player:{targetId:N}";
+
+        await client.PostAsJsonAsync($"/api/friends/add?playerId={playerId}", new
+        {
+            friendPlayerId = targetId.ToString("N"),
+        });
+        await client.PostAsJsonAsync($"/api/friends/{targetKey}/visit?playerId={playerId}", new {});
+        await client.PostAsJsonAsync($"/api/friends/{targetKey}/gift?playerId={playerId}", new {});
+
+        var response = await client.GetAsync($"/api/friends/activity?playerId={playerId}&limit=10");
+        var activities = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(3, activities.GetArrayLength());
+        Assert.Equal("friend_gift", activities[0].GetProperty("activityType").GetString());
+        Assert.Equal("friend_visit", activities[1].GetProperty("activityType").GetString());
+        Assert.Equal("friend_add", activities[2].GetProperty("activityType").GetString());
+        Assert.All(activities.EnumerateArray(), activity =>
+        {
+            Assert.Equal(targetKey, activity.GetProperty("friendId").GetString());
+            Assert.Equal("Beta Beans", activity.GetProperty("friendName").GetString());
+            Assert.True(activity.GetProperty("createdAt").GetInt64() > 0);
+        });
+    }
+
+    [Fact]
     public async Task ClaimMail_UpdatesAuthoritativeResources()
     {
         await using var factory = new FatCatApiFactory();

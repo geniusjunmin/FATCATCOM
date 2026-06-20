@@ -470,6 +470,34 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task FriendActions_WriteRecentSocialActivities()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var player = await service.AuthGuestAsync(new AuthGuestRequest("activity-friend-a", "Alpha Cafe"), CancellationToken.None);
+        var target = await service.AuthGuestAsync(new AuthGuestRequest("activity-friend-b", "Beta Beans"), CancellationToken.None);
+
+        var added = await service.AddFriendAsync(player.PlayerId, new AddFriendRequest(target.PlayerId.ToString("N")), CancellationToken.None);
+        Assert.NotNull(added);
+        await service.VisitFriendAsync(player.PlayerId, added!.Id, CancellationToken.None);
+        await service.SendFriendGiftAsync(player.PlayerId, added.Id, CancellationToken.None);
+
+        var activities = await service.GetFriendActivitiesAsync(player.PlayerId, 10, CancellationToken.None);
+
+        Assert.NotNull(activities);
+        Assert.Equal(3, activities!.Count);
+        Assert.Equal("friend_gift", activities[0].ActivityType);
+        Assert.Equal("friend_visit", activities[1].ActivityType);
+        Assert.Equal("friend_add", activities[2].ActivityType);
+        Assert.All(activities, activity =>
+        {
+            Assert.Equal(added.Id, activity.FriendId);
+            Assert.Equal("Beta Beans", activity.FriendName);
+            Assert.True(activity.CreatedAt > 0);
+        });
+    }
+
+    [Fact]
     public void PreviewProduction_CalculatesNetIncomeAndBuildingBreakdown()
     {
         using var dbContext = CreateDbContext();

@@ -236,6 +236,14 @@ export type AddFriendRequest = {
     friendPlayerId: string;
 };
 
+export type FriendActivityDto = {
+    id: string;
+    activityType: string;
+    friendId: string;
+    friendName: string;
+    createdAt: number;
+};
+
 export type LeaderboardEntryDto = {
     playerId: string;
     companyName: string;

@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendDto, LaunchResponse, LeaderboardDto, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendActivityDto, FriendDto, LaunchResponse, LeaderboardDto, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -75,6 +75,7 @@ export class SyncManager {
         void this.fetchServerResearch();
         void this.fetchServerShopState();
         void this.fetchServerFriends();
+        void this.fetchServerFriendActivities();
         void this.fetchServerLeaderboard();
         return true;
     }
@@ -105,6 +106,7 @@ export class SyncManager {
         await this.fetchServerResearch();
         await this.fetchServerShopState();
         await this.fetchServerFriends();
+        await this.fetchServerFriendActivities();
         await this.fetchServerLeaderboard();
         this.refreshPendingFeatureChanges();
         this.emitSyncChanged();
@@ -408,6 +410,24 @@ export class SyncManager {
         const response = await ApiClient.getFriends(NetworkManager.playerId);
         if (!response.ok || !response.data) {
             this.markFailed(response.error ?? "friends_fetch_failed");
+            return [];
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerFriendActivities(limit = 10): Promise<FriendActivityDto[]> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return [];
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return [];
+        }
+        const response = await ApiClient.getFriendActivities(NetworkManager.playerId, limit);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "friend_activity_fetch_failed");
             return [];
         }
         this.markReadyAfterServerCall();

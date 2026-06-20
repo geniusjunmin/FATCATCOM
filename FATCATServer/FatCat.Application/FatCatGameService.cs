@@ -990,6 +990,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             IncomePerSecond = (int)Math.Floor(Math.Max(0, preview?.NetCoinPerSecond ?? 0)),
         };
         await repository.AddFriendAsync(friend, cancellationToken);
+        await AddSocialActivityAsync(playerId, "friend_add", friend, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
         return ToFriendDto(friend);
     }
@@ -1004,6 +1005,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         }
 
         friend.LastVisitedAt = DateTimeOffset.UtcNow;
+        await AddSocialActivityAsync(playerId, "friend_visit", friend, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
         return ToFriendDto(friend);
     }
@@ -1018,8 +1020,20 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         }
 
         friend.LastGiftAt = DateTimeOffset.UtcNow;
+        await AddSocialActivityAsync(playerId, "friend_gift", friend, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
         return ToFriendDto(friend);
+    }
+
+    public async Task<IReadOnlyList<FriendActivityDto>?> GetFriendActivitiesAsync(Guid playerId, int limit, CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        var activities = await repository.GetSocialActivitiesAsync(playerId, limit, cancellationToken);
+        return activities.Select(ToFriendActivityDto).ToArray();
     }
 
     public async Task<LeaderboardDto?> GetLeaderboardAsync(Guid playerId, string? boardId, CancellationToken cancellationToken)
@@ -1813,6 +1827,18 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         friend.IncomePerSecond = (int)Math.Floor(Math.Max(0, preview?.NetCoinPerSecond ?? 0));
     }
 
+    private async Task AddSocialActivityAsync(Guid playerId, string activityType, FriendSnapshot friend, CancellationToken cancellationToken)
+    {
+        await repository.AddSocialActivityAsync(new PlayerSocialActivity
+        {
+            PlayerId = playerId,
+            ActivityType = activityType,
+            FriendKey = friend.FriendKey,
+            FriendName = friend.Name,
+            CreatedAt = DateTimeOffset.UtcNow,
+        }, cancellationToken);
+    }
+
     private static MailDto ToMailDto(PlayerMail mail)
     {
         return new MailDto(
@@ -1835,6 +1861,16 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             friend.IncomePerSecond,
             friend.LastVisitedAt?.ToUnixTimeMilliseconds(),
             friend.LastGiftAt?.ToUnixTimeMilliseconds());
+    }
+
+    private static FriendActivityDto ToFriendActivityDto(PlayerSocialActivity activity)
+    {
+        return new FriendActivityDto(
+            activity.Id.ToString("N"),
+            activity.ActivityType,
+            activity.FriendKey,
+            activity.FriendName,
+            activity.CreatedAt.ToUnixTimeMilliseconds());
     }
 
     private static string NormalizeLeaderboardBoardId(string? boardId)

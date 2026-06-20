@@ -10,6 +10,7 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
     public DbSet<PlayerSaveSnapshot> SaveSnapshots => Set<PlayerSaveSnapshot>();
     public DbSet<PlayerMail> PlayerMails => Set<PlayerMail>();
     public DbSet<FriendSnapshot> FriendSnapshots => Set<FriendSnapshot>();
+    public DbSet<PlayerSocialActivity> SocialActivities => Set<PlayerSocialActivity>();
     public DbSet<PlayerSettings> PlayerSettings => Set<PlayerSettings>();
     public DbSet<PlayerResourceState> ResourceStates => Set<PlayerResourceState>();
     public DbSet<PlayerResourceTransaction> ResourceTransactions => Set<PlayerResourceTransaction>();
@@ -170,6 +171,21 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             CREATE INDEX IF NOT EXISTS "IX_LaunchRecords_PlayerId_CreatedAt"
             ON "LaunchRecords" ("PlayerId", "CreatedAt");
             """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "SocialActivities" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_SocialActivities" PRIMARY KEY,
+                "PlayerId" TEXT NOT NULL,
+                "ActivityType" TEXT NOT NULL,
+                "FriendKey" TEXT NOT NULL,
+                "FriendName" TEXT NOT NULL,
+                "CreatedAt" TEXT NOT NULL,
+                CONSTRAINT "FK_SocialActivities_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
+            );
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE INDEX IF NOT EXISTS "IX_SocialActivities_PlayerId_CreatedAt"
+            ON "SocialActivities" ("PlayerId", "CreatedAt");
+            """, cancellationToken);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -215,6 +231,19 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.HasOne(friend => friend.Player)
                 .WithMany()
                 .HasForeignKey(friend => friend.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlayerSocialActivity>(entity =>
+        {
+            entity.HasKey(activity => activity.Id);
+            entity.HasIndex(activity => new { activity.PlayerId, activity.CreatedAt });
+            entity.Property(activity => activity.ActivityType).HasMaxLength(80);
+            entity.Property(activity => activity.FriendKey).HasMaxLength(120);
+            entity.Property(activity => activity.FriendName).HasMaxLength(80);
+            entity.HasOne(activity => activity.Player)
+                .WithMany()
+                .HasForeignKey(activity => activity.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

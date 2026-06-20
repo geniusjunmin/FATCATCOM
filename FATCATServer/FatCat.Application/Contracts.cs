@@ -226,6 +226,13 @@ public sealed record FriendDto(
 
 public sealed record AddFriendRequest(string FriendPlayerId);
 
+public sealed record FriendActivityDto(
+    string Id,
+    string ActivityType,
+    string FriendId,
+    string FriendName,
+    long CreatedAt);
+
 public sealed record LeaderboardEntryDto(
     string PlayerId,
     string CompanyName,

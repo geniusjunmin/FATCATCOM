@@ -13,7 +13,7 @@ import { ShopManager } from "../manager/ShopManager";
 import { TaskManager } from "../manager/TaskManager";
 import { NetworkManager } from "../manager/NetworkManager";
 import { SyncManager } from "../manager/SyncManager";
-import { FriendDto, LeaderboardDto } from "../net/ApiTypes";
+import { FriendActivityDto, FriendDto, LeaderboardDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
 import { DomAssetDataUris } from "./DomAssetDataUris";
@@ -85,8 +85,10 @@ export class BottomNavUI extends Component {
     private _domInventoryTab: "all" | "resource" | "shard" | "other" = "all";
     private _selectedResearchId = "res_basic_prod";
     private _serverFriends: FriendDto[] = [];
+    private _friendActivities: FriendActivityDto[] = [];
     private _serverLeaderboard: LeaderboardDto | null = null;
     private _friendRefreshInFlight = false;
+    private _friendActivityRefreshInFlight = false;
     private _leaderboardRefreshInFlight = false;
     private _waitingForAppReady = false;
     private _launchInProgress = false;
@@ -528,6 +530,7 @@ export class BottomNavUI extends Component {
             this.renderDomPanel(panelId);
             if (panelId === "friends") {
                 void this.refreshServerFriendsForPanel();
+                void this.refreshFriendActivitiesForPanel();
                 void this.refreshServerLeaderboardForPanel();
             }
             this.layoutDomPanelOverlay();
@@ -1191,6 +1194,14 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay .friend-tools { display:flex; align-items:center; justify-content:space-between; gap:2%; margin:0 0 2%; padding:1.6% 2.2%; border-radius:999px; background:rgba(75,49,32,.88); color:#ffe2a8; font-size:1.95%; font-weight:900; box-shadow:inset 0 0 0 2px rgba(255,226,170,.12), 0 2px 0 rgba(72,43,25,.22); }
             #fatcat-dom-panel-overlay .friend-tools span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-panel-overlay .friend-tools .tag { margin:0; flex:0 0 auto; }
+            #fatcat-dom-panel-overlay .friend-activity-card { margin-bottom:2%; padding:2.2%; border-radius:14px; background:linear-gradient(#fff1d3,#d9b77e); border:2px solid #7c5736; color:#4a2f1f; box-shadow:inset 0 0 0 2px rgba(255,250,224,.34), 0 3px 0 rgba(72,43,25,.22); font-size:2.0%; }
+            #fatcat-dom-panel-overlay .friend-activity-card .leaderboard-head { color:#5f3922; }
+            #fatcat-dom-panel-overlay .friend-activity-card .leaderboard-head span { color:#7d4b22; }
+            #fatcat-dom-panel-overlay .activity-row { min-height:34px; display:grid; grid-template-columns:18% 1fr 24%; gap:2%; align-items:center; border-top:1px solid rgba(124,87,54,.2); }
+            #fatcat-dom-panel-overlay .activity-row span { color:#fff6d8; background:#7d4b22; border-radius:999px; padding:1px 8px; text-align:center; font-weight:900; }
+            #fatcat-dom-panel-overlay .activity-row b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .activity-row em { justify-self:end; font-style:normal; color:#7a5a3e; font-weight:900; }
+            #fatcat-dom-panel-overlay .activity-empty { color:#7a5a3e; font-weight:900; padding-top:1%; }
             #fatcat-dom-panel-overlay .setting-row { display:grid; grid-template-columns:1fr 24%; gap:2%; align-items:center; }
             #fatcat-dom-panel-overlay .settings-shell .feature-card { min-height:84px; padding:2.2%; }
             #fatcat-dom-panel-overlay .settings-shell .setting-row { min-height:64px; }
@@ -1380,6 +1391,7 @@ export class BottomNavUI extends Component {
             if (serverFriend) {
                 this.applyServerFriendSnapshot(serverFriend);
                 this._domPanelMessage = `Friend visit synced: ${serverFriend.name}.`;
+                void this.refreshFriendActivitiesForPanel();
                 success = true;
             } else if (!NetworkManager.canUseServer) {
                 SaveManager.update(data => {
@@ -1394,6 +1406,7 @@ export class BottomNavUI extends Component {
             if (serverFriend) {
                 this.applyServerFriendSnapshot(serverFriend);
                 this._domPanelMessage = `Friend gift synced: ${serverFriend.name}.`;
+                void this.refreshFriendActivitiesForPanel();
                 success = true;
             } else if (!NetworkManager.canUseServer) {
                 SaveManager.update(data => {
@@ -1411,6 +1424,7 @@ export class BottomNavUI extends Component {
             if (serverFriend) {
                 this.applyServerFriendSnapshot(serverFriend);
                 this._domPanelMessage = `Friend added: ${serverFriend.name}.`;
+                void this.refreshFriendActivitiesForPanel();
                 success = true;
             } else {
                 this._domPanelMessage = NetworkManager.canUseServer ? "Friend add failed." : "Connect server before adding friends.";
@@ -1596,7 +1610,7 @@ export class BottomNavUI extends Component {
             const lastGift = this.getFeatureTimestamp("friendGifts", friend.id);
             return `<div class="feature-card with-icon"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>${friend.name}</b><br>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒<br><span class="focus-tag">${friend.status}</span><span class="focus-tag">${lastVisit ? `已访问 ${lastVisit}` : "未访问"}</span><span class="focus-tag">${lastGift ? `已送礼 ${lastGift}` : "可送礼"}</span></div><div><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问</button><br><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再送" : "送礼"}</button></div></div>`;
         }).join("");
-        return `<div class="panel-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabel}：联网时访问和送礼会同步到 .NET 服务端。</div><span class="feature-badge">好友<br>${friends.length}</span></div>${friendTools}${this.renderLeaderboardPreview()}<div class="feature-list">${rows}</div></div>`;
+        return `<div class="panel-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabel}：联网时访问和送礼会同步到 .NET 服务端。</div><span class="feature-badge">好友<br>${friends.length}</span></div>${friendTools}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}<div class="feature-list">${rows}</div></div>`;
     }
 
     private getFriendPanelRows(): Array<{ id: string; name: string; level: number; income: number; status: string }> {
@@ -1639,6 +1653,16 @@ export class BottomNavUI extends Component {
         this.renderDomPanel("friends");
     }
 
+    private async refreshFriendActivitiesForPanel(): Promise<void> {
+        if (!NetworkManager.canUseServer || this._friendActivityRefreshInFlight) return;
+        this._friendActivityRefreshInFlight = true;
+        const activities = await SyncManager.fetchServerFriendActivities(6);
+        this._friendActivityRefreshInFlight = false;
+        if (this.currentPanel !== "friends") return;
+        this._friendActivities = activities;
+        this.renderDomPanel("friends");
+    }
+
     private renderLeaderboardPreview(): string {
         const leaderboard = this._serverLeaderboard;
         const entries = leaderboard?.entries?.slice(0, 5) ?? [];
@@ -1648,6 +1672,26 @@ export class BottomNavUI extends Component {
         const selfRank = leaderboard?.self?.rank ? `#${leaderboard.self.rank}` : "未上榜";
         const rows = entries.map(entry => `<div class="leaderboard-row ${entry.isSelf ? "self" : ""}"><span>#${entry.rank}</span><b>${entry.companyName}</b><em>${this.formatNumber(entry.score)}/秒</em></div>`).join("");
         return `<div class="leaderboard-card"><div class="leaderboard-head"><b>收益排行榜</b><span>我的名次 ${selfRank}</span></div>${rows}</div>`;
+    }
+
+    private renderFriendActivityPreview(): string {
+        if (this._friendActivities.length <= 0) {
+            return `<div class="friend-activity-card"><div class="leaderboard-head"><b>好友动态</b><span>暂无记录</span></div><div class="activity-empty">访问、送礼或添加好友后会同步到这里。</div></div>`;
+        }
+        const rows = this._friendActivities.slice(0, 6).map(activity => `<div class="activity-row"><span>${this.getFriendActivityLabel(activity.activityType)}</span><b>${activity.friendName}</b><em>${this.formatActivityTime(activity.createdAt)}</em></div>`).join("");
+        return `<div class="friend-activity-card"><div class="leaderboard-head"><b>好友动态</b><span>${this._friendActivities.length}条</span></div>${rows}</div>`;
+    }
+
+    private getFriendActivityLabel(type: string): string {
+        if (type === "friend_add") return "添加";
+        if (type === "friend_visit") return "访问";
+        if (type === "friend_gift") return "送礼";
+        return "互动";
+    }
+
+    private formatActivityTime(timestamp: number): string {
+        if (!timestamp) return "";
+        return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     }
 
     private applyServerFriendSnapshot(friend: FriendDto, rerender = true): void {
