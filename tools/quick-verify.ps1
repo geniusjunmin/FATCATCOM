@@ -45,6 +45,10 @@ Invoke-Step "Friend sync contract check" {
     node .\tools\check-friend-sync-contract.js
 }
 
+Invoke-Step "Leaderboard contract check" {
+    node .\tools\check-leaderboard-contract.js
+}
+
 Invoke-Step "Server unit and API tests" {
     dotnet test .\FATCATServer\FATCATServer.sln --no-restore
 }

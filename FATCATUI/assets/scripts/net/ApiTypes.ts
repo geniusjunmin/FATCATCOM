@@ -232,6 +232,23 @@ export type FriendDto = {
     lastGiftAt?: number;
 };
 
+export type LeaderboardEntryDto = {
+    playerId: string;
+    companyName: string;
+    level: number;
+    rank: number;
+    score: number;
+    isSelf: boolean;
+    updatedAt: number;
+};
+
+export type LeaderboardDto = {
+    boardId: string;
+    entries: LeaderboardEntryDto[];
+    self?: LeaderboardEntryDto;
+    serverTime: number;
+};
+
 export type SettingsDto = {
     settings: FeatureSaveData["settings"];
 };

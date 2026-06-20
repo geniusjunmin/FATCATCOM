@@ -224,6 +224,21 @@ public sealed record FriendDto(
     long? LastVisitedAt,
     long? LastGiftAt);
 
+public sealed record LeaderboardEntryDto(
+    string PlayerId,
+    string CompanyName,
+    int Level,
+    int Rank,
+    int Score,
+    bool IsSelf,
+    long UpdatedAt);
+
+public sealed record LeaderboardDto(
+    string BoardId,
+    IReadOnlyList<LeaderboardEntryDto> Entries,
+    LeaderboardEntryDto? Self,
+    long ServerTime);
+
 public sealed record SettingsDto(Dictionary<string, bool> Settings);
 
 public sealed record ProductionBuildingPreviewDto(

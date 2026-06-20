@@ -424,6 +424,26 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task GetLeaderboardAsync_ReturnsIncomeRankingWithSelfEntry()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("leaderboard-device", "FatCat"), CancellationToken.None);
+
+        var leaderboard = await service.GetLeaderboardAsync(auth.PlayerId, "income", CancellationToken.None);
+
+        Assert.NotNull(leaderboard);
+        Assert.Equal("income", leaderboard!.BoardId);
+        Assert.Equal(4, leaderboard.Entries.Count);
+        Assert.Equal([1, 2, 3, 4], leaderboard.Entries.Select(entry => entry.Rank).ToArray());
+        Assert.Single(leaderboard.Entries, entry => entry.IsSelf);
+        Assert.NotNull(leaderboard.Self);
+        Assert.True(leaderboard.Self!.Score > 0);
+        Assert.Equal("cocoa", leaderboard.Entries[0].PlayerId);
+        Assert.Equal(680, leaderboard.Entries[0].Score);
+    }
+
+    [Fact]
     public void PreviewProduction_CalculatesNetIncomeAndBuildingBreakdown()
     {
         using var dbContext = CreateDbContext();

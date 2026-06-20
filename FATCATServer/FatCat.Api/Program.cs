@@ -352,6 +352,18 @@ app.MapPost("/api/friends/{friendId}/gift", async (
         : Results.Ok(ApiEnvelope<FriendDto>.Success(result));
 });
 
+app.MapGet("/api/leaderboard", async (
+    Guid playerId,
+    string? boardId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.GetLeaderboardAsync(playerId, boardId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<LeaderboardDto>.Fail("player_not_found"))
+        : Results.Ok(ApiEnvelope<LeaderboardDto>.Success(result));
+});
+
 app.MapGet("/api/settings", async (
     Guid playerId,
     FatCatGameService service,

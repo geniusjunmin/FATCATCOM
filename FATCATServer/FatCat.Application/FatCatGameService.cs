@@ -58,7 +58,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -979,6 +979,54 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         return ToFriendDto(friend);
     }
 
+    public async Task<LeaderboardDto?> GetLeaderboardAsync(Guid playerId, string? boardId, CancellationToken cancellationToken)
+    {
+        var player = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
+        if (player is null)
+        {
+            return null;
+        }
+
+        var normalizedBoardId = NormalizeLeaderboardBoardId(boardId);
+        await EnsureDefaultFriendsAsync(playerId, cancellationToken);
+        var friends = await repository.GetFriendsAsync(playerId, cancellationToken);
+        var selfPreview = await PreviewServerProductionAsync(playerId, cancellationToken);
+        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var entries = new List<LeaderboardEntryDto>
+        {
+            new(
+                player.Id.ToString("N"),
+                player.CompanyName,
+                player.Level,
+                0,
+                (int)Math.Floor(Math.Max(0, selfPreview?.NetCoinPerSecond ?? 0)),
+                true,
+                player.UpdatedAt.ToUnixTimeMilliseconds()),
+        };
+
+        entries.AddRange(friends.Select(friend => new LeaderboardEntryDto(
+            friend.FriendKey,
+            friend.Name,
+            friend.Level,
+            0,
+            Math.Max(0, friend.IncomePerSecond),
+            false,
+            (friend.LastVisitedAt ?? friend.LastGiftAt ?? DateTimeOffset.UtcNow).ToUnixTimeMilliseconds())));
+
+        var ranked = entries
+            .OrderByDescending(entry => entry.Score)
+            .ThenByDescending(entry => entry.Level)
+            .ThenBy(entry => entry.CompanyName, StringComparer.Ordinal)
+            .Select((entry, index) => entry with { Rank = index + 1 })
+            .Take(20)
+            .ToArray();
+        return new LeaderboardDto(
+            normalizedBoardId,
+            ranked,
+            ranked.FirstOrDefault(entry => entry.IsSelf),
+            now);
+    }
+
     public async Task<SettingsDto?> GetSettingsAsync(Guid playerId, CancellationToken cancellationToken)
     {
         if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
@@ -1705,6 +1753,13 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             friend.IncomePerSecond,
             friend.LastVisitedAt?.ToUnixTimeMilliseconds(),
             friend.LastGiftAt?.ToUnixTimeMilliseconds());
+    }
+
+    private static string NormalizeLeaderboardBoardId(string? boardId)
+    {
+        return string.Equals(boardId?.Trim(), "income", StringComparison.OrdinalIgnoreCase)
+            ? "income"
+            : "income";
     }
 
     private static SettingsDto ToSettingsDto(PlayerSettings settings)

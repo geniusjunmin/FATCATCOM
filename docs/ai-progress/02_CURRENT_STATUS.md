@@ -7,7 +7,7 @@ Updated: 2026-06-20
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Continue visual fidelity with generated/Cocos-managed art depth or HUD precision; social next move is ranking/real friend relations. |
+| Best Next Move | Continue visual fidelity with generated/Cocos-managed art depth or HUD precision; social next move is real friend relations beyond seeded snapshots. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -47,6 +47,7 @@ Updated: 2026-06-20
 - Online shop purchases pass server `remainingDaily` into `ShopManager.fulfillServerPurchase()`, so the UI no longer double-increments local purchase history after a server-approved buy.
 - `SyncManager` now fetches `/api/friends` after login/save sync. The DOM friend panel renders server `FriendDto` snapshots when online and keeps local preview friends only as offline fallback.
 - DOM friend visit/gift buttons call `/api/friends/{friendId}/visit` and `/api/friends/{friendId}/gift` in online mode, then apply returned server timestamps to local feature state.
+- `SyncManager` also fetches `/api/leaderboard` after login/save sync. The DOM friend panel now displays a server-backed income leaderboard with the current player highlighted when online.
 
 ## Server
 
@@ -59,6 +60,7 @@ Implemented server capabilities:
 - Resource transaction ledger: `/api/resources/transactions`.
 - Mail list and claim.
 - Friend list, visit, and gift endpoints, with DOM friend-panel consumption.
+- Income leaderboard endpoint: `/api/leaderboard`, combining current server-derived production with seeded friend snapshots and returning ranked entries plus the player's own row.
 - Settings get/update.
 - Production preview: `/api/production/preview`.
 - Server-derived production preview: `/api/production/server-preview`, derived from persisted cat assignment, cat level/weight/equipment, mood, building levels/effects, research bonuses, and skill effects.
@@ -89,7 +91,7 @@ Implemented server capabilities:
 - `tools/check-balance-config-drift.js` compares server `balance.json` with client `FATCATUI/assets/resources/configs/research.json`, `equipment.json`, `buildings.json`, `cats.json`, and `skills.json` for ids, costs, caps, effects, prerequisites, default equipped items, building levels, cat economy fields, and skill values.
 - `tools/check-balance-effect-coverage.js` verifies every research/equipment effect type in client config is listed as covered by the server economy model.
 - `tools/check-client-catalog-metadata-consumption.js` verifies client managers and the research panel consume server catalog metadata instead of bypassing it.
-- `tools/quick-verify.ps1` runs the focused client TypeScript check, generated balance check, drift check, effect coverage check, client catalog metadata consumption check, and server tests as a no-browser baseline gate.
+- `tools/quick-verify.ps1` runs the focused client TypeScript check, generated balance check, drift check, effect coverage check, client catalog metadata consumption check, shop-state, friend-sync, leaderboard contract checks, and server tests as a no-browser baseline gate.
 - `tools/start-api-process.js` lets selected online scripts start the already-built API DLL before falling back to `dotnet run --no-restore`, avoiding fragile NuGet restore attempts in restricted-network environments.
 
 Client/server cat sync:
@@ -122,12 +124,14 @@ Latest verified checks:
 - 2026-06-20 repository handoff check: root Git repository initialized on `main`, remote `origin` configured as `https://github.com/geniusjunmin/FATCATCOM.git`, initial import `f818a2e` pushed to GitHub. Root `.gitignore` excludes local archives, dependencies, build caches, local databases, and generated regression captures.
 - 2026-06-20 shop-state contract pass: added `/api/shop/state`, client `ShopStateDto`/`ApiClient.getShopState()`, `SyncManager.fetchServerShopState()`, `ShopManager.applyServerSnapshot()`, online purchase `remainingDaily` application, `tools/check-shop-state-contract.js`, and `AGENTS.md`.
 - 2026-06-20 friend-sync contract pass: DOM friend panel now refreshes `/api/friends`, renders server snapshots, routes visit/gift actions through `SyncManager`, applies returned timestamps locally, adds API coverage, and adds `tools/check-friend-sync-contract.js`.
-- Cocos asset-db refreshed for `db://assets/scripts` after shop-state and friend-sync client TypeScript edits.
+- 2026-06-20 leaderboard contract pass: added `/api/leaderboard`, server/client leaderboard DTOs, `ApiClient.getLeaderboard()`, `SyncManager.fetchServerLeaderboard()`, friend-panel income leaderboard rendering, `tools/check-leaderboard-contract.js`, and service/API coverage.
+- Cocos asset-db refreshed for `db://assets/scripts` after shop-state, friend-sync, and leaderboard client TypeScript edits.
 
-- `dotnet test FATCATServer\FATCATServer.sln --no-restore`: 51/51 passed.
-- `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`: passed; includes client TS, generated server balance, config drift, effect coverage, client catalog metadata consumption, shop-state contract, friend-sync contract, and 51 server tests.
+- `dotnet test FATCATServer\FATCATServer.sln --no-restore`: 53/53 passed.
+- `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`: passed; includes client TS, generated server balance, config drift, effect coverage, client catalog metadata consumption, shop-state contract, friend-sync contract, leaderboard contract, and 53 server tests.
 - `node tools\check-shop-state-contract.js`: passed; verifies server route/DTO/service, client API/types, sync fetch, manager snapshot consumption, and online purchase `remainingDaily` use.
 - `node tools\check-friend-sync-contract.js`: passed; verifies friend API methods, login/save friend refresh, DOM server snapshot rendering, visit/gift routing, and API coverage.
+- `node tools\check-leaderboard-contract.js`: passed; verifies leaderboard route/DTO/service, client API/types/sync fetch, friend-panel rendering, and service/API coverage.
 - `node tools\verify-ui-clicks-playwright.js`: passed after friend-panel server sync changes.
 - `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`: passed.
 - `node tools\check-client-catalog-metadata-consumption.js`: passed; verifies `CatManager`, `ResearchManager`, and `ResearchPanel` route through server metadata-aware config access.

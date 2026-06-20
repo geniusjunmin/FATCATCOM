@@ -1,5 +1,5 @@
 import { GameConfig } from "../core/GameConfig";
-import { ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendDto, LaunchRequest, LaunchResponse, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
+import { ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
 
 export class ApiClient {
     private static _baseUrl: string = GameConfig.apiBaseUrl;
@@ -108,6 +108,10 @@ export class ApiClient {
 
     public static sendFriendGift(playerId: string, friendId: string): Promise<ApiEnvelope<FriendDto>> {
         return this.post(`/api/friends/${encodeURIComponent(friendId)}/gift?playerId=${encodeURIComponent(playerId)}`, {});
+    }
+
+    public static getLeaderboard(playerId: string, boardId = "income"): Promise<ApiEnvelope<LeaderboardDto>> {
+        return this.get(`/api/leaderboard?playerId=${encodeURIComponent(playerId)}&boardId=${encodeURIComponent(boardId)}`);
     }
 
     public static getSettings(playerId: string): Promise<ApiEnvelope<SettingsDto>> {

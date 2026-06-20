@@ -13,7 +13,7 @@ import { ShopManager } from "../manager/ShopManager";
 import { TaskManager } from "../manager/TaskManager";
 import { NetworkManager } from "../manager/NetworkManager";
 import { SyncManager } from "../manager/SyncManager";
-import { FriendDto } from "../net/ApiTypes";
+import { FriendDto, LeaderboardDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
 import { DomAssetDataUris } from "./DomAssetDataUris";
@@ -85,7 +85,9 @@ export class BottomNavUI extends Component {
     private _domInventoryTab: "all" | "resource" | "shard" | "other" = "all";
     private _selectedResearchId = "res_basic_prod";
     private _serverFriends: FriendDto[] = [];
+    private _serverLeaderboard: LeaderboardDto | null = null;
     private _friendRefreshInFlight = false;
+    private _leaderboardRefreshInFlight = false;
     private _waitingForAppReady = false;
     private _launchInProgress = false;
 
@@ -526,6 +528,7 @@ export class BottomNavUI extends Component {
             this.renderDomPanel(panelId);
             if (panelId === "friends") {
                 void this.refreshServerFriendsForPanel();
+                void this.refreshServerLeaderboardForPanel();
             }
             this.layoutDomPanelOverlay();
         }
@@ -1177,6 +1180,14 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay .feature-mini { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5%; margin-bottom:2%; }
             #fatcat-dom-panel-overlay .feature-mini span { min-height:66px; border-radius:12px; background:linear-gradient(#76523a,#493124); color:#ffe3ad; display:flex; align-items:center; justify-content:center; flex-direction:column; font-size:2.0%; font-weight:900; box-shadow:inset 0 0 0 2px rgba(255,226,170,.12), 0 3px 0 rgba(72,43,25,.25); text-align:center; }
             #fatcat-dom-panel-overlay .feature-mini b { color:#fff; font-size:145%; }
+            #fatcat-dom-panel-overlay .leaderboard-card { margin-bottom:2%; padding:2.2%; border-radius:14px; background:linear-gradient(#76523a,#493124); border:2px solid #7c5736; color:#ffe2a8; box-shadow:inset 0 0 0 2px rgba(255,226,170,.12), 0 3px 0 rgba(72,43,25,.24); font-size:2.05%; }
+            #fatcat-dom-panel-overlay .leaderboard-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5%; font-weight:900; }
+            #fatcat-dom-panel-overlay .leaderboard-head span { color:#fff; }
+            #fatcat-dom-panel-overlay .leaderboard-row { min-height:34px; display:grid; grid-template-columns:14% 1fr 28%; gap:2%; align-items:center; border-top:1px solid rgba(255,226,170,.16); }
+            #fatcat-dom-panel-overlay .leaderboard-row span { font-weight:900; color:#ffd36d; }
+            #fatcat-dom-panel-overlay .leaderboard-row b { color:#fff6d8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .leaderboard-row em { justify-self:end; font-style:normal; font-weight:900; color:#9fdb69; }
+            #fatcat-dom-panel-overlay .leaderboard-row.self { background:rgba(133,184,77,.18); border-radius:8px; padding:0 2%; }
             #fatcat-dom-panel-overlay .setting-row { display:grid; grid-template-columns:1fr 24%; gap:2%; align-items:center; }
             #fatcat-dom-panel-overlay .settings-shell .feature-card { min-height:84px; padding:2.2%; }
             #fatcat-dom-panel-overlay .settings-shell .setting-row { min-height:64px; }
@@ -1564,7 +1575,7 @@ export class BottomNavUI extends Component {
             const lastGift = this.getFeatureTimestamp("friendGifts", friend.id);
             return `<div class="feature-card with-icon"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>${friend.name}</b><br>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒<br><span class="focus-tag">${friend.status}</span><span class="focus-tag">${lastVisit ? `已访问 ${lastVisit}` : "未访问"}</span><span class="focus-tag">${lastGift ? `已送礼 ${lastGift}` : "可送礼"}</span></div><div><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问</button><br><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再送" : "送礼"}</button></div></div>`;
         }).join("");
-        return `<div class="panel-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabel}：联网时访问和送礼会同步到 .NET 服务端。</div><span class="feature-badge">好友<br>${friends.length}</span></div><div class="feature-list">${rows}</div></div>`;
+        return `<div class="panel-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabel}：联网时访问和送礼会同步到 .NET 服务端。</div><span class="feature-badge">好友<br>${friends.length}</span></div>${this.renderLeaderboardPreview()}<div class="feature-list">${rows}</div></div>`;
     }
 
     private getFriendPanelRows(): Array<{ id: string; name: string; level: number; income: number; status: string }> {
@@ -1595,6 +1606,27 @@ export class BottomNavUI extends Component {
             this.applyServerFriendSnapshot(friend, false);
         }
         this.renderDomPanel("friends");
+    }
+
+    private async refreshServerLeaderboardForPanel(): Promise<void> {
+        if (!NetworkManager.canUseServer || this._leaderboardRefreshInFlight) return;
+        this._leaderboardRefreshInFlight = true;
+        const leaderboard = await SyncManager.fetchServerLeaderboard("income");
+        this._leaderboardRefreshInFlight = false;
+        if (!leaderboard || this.currentPanel !== "friends") return;
+        this._serverLeaderboard = leaderboard;
+        this.renderDomPanel("friends");
+    }
+
+    private renderLeaderboardPreview(): string {
+        const leaderboard = this._serverLeaderboard;
+        const entries = leaderboard?.entries?.slice(0, 5) ?? [];
+        if (entries.length <= 0) {
+            return `<div class="leaderboard-card"><div><b>收益排行榜</b><br>联网后显示好友与自己的咖啡收益名次。</div><span class="tag warn">等待同步</span></div>`;
+        }
+        const selfRank = leaderboard?.self?.rank ? `#${leaderboard.self.rank}` : "未上榜";
+        const rows = entries.map(entry => `<div class="leaderboard-row ${entry.isSelf ? "self" : ""}"><span>#${entry.rank}</span><b>${entry.companyName}</b><em>${this.formatNumber(entry.score)}/秒</em></div>`).join("");
+        return `<div class="leaderboard-card"><div class="leaderboard-head"><b>收益排行榜</b><span>我的名次 ${selfRank}</span></div>${rows}</div>`;
     }
 
     private applyServerFriendSnapshot(friend: FriendDto, rerender = true): void {

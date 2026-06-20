@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendDto, LaunchResponse, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendDto, LaunchResponse, LeaderboardDto, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -75,6 +75,7 @@ export class SyncManager {
         void this.fetchServerResearch();
         void this.fetchServerShopState();
         void this.fetchServerFriends();
+        void this.fetchServerLeaderboard();
         return true;
     }
 
@@ -104,6 +105,7 @@ export class SyncManager {
         await this.fetchServerResearch();
         await this.fetchServerShopState();
         await this.fetchServerFriends();
+        await this.fetchServerLeaderboard();
         this.refreshPendingFeatureChanges();
         this.emitSyncChanged();
         return true;
@@ -442,6 +444,24 @@ export class SyncManager {
         const response = await ApiClient.sendFriendGift(NetworkManager.playerId, friendId);
         if (!response.ok || !response.data) {
             this.markFailed(response.error ?? "friend_gift_failed");
+            return null;
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerLeaderboard(boardId = "income"): Promise<LeaderboardDto | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.getLeaderboard(NetworkManager.playerId, boardId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "leaderboard_fetch_failed");
             return null;
         }
         this.markReadyAfterServerCall();

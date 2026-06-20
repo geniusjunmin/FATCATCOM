@@ -93,6 +93,36 @@ public sealed class FatCatApiTests
     }
 
     [Fact]
+    public async Task Leaderboard_ReturnsIncomeRankingContract()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-leaderboard-device",
+            companyName = "FatCat",
+        });
+        var authBody = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync());
+        var playerId = authBody.RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+
+        var response = await client.GetAsync($"/api/leaderboard?playerId={playerId}&boardId=income");
+        var data = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var entries = data.GetProperty("entries");
+        var self = data.GetProperty("self");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("income", data.GetProperty("boardId").GetString());
+        Assert.Equal(4, entries.GetArrayLength());
+        Assert.Equal("cocoa", entries[0].GetProperty("playerId").GetString());
+        Assert.Equal(1, entries[0].GetProperty("rank").GetInt32());
+        Assert.Equal(680, entries[0].GetProperty("score").GetInt32());
+        Assert.Contains(entries.EnumerateArray(), entry => entry.GetProperty("isSelf").GetBoolean());
+        Assert.True(self.GetProperty("score").GetInt32() > 0);
+        Assert.True(data.GetProperty("serverTime").GetInt64() > 0);
+    }
+
+    [Fact]
     public async Task ClaimMail_UpdatesAuthoritativeResources()
     {
         await using var factory = new FatCatApiFactory();
