@@ -59,7 +59,9 @@ async function get(path) {
             friendPlayerId: targetId,
         });
         const visit = await post(`/api/friends/${encodeURIComponent(targetKey)}/visit?playerId=${encodeURIComponent(playerId)}`, {});
+        const repeatVisit = await post(`/api/friends/${encodeURIComponent(targetKey)}/visit?playerId=${encodeURIComponent(playerId)}`, {});
         const gift = await post(`/api/friends/${encodeURIComponent(targetKey)}/gift?playerId=${encodeURIComponent(playerId)}`, {});
+        const repeatGift = await post(`/api/friends/${encodeURIComponent(targetKey)}/gift?playerId=${encodeURIComponent(playerId)}`, {});
         const invalidSelf = await post(`/api/friends/add?playerId=${encodeURIComponent(playerId)}`, {
             friendPlayerId: playerId,
         });
@@ -75,7 +77,9 @@ async function get(path) {
             && added.response.ok
             && duplicate.response.ok
             && visit.response.ok
+            && repeatVisit.response.ok
             && gift.response.ok
+            && repeatGift.response.ok
             && invalidSelf.response.status === 400
             && friends.response.ok
             && activities.response.ok
@@ -83,6 +87,14 @@ async function get(path) {
             && added.json.data?.id === targetKey
             && added.json.data?.name === "Beta Beans"
             && added.json.data?.incomePerSecond > 0
+            && visit.json.data?.rewarded === true
+            && visit.json.data?.rewardCoin > 0
+            && repeatVisit.json.data?.rewarded === false
+            && repeatVisit.json.data?.limitedReason === "daily_visit_claimed"
+            && gift.json.data?.rewarded === true
+            && gift.json.data?.rewardCatFood === 12
+            && repeatGift.json.data?.rewarded === false
+            && repeatGift.json.data?.limitedReason === "daily_gift_claimed"
             && friendRows.length === 4
             && activityRows.length === 3
             && activityRows[0]?.activityType === "friend_gift"
@@ -95,6 +107,10 @@ async function get(path) {
             ok,
             added: added.json.data,
             duplicate: duplicate.json.data,
+            visitReward: visit.json.data?.rewardCoin,
+            repeatVisitReason: repeatVisit.json.data?.limitedReason,
+            giftReward: gift.json.data?.rewardCatFood,
+            repeatGiftReason: repeatGift.json.data?.limitedReason,
             invalidSelfStatus: invalidSelf.response.status,
             friendCount: friendRows.length,
             activityTypes: activityRows.map((activity) => activity.activityType),

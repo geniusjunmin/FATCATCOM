@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendActivityDto, FriendDto, LaunchResponse, LeaderboardDto, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, LaunchResponse, LeaderboardDto, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -452,7 +452,7 @@ export class SyncManager {
         return response.data;
     }
 
-    public static async visitServerFriend(friendId: string): Promise<FriendDto | null> {
+    public static async visitServerFriend(friendId: string): Promise<FriendActionResponse | null> {
         if (!NetworkManager.canUseServer) {
             this.setOffline();
             return null;
@@ -466,11 +466,12 @@ export class SyncManager {
             this.markFailed(response.error ?? "friend_visit_failed");
             return null;
         }
+        this.applyFriendActionResources(response.data, `server_friend_visit_${friendId}`);
         this.markReadyAfterServerCall();
         return response.data;
     }
 
-    public static async sendServerFriendGift(friendId: string): Promise<FriendDto | null> {
+    public static async sendServerFriendGift(friendId: string): Promise<FriendActionResponse | null> {
         if (!NetworkManager.canUseServer) {
             this.setOffline();
             return null;
@@ -484,6 +485,7 @@ export class SyncManager {
             this.markFailed(response.error ?? "friend_gift_failed");
             return null;
         }
+        this.applyFriendActionResources(response.data, `server_friend_gift_${friendId}`);
         this.markReadyAfterServerCall();
         return response.data;
     }
@@ -617,6 +619,16 @@ export class SyncManager {
                 beanCostPerSecond: snapshot.buildingBeanCostPerSecond[building.id] ?? 0,
             })),
         };
+    }
+
+    private static applyFriendActionResources(response: FriendActionResponse, source: string): void {
+        ResourceManager.applyServerSnapshot({
+            coin: response.coinBalance,
+            bean: response.beanBalance,
+            catFood: response.catFoodBalance,
+            diamond: response.diamondBalance,
+            researchPoint: response.researchPointBalance,
+        }, source);
     }
 
     private static createProductionPreviewRequestFromPreview(preview: ProductionPreviewResponse): ProductionPreviewRequest {

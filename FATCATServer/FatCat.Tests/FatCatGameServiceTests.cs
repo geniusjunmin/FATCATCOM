@@ -417,10 +417,41 @@ public sealed class FatCatGameServiceTests
             ["sync"] = true,
         }), CancellationToken.None);
 
-        Assert.NotNull(visited?.LastVisitedAt);
-        Assert.NotNull(gifted?.LastGiftAt);
+        Assert.NotNull(visited?.Friend.LastVisitedAt);
+        Assert.NotNull(gifted?.Friend.LastGiftAt);
         Assert.False(settings!.Settings["music"]);
         Assert.True(settings.Settings["sync"]);
+    }
+
+    [Fact]
+    public async Task FriendActions_RewardResourcesOncePerDay()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("friend-reward-device", "FatCat"), CancellationToken.None);
+
+        var visit = await service.VisitFriendAsync(auth.PlayerId, "mocha", CancellationToken.None);
+        var repeatVisit = await service.VisitFriendAsync(auth.PlayerId, "mocha", CancellationToken.None);
+        var gift = await service.SendFriendGiftAsync(auth.PlayerId, "mocha", CancellationToken.None);
+        var repeatGift = await service.SendFriendGiftAsync(auth.PlayerId, "mocha", CancellationToken.None);
+
+        Assert.NotNull(visit);
+        Assert.True(visit!.Rewarded);
+        Assert.Equal(520, visit.RewardCoin);
+        Assert.Equal(12450520, visit.CoinBalance);
+        Assert.NotNull(repeatVisit);
+        Assert.False(repeatVisit!.Rewarded);
+        Assert.Equal("daily_visit_claimed", repeatVisit.LimitedReason);
+        Assert.Equal(12450520, repeatVisit.CoinBalance);
+        Assert.NotNull(gift);
+        Assert.True(gift!.Rewarded);
+        Assert.Equal(12, gift.RewardCatFood);
+        Assert.Equal(3522, gift.CatFoodBalance);
+        Assert.NotNull(repeatGift);
+        Assert.False(repeatGift!.Rewarded);
+        Assert.Equal("daily_gift_claimed", repeatGift.LimitedReason);
+        Assert.Equal(3522, repeatGift.CatFoodBalance);
+        Assert.Equal(2, dbContext.ResourceTransactions.Count(item => item.PlayerId == auth.PlayerId));
     }
 
     [Fact]

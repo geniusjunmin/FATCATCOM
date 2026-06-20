@@ -232,6 +232,20 @@ export type FriendDto = {
     lastGiftAt?: number;
 };
 
+export type FriendActionResponse = {
+    friend: FriendDto;
+    rewarded: boolean;
+    rewardCoin: number;
+    rewardCatFood: number;
+    coinBalance: number;
+    beanBalance: number;
+    catFoodBalance: number;
+    diamondBalance: number;
+    researchPointBalance: number;
+    serverTime: number;
+    limitedReason?: string | null;
+};
+
 export type AddFriendRequest = {
     friendPlayerId: string;
 };

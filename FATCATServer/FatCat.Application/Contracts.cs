@@ -224,6 +224,19 @@ public sealed record FriendDto(
     long? LastVisitedAt,
     long? LastGiftAt);
 
+public sealed record FriendActionResponse(
+    FriendDto Friend,
+    bool Rewarded,
+    int RewardCoin,
+    int RewardCatFood,
+    double CoinBalance,
+    double BeanBalance,
+    double CatFoodBalance,
+    double DiamondBalance,
+    double ResearchPointBalance,
+    long ServerTime,
+    string? LimitedReason = null);
+
 public sealed record AddFriendRequest(string FriendPlayerId);
 
 public sealed record FriendActivityDto(

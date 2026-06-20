@@ -1,5 +1,5 @@
 import { GameConfig } from "../core/GameConfig";
-import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendActivityDto, FriendDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
+import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
 
 export class ApiClient {
     private static _baseUrl: string = GameConfig.apiBaseUrl;
@@ -110,11 +110,11 @@ export class ApiClient {
         return this.post(`/api/friends/add?playerId=${encodeURIComponent(playerId)}`, request);
     }
 
-    public static visitFriend(playerId: string, friendId: string): Promise<ApiEnvelope<FriendDto>> {
+    public static visitFriend(playerId: string, friendId: string): Promise<ApiEnvelope<FriendActionResponse>> {
         return this.post(`/api/friends/${encodeURIComponent(friendId)}/visit?playerId=${encodeURIComponent(playerId)}`, {});
     }
 
-    public static sendFriendGift(playerId: string, friendId: string): Promise<ApiEnvelope<FriendDto>> {
+    public static sendFriendGift(playerId: string, friendId: string): Promise<ApiEnvelope<FriendActionResponse>> {
         return this.post(`/api/friends/${encodeURIComponent(friendId)}/gift?playerId=${encodeURIComponent(playerId)}`, {});
     }
 

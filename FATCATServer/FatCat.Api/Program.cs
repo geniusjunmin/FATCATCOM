@@ -336,8 +336,8 @@ app.MapPost("/api/friends/{friendId}/visit", async (
 {
     var result = await service.VisitFriendAsync(playerId, friendId, cancellationToken);
     return result is null
-        ? Results.NotFound(ApiEnvelope<FriendDto>.Fail("friend_not_found"))
-        : Results.Ok(ApiEnvelope<FriendDto>.Success(result));
+        ? Results.NotFound(ApiEnvelope<FriendActionResponse>.Fail("friend_not_found"))
+        : Results.Ok(ApiEnvelope<FriendActionResponse>.Success(result));
 });
 
 app.MapPost("/api/friends/{friendId}/gift", async (
@@ -348,8 +348,8 @@ app.MapPost("/api/friends/{friendId}/gift", async (
 {
     var result = await service.SendFriendGiftAsync(playerId, friendId, cancellationToken);
     return result is null
-        ? Results.NotFound(ApiEnvelope<FriendDto>.Fail("friend_not_found"))
-        : Results.Ok(ApiEnvelope<FriendDto>.Success(result));
+        ? Results.NotFound(ApiEnvelope<FriendActionResponse>.Fail("friend_not_found"))
+        : Results.Ok(ApiEnvelope<FriendActionResponse>.Success(result));
 });
 
 app.MapPost("/api/friends/add", async (

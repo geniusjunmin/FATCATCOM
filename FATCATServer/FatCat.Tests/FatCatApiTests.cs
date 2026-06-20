@@ -85,11 +85,17 @@ public sealed class FatCatApiTests
         Assert.Equal(3, friends.GetArrayLength());
         Assert.Equal("cocoa", friends[0].GetProperty("id").GetString());
         Assert.Equal(HttpStatusCode.OK, visitResponse.StatusCode);
-        Assert.Equal("mocha", visit.GetProperty("id").GetString());
-        Assert.True(visit.GetProperty("lastVisitedAt").GetInt64() > 0);
+        Assert.Equal("mocha", visit.GetProperty("friend").GetProperty("id").GetString());
+        Assert.True(visit.GetProperty("friend").GetProperty("lastVisitedAt").GetInt64() > 0);
+        Assert.True(visit.GetProperty("rewarded").GetBoolean());
+        Assert.Equal(520, visit.GetProperty("rewardCoin").GetInt32());
+        Assert.Equal(12450520, visit.GetProperty("coinBalance").GetDouble());
         Assert.Equal(HttpStatusCode.OK, giftResponse.StatusCode);
-        Assert.Equal("mocha", gift.GetProperty("id").GetString());
-        Assert.True(gift.GetProperty("lastGiftAt").GetInt64() > 0);
+        Assert.Equal("mocha", gift.GetProperty("friend").GetProperty("id").GetString());
+        Assert.True(gift.GetProperty("friend").GetProperty("lastGiftAt").GetInt64() > 0);
+        Assert.True(gift.GetProperty("rewarded").GetBoolean());
+        Assert.Equal(12, gift.GetProperty("rewardCatFood").GetInt32());
+        Assert.Equal(3522, gift.GetProperty("catFoodBalance").GetDouble());
     }
 
     [Fact]

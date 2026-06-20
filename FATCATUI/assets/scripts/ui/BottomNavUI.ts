@@ -1389,8 +1389,10 @@ export class BottomNavUI extends Component {
                 ? await SyncManager.visitServerFriend(id)
                 : null;
             if (serverFriend) {
-                this.applyServerFriendSnapshot(serverFriend);
-                this._domPanelMessage = `Friend visit synced: ${serverFriend.name}.`;
+                this.applyServerFriendSnapshot(serverFriend.friend);
+                this._domPanelMessage = serverFriend.rewarded
+                    ? `Friend visit reward: +${this.formatNumber(serverFriend.rewardCoin)} coin.`
+                    : "Friend visit synced: daily reward already claimed.";
                 void this.refreshFriendActivitiesForPanel();
                 success = true;
             } else if (!NetworkManager.canUseServer) {
@@ -1404,8 +1406,10 @@ export class BottomNavUI extends Component {
                 ? await SyncManager.sendServerFriendGift(id)
                 : null;
             if (serverFriend) {
-                this.applyServerFriendSnapshot(serverFriend);
-                this._domPanelMessage = `Friend gift synced: ${serverFriend.name}.`;
+                this.applyServerFriendSnapshot(serverFriend.friend);
+                this._domPanelMessage = serverFriend.rewarded
+                    ? `Friend gift reward: +${this.formatNumber(serverFriend.rewardCatFood)} cat food.`
+                    : "Friend gift synced: daily reward already claimed.";
                 void this.refreshFriendActivitiesForPanel();
                 success = true;
             } else if (!NetworkManager.canUseServer) {

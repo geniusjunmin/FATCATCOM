@@ -995,7 +995,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         return ToFriendDto(friend);
     }
 
-    public async Task<FriendDto?> VisitFriendAsync(Guid playerId, string friendId, CancellationToken cancellationToken)
+    public async Task<FriendActionResponse?> VisitFriendAsync(Guid playerId, string friendId, CancellationToken cancellationToken)
     {
         await EnsureDefaultFriendsAsync(playerId, cancellationToken);
         var friend = await repository.GetFriendAsync(playerId, friendId, cancellationToken);
@@ -1004,13 +1004,23 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             return null;
         }
 
-        friend.LastVisitedAt = DateTimeOffset.UtcNow;
-        await AddSocialActivityAsync(playerId, "friend_visit", friend, cancellationToken);
+        var now = DateTimeOffset.UtcNow;
+        var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
+        var rewarded = !IsSameUtcDate(friend.LastVisitedAt, now);
+        var rewardCoin = rewarded ? CalculateFriendVisitCoinReward(friend) : 0;
+        if (rewarded)
+        {
+            resources.Coin += rewardCoin;
+            resources.UpdatedAt = now;
+            await AddResourceTransactionAsync(playerId, "friend_visit", friend.FriendKey, null, rewardCoin, 0, 0, 0, 0, resources, cancellationToken);
+            await AddSocialActivityAsync(playerId, "friend_visit", friend, cancellationToken);
+        }
+        friend.LastVisitedAt = now;
         await repository.SaveChangesAsync(cancellationToken);
-        return ToFriendDto(friend);
+        return ToFriendActionResponse(friend, rewarded, rewardCoin, 0, resources, now, rewarded ? null : "daily_visit_claimed");
     }
 
-    public async Task<FriendDto?> SendFriendGiftAsync(Guid playerId, string friendId, CancellationToken cancellationToken)
+    public async Task<FriendActionResponse?> SendFriendGiftAsync(Guid playerId, string friendId, CancellationToken cancellationToken)
     {
         await EnsureDefaultFriendsAsync(playerId, cancellationToken);
         var friend = await repository.GetFriendAsync(playerId, friendId, cancellationToken);
@@ -1019,10 +1029,20 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             return null;
         }
 
-        friend.LastGiftAt = DateTimeOffset.UtcNow;
-        await AddSocialActivityAsync(playerId, "friend_gift", friend, cancellationToken);
+        var now = DateTimeOffset.UtcNow;
+        var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
+        var rewarded = !IsSameUtcDate(friend.LastGiftAt, now);
+        var rewardCatFood = rewarded ? FriendGiftCatFoodReward : 0;
+        if (rewarded)
+        {
+            resources.CatFood += rewardCatFood;
+            resources.UpdatedAt = now;
+            await AddResourceTransactionAsync(playerId, "friend_gift", friend.FriendKey, null, 0, 0, rewardCatFood, 0, 0, resources, cancellationToken);
+            await AddSocialActivityAsync(playerId, "friend_gift", friend, cancellationToken);
+        }
+        friend.LastGiftAt = now;
         await repository.SaveChangesAsync(cancellationToken);
-        return ToFriendDto(friend);
+        return ToFriendActionResponse(friend, rewarded, 0, rewardCatFood, resources, now, rewarded ? null : "daily_gift_claimed");
     }
 
     public async Task<IReadOnlyList<FriendActivityDto>?> GetFriendActivitiesAsync(Guid playerId, int limit, CancellationToken cancellationToken)
@@ -1863,6 +1883,29 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             friend.LastGiftAt?.ToUnixTimeMilliseconds());
     }
 
+    private static FriendActionResponse ToFriendActionResponse(
+        FriendSnapshot friend,
+        bool rewarded,
+        int rewardCoin,
+        int rewardCatFood,
+        PlayerResourceState resources,
+        DateTimeOffset serverTime,
+        string? limitedReason)
+    {
+        return new FriendActionResponse(
+            ToFriendDto(friend),
+            rewarded,
+            rewardCoin,
+            rewardCatFood,
+            resources.Coin,
+            resources.Bean,
+            resources.CatFood,
+            resources.Diamond,
+            resources.ResearchPoint,
+            serverTime.ToUnixTimeMilliseconds(),
+            limitedReason);
+    }
+
     private static FriendActivityDto ToFriendActivityDto(PlayerSocialActivity activity)
     {
         return new FriendActivityDto(
@@ -1900,6 +1943,16 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         playerId = Guid.Empty;
         return friendKey.StartsWith("player:", StringComparison.Ordinal)
             && Guid.TryParseExact(friendKey["player:".Length..], "N", out playerId);
+    }
+
+    private static bool IsSameUtcDate(DateTimeOffset? left, DateTimeOffset right)
+    {
+        return left?.UtcDateTime.Date == right.UtcDateTime.Date;
+    }
+
+    private static int CalculateFriendVisitCoinReward(FriendSnapshot friend)
+    {
+        return Math.Clamp(friend.IncomePerSecond, 100, 1_500);
     }
 
     private static SettingsDto ToSettingsDto(PlayerSettings settings)
@@ -1963,6 +2016,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
     private const string DefaultCatId = "c_001";
     private const string DefaultBuildingId = "building_cafe_1f";
     private const int MaxCatWeight = 100;
+    private const int FriendGiftCatFoodReward = 12;
     private sealed record ShopItemDefinition(string ShopItemId, string ItemId, string PriceType, int PriceAmount, int LimitDaily);
     private sealed record ProductionModifiers(
         int GrossCoinPercent,

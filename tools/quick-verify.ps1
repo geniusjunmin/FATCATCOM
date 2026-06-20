@@ -53,6 +53,10 @@ Invoke-Step "Friend activity contract check" {
     node .\tools\check-friend-activity-contract.js
 }
 
+Invoke-Step "Friend reward contract check" {
+    node .\tools\check-friend-reward-contract.js
+}
+
 Invoke-Step "Leaderboard contract check" {
     node .\tools\check-leaderboard-contract.js
 }
