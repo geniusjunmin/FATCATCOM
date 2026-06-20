@@ -41,6 +41,10 @@ Invoke-Step "Shop state contract check" {
     node .\tools\check-shop-state-contract.js
 }
 
+Invoke-Step "Friend sync contract check" {
+    node .\tools\check-friend-sync-contract.js
+}
+
 Invoke-Step "Server unit and API tests" {
     dotnet test .\FATCATServer\FATCATServer.sln --no-restore
 }

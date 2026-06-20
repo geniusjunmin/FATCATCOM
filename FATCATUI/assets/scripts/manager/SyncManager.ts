@@ -74,6 +74,7 @@ export class SyncManager {
         void this.fetchServerBuildings();
         void this.fetchServerResearch();
         void this.fetchServerShopState();
+        void this.fetchServerFriends();
         return true;
     }
 
@@ -102,6 +103,7 @@ export class SyncManager {
         await this.fetchServerBuildings();
         await this.fetchServerResearch();
         await this.fetchServerShopState();
+        await this.fetchServerFriends();
         this.refreshPendingFeatureChanges();
         this.emitSyncChanged();
         return true;
@@ -393,7 +395,14 @@ export class SyncManager {
     }
 
     public static async fetchServerFriends(): Promise<FriendDto[]> {
-        if (!this.canCallServer()) return [];
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return [];
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return [];
+        }
         const response = await ApiClient.getFriends(NetworkManager.playerId);
         if (!response.ok || !response.data) {
             this.markFailed(response.error ?? "friends_fetch_failed");
@@ -404,7 +413,14 @@ export class SyncManager {
     }
 
     public static async visitServerFriend(friendId: string): Promise<FriendDto | null> {
-        if (!this.canCallServer()) return null;
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
         const response = await ApiClient.visitFriend(NetworkManager.playerId, friendId);
         if (!response.ok || !response.data) {
             this.markFailed(response.error ?? "friend_visit_failed");
@@ -415,7 +431,14 @@ export class SyncManager {
     }
 
     public static async sendServerFriendGift(friendId: string): Promise<FriendDto | null> {
-        if (!this.canCallServer()) return null;
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
         const response = await ApiClient.sendFriendGift(NetworkManager.playerId, friendId);
         if (!response.ok || !response.data) {
             this.markFailed(response.error ?? "friend_gift_failed");

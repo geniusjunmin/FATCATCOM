@@ -13,6 +13,7 @@ import { ShopManager } from "../manager/ShopManager";
 import { TaskManager } from "../manager/TaskManager";
 import { NetworkManager } from "../manager/NetworkManager";
 import { SyncManager } from "../manager/SyncManager";
+import { FriendDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
 import { DomAssetDataUris } from "./DomAssetDataUris";
@@ -83,6 +84,8 @@ export class BottomNavUI extends Component {
     private _domShopTab: "resource" | "item" | "cat" | "deco" = "resource";
     private _domInventoryTab: "all" | "resource" | "shard" | "other" = "all";
     private _selectedResearchId = "res_basic_prod";
+    private _serverFriends: FriendDto[] = [];
+    private _friendRefreshInFlight = false;
     private _waitingForAppReady = false;
     private _launchInProgress = false;
 
@@ -521,6 +524,9 @@ export class BottomNavUI extends Component {
         overlay.style.display = visible ? "block" : "none";
         if (visible) {
             this.renderDomPanel(panelId);
+            if (panelId === "friends") {
+                void this.refreshServerFriendsForPanel();
+            }
             this.layoutDomPanelOverlay();
         }
     }
@@ -1354,15 +1360,33 @@ export class BottomNavUI extends Component {
                 }
             }
         } else if (action === "visitFriend") {
-            SaveManager.update(data => {
-                data.featureState.friendVisits[id] = Date.now();
-            });
-            success = true;
+            const serverFriend = NetworkManager.canUseServer
+                ? await SyncManager.visitServerFriend(id)
+                : null;
+            if (serverFriend) {
+                this.applyServerFriendSnapshot(serverFriend);
+                this._domPanelMessage = `Friend visit synced: ${serverFriend.name}.`;
+                success = true;
+            } else if (!NetworkManager.canUseServer) {
+                SaveManager.update(data => {
+                    data.featureState.friendVisits[id] = Date.now();
+                });
+                success = true;
+            }
         } else if (action === "sendFriendGift") {
-            SaveManager.update(data => {
-                data.featureState.friendGifts[id] = Date.now();
-            });
-            success = true;
+            const serverFriend = NetworkManager.canUseServer
+                ? await SyncManager.sendServerFriendGift(id)
+                : null;
+            if (serverFriend) {
+                this.applyServerFriendSnapshot(serverFriend);
+                this._domPanelMessage = `Friend gift synced: ${serverFriend.name}.`;
+                success = true;
+            } else if (!NetworkManager.canUseServer) {
+                SaveManager.update(data => {
+                    data.featureState.friendGifts[id] = Date.now();
+                });
+                success = true;
+            }
         } else if (action === "toggleSetting") {
             SaveManager.update(data => {
                 const current = data.featureState.settings[id] ?? this.getDefaultSettingValue(id);
@@ -1533,17 +1557,64 @@ export class BottomNavUI extends Component {
     }
 
     private renderFriendPanel(): string {
-        const friends = [
-            { id: "mocha", name: "摩卡工坊", level: 18, income: 520, status: "可访问" },
-            { id: "latte", name: "拿铁小镇", level: 14, income: 360, status: "待回礼" },
-            { id: "cocoa", name: "可可研究所", level: 22, income: 680, status: "在线" },
-        ];
+        const friends = this.getFriendPanelRows();
+        const sourceLabel = this._serverFriends.length > 0 ? "服务端快照" : "本地预览";
         const rows = friends.map(friend => {
             const lastVisit = this.getFeatureTimestamp("friendVisits", friend.id);
             const lastGift = this.getFeatureTimestamp("friendGifts", friend.id);
-            return `<div class="feature-card with-icon"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>${friend.name}</b><br>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒<br><span class="focus-tag">${friend.status}</span><span class="focus-tag">${lastVisit ? `已访问 ${lastVisit}` : "假好友快照"}</span><span class="focus-tag">${lastGift ? `已送礼 ${lastGift}` : "可送礼"}</span></div><div><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问</button><br><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再送" : "送礼"}</button></div></div>`;
+            return `<div class="feature-card with-icon"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>${friend.name}</b><br>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒<br><span class="focus-tag">${friend.status}</span><span class="focus-tag">${lastVisit ? `已访问 ${lastVisit}` : "未访问"}</span><span class="focus-tag">${lastGift ? `已送礼 ${lastGift}` : "可送礼"}</span></div><div><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问</button><br><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再送" : "送礼"}</button></div></div>`;
         }).join("");
-        return `<div class="panel-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>先用本地快照搭好交互外壳，后续接 .NET 服务端好友数据。</div><span class="feature-badge">好友<br>${friends.length}</span></div><div class="feature-list">${rows}</div></div>`;
+        return `<div class="panel-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabel}：联网时访问和送礼会同步到 .NET 服务端。</div><span class="feature-badge">好友<br>${friends.length}</span></div><div class="feature-list">${rows}</div></div>`;
+    }
+
+    private getFriendPanelRows(): Array<{ id: string; name: string; level: number; income: number; status: string }> {
+        if (this._serverFriends.length > 0) {
+            return this._serverFriends.map(friend => ({
+                id: friend.id,
+                name: friend.name,
+                level: friend.level,
+                income: friend.incomePerSecond,
+                status: "在线数据",
+            }));
+        }
+        return [
+            { id: "mocha", name: "摩卡工坊", level: 18, income: 520, status: "本地预览" },
+            { id: "latte", name: "拿铁小镇", level: 14, income: 360, status: "本地预览" },
+            { id: "cocoa", name: "可可研究所", level: 22, income: 680, status: "本地预览" },
+        ];
+    }
+
+    private async refreshServerFriendsForPanel(): Promise<void> {
+        if (!NetworkManager.canUseServer || this._friendRefreshInFlight) return;
+        this._friendRefreshInFlight = true;
+        const friends = await SyncManager.fetchServerFriends();
+        this._friendRefreshInFlight = false;
+        if (friends.length <= 0 || this.currentPanel !== "friends") return;
+        this._serverFriends = friends;
+        for (const friend of friends) {
+            this.applyServerFriendSnapshot(friend, false);
+        }
+        this.renderDomPanel("friends");
+    }
+
+    private applyServerFriendSnapshot(friend: FriendDto, rerender = true): void {
+        const index = this._serverFriends.findIndex(item => item.id === friend.id);
+        if (index >= 0) {
+            this._serverFriends[index] = friend;
+        } else {
+            this._serverFriends.push(friend);
+        }
+        SaveManager.update(data => {
+            if (friend.lastVisitedAt) {
+                data.featureState.friendVisits[friend.id] = friend.lastVisitedAt;
+            }
+            if (friend.lastGiftAt) {
+                data.featureState.friendGifts[friend.id] = friend.lastGiftAt;
+            }
+        });
+        if (rerender && this.currentPanel === "friends") {
+            this.renderDomPanel("friends");
+        }
     }
 
     private renderSettingsPanel(): string {

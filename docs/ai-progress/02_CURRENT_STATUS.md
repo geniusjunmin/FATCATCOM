@@ -7,7 +7,7 @@ Updated: 2026-06-20
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Continue visual fidelity with generated/Cocos-managed art depth or HUD precision; server shop-state is now covered. |
+| Best Next Move | Continue visual fidelity with generated/Cocos-managed art depth or HUD precision; social next move is ranking/real friend relations. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -17,7 +17,7 @@ Updated: 2026-06-20
 | Track | State | Signal |
 | --- | --- | --- |
 | Client UI | Playable and clickable | Main screen, cat page, feature panels, bottom nav, and four-size screenshot regressions exist. |
-| Server Authority | Advanced | Cats, equipment, buildings, research, shop state, launch, production preview, resources, and transactions are server-backed. |
+| Server Authority | Advanced | Cats, equipment, buildings, research, shop state, friends, launch, production preview, resources, and transactions are server-backed. |
 | Economy Model | Covered | Production uses assignment, building level, equipment, research, skills, and mood. |
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
@@ -45,6 +45,8 @@ Updated: 2026-06-20
 - `CatManager` and `ResearchManager` now overlay server catalog metadata from `/api/cats` and `/api/research` onto local configs, so production, unlock cost, skill, research cost, effect, and prerequisite reads can reflect server definitions while offline mode keeps using local JSON.
 - `SyncManager` now fetches `/api/shop/state` after login/save sync, and `ShopManager.applyServerSnapshot()` applies authoritative daily shop purchase counts into local save data.
 - Online shop purchases pass server `remainingDaily` into `ShopManager.fulfillServerPurchase()`, so the UI no longer double-increments local purchase history after a server-approved buy.
+- `SyncManager` now fetches `/api/friends` after login/save sync. The DOM friend panel renders server `FriendDto` snapshots when online and keeps local preview friends only as offline fallback.
+- DOM friend visit/gift buttons call `/api/friends/{friendId}/visit` and `/api/friends/{friendId}/gift` in online mode, then apply returned server timestamps to local feature state.
 
 ## Server
 
@@ -56,7 +58,7 @@ Implemented server capabilities:
 - Resource snapshot: `/api/resources`.
 - Resource transaction ledger: `/api/resources/transactions`.
 - Mail list and claim.
-- Friend visit/gift base endpoints.
+- Friend list, visit, and gift endpoints, with DOM friend-panel consumption.
 - Settings get/update.
 - Production preview: `/api/production/preview`.
 - Server-derived production preview: `/api/production/server-preview`, derived from persisted cat assignment, cat level/weight/equipment, mood, building levels/effects, research bonuses, and skill effects.
@@ -119,11 +121,14 @@ Latest verified checks:
 
 - 2026-06-20 repository handoff check: root Git repository initialized on `main`, remote `origin` configured as `https://github.com/geniusjunmin/FATCATCOM.git`, initial import `f818a2e` pushed to GitHub. Root `.gitignore` excludes local archives, dependencies, build caches, local databases, and generated regression captures.
 - 2026-06-20 shop-state contract pass: added `/api/shop/state`, client `ShopStateDto`/`ApiClient.getShopState()`, `SyncManager.fetchServerShopState()`, `ShopManager.applyServerSnapshot()`, online purchase `remainingDaily` application, `tools/check-shop-state-contract.js`, and `AGENTS.md`.
-- Cocos asset-db refreshed for `db://assets/scripts` after shop-state client TypeScript edits.
+- 2026-06-20 friend-sync contract pass: DOM friend panel now refreshes `/api/friends`, renders server snapshots, routes visit/gift actions through `SyncManager`, applies returned timestamps locally, adds API coverage, and adds `tools/check-friend-sync-contract.js`.
+- Cocos asset-db refreshed for `db://assets/scripts` after shop-state and friend-sync client TypeScript edits.
 
-- `dotnet test FATCATServer\FATCATServer.sln --no-restore`: 50/50 passed.
-- `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`: passed; includes client TS, generated server balance, config drift, effect coverage, client catalog metadata consumption, shop-state contract, and 50 server tests.
+- `dotnet test FATCATServer\FATCATServer.sln --no-restore`: 51/51 passed.
+- `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`: passed; includes client TS, generated server balance, config drift, effect coverage, client catalog metadata consumption, shop-state contract, friend-sync contract, and 51 server tests.
 - `node tools\check-shop-state-contract.js`: passed; verifies server route/DTO/service, client API/types, sync fetch, manager snapshot consumption, and online purchase `remainingDaily` use.
+- `node tools\check-friend-sync-contract.js`: passed; verifies friend API methods, login/save friend refresh, DOM server snapshot rendering, visit/gift routing, and API coverage.
+- `node tools\verify-ui-clicks-playwright.js`: passed after friend-panel server sync changes.
 - `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`: passed.
 - `node tools\check-client-catalog-metadata-consumption.js`: passed; verifies `CatManager`, `ResearchManager`, and `ResearchPanel` route through server metadata-aware config access.
 - `powershell -ExecutionPolicy Bypass -File .\tools\check-server-api.ps1 -ApiBaseUrl http://localhost:5144 -Origin http://localhost:7456`: passed with the built API DLL, including cat assignment, building snapshot, building upgrade, mood-adjusted `/api/production/server-preview`, and launch tamper resistance.

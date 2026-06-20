@@ -61,6 +61,38 @@ public sealed class FatCatApiTests
     }
 
     [Fact]
+    public async Task FriendVisitAndGift_UpdateServerSnapshotContract()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-friend-device",
+            companyName = "FatCat",
+        });
+        var authBody = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync());
+        var playerId = authBody.RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+
+        var friendsResponse = await client.GetAsync($"/api/friends?playerId={playerId}");
+        var friends = JsonDocument.Parse(await friendsResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var visitResponse = await client.PostAsJsonAsync($"/api/friends/mocha/visit?playerId={playerId}", new {});
+        var visit = JsonDocument.Parse(await visitResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var giftResponse = await client.PostAsJsonAsync($"/api/friends/mocha/gift?playerId={playerId}", new {});
+        var gift = JsonDocument.Parse(await giftResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+
+        Assert.Equal(HttpStatusCode.OK, friendsResponse.StatusCode);
+        Assert.Equal(3, friends.GetArrayLength());
+        Assert.Equal("cocoa", friends[0].GetProperty("id").GetString());
+        Assert.Equal(HttpStatusCode.OK, visitResponse.StatusCode);
+        Assert.Equal("mocha", visit.GetProperty("id").GetString());
+        Assert.True(visit.GetProperty("lastVisitedAt").GetInt64() > 0);
+        Assert.Equal(HttpStatusCode.OK, giftResponse.StatusCode);
+        Assert.Equal("mocha", gift.GetProperty("id").GetString());
+        Assert.True(gift.GetProperty("lastGiftAt").GetInt64() > 0);
+    }
+
+    [Fact]
     public async Task ClaimMail_UpdatesAuthoritativeResources()
     {
         await using var factory = new FatCatApiFactory();
