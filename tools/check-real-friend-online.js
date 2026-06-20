@@ -52,12 +52,17 @@ async function get(path) {
         const targetId = targetAuth.json.data.playerId;
         const targetKey = `player:${targetId.replace(/-/g, "")}`;
 
+        const targetProfile = await get(`/api/social/profile?playerId=${encodeURIComponent(targetId)}`);
+        const inviteCode = targetProfile.json.data?.inviteCode;
+        const searched = await get(`/api/friends/search?playerId=${encodeURIComponent(playerId)}&query=${encodeURIComponent(inviteCode)}`);
         const added = await post(`/api/friends/add?playerId=${encodeURIComponent(playerId)}`, {
-            friendPlayerId: targetId.replace(/-/g, ""),
+            friendPlayerId: "",
+            inviteCode,
         });
         const duplicate = await post(`/api/friends/add?playerId=${encodeURIComponent(playerId)}`, {
             friendPlayerId: targetId,
         });
+        const searchedAfter = await get(`/api/friends/search?playerId=${encodeURIComponent(playerId)}&query=${encodeURIComponent(inviteCode)}`);
         const visit = await post(`/api/friends/${encodeURIComponent(targetKey)}/visit?playerId=${encodeURIComponent(playerId)}`, {});
         const repeatVisit = await post(`/api/friends/${encodeURIComponent(targetKey)}/visit?playerId=${encodeURIComponent(playerId)}`, {});
         const gift = await post(`/api/friends/${encodeURIComponent(targetKey)}/gift?playerId=${encodeURIComponent(playerId)}`, {});
@@ -74,8 +79,11 @@ async function get(path) {
         const leaderboardRows = leaderboard.json.data?.entries ?? [];
         const ok = playerAuth.response.ok
             && targetAuth.response.ok
+            && targetProfile.response.ok
+            && searched.response.ok
             && added.response.ok
             && duplicate.response.ok
+            && searchedAfter.response.ok
             && visit.response.ok
             && repeatVisit.response.ok
             && gift.response.ok
@@ -87,6 +95,10 @@ async function get(path) {
             && added.json.data?.id === targetKey
             && added.json.data?.name === "Beta Beans"
             && added.json.data?.incomePerSecond > 0
+            && inviteCode?.startsWith("FC")
+            && searched.json.data?.inviteCode === inviteCode
+            && searched.json.data?.isFriend === false
+            && searchedAfter.json.data?.isFriend === true
             && visit.json.data?.rewarded === true
             && visit.json.data?.rewardCoin > 0
             && repeatVisit.json.data?.rewarded === false
@@ -105,6 +117,8 @@ async function get(path) {
 
         console.log(JSON.stringify({
             ok,
+            inviteCode,
+            searched: searched.json.data,
             added: added.json.data,
             duplicate: duplicate.json.data,
             visitReward: visit.json.data?.rewardCoin,

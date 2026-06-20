@@ -1,5 +1,5 @@
 import { GameConfig } from "../core/GameConfig";
-import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
+import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendSearchResultDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
 
 export class ApiClient {
     private static _baseUrl: string = GameConfig.apiBaseUrl;
@@ -100,6 +100,14 @@ export class ApiClient {
 
     public static getFriends(playerId: string): Promise<ApiEnvelope<FriendDto[]>> {
         return this.get(`/api/friends?playerId=${encodeURIComponent(playerId)}`);
+    }
+
+    public static getSocialProfile(playerId: string): Promise<ApiEnvelope<PlayerSocialProfileDto>> {
+        return this.get(`/api/social/profile?playerId=${encodeURIComponent(playerId)}`);
+    }
+
+    public static searchFriend(playerId: string, query: string): Promise<ApiEnvelope<FriendSearchResultDto>> {
+        return this.get(`/api/friends/search?playerId=${encodeURIComponent(playerId)}&query=${encodeURIComponent(query)}`);
     }
 
     public static getFriendActivities(playerId: string, limit = 10): Promise<ApiEnvelope<FriendActivityDto[]>> {

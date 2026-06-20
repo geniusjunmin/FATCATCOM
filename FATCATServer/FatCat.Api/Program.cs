@@ -328,6 +328,29 @@ app.MapGet("/api/friends", async (
         : Results.Ok(ApiEnvelope<IReadOnlyList<FriendDto>>.Success(result));
 });
 
+app.MapGet("/api/social/profile", async (
+    Guid playerId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.GetSocialProfileAsync(playerId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<PlayerSocialProfileDto>.Fail("player_not_found"))
+        : Results.Ok(ApiEnvelope<PlayerSocialProfileDto>.Success(result));
+});
+
+app.MapGet("/api/friends/search", async (
+    Guid playerId,
+    string query,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.SearchFriendAsync(playerId, query, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<FriendSearchResultDto>.Fail("friend_not_found"))
+        : Results.Ok(ApiEnvelope<FriendSearchResultDto>.Success(result));
+});
+
 app.MapPost("/api/friends/{friendId}/visit", async (
     Guid playerId,
     string friendId,

@@ -58,7 +58,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -959,7 +959,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             return null;
         }
 
-        if (!TryParsePlayerId(request.FriendPlayerId, out var friendPlayerId) || friendPlayerId == playerId)
+        if (!TryResolveFriendPlayerId(request, out var friendPlayerId) || friendPlayerId == playerId)
         {
             return null;
         }
@@ -993,6 +993,42 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         await AddSocialActivityAsync(playerId, "friend_add", friend, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
         return ToFriendDto(friend);
+    }
+
+    public async Task<PlayerSocialProfileDto?> GetSocialProfileAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        var player = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
+        if (player is null)
+        {
+            return null;
+        }
+
+        var preview = await PreviewServerProductionAsync(player.Id, cancellationToken);
+        return ToPlayerSocialProfileDto(player, preview, true, false);
+    }
+
+    public async Task<FriendSearchResultDto?> SearchFriendAsync(Guid playerId, string? query, CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        if (!TryResolveFriendQuery(query, out var friendPlayerId))
+        {
+            return null;
+        }
+
+        var player = await repository.FindPlayerByIdAsync(friendPlayerId, cancellationToken);
+        if (player is null)
+        {
+            return null;
+        }
+
+        var friendKey = CreateRealFriendKey(player.Id);
+        var existing = await repository.GetFriendAsync(playerId, friendKey, cancellationToken);
+        var preview = await PreviewServerProductionAsync(player.Id, cancellationToken);
+        return ToFriendSearchResultDto(player, preview, player.Id == playerId, existing is not null);
     }
 
     public async Task<FriendActionResponse?> VisitFriendAsync(Guid playerId, string friendId, CancellationToken cancellationToken)
@@ -1916,6 +1952,38 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             activity.CreatedAt.ToUnixTimeMilliseconds());
     }
 
+    private static PlayerSocialProfileDto ToPlayerSocialProfileDto(
+        PlayerProfile player,
+        ProductionPreviewResponse? preview,
+        bool isSelf,
+        bool isFriend)
+    {
+        return new PlayerSocialProfileDto(
+            player.Id.ToString("N"),
+            player.CompanyName,
+            player.Level,
+            (int)Math.Floor(Math.Max(0, preview?.NetCoinPerSecond ?? 0)),
+            CreateInviteCode(player.Id),
+            isSelf,
+            isFriend);
+    }
+
+    private static FriendSearchResultDto ToFriendSearchResultDto(
+        PlayerProfile player,
+        ProductionPreviewResponse? preview,
+        bool isSelf,
+        bool isFriend)
+    {
+        return new FriendSearchResultDto(
+            player.Id.ToString("N"),
+            player.CompanyName,
+            player.Level,
+            (int)Math.Floor(Math.Max(0, preview?.NetCoinPerSecond ?? 0)),
+            CreateInviteCode(player.Id),
+            isSelf,
+            isFriend);
+    }
+
     private static string NormalizeLeaderboardBoardId(string? boardId)
     {
         return string.Equals(boardId?.Trim(), "income", StringComparison.OrdinalIgnoreCase)
@@ -1931,6 +1999,50 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         }
 
         return Guid.TryParseExact(value?.Trim(), "N", out playerId);
+    }
+
+    private static bool TryResolveFriendPlayerId(AddFriendRequest request, out Guid playerId)
+    {
+        if (TryResolveFriendQuery(request.InviteCode, out playerId))
+        {
+            return true;
+        }
+
+        return TryResolveFriendQuery(request.FriendPlayerId, out playerId);
+    }
+
+    private static bool TryResolveFriendQuery(string? value, out Guid playerId)
+    {
+        if (TryParsePlayerId(value, out playerId))
+        {
+            return true;
+        }
+
+        return TryParseInviteCode(value, out playerId);
+    }
+
+    private static string CreateInviteCode(Guid playerId)
+    {
+        return $"FC{playerId:N}".ToUpperInvariant();
+    }
+
+    private static bool TryParseInviteCode(string? value, out Guid playerId)
+    {
+        playerId = Guid.Empty;
+        var normalized = NormalizeInviteCode(value);
+        if (normalized.Length != 34 || !normalized.StartsWith("FC", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return Guid.TryParseExact(normalized[2..].ToLowerInvariant(), "N", out playerId);
+    }
+
+    private static string NormalizeInviteCode(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? ""
+            : value.Trim().Replace("-", "", StringComparison.Ordinal).Replace(" ", "", StringComparison.Ordinal).ToUpperInvariant();
     }
 
     private static string CreateRealFriendKey(Guid playerId)

@@ -7,7 +7,7 @@ Updated: 2026-06-20
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Continue visual fidelity with generated/Cocos-managed art depth or HUD precision; social next move is invite/search UX beyond the dev player-id prompt. |
+| Best Next Move | Continue visual fidelity with generated/Cocos-managed art depth or HUD precision; social next move is dedicated relation table plus shorter invite/search UI polish. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -47,7 +47,8 @@ Updated: 2026-06-20
 - Online shop purchases pass server `remainingDaily` into `ShopManager.fulfillServerPurchase()`, so the UI no longer double-increments local purchase history after a server-approved buy.
 - `SyncManager` now fetches `/api/friends` after login/save sync. The DOM friend panel renders server `FriendDto` snapshots when online and keeps local preview friends only as offline fallback.
 - DOM friend visit/gift buttons call `/api/friends/{friendId}/visit` and `/api/friends/{friendId}/gift` in online mode, then apply returned server timestamps to local feature state.
-- DOM friend panel now has an add-friend action. In online mode it prompts for another player's id and calls `/api/friends/add`, then inserts the returned real-player friend snapshot.
+- DOM friend panel now has an add-friend action. In online mode it searches an invite code or player id before confirming `/api/friends/add`, then inserts the returned real-player friend snapshot.
+- `SyncManager` supports `/api/social/profile` and `/api/friends/search`; `/api/friends/add` accepts either legacy player id or invite code.
 - `SyncManager` fetches `/api/friends/activity`; the DOM friend panel shows recent add, visit, and gift activity from the server.
 - Friend visit/gift actions now return `FriendActionResponse`, apply server resource balances to the client, and enforce one reward per friend per UTC day.
 - `SyncManager` also fetches `/api/leaderboard` after login/save sync. The DOM friend panel now displays a server-backed income leaderboard with the current player highlighted when online.
@@ -64,7 +65,8 @@ Implemented server capabilities:
 - Mail list and claim.
 - Friend list, visit, and gift endpoints, with DOM friend-panel consumption.
 - Friend visit/gift rewards: first daily visit grants coin based on friend income, first daily gift grants cat food, and repeat same-day claims return `rewarded=false` with a limit reason.
-- Real-player friend add endpoint: `/api/friends/add`, using another player's id as the first invite-code shape and storing the relationship as a `player:{guid}` friend snapshot.
+- Real-player friend add endpoint: `/api/friends/add`, accepting another player's id or invite code and storing the relationship as a `player:{guid}` friend snapshot.
+- Social profile and friend search endpoints: `/api/social/profile` returns the player's invite code and income snapshot; `/api/friends/search` resolves invite code/player id before add.
 - Friend activity endpoint: `/api/friends/activity`, backed by `PlayerSocialActivity` and written by add, visit, and gift actions.
 - Income leaderboard endpoint: `/api/leaderboard`, combining current server-derived production with seeded friend snapshots and returning ranked entries plus the player's own row.
 - Settings get/update.
@@ -97,7 +99,7 @@ Implemented server capabilities:
 - `tools/check-balance-config-drift.js` compares server `balance.json` with client `FATCATUI/assets/resources/configs/research.json`, `equipment.json`, `buildings.json`, `cats.json`, and `skills.json` for ids, costs, caps, effects, prerequisites, default equipped items, building levels, cat economy fields, and skill values.
 - `tools/check-balance-effect-coverage.js` verifies every research/equipment effect type in client config is listed as covered by the server economy model.
 - `tools/check-client-catalog-metadata-consumption.js` verifies client managers and the research panel consume server catalog metadata instead of bypassing it.
-- `tools/quick-verify.ps1` runs the focused client TypeScript check, generated balance check, drift check, effect coverage check, client catalog metadata consumption check, shop-state, friend-sync, real-friend, friend-activity, friend-reward, leaderboard contract checks, and server tests as a no-browser baseline gate.
+- `tools/quick-verify.ps1` runs the focused client TypeScript check, generated balance check, drift check, effect coverage check, client catalog metadata consumption check, shop-state, friend-sync, real-friend, friend-activity, friend-reward, friend-invite, leaderboard contract checks, and server tests as a no-browser baseline gate.
 - `tools/start-api-process.js` lets selected online scripts start the already-built API DLL before falling back to `dotnet run --no-restore`, avoiding fragile NuGet restore attempts in restricted-network environments.
 
 Client/server cat sync:
@@ -134,16 +136,18 @@ Latest verified checks:
 - 2026-06-20 real-friend contract pass: added `/api/friends/add`, player-id based real friend snapshots, refresh of real friend income/name/level from target player state, client add-friend API/sync/panel action, `tools/check-real-friend-contract.js`, `tools/check-real-friend-online.js`, and service/API coverage.
 - 2026-06-20 friend-activity contract pass: added `PlayerSocialActivity`, `/api/friends/activity`, activity writes for add/visit/gift, client activity fetch/rendering in the friend panel, `tools/check-friend-activity-contract.js`, and service/API coverage.
 - 2026-06-20 friend-reward contract pass: visit/gift now return `FriendActionResponse`, reward resources once per friend per UTC day, apply authoritative balances through `ResourceManager.applyServerSnapshot()`, extend online friend smoke coverage, and add `tools/check-friend-reward-contract.js`.
-- Cocos asset-db refreshed for `db://assets/scripts` after shop-state, friend-sync, leaderboard, real-friend, friend-activity, and friend-reward client TypeScript edits.
+- 2026-06-20 friend-invite contract pass: added `/api/social/profile`, `/api/friends/search`, reversible `FC...` invite codes, invite-code add compatibility, client API/sync search helpers, friend-panel search-confirm flow, `tools/check-friend-invite-contract.js`, and service/API coverage.
+- Cocos asset-db refreshed for `db://assets/scripts` after shop-state, friend-sync, leaderboard, real-friend, friend-activity, friend-reward, and friend-invite client TypeScript edits.
 
-- `dotnet test FATCATServer\FATCATServer.sln --no-restore`: 58/58 passed.
-- `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`: passed; includes client TS, generated server balance, config drift, effect coverage, client catalog metadata consumption, shop-state contract, friend-sync contract, real-friend contract, friend-activity contract, friend-reward contract, leaderboard contract, and 58 server tests.
+- `dotnet test FATCATServer\FATCATServer.sln --no-restore`: 60/60 passed.
+- `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`: passed; includes client TS, generated server balance, config drift, effect coverage, client catalog metadata consumption, shop-state contract, friend-sync contract, real-friend contract, friend-activity contract, friend-reward contract, friend-invite contract, leaderboard contract, and 60 server tests.
 - `node tools\check-shop-state-contract.js`: passed; verifies server route/DTO/service, client API/types, sync fetch, manager snapshot consumption, and online purchase `remainingDaily` use.
 - `node tools\check-friend-sync-contract.js`: passed; verifies friend API methods, login/save friend refresh, DOM server snapshot rendering, visit/gift routing, and API coverage.
 - `node tools\check-real-friend-contract.js`: passed; verifies real-friend add DTO/repository/service/route, client API/types/sync fetch, friend-panel action, and service/API coverage.
 - `node tools\check-friend-activity-contract.js`: passed; verifies social activity entity/schema, route/DTO/service/repository, client API/types/sync/panel rendering, and service/API coverage.
 - `node tools\check-friend-reward-contract.js`: passed; verifies friend reward DTO/route/service behavior, client API/types, server balance application, UI reward messaging, and service/API coverage.
-- `node tools\check-real-friend-online.js`: passed; starts the built API, creates two players, adds a real friend by player id, visits/gifts, verifies first-claim rewards plus same-day limit reasons, rejects self-add, and verifies friend list, activity stream, and leaderboard inclusion.
+- `node tools\check-friend-invite-contract.js`: passed; verifies social profile/search routes, invite-code parsing/add compatibility, client API/types/sync helpers, friend-panel search confirmation, and service/API coverage.
+- `node tools\check-real-friend-online.js`: passed; starts the built API, creates two players, fetches target invite code, searches it, adds the friend by invite code, verifies duplicate legacy player-id add, visits/gifts, verifies first-claim rewards plus same-day limit reasons, rejects self-add, and verifies friend list, activity stream, and leaderboard inclusion.
 - `node tools\check-leaderboard-contract.js`: passed; verifies leaderboard route/DTO/service, client API/types/sync fetch, friend-panel rendering, and service/API coverage.
 - `node tools\verify-ui-clicks-playwright.js`: passed after friend-panel server sync changes.
 - `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`: passed.

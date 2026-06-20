@@ -501,6 +501,35 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task SocialProfileAndFriendSearch_SupportInviteCodes()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var player = await service.AuthGuestAsync(new AuthGuestRequest("invite-friend-a", "Alpha Cafe"), CancellationToken.None);
+        var target = await service.AuthGuestAsync(new AuthGuestRequest("invite-friend-b", "Beta Beans"), CancellationToken.None);
+
+        var profile = await service.GetSocialProfileAsync(target.PlayerId, CancellationToken.None);
+        var searchBefore = await service.SearchFriendAsync(player.PlayerId, profile!.InviteCode, CancellationToken.None);
+        var added = await service.AddFriendAsync(player.PlayerId, new AddFriendRequest("", profile.InviteCode), CancellationToken.None);
+        var searchAfter = await service.SearchFriendAsync(player.PlayerId, profile.InviteCode.ToLowerInvariant(), CancellationToken.None);
+        var selfSearch = await service.SearchFriendAsync(player.PlayerId, $"FC{player.PlayerId:N}", CancellationToken.None);
+
+        Assert.NotNull(profile);
+        Assert.Equal(target.PlayerId.ToString("N"), profile.PlayerId);
+        Assert.StartsWith("FC", profile.InviteCode);
+        Assert.Equal(34, profile.InviteCode.Length);
+        Assert.NotNull(searchBefore);
+        Assert.Equal("Beta Beans", searchBefore!.CompanyName);
+        Assert.False(searchBefore.IsFriend);
+        Assert.NotNull(added);
+        Assert.Equal($"player:{target.PlayerId:N}", added!.Id);
+        Assert.NotNull(searchAfter);
+        Assert.True(searchAfter!.IsFriend);
+        Assert.NotNull(selfSearch);
+        Assert.True(selfSearch!.IsSelf);
+    }
+
+    [Fact]
     public async Task FriendActions_WriteRecentSocialActivities()
     {
         await using var dbContext = CreateDbContext();

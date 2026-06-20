@@ -169,6 +169,52 @@ public sealed class FatCatApiTests
     }
 
     [Fact]
+    public async Task SocialProfileAndFriendSearch_ReturnInviteCodeContract()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-invite-friend-a",
+            companyName = "Alpha Cafe",
+        });
+        var targetResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-invite-friend-b",
+            companyName = "Beta Beans",
+        });
+        var playerId = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+        var targetId = JsonDocument.Parse(await targetResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+
+        var profile = await client.GetAsync($"/api/social/profile?playerId={targetId}");
+        var profileData = JsonDocument.Parse(await profile.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var inviteCode = profileData.GetProperty("inviteCode").GetString();
+        var search = await client.GetAsync($"/api/friends/search?playerId={playerId}&query={inviteCode}");
+        var searchData = JsonDocument.Parse(await search.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var add = await client.PostAsJsonAsync($"/api/friends/add?playerId={playerId}", new
+        {
+            friendPlayerId = "",
+            inviteCode,
+        });
+        var addData = JsonDocument.Parse(await add.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var searchAfter = await client.GetAsync($"/api/friends/search?playerId={playerId}&query={inviteCode}");
+        var searchAfterData = JsonDocument.Parse(await searchAfter.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+
+        Assert.Equal(HttpStatusCode.OK, profile.StatusCode);
+        Assert.Equal(targetId.ToString("N"), profileData.GetProperty("playerId").GetString());
+        Assert.StartsWith("FC", inviteCode);
+        Assert.Equal(34, inviteCode!.Length);
+        Assert.Equal(HttpStatusCode.OK, search.StatusCode);
+        Assert.Equal("Beta Beans", searchData.GetProperty("companyName").GetString());
+        Assert.False(searchData.GetProperty("isFriend").GetBoolean());
+        Assert.Equal(HttpStatusCode.OK, add.StatusCode);
+        Assert.Equal($"player:{targetId:N}", addData.GetProperty("id").GetString());
+        Assert.Equal(HttpStatusCode.OK, searchAfter.StatusCode);
+        Assert.True(searchAfterData.GetProperty("isFriend").GetBoolean());
+    }
+
+    [Fact]
     public async Task FriendActivity_ReturnsRecentSocialActionsContract()
     {
         await using var factory = new FatCatApiFactory();

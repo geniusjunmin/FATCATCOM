@@ -246,8 +246,29 @@ export type FriendActionResponse = {
     limitedReason?: string | null;
 };
 
+export type PlayerSocialProfileDto = {
+    playerId: string;
+    companyName: string;
+    level: number;
+    incomePerSecond: number;
+    inviteCode: string;
+    isSelf: boolean;
+    isFriend: boolean;
+};
+
+export type FriendSearchResultDto = {
+    playerId: string;
+    companyName: string;
+    level: number;
+    incomePerSecond: number;
+    inviteCode: string;
+    isSelf: boolean;
+    isFriend: boolean;
+};
+
 export type AddFriendRequest = {
     friendPlayerId: string;
+    inviteCode?: string;
 };
 
 export type FriendActivityDto = {

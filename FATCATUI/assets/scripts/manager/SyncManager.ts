@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, LaunchResponse, LeaderboardDto, MailDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -75,6 +75,7 @@ export class SyncManager {
         void this.fetchServerResearch();
         void this.fetchServerShopState();
         void this.fetchServerFriends();
+        void this.fetchServerSocialProfile();
         void this.fetchServerFriendActivities();
         void this.fetchServerLeaderboard();
         return true;
@@ -106,6 +107,7 @@ export class SyncManager {
         await this.fetchServerResearch();
         await this.fetchServerShopState();
         await this.fetchServerFriends();
+        await this.fetchServerSocialProfile();
         await this.fetchServerFriendActivities();
         await this.fetchServerLeaderboard();
         this.refreshPendingFeatureChanges();
@@ -416,6 +418,42 @@ export class SyncManager {
         return response.data;
     }
 
+    public static async fetchServerSocialProfile(): Promise<PlayerSocialProfileDto | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.getSocialProfile(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "social_profile_fetch_failed");
+            return null;
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async searchServerFriend(query: string): Promise<FriendSearchResultDto | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.searchFriend(NetworkManager.playerId, query);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "friend_search_failed");
+            return null;
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
     public static async fetchServerFriendActivities(limit = 10): Promise<FriendActivityDto[]> {
         if (!NetworkManager.canUseServer) {
             this.setOffline();
@@ -434,7 +472,7 @@ export class SyncManager {
         return response.data;
     }
 
-    public static async addServerFriend(friendPlayerId: string): Promise<FriendDto | null> {
+    public static async addServerFriend(friendQuery: string): Promise<FriendDto | null> {
         if (!NetworkManager.canUseServer) {
             this.setOffline();
             return null;
@@ -443,7 +481,7 @@ export class SyncManager {
             const loggedIn = await this.tryGuestLogin();
             if (!loggedIn) return null;
         }
-        const response = await ApiClient.addFriend(NetworkManager.playerId, { friendPlayerId });
+        const response = await ApiClient.addFriend(NetworkManager.playerId, { friendPlayerId: friendQuery, inviteCode: friendQuery });
         if (!response.ok || !response.data) {
             this.markFailed(response.error ?? "friend_add_failed");
             return null;

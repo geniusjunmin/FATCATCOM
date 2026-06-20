@@ -237,7 +237,25 @@ public sealed record FriendActionResponse(
     long ServerTime,
     string? LimitedReason = null);
 
-public sealed record AddFriendRequest(string FriendPlayerId);
+public sealed record PlayerSocialProfileDto(
+    string PlayerId,
+    string CompanyName,
+    int Level,
+    int IncomePerSecond,
+    string InviteCode,
+    bool IsSelf,
+    bool IsFriend);
+
+public sealed record FriendSearchResultDto(
+    string PlayerId,
+    string CompanyName,
+    int Level,
+    int IncomePerSecond,
+    string InviteCode,
+    bool IsSelf,
+    bool IsFriend);
+
+public sealed record AddFriendRequest(string FriendPlayerId, string? InviteCode = null);
 
 public sealed record FriendActivityDto(
     string Id,

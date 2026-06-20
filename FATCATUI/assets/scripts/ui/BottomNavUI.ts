@@ -13,7 +13,7 @@ import { ShopManager } from "../manager/ShopManager";
 import { TaskManager } from "../manager/TaskManager";
 import { NetworkManager } from "../manager/NetworkManager";
 import { SyncManager } from "../manager/SyncManager";
-import { FriendActivityDto, FriendDto, LeaderboardDto } from "../net/ApiTypes";
+import { FriendActivityDto, FriendDto, FriendSearchResultDto, LeaderboardDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
 import { DomAssetDataUris } from "./DomAssetDataUris";
@@ -1422,16 +1422,23 @@ export class BottomNavUI extends Component {
             const friendPlayerId = typeof window !== "undefined"
                 ? window.prompt("输入对方玩家 ID")
                 : "";
-            const serverFriend = friendPlayerId
+            const preview = friendPlayerId
+                ? await SyncManager.searchServerFriend(friendPlayerId.trim())
+                : null;
+            const confirmed = preview && !preview.isSelf && !preview.isFriend
+                ? (typeof window === "undefined" || window.confirm(`Add ${preview.companyName} Lv.${preview.level} (${this.formatNumber(preview.incomePerSecond)}/sec)?`))
+                : false;
+            const serverFriend = confirmed && friendPlayerId
                 ? await SyncManager.addServerFriend(friendPlayerId.trim())
                 : null;
             if (serverFriend) {
                 this.applyServerFriendSnapshot(serverFriend);
                 this._domPanelMessage = `Friend added: ${serverFriend.name}.`;
                 void this.refreshFriendActivitiesForPanel();
+                void this.refreshServerLeaderboardForPanel();
                 success = true;
             } else {
-                this._domPanelMessage = NetworkManager.canUseServer ? "Friend add failed." : "Connect server before adding friends.";
+                this._domPanelMessage = this.getFriendSearchFailureMessage(preview);
             }
         } else if (action === "toggleSetting") {
             SaveManager.update(data => {
@@ -1691,6 +1698,14 @@ export class BottomNavUI extends Component {
         if (type === "friend_visit") return "访问";
         if (type === "friend_gift") return "送礼";
         return "互动";
+    }
+
+    private getFriendSearchFailureMessage(preview: FriendSearchResultDto | null): string {
+        if (!NetworkManager.canUseServer) return "Connect server before adding friends.";
+        if (!preview) return "Friend search failed. Check invite code or player id.";
+        if (preview.isSelf) return "You cannot add yourself.";
+        if (preview.isFriend) return `${preview.companyName} is already your friend.`;
+        return "Friend add cancelled.";
     }
 
     private formatActivityTime(timestamp: number): string {
