@@ -28,6 +28,7 @@ const program = read("FATCATServer/FatCat.Api/Program.cs");
 const apiTypes = read("FATCATUI/assets/scripts/net/ApiTypes.ts");
 const apiClient = read("FATCATUI/assets/scripts/net/ApiClient.ts");
 const syncManager = read("FATCATUI/assets/scripts/manager/SyncManager.ts");
+const bottomNav = read("FATCATUI/assets/scripts/ui/BottomNavUI.ts");
 const apiTests = read("FATCATServer/FatCat.Tests/FatCatApiTests.cs");
 const serviceTests = read("FATCATServer/FatCat.Tests/FatCatGameServiceTests.cs");
 
@@ -52,6 +53,11 @@ assertContains("client accept api", apiClient, "acceptFriendRequest");
 assertContains("sync request create", syncManager, "createServerFriendRequest");
 assertContains("sync request list", syncManager, "fetchServerFriendRequests");
 assertContains("sync request accept", syncManager, "acceptServerFriendRequest");
+assertContains("friend panel request refresh", bottomNav, "refreshFriendRequestsForPanel");
+assertContains("friend panel request card", bottomNav, "renderFriendRequestPreview");
+assertContains("friend panel send action", bottomNav, "sendFriendRequest");
+assertContains("friend panel accept action", bottomNav, "acceptFriendRequest");
+assertContains("friend panel reject action", bottomNav, "rejectFriendRequest");
 assertContains("service coverage accept", serviceTests, "FriendRequests_CanBeAcceptedIntoBidirectionalRelations");
 assertContains("service coverage reject", serviceTests, "FriendRequests_CanBeRejected");
 assertContains("api coverage", apiTests, "FriendRequests_AcceptIntoBidirectionalFriendContract");
@@ -63,6 +69,7 @@ console.log(JSON.stringify({
     "create/list/accept/reject API routes",
     "bidirectional relation and snapshot acceptance",
     "client API and sync methods",
+    "friend panel request inbox/outbox UI hooks",
     "service and API coverage",
   ],
 }, null, 2));

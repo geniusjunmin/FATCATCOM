@@ -13,7 +13,7 @@ import { ShopManager } from "../manager/ShopManager";
 import { TaskManager } from "../manager/TaskManager";
 import { NetworkManager } from "../manager/NetworkManager";
 import { SyncManager } from "../manager/SyncManager";
-import { FriendActivityDto, FriendDto, FriendSearchResultDto, LeaderboardDto } from "../net/ApiTypes";
+import { FriendActivityDto, FriendDto, FriendRequestDto, FriendSearchResultDto, LeaderboardDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
 import { DomAssetDataUris } from "./DomAssetDataUris";
@@ -86,9 +86,12 @@ export class BottomNavUI extends Component {
     private _selectedResearchId = "res_basic_prod";
     private _serverFriends: FriendDto[] = [];
     private _friendActivities: FriendActivityDto[] = [];
+    private _receivedFriendRequests: FriendRequestDto[] = [];
+    private _sentFriendRequests: FriendRequestDto[] = [];
     private _serverLeaderboard: LeaderboardDto | null = null;
     private _friendRefreshInFlight = false;
     private _friendActivityRefreshInFlight = false;
+    private _friendRequestRefreshInFlight = false;
     private _leaderboardRefreshInFlight = false;
     private _waitingForAppReady = false;
     private _launchInProgress = false;
@@ -530,6 +533,7 @@ export class BottomNavUI extends Component {
             this.renderDomPanel(panelId);
             if (panelId === "friends") {
                 void this.refreshServerFriendsForPanel();
+                void this.refreshFriendRequestsForPanel();
                 void this.refreshFriendActivitiesForPanel();
                 void this.refreshServerLeaderboardForPanel();
             }
@@ -1194,6 +1198,14 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay .friend-tools { display:flex; align-items:center; justify-content:space-between; gap:2%; margin:0 0 2%; padding:1.6% 2.2%; border-radius:999px; background:rgba(75,49,32,.88); color:#ffe2a8; font-size:1.95%; font-weight:900; box-shadow:inset 0 0 0 2px rgba(255,226,170,.12), 0 2px 0 rgba(72,43,25,.22); }
             #fatcat-dom-panel-overlay .friend-tools span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-panel-overlay .friend-tools .tag { margin:0; flex:0 0 auto; }
+            #fatcat-dom-panel-overlay .feature-badge.alert { background:linear-gradient(#e55b36,#9a321f); color:#fff6d8; box-shadow:0 0 0 3px rgba(255,220,120,.45), 0 4px 0 rgba(72,43,25,.28); }
+            #fatcat-dom-panel-overlay .friend-request-card { margin-bottom:2%; padding:2.2%; border-radius:14px; background:linear-gradient(#fff7dc,#e2bf83); border:2px solid #7c5736; color:#4a2f1f; box-shadow:inset 0 0 0 2px rgba(255,250,224,.42), 0 3px 0 rgba(72,43,25,.22); font-size:2.0%; }
+            #fatcat-dom-panel-overlay .request-row { min-height:38px; display:grid; grid-template-columns:14% 1fr 25% auto auto; gap:1.4%; align-items:center; border-top:1px solid rgba(124,87,54,.2); }
+            #fatcat-dom-panel-overlay .request-row.sent { grid-template-columns:14% 1fr 32%; }
+            #fatcat-dom-panel-overlay .request-row span { color:#fff6d8; background:#9a6734; border-radius:999px; padding:1px 8px; text-align:center; font-weight:900; }
+            #fatcat-dom-panel-overlay .request-row b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .request-row em { font-style:normal; color:#725137; font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .request-row .tag { min-width:52px; margin:0; }
             #fatcat-dom-panel-overlay .friend-activity-card { margin-bottom:2%; padding:2.2%; border-radius:14px; background:linear-gradient(#fff1d3,#d9b77e); border:2px solid #7c5736; color:#4a2f1f; box-shadow:inset 0 0 0 2px rgba(255,250,224,.34), 0 3px 0 rgba(72,43,25,.22); font-size:2.0%; }
             #fatcat-dom-panel-overlay .friend-activity-card .leaderboard-head { color:#5f3922; }
             #fatcat-dom-panel-overlay .friend-activity-card .leaderboard-head span { color:#7d4b22; }
@@ -1440,6 +1452,52 @@ export class BottomNavUI extends Component {
             } else {
                 this._domPanelMessage = this.getFriendSearchFailureMessage(preview);
             }
+        } else if (action === "sendFriendRequest") {
+            const friendPlayerId = typeof window !== "undefined"
+                ? window.prompt("输入好友邀请码或玩家ID")
+                : "";
+            const preview = friendPlayerId
+                ? await SyncManager.searchServerFriend(friendPlayerId.trim())
+                : null;
+            const confirmed = preview && !preview.isSelf && !preview.isFriend
+                ? (typeof window === "undefined" || window.confirm(`向 ${preview.companyName} Lv.${preview.level} 发送好友申请？`))
+                : false;
+            const request = confirmed && friendPlayerId
+                ? await SyncManager.createServerFriendRequest(friendPlayerId.trim())
+                : null;
+            if (request) {
+                this._domPanelMessage = request.status === "accepted"
+                    ? `${request.companyName} 已成为好友。`
+                    : `好友申请已发送给 ${request.companyName}。`;
+                await this.refreshFriendRequestsForPanel();
+                void this.refreshServerFriendsForPanel();
+                void this.refreshFriendActivitiesForPanel();
+                void this.refreshServerLeaderboardForPanel();
+                success = true;
+            } else {
+                this._domPanelMessage = this.getFriendSearchFailureMessage(preview);
+            }
+        } else if (action === "acceptFriendRequest") {
+            const request = await SyncManager.acceptServerFriendRequest(id);
+            if (request) {
+                this._domPanelMessage = `已接受 ${request.companyName} 的好友申请。`;
+                await this.refreshFriendRequestsForPanel();
+                void this.refreshServerFriendsForPanel();
+                void this.refreshFriendActivitiesForPanel();
+                void this.refreshServerLeaderboardForPanel();
+                success = true;
+            } else {
+                this._domPanelMessage = "接受好友申请失败，请稍后重试。";
+            }
+        } else if (action === "rejectFriendRequest") {
+            const request = await SyncManager.rejectServerFriendRequest(id);
+            if (request) {
+                this._domPanelMessage = `已拒绝 ${request.companyName} 的好友申请。`;
+                await this.refreshFriendRequestsForPanel();
+                success = true;
+            } else {
+                this._domPanelMessage = "拒绝好友申请失败，请稍后重试。";
+            }
         } else if (action === "toggleSetting") {
             SaveManager.update(data => {
                 const current = data.featureState.settings[id] ?? this.getDefaultSettingValue(id);
@@ -1611,17 +1669,28 @@ export class BottomNavUI extends Component {
 
     private renderFriendPanel(): string {
         const friends = this.getFriendPanelRows();
-        const sourceLabel = this._serverFriends.length > 0 ? "服务端快照" : "本地预览";
-        const network = NetworkManager.getStatus();
-        const playerId = network.playerId ? network.playerId.replace(/-/g, "") : "未连接";
-        const playerHint = playerId === "未连接" ? playerId : `${playerId.slice(0, 8)}...${playerId.slice(-6)}`;
-        const friendTools = `<div class="friend-tools"><span>我的ID：${playerHint}</span><button class="tag" data-action="addFriend">添加好友</button></div>`;
-        const rows = friends.map(friend => {
+        const pendingRequests = this._receivedFriendRequests.filter(request => request.status === "pending").length;
+        const sentPending = this._sentFriendRequests.filter(request => request.status === "pending").length;
+        const sourceLabelNew = this._serverFriends.length > 0 ? "服务端快照" : "本地预览";
+        const networkNew = NetworkManager.getStatus();
+        const playerIdNew = networkNew.playerId ? networkNew.playerId.replace(/-/g, "") : "未连接";
+        const playerHintNew = playerIdNew === "未连接" ? playerIdNew : `${playerIdNew.slice(0, 8)}...${playerIdNew.slice(-6)}`;
+        const friendToolsNew = `<div class="friend-tools"><span>我的ID：${playerHintNew}</span><button class="tag" data-action="sendFriendRequest">发送申请</button><button class="tag warn" data-action="addFriend">直接添加</button></div>`;
+        const rowsNew = friends.map(friend => {
             const lastVisit = this.getFeatureTimestamp("friendVisits", friend.id);
             const lastGift = this.getFeatureTimestamp("friendGifts", friend.id);
             return `<div class="feature-card with-icon"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>${friend.name}</b><br>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒<br><span class="focus-tag">${friend.status}</span><span class="focus-tag">${lastVisit ? `已访问 ${lastVisit}` : "未访问"}</span><span class="focus-tag">${lastGift ? `已送礼 ${lastGift}` : "可送礼"}</span></div><div><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问</button><br><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再送" : "送礼"}</button></div></div>`;
         }).join("");
-        return `<div class="panel-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabel}：联网时访问和送礼会同步到 .NET 服务端。</div><span class="feature-badge">好友<br>${friends.length}</span></div>${friendTools}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}<div class="feature-list">${rows}</div></div>`;
+        return `<div class="panel-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}<div class="feature-list">${rowsNew}</div></div>`;
+    }
+
+    private renderFriendRequestPreview(): string {
+        const received = this._receivedFriendRequests.filter(request => request.status === "pending").slice(0, 4);
+        const sent = this._sentFriendRequests.filter(request => request.status === "pending").slice(0, 3);
+        const receivedRows = received.map(request => `<div class="request-row incoming"><span>申请</span><b>${request.companyName}</b><em>Lv.${request.level} · ${this.formatNumber(request.incomePerSecond)}/秒</em><button class="tag" data-action="acceptFriendRequest" data-id="${request.id}">接受</button><button class="tag warn" data-action="rejectFriendRequest" data-id="${request.id}">拒绝</button></div>`).join("");
+        const sentRows = sent.map(request => `<div class="request-row sent"><span>已发</span><b>${request.companyName}</b><em>等待回应</em></div>`).join("");
+        const empty = receivedRows || sentRows ? "" : `<div class="activity-empty">暂无好友申请。可通过邀请码向玩家发送申请。</div>`;
+        return `<div class="friend-request-card"><div class="leaderboard-head"><b>好友申请</b><span>${received.length} 待处理</span></div>${receivedRows}${sentRows}${empty}</div>`;
     }
 
     private getFriendPanelRows(): Array<{ id: string; name: string; level: number; income: number; status: string }> {
@@ -1661,6 +1730,20 @@ export class BottomNavUI extends Component {
         this._leaderboardRefreshInFlight = false;
         if (!leaderboard || this.currentPanel !== "friends") return;
         this._serverLeaderboard = leaderboard;
+        this.renderDomPanel("friends");
+    }
+
+    private async refreshFriendRequestsForPanel(): Promise<void> {
+        if (!NetworkManager.canUseServer || this._friendRequestRefreshInFlight) return;
+        this._friendRequestRefreshInFlight = true;
+        const [received, sent] = await Promise.all([
+            SyncManager.fetchServerFriendRequests("received"),
+            SyncManager.fetchServerFriendRequests("sent"),
+        ]);
+        this._friendRequestRefreshInFlight = false;
+        if (this.currentPanel !== "friends") return;
+        this._receivedFriendRequests = received;
+        this._sentFriendRequests = sent;
         this.renderDomPanel("friends");
     }
 
