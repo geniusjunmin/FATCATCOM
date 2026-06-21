@@ -92,6 +92,7 @@ export class BottomNavUI extends Component {
     private _friendRefreshInFlight = false;
     private _friendActivityRefreshInFlight = false;
     private _friendRequestRefreshInFlight = false;
+    private _friendRequestBadgeFetchedAt = 0;
     private _leaderboardRefreshInFlight = false;
     private _waitingForAppReady = false;
     private _launchInProgress = false;
@@ -743,7 +744,7 @@ export class BottomNavUI extends Component {
             #fatcat-dom-factory .left-tools { left: 1%; top: 14%; } #fatcat-dom-factory .right-tools { right: 1%; top: 18%; }
             #fatcat-dom-factory button { font:inherit; color:inherit; cursor:pointer; pointer-events:auto; touch-action:manipulation; }
             #fatcat-dom-factory .side-btn { position:relative; height: 7.8%; min-height: 66px; border-radius: 15px; background: linear-gradient(#937556, #55402f); border: 3px solid #3d2c21; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 2.05%; font-weight: 900; box-shadow: 0 4px 0 rgba(0,0,0,.34), inset 0 0 0 2px rgba(255,232,185,.1); padding:0; }
-            #fatcat-dom-factory .side-btn.alert:after { content:"!"; position:absolute; right:-6%; top:-6%; width:28%; aspect-ratio:1; border-radius:50%; background:#e65028; color:white; border:2px solid #ffd9a8; display:flex; align-items:center; justify-content:center; font-size:1.75%; box-shadow:0 2px 0 rgba(0,0,0,.35); }
+            #fatcat-dom-factory .side-btn.alert:after { content:attr(data-badge); position:absolute; right:-6%; top:-6%; min-width:28%; padding:0 5%; aspect-ratio:1; border-radius:50%; background:#e65028; color:white; border:2px solid #ffd9a8; display:flex; align-items:center; justify-content:center; font-size:1.75%; box-shadow:0 2px 0 rgba(0,0,0,.35); box-sizing:border-box; }
             #fatcat-dom-factory .side-btn i { position:relative; font-style: normal; font-size: 0; line-height: 1; width: 45%; aspect-ratio: 1; border-radius: 10px; background: #f3dcb2; color: #5a3c27; display: flex; align-items: center; justify-content: center; margin-bottom: 7%; box-shadow:inset 0 0 0 2px rgba(82,52,29,.2); }
             #fatcat-dom-factory .side-btn i:before, #fatcat-dom-factory .side-btn i:after { content:""; position:absolute; }
             #fatcat-dom-factory .ico-task:before { left:25%; top:22%; width:50%; height:58%; border-radius:4px; background:#8b6034; box-shadow:inset 0 0 0 2px #674521; }
@@ -881,6 +882,8 @@ export class BottomNavUI extends Component {
         const overlay = this.ensureDomFactoryOverlay();
         if (!overlay) return;
         const snapshot = ProductionManager.calculateSnapshot();
+        void this.refreshFriendRequestBadgeForFactory();
+        const pendingFriendRequests = this.getPendingFriendRequestCount();
         const floors = [
             { no: "5F", name: "管理室", lv: BuildingManager.getLevel("building_office_5f"), bonus: "全局收益", value: "+15%", scene: "office" },
             { no: "4F", name: "烘焙车间", lv: BuildingManager.getLevel("building_roast_4f"), bonus: "原料产量", value: "+40%", scene: "roast" },
@@ -919,10 +922,20 @@ export class BottomNavUI extends Component {
             ${this.renderFactoryNoticeCard()}
             ${!snapshot.canProduce ? `<div class="factory-msg" style="top:13%;left:31%;width:38%">咖啡豆不足，生产暂停</div>` : ""}
         `;
+        overlay.querySelectorAll<HTMLElement>(".side-btn.alert").forEach(button => {
+            if (!button.dataset.badge) button.dataset.badge = "!";
+        });
+        const friendButton = overlay.querySelector<HTMLElement>('.side-btn[data-action="friend"]');
+        if (friendButton && pendingFriendRequests > 0) {
+            friendButton.classList.add("alert");
+            friendButton.dataset.badge = String(Math.min(99, pendingFriendRequests));
+        }
     }
 
     private renderFactoryNoticeCard(): string {
         if (!this._factoryNoticeKind) return "";
+        const pendingFriendRequests = this.getPendingFriendRequestCount();
+        const sentFriendRequests = this._sentFriendRequests.filter(request => request.status === "pending").length;
         const data = {
             achievement: {
                 title: "成就",
@@ -945,6 +958,10 @@ export class BottomNavUI extends Component {
                 rows: [["音乐", "开"], ["音效", "开"], ["画质", "推荐"]],
             },
         }[this._factoryNoticeKind];
+        if (this._factoryNoticeKind === "friend") {
+            data.title = "好友";
+            data.rows = [["待处理申请", `${pendingFriendRequests}`], ["已发送申请", `${sentFriendRequests}`], ["好友互动", "访问/送礼"]];
+        }
         return `<div class="notice-card"><div class="notice-head"><i class="notice-icon asset ${data.icon}" style="background-image:url('${this.getFeatureIconAsset(data.icon)}')"></i><div><b>${data.title}</b><br>${this._factoryMessage}</div></div>${data.rows.map(row => `<div class="notice-row"><span>${row[0]}</span><span>${row[1]}</span></div>`).join("")}</div>`;
     }
 
@@ -1736,15 +1753,39 @@ export class BottomNavUI extends Component {
     private async refreshFriendRequestsForPanel(): Promise<void> {
         if (!NetworkManager.canUseServer || this._friendRequestRefreshInFlight) return;
         this._friendRequestRefreshInFlight = true;
-        const [received, sent] = await Promise.all([
-            SyncManager.fetchServerFriendRequests("received"),
-            SyncManager.fetchServerFriendRequests("sent"),
-        ]);
-        this._friendRequestRefreshInFlight = false;
-        if (this.currentPanel !== "friends") return;
-        this._receivedFriendRequests = received;
-        this._sentFriendRequests = sent;
-        this.renderDomPanel("friends");
+        try {
+            const [received, sent] = await Promise.all([
+                SyncManager.fetchServerFriendRequests("received"),
+                SyncManager.fetchServerFriendRequests("sent"),
+            ]);
+            if (this.currentPanel !== "friends") return;
+            this._receivedFriendRequests = received;
+            this._sentFriendRequests = sent;
+            this.renderDomPanel("friends");
+        } finally {
+            this._friendRequestRefreshInFlight = false;
+        }
+    }
+
+    private async refreshFriendRequestBadgeForFactory(): Promise<void> {
+        if (!NetworkManager.canUseServer || this._friendRequestRefreshInFlight) return;
+        const now = Date.now();
+        if (now - this._friendRequestBadgeFetchedAt < 30000) return;
+        this._friendRequestBadgeFetchedAt = now;
+        this._friendRequestRefreshInFlight = true;
+        try {
+            const received = await SyncManager.fetchServerFriendRequests("received");
+            this._receivedFriendRequests = received;
+            if (this.currentPanel === "factory") {
+                this.renderDomFactoryOverlay();
+            }
+        } finally {
+            this._friendRequestRefreshInFlight = false;
+        }
+    }
+
+    private getPendingFriendRequestCount(): number {
+        return this._receivedFriendRequests.filter(request => request.status === "pending").length;
     }
 
     private async refreshFriendActivitiesForPanel(): Promise<void> {

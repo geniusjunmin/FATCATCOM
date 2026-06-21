@@ -21,7 +21,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Add floor richness, HUD polish, and cat-page composition improvements. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
-| Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Polish friend-request visuals, nav badges, notifications, and invite/search flow beyond prompt-confirm. |
+| Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Polish friend-request visuals, notification surfacing, and invite/search flow beyond prompt-confirm. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Split `BottomNavUI.ts` after the next stable UI checkpoint. |
 
 ## P0 Now
@@ -38,7 +38,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - `tools/check-friend-activity-contract.js` verifies `/api/friends/activity`, server activity writes for add/visit/gift, client activity fetch/rendering, and coverage.
 - `tools/check-friend-reward-contract.js` verifies visit/gift reward response shape, daily reward limits, client resource snapshot application, UI messages, and coverage.
 - `tools/check-friend-invite-contract.js` verifies `/api/social/profile`, `/api/friends/search`, persisted short invite codes, relation rows, invite-code add compatibility, client API/sync helpers, friend-panel search confirmation, and coverage.
-- `tools/check-friend-request-contract.js` verifies `/api/friends/requests`, bidirectional accept behavior, client API/sync helpers, friend-panel request UI hooks, and coverage.
+- `tools/check-friend-request-contract.js` verifies `/api/friends/requests`, bidirectional accept behavior, client API/sync helpers, friend-panel request UI hooks, factory friend-entry badge hooks, and coverage.
 - `tools/check-leaderboard-contract.js` verifies `/api/leaderboard`, client leaderboard API/types/sync fetch, friend-panel rendering, and service/API coverage.
 - `tools/quick-verify.ps1` runs focused client TS, generated balance, drift, effect coverage, client catalog metadata, shop-state contract, friend-sync contract, real-friend contract, friend-activity contract, friend-reward contract, friend-invite contract, friend-request contract, leaderboard contract, and server tests together.
 - Next move: consider loading a true single config source directly at build/runtime, or wire `tools/quick-verify.ps1` into CI once CI exists.
@@ -69,7 +69,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - `/api/friends/activity` records and returns add/visit/gift activity for the DOM friend panel. Keep it green with `node tools\check-friend-activity-contract.js`.
 - `/api/friends/{friendId}/visit` and `/api/friends/{friendId}/gift` now return reward metadata and authoritative balances with once-per-UTC-day reward limits. Keep it green with `node tools\check-friend-reward-contract.js`.
 - `/api/social/profile` and `/api/friends/search` now provide persisted short invite-code search before add, and `/api/friends/add` accepts invite codes as well as legacy player ids while writing `PlayerFriendRelation`. Keep it green with `node tools\check-friend-invite-contract.js`.
-- `/api/friends/requests` now creates/lists/accepts/rejects friend requests; accepting writes bidirectional relations and snapshots, and the friend panel has send/request/inbox/outbox hooks. Keep it green with `node tools\check-friend-request-contract.js` and `node tools\check-real-friend-online.js`.
+- `/api/friends/requests` now creates/lists/accepts/rejects friend requests; accepting writes bidirectional relations and snapshots, the friend panel has send/request/inbox/outbox hooks, and the factory friend entry shows a pending-request badge. Keep it green with `node tools\check-friend-request-contract.js` and `node tools\check-real-friend-online.js`.
 - `/api/leaderboard` now returns a server-backed income leaderboard consumed by the DOM friend panel. Keep it green with `node tools\check-leaderboard-contract.js`.
 
 Keep these scripts in the regular set when touching related flows:
