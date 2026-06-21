@@ -532,6 +532,56 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task FriendRequests_CanBeAcceptedIntoBidirectionalRelations()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var player = await service.AuthGuestAsync(new AuthGuestRequest("request-friend-a", "Alpha Cafe"), CancellationToken.None);
+        var target = await service.AuthGuestAsync(new AuthGuestRequest("request-friend-b", "Beta Beans"), CancellationToken.None);
+        var targetProfile = await service.GetSocialProfileAsync(target.PlayerId, CancellationToken.None);
+
+        var request = await service.CreateFriendRequestAsync(player.PlayerId, new CreateFriendRequestRequest("", targetProfile!.InviteCode), CancellationToken.None);
+        var received = await service.GetFriendRequestsAsync(target.PlayerId, "received", CancellationToken.None);
+        var sent = await service.GetFriendRequestsAsync(player.PlayerId, "sent", CancellationToken.None);
+        var accepted = await service.AcceptFriendRequestAsync(target.PlayerId, Guid.Parse(request!.Id), CancellationToken.None);
+        var playerFriends = await service.GetFriendsAsync(player.PlayerId, CancellationToken.None);
+        var targetFriends = await service.GetFriendsAsync(target.PlayerId, CancellationToken.None);
+
+        Assert.NotNull(request);
+        Assert.Equal("pending", request!.Status);
+        Assert.Equal("sent", request.Direction);
+        Assert.Single(received!);
+        Assert.Single(sent!);
+        Assert.Equal("received", received![0].Direction);
+        Assert.NotNull(accepted);
+        Assert.Equal("accepted", accepted!.Status);
+        Assert.Contains(playerFriends, friend => friend.Id == $"player:{target.PlayerId:N}");
+        Assert.Contains(targetFriends, friend => friend.Id == $"player:{player.PlayerId:N}");
+        Assert.Equal(2, dbContext.FriendRelations.Count(item =>
+            (item.PlayerId == player.PlayerId && item.FriendPlayerId == target.PlayerId)
+            || (item.PlayerId == target.PlayerId && item.FriendPlayerId == player.PlayerId)));
+        Assert.Single(dbContext.FriendRequests.Where(item => item.RequesterPlayerId == player.PlayerId && item.TargetPlayerId == target.PlayerId && item.Status == "accepted"));
+    }
+
+    [Fact]
+    public async Task FriendRequests_CanBeRejected()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var player = await service.AuthGuestAsync(new AuthGuestRequest("reject-friend-a", "Alpha Cafe"), CancellationToken.None);
+        var target = await service.AuthGuestAsync(new AuthGuestRequest("reject-friend-b", "Beta Beans"), CancellationToken.None);
+
+        var request = await service.CreateFriendRequestAsync(player.PlayerId, new CreateFriendRequestRequest(target.PlayerId.ToString("N")), CancellationToken.None);
+        var rejected = await service.RejectFriendRequestAsync(target.PlayerId, Guid.Parse(request!.Id), CancellationToken.None);
+        var friends = await service.GetFriendsAsync(player.PlayerId, CancellationToken.None);
+
+        Assert.NotNull(rejected);
+        Assert.Equal("rejected", rejected!.Status);
+        Assert.DoesNotContain(friends, friend => friend.Id == $"player:{target.PlayerId:N}");
+        Assert.Empty(dbContext.FriendRelations.Where(item => item.PlayerId == player.PlayerId && item.FriendPlayerId == target.PlayerId));
+    }
+
+    [Fact]
     public async Task FriendActions_WriteRecentSocialActivities()
     {
         await using var dbContext = CreateDbContext();

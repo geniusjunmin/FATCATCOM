@@ -271,6 +271,24 @@ export type AddFriendRequest = {
     inviteCode?: string;
 };
 
+export type CreateFriendRequestRequest = {
+    friendPlayerId: string;
+    inviteCode?: string;
+};
+
+export type FriendRequestDto = {
+    id: string;
+    direction: string;
+    status: string;
+    playerId: string;
+    companyName: string;
+    level: number;
+    incomePerSecond: number;
+    inviteCode: string;
+    createdAt: number;
+    updatedAt: number;
+};
+
 export type FriendActivityDto = {
     id: string;
     activityType: string;

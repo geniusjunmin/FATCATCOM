@@ -21,6 +21,10 @@ public interface IFatCatRepository
     Task AddInviteCodeAsync(PlayerInviteCode inviteCode, CancellationToken cancellationToken);
     Task<PlayerFriendRelation?> GetFriendRelationAsync(Guid playerId, Guid friendPlayerId, CancellationToken cancellationToken);
     Task AddFriendRelationAsync(PlayerFriendRelation relation, CancellationToken cancellationToken);
+    Task<PlayerFriendRequest?> GetFriendRequestAsync(Guid requestId, CancellationToken cancellationToken);
+    Task<PlayerFriendRequest?> GetFriendRequestBetweenAsync(Guid requesterPlayerId, Guid targetPlayerId, string status, CancellationToken cancellationToken);
+    Task<List<PlayerFriendRequest>> GetFriendRequestsAsync(Guid playerId, string box, CancellationToken cancellationToken);
+    Task AddFriendRequestAsync(PlayerFriendRequest request, CancellationToken cancellationToken);
     Task AddSocialActivityAsync(PlayerSocialActivity activity, CancellationToken cancellationToken);
     Task<List<PlayerSocialActivity>> GetSocialActivitiesAsync(Guid playerId, int limit, CancellationToken cancellationToken);
     Task<PlayerSettings?> GetSettingsAsync(Guid playerId, CancellationToken cancellationToken);

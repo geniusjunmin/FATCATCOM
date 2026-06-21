@@ -47,13 +47,27 @@ async function get(path) {
             deviceId: `real-friend-online-b-${suffix}`,
             companyName: "Beta Beans",
         });
+        const requestAuth = await post("/api/auth/guest", {
+            deviceId: `real-friend-online-c-${suffix}`,
+            companyName: "Gamma Milk",
+        });
+        const receiverAuth = await post("/api/auth/guest", {
+            deviceId: `real-friend-online-d-${suffix}`,
+            companyName: "Delta Roasters",
+        });
 
         const playerId = playerAuth.json.data.playerId;
         const targetId = targetAuth.json.data.playerId;
+        const requesterId = requestAuth.json.data.playerId;
+        const receiverId = receiverAuth.json.data.playerId;
         const targetKey = `player:${targetId.replace(/-/g, "")}`;
+        const requesterKey = `player:${requesterId.replace(/-/g, "")}`;
+        const receiverKey = `player:${receiverId.replace(/-/g, "")}`;
 
         const targetProfile = await get(`/api/social/profile?playerId=${encodeURIComponent(targetId)}`);
+        const receiverProfile = await get(`/api/social/profile?playerId=${encodeURIComponent(receiverId)}`);
         const inviteCode = targetProfile.json.data?.inviteCode;
+        const receiverInviteCode = receiverProfile.json.data?.inviteCode;
         const searched = await get(`/api/friends/search?playerId=${encodeURIComponent(playerId)}&query=${encodeURIComponent(inviteCode)}`);
         const added = await post(`/api/friends/add?playerId=${encodeURIComponent(playerId)}`, {
             friendPlayerId: "",
@@ -70,16 +84,33 @@ async function get(path) {
         const invalidSelf = await post(`/api/friends/add?playerId=${encodeURIComponent(playerId)}`, {
             friendPlayerId: playerId,
         });
+        const friendRequest = await post(`/api/friends/requests?playerId=${encodeURIComponent(requesterId)}`, {
+            friendPlayerId: "",
+            inviteCode: receiverInviteCode,
+        });
+        const receivedRequests = await get(`/api/friends/requests?playerId=${encodeURIComponent(receiverId)}&box=received`);
+        const sentRequests = await get(`/api/friends/requests?playerId=${encodeURIComponent(requesterId)}&box=sent`);
+        const requestId = friendRequest.json.data?.id;
+        const acceptedRequest = await post(`/api/friends/requests/${encodeURIComponent(requestId)}/accept?playerId=${encodeURIComponent(receiverId)}`, {});
+        const requesterFriends = await get(`/api/friends?playerId=${encodeURIComponent(requesterId)}`);
+        const receiverFriends = await get(`/api/friends?playerId=${encodeURIComponent(receiverId)}`);
         const friends = await get(`/api/friends?playerId=${encodeURIComponent(playerId)}`);
         const activities = await get(`/api/friends/activity?playerId=${encodeURIComponent(playerId)}&limit=10`);
         const leaderboard = await get(`/api/leaderboard?playerId=${encodeURIComponent(playerId)}&boardId=income`);
 
         const friendRows = friends.json.data ?? [];
+        const requesterFriendRows = requesterFriends.json.data ?? [];
+        const receiverFriendRows = receiverFriends.json.data ?? [];
+        const receivedRows = receivedRequests.json.data ?? [];
+        const sentRows = sentRequests.json.data ?? [];
         const activityRows = activities.json.data ?? [];
         const leaderboardRows = leaderboard.json.data?.entries ?? [];
         const ok = playerAuth.response.ok
             && targetAuth.response.ok
+            && requestAuth.response.ok
+            && receiverAuth.response.ok
             && targetProfile.response.ok
+            && receiverProfile.response.ok
             && searched.response.ok
             && added.response.ok
             && duplicate.response.ok
@@ -89,6 +120,12 @@ async function get(path) {
             && gift.response.ok
             && repeatGift.response.ok
             && invalidSelf.response.status === 400
+            && friendRequest.response.ok
+            && receivedRequests.response.ok
+            && sentRequests.response.ok
+            && acceptedRequest.response.ok
+            && requesterFriends.response.ok
+            && receiverFriends.response.ok
             && friends.response.ok
             && activities.response.ok
             && leaderboard.response.ok
@@ -96,6 +133,7 @@ async function get(path) {
             && added.json.data?.name === "Beta Beans"
             && added.json.data?.incomePerSecond > 0
             && inviteCode?.startsWith("FC")
+            && receiverInviteCode?.startsWith("FC")
             && searched.json.data?.inviteCode === inviteCode
             && searched.json.data?.isFriend === false
             && searchedAfter.json.data?.isFriend === true
@@ -113,14 +151,26 @@ async function get(path) {
             && activityRows[1]?.activityType === "friend_visit"
             && activityRows[2]?.activityType === "friend_add"
             && friendRows.some((friend) => friend.id === targetKey)
+            && friendRequest.json.data?.status === "pending"
+            && friendRequest.json.data?.direction === "sent"
+            && receivedRows.some((request) => request.id === requestId && request.direction === "received")
+            && sentRows.some((request) => request.id === requestId && request.direction === "sent")
+            && acceptedRequest.json.data?.status === "accepted"
+            && requesterFriendRows.some((friend) => friend.id === receiverKey)
+            && receiverFriendRows.some((friend) => friend.id === requesterKey)
             && leaderboardRows.some((entry) => entry.playerId === targetKey);
 
         console.log(JSON.stringify({
             ok,
             inviteCode,
+            receiverInviteCode,
             searched: searched.json.data,
             added: added.json.data,
             duplicate: duplicate.json.data,
+            friendRequestStatus: friendRequest.json.data?.status,
+            friendRequestAccepted: acceptedRequest.json.data?.status,
+            requestBidirectional: requesterFriendRows.some((friend) => friend.id === receiverKey)
+                && receiverFriendRows.some((friend) => friend.id === requesterKey),
             visitReward: visit.json.data?.rewardCoin,
             repeatVisitReason: repeatVisit.json.data?.limitedReason,
             giftReward: gift.json.data?.rewardCatFood,

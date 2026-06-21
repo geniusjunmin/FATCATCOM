@@ -1,6 +1,6 @@
 # Handoff
 
-Updated: 2026-06-20
+Updated: 2026-06-21
 
 ## 90-Second Boot
 
@@ -76,6 +76,7 @@ node tools\check-real-friend-contract.js
 node tools\check-friend-activity-contract.js
 node tools\check-friend-reward-contract.js
 node tools\check-friend-invite-contract.js
+node tools\check-friend-request-contract.js
 node tools\check-real-friend-online.js
 node tools\check-leaderboard-contract.js
 ```
@@ -109,6 +110,7 @@ Server:
 - `FATCATServer/FatCat.Application/BalanceConfig.cs`
 - `FATCATServer/FatCat.Application/Contracts.cs`
 - `FATCATServer/FatCat.Domain/PlayerBuildingState.cs`
+- `FATCATServer/FatCat.Domain/PlayerFriendRequest.cs`
 - `FATCATServer/FatCat.Domain/PlayerSocialActivity.cs`
 - `FATCATServer/FatCat.Infrastructure/FatCatDbContext.cs`
 - `FATCATServer/FatCat.Infrastructure/EfFatCatRepository.cs`
@@ -126,6 +128,7 @@ Server:
 - `tools/check-friend-activity-contract.js`
 - `tools/check-friend-reward-contract.js`
 - `tools/check-friend-invite-contract.js`
+- `tools/check-friend-request-contract.js`
 - `tools/check-real-friend-online.js`
 - `tools/check-leaderboard-contract.js`
 - `tools/quick-verify.ps1`
@@ -158,14 +161,16 @@ Client:
 - `/api/friends/add` creates a real-player friend snapshot from another player's id or persisted short invite code. Real friend keys use `player:{guidN}`. It also writes `PlayerFriendRelation`; duplicate adds return the existing snapshot; self-add and unknown ids fail.
 - `/api/social/profile` returns the current player's social profile, persisted short `FC...` invite code, and income snapshot. `/api/friends/search` resolves either invite code or player id before add.
 - The DOM friend panel has an `添加好友` action that prompts for an invite code/player id, calls `SyncManager.searchServerFriend()` first, asks for confirmation, then calls `SyncManager.addServerFriend()`.
+- `/api/friends/requests` creates and lists friend requests. `/api/friends/requests/{requestId}/accept` accepts pending inbound requests and writes both `PlayerFriendRelation` directions plus both real-player `FriendSnapshot` rows. `/reject` marks an inbound request rejected.
+- `SyncManager.createServerFriendRequest()`, `fetchServerFriendRequests()`, `acceptServerFriendRequest()`, and `rejectServerFriendRequest()` exist. The friend panel still needs a polished inbox/outbox UI, badges, and notifications on top of these helpers.
 - Real-player friend snapshots refresh name, level, and income from the target player during friend-list and leaderboard reads.
 - `/api/friends/activity` returns recent social activity from `PlayerSocialActivity`. Add, visit, and gift actions write `friend_add`, `friend_visit`, and `friend_gift`; the DOM friend panel renders the recent activity block through `SyncManager.fetchServerFriendActivities()`.
 - `/api/friends/{friendId}/visit` and `/api/friends/{friendId}/gift` return `FriendActionResponse`. First visit per friend per UTC day grants coin based on friend income, first gift grants 12 cat food, repeat same-day calls return `rewarded=false` with `daily_visit_claimed` or `daily_gift_claimed`.
 - `SyncManager.visitServerFriend()` and `SyncManager.sendServerFriendGift()` apply the returned authoritative balances through `ResourceManager.applyServerSnapshot()`, then the DOM friend panel shows reward or already-claimed messaging.
-- `tools/check-real-friend-contract.js`, `tools/check-friend-activity-contract.js`, `tools/check-friend-reward-contract.js`, and `tools/check-friend-invite-contract.js` are part of `tools/quick-verify.ps1`; `tools/check-real-friend-online.js` starts the built API and verifies short invite-code profile/search/add, duplicate legacy player-id add, visit/gift rewards and daily limits, self-add rejection, friend list inclusion, activity stream inclusion, and leaderboard inclusion.
+- `tools/check-real-friend-contract.js`, `tools/check-friend-activity-contract.js`, `tools/check-friend-reward-contract.js`, `tools/check-friend-invite-contract.js`, and `tools/check-friend-request-contract.js` are part of `tools/quick-verify.ps1`; `tools/check-real-friend-online.js` starts the built API and verifies short invite-code profile/search/add, duplicate legacy player-id add, visit/gift rewards and daily limits, self-add rejection, friend request accept into bidirectional friends, friend list inclusion, activity stream inclusion, and leaderboard inclusion.
 - `/api/leaderboard` returns a server-backed income leaderboard. It currently combines the current player's server-derived net production with seeded friend snapshots, returns ranked entries and the player's own row, and is consumed by the DOM friend panel through `SyncManager.fetchServerLeaderboard()`.
 - `tools/check-leaderboard-contract.js` is part of `tools/quick-verify.ps1` and guards leaderboard DTOs, route/service, client API/types/sync fetch, friend-panel rendering, and service/API coverage.
-- The next social-server step should add bidirectional friend requests or polish the friend panel invite/search UI beyond the current prompt-confirm flow.
+- The next social-server step should polish the friend panel invite/search/request UI beyond the current prompt-confirm flow.
 - Cat upgrade, cat feed, and cat unlock now follow that pattern in the DOM cat overlay.
 - Server login and save sync now fetch `/api/cats`; `CatManager.applyServerSnapshot()` applies server cat unlocked state, level, and weight into the local save.
 - `/api/cats` now returns the full configured cat catalog with locked defaults and saved player state overlaid. It includes `assignedBuildingId`, equipment, equipment levels, rarity, role, base production, base bean cost, base salary, base weight, and skill id.

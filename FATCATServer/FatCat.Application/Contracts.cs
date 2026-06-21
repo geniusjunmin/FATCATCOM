@@ -257,6 +257,20 @@ public sealed record FriendSearchResultDto(
 
 public sealed record AddFriendRequest(string FriendPlayerId, string? InviteCode = null);
 
+public sealed record CreateFriendRequestRequest(string FriendPlayerId, string? InviteCode = null);
+
+public sealed record FriendRequestDto(
+    string Id,
+    string Direction,
+    string Status,
+    string PlayerId,
+    string CompanyName,
+    int Level,
+    int IncomePerSecond,
+    string InviteCode,
+    long CreatedAt,
+    long UpdatedAt);
+
 public sealed record FriendActivityDto(
     string Id,
     string ActivityType,

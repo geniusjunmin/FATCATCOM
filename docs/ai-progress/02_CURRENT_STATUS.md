@@ -1,13 +1,13 @@
 # Current Status
 
-Updated: 2026-06-20
+Updated: 2026-06-21
 
 ## Control Panel
 
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Continue visual fidelity with generated/Cocos-managed art depth or HUD precision; social next move is polished in-panel invite/search UI or bidirectional friend requests. |
+| Best Next Move | Continue visual fidelity with generated/Cocos-managed art depth or HUD precision; social next move is polished in-panel friend-request UI, badges, and notifications. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -49,6 +49,7 @@ Updated: 2026-06-20
 - DOM friend visit/gift buttons call `/api/friends/{friendId}/visit` and `/api/friends/{friendId}/gift` in online mode, then apply returned server timestamps to local feature state.
 - DOM friend panel now has an add-friend action. In online mode it searches an invite code or player id before confirming `/api/friends/add`, then inserts the returned real-player friend snapshot.
 - `SyncManager` supports `/api/social/profile` and `/api/friends/search`; `/api/friends/add` accepts either legacy player id or persisted short invite code.
+- `SyncManager` supports friend request create/list/accept/reject helpers over `/api/friends/requests`, ready for a polished in-panel UI.
 - `SyncManager` fetches `/api/friends/activity`; the DOM friend panel shows recent add, visit, and gift activity from the server.
 - Friend visit/gift actions now return `FriendActionResponse`, apply server resource balances to the client, and enforce one reward per friend per UTC day.
 - `SyncManager` also fetches `/api/leaderboard` after login/save sync. The DOM friend panel now displays a server-backed income leaderboard with the current player highlighted when online.
@@ -66,6 +67,7 @@ Implemented server capabilities:
 - Friend list, visit, and gift endpoints, with DOM friend-panel consumption.
 - Friend visit/gift rewards: first daily visit grants coin based on friend income, first daily gift grants cat food, and repeat same-day claims return `rewarded=false` with a limit reason.
 - Real-player friend add endpoint: `/api/friends/add`, accepting another player's id or persisted short invite code and storing both a `player:{guid}` friend snapshot and `PlayerFriendRelation` row.
+- Bidirectional friend request endpoints: `/api/friends/requests` create/list plus `/accept` and `/reject`, backed by `PlayerFriendRequest`. Accepting an inbound request writes both `PlayerFriendRelation` directions and both real-player `FriendSnapshot` rows.
 - Social profile and friend search endpoints: `/api/social/profile` returns the player's persisted short invite code and income snapshot; `/api/friends/search` resolves invite code/player id before add.
 - Friend activity endpoint: `/api/friends/activity`, backed by `PlayerSocialActivity` and written by add, visit, and gift actions.
 - Income leaderboard endpoint: `/api/leaderboard`, combining current server-derived production with seeded friend snapshots and returning ranked entries plus the player's own row.
@@ -99,7 +101,7 @@ Implemented server capabilities:
 - `tools/check-balance-config-drift.js` compares server `balance.json` with client `FATCATUI/assets/resources/configs/research.json`, `equipment.json`, `buildings.json`, `cats.json`, and `skills.json` for ids, costs, caps, effects, prerequisites, default equipped items, building levels, cat economy fields, and skill values.
 - `tools/check-balance-effect-coverage.js` verifies every research/equipment effect type in client config is listed as covered by the server economy model.
 - `tools/check-client-catalog-metadata-consumption.js` verifies client managers and the research panel consume server catalog metadata instead of bypassing it.
-- `tools/quick-verify.ps1` runs the focused client TypeScript check, generated balance check, drift check, effect coverage check, client catalog metadata consumption check, shop-state, friend-sync, real-friend, friend-activity, friend-reward, friend-invite, leaderboard contract checks, and server tests as a no-browser baseline gate.
+- `tools/quick-verify.ps1` runs the focused client TypeScript check, generated balance check, drift check, effect coverage check, client catalog metadata consumption check, shop-state, friend-sync, real-friend, friend-activity, friend-reward, friend-invite, friend-request, leaderboard contract checks, and server tests as a no-browser baseline gate.
 - `tools/start-api-process.js` lets selected online scripts start the already-built API DLL before falling back to `dotnet run --no-restore`, avoiding fragile NuGet restore attempts in restricted-network environments.
 
 Client/server cat sync:
@@ -137,17 +139,19 @@ Latest verified checks:
 - 2026-06-20 friend-activity contract pass: added `PlayerSocialActivity`, `/api/friends/activity`, activity writes for add/visit/gift, client activity fetch/rendering in the friend panel, `tools/check-friend-activity-contract.js`, and service/API coverage.
 - 2026-06-20 friend-reward contract pass: visit/gift now return `FriendActionResponse`, reward resources once per friend per UTC day, apply authoritative balances through `ResourceManager.applyServerSnapshot()`, extend online friend smoke coverage, and add `tools/check-friend-reward-contract.js`.
 - 2026-06-20 friend-invite contract pass: added `/api/social/profile`, `/api/friends/search`, persisted short `FC...` invite codes, `PlayerFriendRelation`, invite-code add compatibility, client API/sync search helpers, friend-panel search-confirm flow, `tools/check-friend-invite-contract.js`, and service/API coverage.
+- 2026-06-21 friend-request contract pass: added `PlayerFriendRequest`, `/api/friends/requests` create/list/accept/reject, bidirectional relation/snapshot creation on accept, client API/sync helpers, `tools/check-friend-request-contract.js`, and service/API/online smoke coverage.
 - Cocos asset-db refreshed for `db://assets/scripts` after shop-state, friend-sync, leaderboard, real-friend, friend-activity, friend-reward, and friend-invite client TypeScript edits.
 
-- `dotnet test FATCATServer\FATCATServer.sln --no-restore`: 60/60 passed.
-- `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`: passed; includes client TS, generated server balance, config drift, effect coverage, client catalog metadata consumption, shop-state contract, friend-sync contract, real-friend contract, friend-activity contract, friend-reward contract, friend-invite contract, leaderboard contract, and 60 server tests.
+- `dotnet test FATCATServer\FATCATServer.sln --no-restore`: 63/63 passed.
+- `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`: passed; includes client TS, generated server balance, config drift, effect coverage, client catalog metadata consumption, shop-state contract, friend-sync contract, real-friend contract, friend-activity contract, friend-reward contract, friend-invite contract, friend-request contract, leaderboard contract, and 63 server tests.
 - `node tools\check-shop-state-contract.js`: passed; verifies server route/DTO/service, client API/types, sync fetch, manager snapshot consumption, and online purchase `remainingDaily` use.
 - `node tools\check-friend-sync-contract.js`: passed; verifies friend API methods, login/save friend refresh, DOM server snapshot rendering, visit/gift routing, and API coverage.
 - `node tools\check-real-friend-contract.js`: passed; verifies real-friend add DTO/repository/service/route, client API/types/sync fetch, friend-panel action, and service/API coverage.
 - `node tools\check-friend-activity-contract.js`: passed; verifies social activity entity/schema, route/DTO/service/repository, client API/types/sync/panel rendering, and service/API coverage.
 - `node tools\check-friend-reward-contract.js`: passed; verifies friend reward DTO/route/service behavior, client API/types, server balance application, UI reward messaging, and service/API coverage.
 - `node tools\check-friend-invite-contract.js`: passed; verifies social profile/search routes, invite-code parsing/add compatibility, client API/types/sync helpers, friend-panel search confirmation, and service/API coverage.
-- `node tools\check-real-friend-online.js`: passed; starts the built API, creates two players, fetches target invite code, searches it, adds the friend by invite code, verifies duplicate legacy player-id add, visits/gifts, verifies first-claim rewards plus same-day limit reasons, rejects self-add, and verifies friend list, activity stream, and leaderboard inclusion.
+- `node tools\check-friend-request-contract.js`: passed; verifies friend request domain/schema/repository, create/list/accept/reject routes, bidirectional accept behavior, client API/sync helpers, and service/API coverage.
+- `node tools\check-real-friend-online.js`: passed; starts the built API, creates players, fetches invite codes, searches/adds by invite code, verifies duplicate legacy player-id add, visits/gifts, verifies first-claim rewards plus same-day limit reasons, rejects self-add, verifies friend request accept creates bidirectional friends, and verifies friend list, activity stream, and leaderboard inclusion.
 - `node tools\check-leaderboard-contract.js`: passed; verifies leaderboard route/DTO/service, client API/types/sync fetch, friend-panel rendering, and service/API coverage.
 - `node tools\verify-ui-clicks-playwright.js`: passed after friend-panel server sync changes.
 - `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`: passed.
@@ -198,3 +202,4 @@ Latest verified checks:
 - Cat roster z-index was adjusted so locked roster cards remain clickable and no longer get covered by the equipment area.
 - Do not run multiple scripts that spawn `http://localhost:5144` in parallel.
 - After frontend script edits, refresh Cocos asset-db.
+- Friend request backend/client helpers are implemented, but the friend panel still needs a polished inbox/outbox UI instead of only the direct add prompt-confirm flow.

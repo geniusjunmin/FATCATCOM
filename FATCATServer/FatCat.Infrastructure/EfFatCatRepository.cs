@@ -104,6 +104,40 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         await dbContext.FriendRelations.AddAsync(relation, cancellationToken);
     }
 
+    public Task<PlayerFriendRequest?> GetFriendRequestAsync(Guid requestId, CancellationToken cancellationToken)
+    {
+        return dbContext.FriendRequests.FirstOrDefaultAsync(request => request.Id == requestId, cancellationToken);
+    }
+
+    public Task<PlayerFriendRequest?> GetFriendRequestBetweenAsync(Guid requesterPlayerId, Guid targetPlayerId, string status, CancellationToken cancellationToken)
+    {
+        return dbContext.FriendRequests.FirstOrDefaultAsync(
+            request => request.RequesterPlayerId == requesterPlayerId
+                && request.TargetPlayerId == targetPlayerId
+                && request.Status == status,
+            cancellationToken);
+    }
+
+    public async Task<List<PlayerFriendRequest>> GetFriendRequestsAsync(Guid playerId, string box, CancellationToken cancellationToken)
+    {
+        var normalized = string.Equals(box, "sent", StringComparison.OrdinalIgnoreCase) ? "sent" : "received";
+        var query = dbContext.FriendRequests.AsQueryable();
+        query = normalized == "sent"
+            ? query.Where(request => request.RequesterPlayerId == playerId)
+            : query.Where(request => request.TargetPlayerId == playerId);
+
+        var requests = await query.ToListAsync(cancellationToken);
+        return requests
+            .OrderByDescending(request => request.UpdatedAt)
+            .Take(50)
+            .ToList();
+    }
+
+    public async Task AddFriendRequestAsync(PlayerFriendRequest request, CancellationToken cancellationToken)
+    {
+        await dbContext.FriendRequests.AddAsync(request, cancellationToken);
+    }
+
     public async Task AddSocialActivityAsync(PlayerSocialActivity activity, CancellationToken cancellationToken)
     {
         await dbContext.SocialActivities.AddAsync(activity, cancellationToken);

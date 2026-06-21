@@ -387,6 +387,54 @@ app.MapPost("/api/friends/add", async (
         : Results.Ok(ApiEnvelope<FriendDto>.Success(result));
 });
 
+app.MapPost("/api/friends/requests", async (
+    Guid playerId,
+    CreateFriendRequestRequest request,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.CreateFriendRequestAsync(playerId, request, cancellationToken);
+    return result is null
+        ? Results.BadRequest(ApiEnvelope<FriendRequestDto>.Fail("friend_request_failed"))
+        : Results.Ok(ApiEnvelope<FriendRequestDto>.Success(result));
+});
+
+app.MapGet("/api/friends/requests", async (
+    Guid playerId,
+    string? box,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.GetFriendRequestsAsync(playerId, box, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<IReadOnlyList<FriendRequestDto>>.Fail("player_not_found"))
+        : Results.Ok(ApiEnvelope<IReadOnlyList<FriendRequestDto>>.Success(result));
+});
+
+app.MapPost("/api/friends/requests/{requestId:guid}/accept", async (
+    Guid playerId,
+    Guid requestId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.AcceptFriendRequestAsync(playerId, requestId, cancellationToken);
+    return result is null
+        ? Results.BadRequest(ApiEnvelope<FriendRequestDto>.Fail("friend_request_accept_failed"))
+        : Results.Ok(ApiEnvelope<FriendRequestDto>.Success(result));
+});
+
+app.MapPost("/api/friends/requests/{requestId:guid}/reject", async (
+    Guid playerId,
+    Guid requestId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.RejectFriendRequestAsync(playerId, requestId, cancellationToken);
+    return result is null
+        ? Results.BadRequest(ApiEnvelope<FriendRequestDto>.Fail("friend_request_reject_failed"))
+        : Results.Ok(ApiEnvelope<FriendRequestDto>.Success(result));
+});
+
 app.MapGet("/api/friends/activity", async (
     Guid playerId,
     int? limit,

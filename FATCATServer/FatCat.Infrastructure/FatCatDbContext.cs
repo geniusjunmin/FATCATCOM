@@ -12,6 +12,7 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
     public DbSet<FriendSnapshot> FriendSnapshots => Set<FriendSnapshot>();
     public DbSet<PlayerInviteCode> InviteCodes => Set<PlayerInviteCode>();
     public DbSet<PlayerFriendRelation> FriendRelations => Set<PlayerFriendRelation>();
+    public DbSet<PlayerFriendRequest> FriendRequests => Set<PlayerFriendRequest>();
     public DbSet<PlayerSocialActivity> SocialActivities => Set<PlayerSocialActivity>();
     public DbSet<PlayerSettings> PlayerSettings => Set<PlayerSettings>();
     public DbSet<PlayerResourceState> ResourceStates => Set<PlayerResourceState>();
@@ -222,6 +223,25 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             CREATE UNIQUE INDEX IF NOT EXISTS "IX_FriendRelations_PlayerId_FriendPlayerId"
             ON "FriendRelations" ("PlayerId", "FriendPlayerId");
             """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "FriendRequests" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_FriendRequests" PRIMARY KEY,
+                "RequesterPlayerId" TEXT NOT NULL,
+                "TargetPlayerId" TEXT NOT NULL,
+                "Status" TEXT NOT NULL,
+                "CreatedAt" TEXT NOT NULL,
+                "UpdatedAt" TEXT NOT NULL,
+                CONSTRAINT "FK_FriendRequests_Players_RequesterPlayerId" FOREIGN KEY ("RequesterPlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
+            );
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_FriendRequests_RequesterPlayerId_TargetPlayerId_Status"
+            ON "FriendRequests" ("RequesterPlayerId", "TargetPlayerId", "Status");
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE INDEX IF NOT EXISTS "IX_FriendRequests_TargetPlayerId_Status"
+            ON "FriendRequests" ("TargetPlayerId", "Status");
+            """, cancellationToken);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -304,6 +324,18 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.HasOne(relation => relation.Player)
                 .WithMany()
                 .HasForeignKey(relation => relation.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlayerFriendRequest>(entity =>
+        {
+            entity.HasKey(request => request.Id);
+            entity.HasIndex(request => new { request.RequesterPlayerId, request.TargetPlayerId, request.Status }).IsUnique();
+            entity.HasIndex(request => new { request.TargetPlayerId, request.Status });
+            entity.Property(request => request.Status).HasMaxLength(40);
+            entity.HasOne(request => request.RequesterPlayer)
+                .WithMany()
+                .HasForeignKey(request => request.RequesterPlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

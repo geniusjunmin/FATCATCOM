@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -484,6 +484,79 @@ export class SyncManager {
         const response = await ApiClient.addFriend(NetworkManager.playerId, { friendPlayerId: friendQuery, inviteCode: friendQuery });
         if (!response.ok || !response.data) {
             this.markFailed(response.error ?? "friend_add_failed");
+            return null;
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async createServerFriendRequest(friendQuery: string): Promise<FriendRequestDto | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.createFriendRequest(NetworkManager.playerId, { friendPlayerId: friendQuery, inviteCode: friendQuery });
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "friend_request_failed");
+            return null;
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerFriendRequests(box: "received" | "sent" = "received"): Promise<FriendRequestDto[]> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return [];
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return [];
+        }
+        const response = await ApiClient.getFriendRequests(NetworkManager.playerId, box);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "friend_requests_fetch_failed");
+            return [];
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async acceptServerFriendRequest(requestId: string): Promise<FriendRequestDto | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.acceptFriendRequest(NetworkManager.playerId, requestId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "friend_request_accept_failed");
+            return null;
+        }
+        await this.fetchServerFriends();
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async rejectServerFriendRequest(requestId: string): Promise<FriendRequestDto | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.rejectFriendRequest(NetworkManager.playerId, requestId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "friend_request_reject_failed");
             return null;
         }
         this.markReadyAfterServerCall();

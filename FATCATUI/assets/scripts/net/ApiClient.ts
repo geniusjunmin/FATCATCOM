@@ -1,5 +1,5 @@
 import { GameConfig } from "../core/GameConfig";
-import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendSearchResultDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
+import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, CreateFriendRequestRequest, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendRequestDto, FriendSearchResultDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
 
 export class ApiClient {
     private static _baseUrl: string = GameConfig.apiBaseUrl;
@@ -116,6 +116,22 @@ export class ApiClient {
 
     public static addFriend(playerId: string, request: AddFriendRequest): Promise<ApiEnvelope<FriendDto>> {
         return this.post(`/api/friends/add?playerId=${encodeURIComponent(playerId)}`, request);
+    }
+
+    public static createFriendRequest(playerId: string, request: CreateFriendRequestRequest): Promise<ApiEnvelope<FriendRequestDto>> {
+        return this.post(`/api/friends/requests?playerId=${encodeURIComponent(playerId)}`, request);
+    }
+
+    public static getFriendRequests(playerId: string, box = "received"): Promise<ApiEnvelope<FriendRequestDto[]>> {
+        return this.get(`/api/friends/requests?playerId=${encodeURIComponent(playerId)}&box=${encodeURIComponent(box)}`);
+    }
+
+    public static acceptFriendRequest(playerId: string, requestId: string): Promise<ApiEnvelope<FriendRequestDto>> {
+        return this.post(`/api/friends/requests/${encodeURIComponent(requestId)}/accept?playerId=${encodeURIComponent(playerId)}`, {});
+    }
+
+    public static rejectFriendRequest(playerId: string, requestId: string): Promise<ApiEnvelope<FriendRequestDto>> {
+        return this.post(`/api/friends/requests/${encodeURIComponent(requestId)}/reject?playerId=${encodeURIComponent(playerId)}`, {});
     }
 
     public static visitFriend(playerId: string, friendId: string): Promise<ApiEnvelope<FriendActionResponse>> {

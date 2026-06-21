@@ -984,20 +984,118 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             return ToFriendDto(existing);
         }
 
-        var preview = await PreviewServerProductionAsync(friendPlayer.Id, cancellationToken);
-        var friend = new FriendSnapshot
-        {
-            PlayerId = playerId,
-            FriendKey = friendKey,
-            Name = friendPlayer.CompanyName,
-            Level = friendPlayer.Level,
-            IncomePerSecond = (int)Math.Floor(Math.Max(0, preview?.NetCoinPerSecond ?? 0)),
-        };
-        await repository.AddFriendAsync(friend, cancellationToken);
+        var friend = await EnsureRealFriendSnapshotAsync(playerId, friendPlayer, cancellationToken);
         await EnsureFriendRelationAsync(playerId, friendPlayer.Id, friend.FriendKey, cancellationToken);
         await AddSocialActivityAsync(playerId, "friend_add", friend, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
         return ToFriendDto(friend);
+    }
+
+    public async Task<FriendRequestDto?> CreateFriendRequestAsync(Guid playerId, CreateFriendRequestRequest request, CancellationToken cancellationToken)
+    {
+        var requester = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
+        if (requester is null)
+        {
+            return null;
+        }
+
+        var targetPlayerId = await ResolveFriendPlayerIdAsync(new AddFriendRequest(request.FriendPlayerId, request.InviteCode), cancellationToken);
+        if (targetPlayerId is null || targetPlayerId == playerId)
+        {
+            return null;
+        }
+
+        var target = await repository.FindPlayerByIdAsync(targetPlayerId.Value, cancellationToken);
+        if (target is null || await repository.GetFriendRelationAsync(playerId, target.Id, cancellationToken) is not null)
+        {
+            return null;
+        }
+
+        var existing = await repository.GetFriendRequestBetweenAsync(playerId, target.Id, "pending", cancellationToken);
+        if (existing is not null)
+        {
+            return await ToFriendRequestDtoAsync(existing, "sent", cancellationToken);
+        }
+
+        var inverse = await repository.GetFriendRequestBetweenAsync(target.Id, playerId, "pending", cancellationToken);
+        if (inverse is not null)
+        {
+            return await AcceptFriendRequestAsync(playerId, inverse.Id, cancellationToken);
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var friendRequest = new PlayerFriendRequest
+        {
+            RequesterPlayerId = playerId,
+            TargetPlayerId = target.Id,
+            Status = "pending",
+            CreatedAt = now,
+            UpdatedAt = now,
+        };
+        await repository.AddFriendRequestAsync(friendRequest, cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
+        return await ToFriendRequestDtoAsync(friendRequest, "sent", cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<FriendRequestDto>?> GetFriendRequestsAsync(Guid playerId, string? box, CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        var normalizedBox = string.Equals(box, "sent", StringComparison.OrdinalIgnoreCase) ? "sent" : "received";
+        var requests = await repository.GetFriendRequestsAsync(playerId, normalizedBox, cancellationToken);
+        var result = new List<FriendRequestDto>();
+        foreach (var request in requests)
+        {
+            result.Add(await ToFriendRequestDtoAsync(request, normalizedBox, cancellationToken));
+        }
+        return result;
+    }
+
+    public async Task<FriendRequestDto?> AcceptFriendRequestAsync(Guid playerId, Guid requestId, CancellationToken cancellationToken)
+    {
+        var request = await repository.GetFriendRequestAsync(requestId, cancellationToken);
+        if (request is null || request.TargetPlayerId != playerId || request.Status != "pending")
+        {
+            return null;
+        }
+
+        var requester = await repository.FindPlayerByIdAsync(request.RequesterPlayerId, cancellationToken);
+        var target = await repository.FindPlayerByIdAsync(request.TargetPlayerId, cancellationToken);
+        if (requester is null || target is null)
+        {
+            return null;
+        }
+
+        await EnsureDefaultFriendsAsync(requester.Id, cancellationToken);
+        await EnsureDefaultFriendsAsync(target.Id, cancellationToken);
+        var requesterFriend = await EnsureRealFriendSnapshotAsync(requester.Id, target, cancellationToken);
+        var targetFriend = await EnsureRealFriendSnapshotAsync(target.Id, requester, cancellationToken);
+        await EnsureFriendRelationAsync(requester.Id, target.Id, requesterFriend.FriendKey, cancellationToken);
+        await EnsureFriendRelationAsync(target.Id, requester.Id, targetFriend.FriendKey, cancellationToken);
+        await AddSocialActivityAsync(requester.Id, "friend_accept", requesterFriend, cancellationToken);
+        await AddSocialActivityAsync(target.Id, "friend_accept", targetFriend, cancellationToken);
+
+        request.Status = "accepted";
+        request.UpdatedAt = DateTimeOffset.UtcNow;
+        await repository.SaveChangesAsync(cancellationToken);
+        return await ToFriendRequestDtoAsync(request, "received", cancellationToken);
+    }
+
+    public async Task<FriendRequestDto?> RejectFriendRequestAsync(Guid playerId, Guid requestId, CancellationToken cancellationToken)
+    {
+        var request = await repository.GetFriendRequestAsync(requestId, cancellationToken);
+        if (request is null || request.TargetPlayerId != playerId || request.Status != "pending")
+        {
+            return null;
+        }
+
+        request.Status = "rejected";
+        request.UpdatedAt = DateTimeOffset.UtcNow;
+        await repository.SaveChangesAsync(cancellationToken);
+        return await ToFriendRequestDtoAsync(request, "received", cancellationToken);
     }
 
     public async Task<PlayerSocialProfileDto?> GetSocialProfileAsync(Guid playerId, CancellationToken cancellationToken)
@@ -1890,6 +1988,48 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         friend.Name = player.CompanyName;
         friend.Level = player.Level;
         friend.IncomePerSecond = (int)Math.Floor(Math.Max(0, preview?.NetCoinPerSecond ?? 0));
+    }
+
+    private async Task<FriendSnapshot> EnsureRealFriendSnapshotAsync(Guid playerId, PlayerProfile friendPlayer, CancellationToken cancellationToken)
+    {
+        var friendKey = CreateRealFriendKey(friendPlayer.Id);
+        var existing = await repository.GetFriendAsync(playerId, friendKey, cancellationToken);
+        if (existing is not null)
+        {
+            await RefreshFriendSnapshotFromPlayerAsync(existing, friendPlayer, cancellationToken);
+            return existing;
+        }
+
+        var preview = await PreviewServerProductionAsync(friendPlayer.Id, cancellationToken);
+        var friend = new FriendSnapshot
+        {
+            PlayerId = playerId,
+            FriendKey = friendKey,
+            Name = friendPlayer.CompanyName,
+            Level = friendPlayer.Level,
+            IncomePerSecond = (int)Math.Floor(Math.Max(0, preview?.NetCoinPerSecond ?? 0)),
+        };
+        await repository.AddFriendAsync(friend, cancellationToken);
+        return friend;
+    }
+
+    private async Task<FriendRequestDto> ToFriendRequestDtoAsync(PlayerFriendRequest request, string direction, CancellationToken cancellationToken)
+    {
+        var otherPlayerId = direction == "sent" ? request.TargetPlayerId : request.RequesterPlayerId;
+        var other = await repository.FindPlayerByIdAsync(otherPlayerId, cancellationToken);
+        var preview = other is null ? null : await PreviewServerProductionAsync(other.Id, cancellationToken);
+        var invite = other is null ? null : await EnsureInviteCodeAsync(other.Id, cancellationToken);
+        return new FriendRequestDto(
+            request.Id.ToString("N"),
+            direction,
+            request.Status,
+            other?.Id.ToString("N") ?? otherPlayerId.ToString("N"),
+            other?.CompanyName ?? "Unknown Player",
+            other?.Level ?? 1,
+            (int)Math.Floor(Math.Max(0, preview?.NetCoinPerSecond ?? 0)),
+            invite?.Code ?? "",
+            request.CreatedAt.ToUnixTimeMilliseconds(),
+            request.UpdatedAt.ToUnixTimeMilliseconds());
     }
 
     private async Task AddSocialActivityAsync(Guid playerId, string activityType, FriendSnapshot friend, CancellationToken cancellationToken)
