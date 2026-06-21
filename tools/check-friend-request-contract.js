@@ -56,6 +56,10 @@ assertContains("sync request accept", syncManager, "acceptServerFriendRequest");
 assertContains("friend panel request refresh", bottomNav, "refreshFriendRequestsForPanel");
 assertContains("friend panel request card", bottomNav, "renderFriendRequestPreview");
 assertContains("friend panel send action", bottomNav, "sendFriendRequest");
+assertContains("friend panel inline search", bottomNav, "searchFriendInline");
+assertContains("friend panel inline send", bottomNav, "sendFriendRequestInline");
+assertContains("friend panel search card", bottomNav, "renderFriendSearchCard");
+assertContains("friend panel search input", bottomNav, "data-field=\"friendSearch\"");
 assertContains("friend panel accept action", bottomNav, "acceptFriendRequest");
 assertContains("friend panel reject action", bottomNav, "rejectFriendRequest");
 assertContains("friend request badge refresh", bottomNav, "refreshFriendRequestBadgeForFactory");
@@ -75,6 +79,7 @@ console.log(JSON.stringify({
     "bidirectional relation and snapshot acceptance",
     "client API and sync methods",
     "friend panel request inbox/outbox UI hooks",
+    "friend panel inline invite search UI",
     "factory friend-entry pending badge",
     "mail notification friend-request surfacing",
     "service and API coverage",

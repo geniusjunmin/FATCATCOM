@@ -88,6 +88,9 @@ export class BottomNavUI extends Component {
     private _friendActivities: FriendActivityDto[] = [];
     private _receivedFriendRequests: FriendRequestDto[] = [];
     private _sentFriendRequests: FriendRequestDto[] = [];
+    private _friendSearchQuery = "";
+    private _friendSearchPreview: FriendSearchResultDto | null = null;
+    private _friendSearchMessage = "";
     private _serverLeaderboard: LeaderboardDto | null = null;
     private _friendRefreshInFlight = false;
     private _friendActivityRefreshInFlight = false;
@@ -1215,6 +1218,12 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay .friend-tools { display:flex; align-items:center; justify-content:space-between; gap:2%; margin:0 0 2%; padding:1.6% 2.2%; border-radius:999px; background:rgba(75,49,32,.88); color:#ffe2a8; font-size:1.95%; font-weight:900; box-shadow:inset 0 0 0 2px rgba(255,226,170,.12), 0 2px 0 rgba(72,43,25,.22); }
             #fatcat-dom-panel-overlay .friend-tools span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-panel-overlay .friend-tools .tag { margin:0; flex:0 0 auto; }
+            #fatcat-dom-panel-overlay .friend-search-card { margin-bottom:2%; padding:2.2%; border-radius:14px; background:linear-gradient(#6e4c34,#3f2a20); border:2px solid #7c5736; color:#ffe2a8; box-shadow:inset 0 0 0 2px rgba(255,226,170,.1), 0 3px 0 rgba(72,43,25,.24); font-size:2.0%; }
+            #fatcat-dom-panel-overlay .friend-search-row { display:grid; grid-template-columns:1fr auto auto; gap:1.5%; align-items:center; }
+            #fatcat-dom-panel-overlay .friend-search-row input { min-width:0; height:38px; border-radius:999px; border:2px solid rgba(255,226,170,.32); background:#f7e5bf; color:#4a2f1f; padding:0 14px; font:inherit; font-weight:900; outline:none; box-sizing:border-box; }
+            #fatcat-dom-panel-overlay .friend-search-result { margin-top:1.5%; display:grid; grid-template-columns:1fr auto; gap:2%; align-items:center; color:#fff4d8; }
+            #fatcat-dom-panel-overlay .friend-search-result b { color:#fff; }
+            #fatcat-dom-panel-overlay .friend-search-result em { display:block; font-style:normal; color:#f5c978; font-weight:900; }
             #fatcat-dom-panel-overlay .feature-badge.alert { background:linear-gradient(#e55b36,#9a321f); color:#fff6d8; box-shadow:0 0 0 3px rgba(255,220,120,.45), 0 4px 0 rgba(72,43,25,.28); }
             #fatcat-dom-panel-overlay .friend-request-card { margin-bottom:2%; padding:2.2%; border-radius:14px; background:linear-gradient(#fff7dc,#e2bf83); border:2px solid #7c5736; color:#4a2f1f; box-shadow:inset 0 0 0 2px rgba(255,250,224,.42), 0 3px 0 rgba(72,43,25,.22); font-size:2.0%; }
             #fatcat-dom-panel-overlay .request-row { min-height:38px; display:grid; grid-template-columns:14% 1fr 25% auto auto; gap:1.4%; align-items:center; border-top:1px solid rgba(124,87,54,.2); }
@@ -1497,6 +1506,35 @@ export class BottomNavUI extends Component {
             } else {
                 this._domPanelMessage = this.getFriendSearchFailureMessage(preview);
             }
+        } else if (action === "searchFriendInline") {
+            const input = this._domPanelOverlay?.querySelector<HTMLInputElement>('[data-field="friendSearch"]');
+            const query = (input?.value ?? "").trim();
+            this._friendSearchQuery = query;
+            this._friendSearchPreview = query ? await SyncManager.searchServerFriend(query) : null;
+            this._friendSearchMessage = this._friendSearchPreview
+                ? `${this._friendSearchPreview.companyName} Lv.${this._friendSearchPreview.level} · ${this.formatNumber(this._friendSearchPreview.incomePerSecond)}/秒`
+                : (query ? "未找到玩家，请检查邀请码或玩家ID。" : "请输入邀请码或玩家ID。");
+            actionMessageOverride = this._friendSearchMessage;
+            success = !!this._friendSearchPreview;
+        } else if (action === "sendFriendRequestInline") {
+            const input = this._domPanelOverlay?.querySelector<HTMLInputElement>('[data-field="friendSearch"]');
+            const query = (this._friendSearchQuery || input?.value || "").trim();
+            const request = query ? await SyncManager.createServerFriendRequest(query) : null;
+            if (request) {
+                this._friendSearchPreview = null;
+                this._friendSearchMessage = request.status === "accepted"
+                    ? `${request.companyName} 已成为好友。`
+                    : `好友申请已发送给 ${request.companyName}。`;
+                actionMessageOverride = this._friendSearchMessage;
+                await this.refreshFriendRequestsForPanel();
+                void this.refreshServerFriendsForPanel();
+                void this.refreshFriendActivitiesForPanel();
+                void this.refreshServerLeaderboardForPanel();
+                success = true;
+            } else {
+                this._friendSearchMessage = "发送好友申请失败，请先搜索一个可添加玩家。";
+                actionMessageOverride = this._friendSearchMessage;
+            }
         } else if (action === "acceptFriendRequest") {
             const request = await SyncManager.acceptServerFriendRequest(id);
             if (request) {
@@ -1706,7 +1744,16 @@ export class BottomNavUI extends Component {
             const lastGift = this.getFeatureTimestamp("friendGifts", friend.id);
             return `<div class="feature-card with-icon"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>${friend.name}</b><br>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒<br><span class="focus-tag">${friend.status}</span><span class="focus-tag">${lastVisit ? `已访问 ${lastVisit}` : "未访问"}</span><span class="focus-tag">${lastGift ? `已送礼 ${lastGift}` : "可送礼"}</span></div><div><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问</button><br><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再送" : "送礼"}</button></div></div>`;
         }).join("");
-        return `<div class="panel-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}<div class="feature-list">${rowsNew}</div></div>`;
+        return `<div class="panel-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}<div class="feature-list">${rowsNew}</div></div>`;
+    }
+
+    private renderFriendSearchCard(): string {
+        const preview = this._friendSearchPreview;
+        const query = this.escapeAttribute(this._friendSearchQuery);
+        const result = preview
+            ? `<div class="friend-search-result"><div><b>${preview.companyName}</b><em>Lv.${preview.level} · ${this.formatNumber(preview.incomePerSecond)}/秒 · ${preview.inviteCode}</em></div><button class="tag" data-action="sendFriendRequestInline" ${preview.isSelf || preview.isFriend ? "disabled" : ""}>${preview.isFriend ? "已是好友" : preview.isSelf ? "自己" : "发送申请"}</button></div>`
+            : (this._friendSearchMessage ? `<div class="friend-search-result"><div><b>${this._friendSearchMessage}</b><em>输入 FC 开头邀请码或玩家ID。</em></div></div>` : "");
+        return `<div class="friend-search-card"><div class="friend-search-row"><input data-field="friendSearch" value="${query}" placeholder="输入邀请码或玩家ID"><button class="tag" data-action="searchFriendInline">搜索</button><button class="tag warn" data-action="sendFriendRequest">旧版输入</button></div>${result}</div>`;
     }
 
     private renderFriendRequestPreview(): string {
@@ -1838,6 +1885,14 @@ export class BottomNavUI extends Component {
         if (preview.isSelf) return "You cannot add yourself.";
         if (preview.isFriend) return `${preview.companyName} is already your friend.`;
         return "Friend add cancelled.";
+    }
+
+    private escapeAttribute(value: string): string {
+        return value
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
     }
 
     private formatActivityTime(timestamp: number): string {
