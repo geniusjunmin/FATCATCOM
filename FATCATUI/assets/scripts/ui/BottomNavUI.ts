@@ -1413,6 +1413,9 @@ export class BottomNavUI extends Component {
                     ResourceManager.add({ coin: 2500, catFood: 20 }, `mail_claim_${id || "local"}`);
                 }
             }
+        } else if (action === "openFriendRequests") {
+            this.select("friends");
+            return;
         } else if (action === "visitFriend") {
             const serverFriend = NetworkManager.canUseServer
                 ? await SyncManager.visitServerFriend(id)
@@ -1668,20 +1671,25 @@ export class BottomNavUI extends Component {
     }
 
     private renderMailPanel(): string {
-        const mails = [
-            { id: "welcome", title: "开业补给", desc: "欢迎回到肥猫咖啡公司。这里准备了一点启动补给。", state: "可领取", ready: true },
-            { id: "daily", title: "每日巡店报告", desc: `当前金币 ${this.formatNumber(ResourceManager.get("coin"))}，咖啡豆 ${this.formatNumber(ResourceManager.get("bean"))}。`, state: "已读", ready: false },
-            { id: "server", title: "联网公告", desc: "服务端接入后，好友互动和发射结算会通过邮件发放奖励。", state: "公告", ready: false },
+        const pendingFriendRequests = this.getPendingFriendRequestCount();
+        const sentFriendRequests = this._sentFriendRequests.filter(request => request.status === "pending").length;
+        const mailRows = [
+            { id: "welcome", title: "开业补给", desc: "欢迎回到肥猫咖啡公司，这里准备了一点启动补给。", state: "可领取", ready: true },
+            { id: "daily", title: "每日工厂报告", desc: `当前金币 ${this.formatNumber(ResourceManager.get("coin"))}，咖啡豆 ${this.formatNumber(ResourceManager.get("bean"))}。`, state: "已读", ready: false },
+            { id: "server", title: "联网公告", desc: "好友互动、发射结算和服务端奖励都会集中在这里。", state: "公告", ready: false },
         ];
-        const unread = mails.filter(mail => mail.ready && !this.isLocalMailClaimed(mail.id)).length;
-        const rows = mails.map(mail => {
+        const unreadNew = mailRows.filter(mail => mail.ready && !this.isLocalMailClaimed(mail.id)).length + pendingFriendRequests;
+        const requestCard = pendingFriendRequests > 0
+            ? `<div class="feature-card with-icon ready"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友申请</b><br>${pendingFriendRequests} 个玩家等待处理，${sentFriendRequests} 个申请已发送。<br><span class="focus-tag">社交通知</span></div><div><button class="tag" data-action="openFriendRequests">查看</button></div></div>`
+            : "";
+        const rowsNew = mailRows.map(mail => {
             const claimed = this.isLocalMailClaimed(mail.id);
             const action = mail.ready && !claimed
                 ? `<button class="tag" data-action="claimMail" data-id="${mail.id}">领取</button>`
                 : `<span class="tag warn">${claimed ? "已领取" : "保留"}</span>`;
             return `<div class="feature-card with-icon ${mail.ready && !claimed ? "ready" : ""}"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("mail")}')"></span><div><b>${mail.title}</b><br>${mail.desc}<br><span class="focus-tag">${mail.state}</span></div><div>${action}</div></div>`;
         }).join("");
-        return `<div class="panel-shell"><h2>邮件</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("mail")}')"></span><div><b>公司邮箱</b><br>奖励、系统公告和好友互动都会集中在这里。</div><span class="feature-badge">未读<br>${unread}</span></div><div class="feature-list">${rows}</div></div>`;
+        return `<div class="panel-shell"><h2>邮件</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("mail")}')"></span><div><b>公司邮箱</b><br>奖励、系统公告和好友互动都会集中在这里。</div><span class="feature-badge ${pendingFriendRequests > 0 ? "alert" : ""}">未读<br>${unreadNew}</span></div><div class="feature-list">${requestCard}${rowsNew}</div></div>`;
     }
 
     private renderFriendPanel(): string {

@@ -61,6 +61,8 @@ assertContains("friend panel reject action", bottomNav, "rejectFriendRequest");
 assertContains("friend request badge refresh", bottomNav, "refreshFriendRequestBadgeForFactory");
 assertContains("friend request pending count", bottomNav, "getPendingFriendRequestCount");
 assertContains("friend request entry badge", bottomNav, "data-badge");
+assertContains("friend request mail notification", bottomNav, "openFriendRequests");
+assertContains("friend request mail unread", bottomNav, "unreadNew");
 assertContains("service coverage accept", serviceTests, "FriendRequests_CanBeAcceptedIntoBidirectionalRelations");
 assertContains("service coverage reject", serviceTests, "FriendRequests_CanBeRejected");
 assertContains("api coverage", apiTests, "FriendRequests_AcceptIntoBidirectionalFriendContract");
@@ -74,6 +76,7 @@ console.log(JSON.stringify({
     "client API and sync methods",
     "friend panel request inbox/outbox UI hooks",
     "factory friend-entry pending badge",
+    "mail notification friend-request surfacing",
     "service and API coverage",
   ],
 }, null, 2));
