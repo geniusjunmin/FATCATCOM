@@ -1,6 +1,6 @@
 # Current Status
 
-Updated: 2026-06-21
+Updated: 2026-06-22
 
 ## Control Panel
 
@@ -27,14 +27,14 @@ Updated: 2026-06-21
 ## Client UI
 
 - Main screen has portrait factory layout, top HUD, right-side feature buttons, bottom navigation, launch button, order card, and gift card.
-- Main factory DOM layer now includes extra building depth, brick/grid shading, room foreground props, floor level medals, and HUD highlight/icon-plaque polish.
+- Main factory DOM layer now includes extra building depth, brick/grid shading, room foreground props, floor level medals, wall-detail layers, denser room lighting, extra worker-cat silhouettes, and HUD highlight/icon-plaque polish.
 - Narrow-screen main factory fit improved: 360px floor names stay on one line, compact floor cards have tuned width/typography, and compact HUD resource cells use tighter icon/value/plus spacing.
 - Cat page is a full-screen DOM overlay with info, upgrade, skill, equipment, skin, bottom roster, equipment bag, and story entry.
 - Cat detail composition now has stronger target-UI cues: active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, raised roster active card, and command-strip layering that no longer blocks equipment clicks.
 - Cat lower content density is improved: stats/weight rows are slimmer, skill and equipment cards sit side by side in compact mode, compact equipment details fold away, and the equipment upgrade button remains clickable above the roster.
 - Building, shop, inventory, research, task, achievement, mail, friend, and settings panels are clickable.
 - Screenshot regression exists for 414x896, 430x932, 360x800, and 768x1024 on the main screen and cat page.
-- Remaining visual gap: more polished HUD proportions, paper/card texture, icon consistency, generated art depth where CSS looks flat, and final cat-page target alignment.
+- Remaining visual gap: more polished HUD proportions, paper/card texture, icon consistency, generated art depth where CSS still looks flat, and final cat-page target alignment.
 
 ## Client Networking
 
@@ -161,6 +161,7 @@ Latest verified checks:
 - Cocos asset-db refreshed for `db://assets/scripts` after client manager and API type metadata updates.
 - `node tools\verify-ui-clicks-playwright.js`: passed.
 - Latest visual push check: `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`, Cocos asset refresh for `db://assets/scripts/ui`, `node tools\capture-main-regression.js`, and `node tools\verify-ui-clicks-playwright.js` passed after main factory/HUD CSS polish.
+- 2026-06-22 main factory richness pass: added floor wall-detail layers, paper/jar props, stronger room light gradients, extra worker-cat silhouettes, denser prop staging, and thicker KPI/bonus cards in `BottomNavUI.ts`. Verified with `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`, Cocos asset refresh for `db://assets/scripts`, `node tools\capture-main-regression.js`, and `node tools\verify-ui-clicks-playwright.js`.
 - Latest narrow-screen fit check: `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`, Cocos asset refresh for `db://assets/scripts/ui`, `node tools\capture-main-regression.js`, and `node tools\verify-ui-clicks-playwright.js` passed after compact floor-card/HUD spacing changes.
 - Latest cat-page visual check: `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`, Cocos asset refresh for `db://assets/scripts/ui`, `node tools\capture-cat-regression.js`, and `node tools\verify-ui-clicks-playwright.js` passed after cat detail composition polish.
 - Latest cat-page density check: `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`, Cocos asset refresh for `db://assets/scripts/ui`, `node tools\capture-cat-regression.js`, and `node tools\verify-ui-clicks-playwright.js` passed after compact skill/equipment/story density changes.
