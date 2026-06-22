@@ -571,7 +571,9 @@ export class BottomNavUI extends Component {
             #fatcat-dom-factory .sky { position: absolute; inset: 0; background: radial-gradient(circle at 12% 10%, rgba(255,255,255,.88) 0 8%, transparent 9%), radial-gradient(circle at 78% 7%, rgba(255,255,255,.7) 0 10%, transparent 11%), linear-gradient(#bfe9ff 0%, #eaf8ff 42%, #96c57b 100%); }
             #fatcat-dom-factory .town { position: absolute; left: 0; right: 0; bottom: 9%; height: 32%; background: linear-gradient(rgba(255,255,255,0), rgba(68,83,72,.35)), repeating-linear-gradient(135deg, transparent 0 7%, rgba(108,77,55,.25) 7% 9%, transparent 9% 15%); }
             #fatcat-dom-factory .sky, #fatcat-dom-factory .town { opacity: .14; }
-            #fatcat-dom-factory .building { position: absolute; left: 8%; right: 8%; top: 11%; bottom: 24%; border: 3px solid rgba(67,50,36,.72); border-radius: 22px 22px 8px 8px; background: rgba(76,55,40,.06); box-shadow: 0 8px 0 rgba(0,0,0,.18), inset 0 0 0 4px rgba(255,255,255,.04); overflow: hidden; }
+            #fatcat-dom-factory .factory-illustration { position:absolute; z-index:0; left:0; right:0; top:4.8%; bottom:12.2%; background:url("${this.getDomAssetDataUri(GeneratedBackgroundAssets.factoryCutaway)}") center top / contain no-repeat; opacity:.7; filter:saturate(1.1) contrast(1.05) brightness(.97); pointer-events:none; }
+            #fatcat-dom-factory .factory-illustration:after { content:""; position:absolute; inset:0; background:linear-gradient(rgba(255,255,255,0) 0 11%, rgba(50,34,24,.05) 22%, rgba(45,30,22,.1) 76%, rgba(41,27,20,.18)); }
+            #fatcat-dom-factory .building { position: absolute; z-index:1; left: 8%; right: 8%; top: 11%; bottom: 24%; border: 3px solid rgba(67,50,36,.72); border-radius: 22px 22px 8px 8px; background: rgba(76,55,40,.04); box-shadow: 0 8px 0 rgba(0,0,0,.18), inset 0 0 0 4px rgba(255,255,255,.04); overflow: hidden; }
             #fatcat-dom-factory .building:before { content:""; position:absolute; z-index:5; inset:0; pointer-events:none; background:linear-gradient(90deg, rgba(40,28,22,.22), transparent 9%, transparent 91%, rgba(40,28,22,.22)), repeating-linear-gradient(0deg, transparent 0 16.35%, rgba(255,230,176,.08) 16.35% 16.72%, transparent 16.72% 16.95%), repeating-linear-gradient(90deg, rgba(255,234,190,.05) 0 1px, transparent 1px 9.4%); mix-blend-mode:screen; opacity:.64; }
             #fatcat-dom-factory .building:after { content:""; position:absolute; z-index:6; left:0; right:0; bottom:0; height:6%; pointer-events:none; background:linear-gradient(rgba(48,35,28,0), rgba(30,22,18,.46)); }
             #fatcat-dom-factory .roof-deck { position: absolute; left: 7.9%; right: 7.9%; top: 9.9%; height: 4.4%; border-radius: 13px 13px 0 0; background: repeating-linear-gradient(90deg, rgba(255,220,165,.12) 0 9%, transparent 9% 11%), linear-gradient(#9a7a61 0 32%, #6a5040 33% 66%, #3f2e25 67%); border: 3px solid #3d2c21; box-shadow: 0 6px 0 rgba(0,0,0,.25), inset 0 2px 0 rgba(255,232,180,.14); }
@@ -612,8 +614,8 @@ export class BottomNavUI extends Component {
             #fatcat-dom-factory .flag { position: absolute; z-index:4; right: 8.8%; top: 5.8%; width: 11%; height: 6.9%; background: linear-gradient(90deg,#456f4f,#638f64 72%,#4b7856); border-radius: 0 12px 12px 0; box-shadow: inset 0 0 0 2px rgba(255,255,255,.18), 0 4px 0 rgba(0,0,0,.22); display: flex; align-items: center; justify-content: center; font-size: 0; transform:skewY(-5deg); }
             #fatcat-dom-factory .flag:before { content:""; position:absolute; left:-13%; top:-62%; width:7%; height:180%; border-radius:999px; background:linear-gradient(#413632,#171311); box-shadow:0 0 0 2px rgba(255,230,170,.12); transform:skewY(5deg); }
             #fatcat-dom-factory .flag:after { content:""; width:43%; aspect-ratio:1; border-radius:50%; filter:drop-shadow(0 2px 0 rgba(49,42,22,.28)); background:radial-gradient(circle at 50% 62%,#f1c24e 0 19%,transparent 20%), radial-gradient(circle at 30% 35%,#f1c24e 0 13%,transparent 14%), radial-gradient(circle at 50% 25%,#f1c24e 0 13%,transparent 14%), radial-gradient(circle at 70% 35%,#f1c24e 0 13%,transparent 14%); }
-            #fatcat-dom-factory .floor { position: relative; height: 16.66%; border-top: 3px solid #3e3027; background: linear-gradient(90deg, #4b392f, #94745b 48%, #4b392f); box-sizing: border-box; overflow:hidden; }
-            #fatcat-dom-factory .floor:nth-child(odd) { background: linear-gradient(90deg, #43342c, #84664e 48%, #49372e); }
+            #fatcat-dom-factory .floor { position: relative; height: 16.66%; border-top: 3px solid #3e3027; background: linear-gradient(90deg, rgba(56,42,33,.62), rgba(130,100,75,.48) 48%, rgba(54,40,32,.64)); box-sizing: border-box; overflow:hidden; }
+            #fatcat-dom-factory .floor:nth-child(odd) { background: linear-gradient(90deg, rgba(48,38,32,.62), rgba(118,91,69,.48) 48%, rgba(52,40,33,.64)); }
             #fatcat-dom-factory .floor:before { content:""; position:absolute; left:0; right:0; top:0; height:26%; background:linear-gradient(rgba(255,232,170,.23), rgba(255,231,165,0)), repeating-linear-gradient(90deg, rgba(255,236,194,.11) 0 2px, transparent 2px 11%); pointer-events:none; }
             #fatcat-dom-factory .floor:after { content:""; position:absolute; left:0; right:0; bottom:0; height:12%; background:linear-gradient(90deg,#282018,#70533d 45%,#2b211a); box-shadow:0 -2px 0 rgba(255,224,160,.12) inset, 0 -6px 0 rgba(33,24,18,.28) inset; pointer-events:none; }
             #fatcat-dom-factory .floor-glow { position:absolute; z-index:0; inset:0; pointer-events:none; background:radial-gradient(ellipse at 54% 18%, rgba(255,206,104,.18), transparent 34%), radial-gradient(ellipse at 72% 70%, rgba(255,157,64,.12), transparent 30%); mix-blend-mode:screen; opacity:.78; }
@@ -842,6 +844,7 @@ export class BottomNavUI extends Component {
             #fatcat-dom-factory .notice-row { display:flex; justify-content:space-between; align-items:center; padding:2.3% 0; border-top:1px solid rgba(107,73,42,.2); font-weight:900; }
             #fatcat-dom-factory .notice-row span:last-child { color:#6c8d35; }
             #fatcat-dom-factory.compact .building { left: 6.2%; right: 6.2%; top: 12.4%; bottom: 24.2%; }
+            #fatcat-dom-factory.compact .factory-illustration { left:-3%; right:-3%; top:6.6%; bottom:13.6%; opacity:.58; }
             #fatcat-dom-factory.compact .floor-card { width: 30%; left: 1.6%; grid-template-columns:34% 1fr; border-width:2px; }
             #fatcat-dom-factory.compact .floor-card:before { width:34%; }
             #fatcat-dom-factory.compact .floor-no { font-size:4.25%; }
@@ -866,8 +869,10 @@ export class BottomNavUI extends Component {
             #fatcat-dom-factory.compact .gift:after { width:28%; right:-8%; }
             #fatcat-dom-factory.compact .notice-card { right:10%; width:30%; font-size:1.78%; }
             #fatcat-dom-factory.tall .building { top: 12.6%; bottom: 24.8%; }
+            #fatcat-dom-factory.tall .factory-illustration { top:6.5%; bottom:13.4%; }
             #fatcat-dom-factory.tall .bottom-widgets { bottom: 17.1%; }
             #fatcat-dom-factory.wide .building { left: 13%; right: 13%; top:17.0%; bottom:23.0%; }
+            #fatcat-dom-factory.wide .factory-illustration { left:8%; right:8%; top:7.9%; bottom:10.8%; opacity:.56; }
             #fatcat-dom-factory.wide .roof-deck { left:12.7%; right:12.7%; top:15.8%; height:4.0%; }
             #fatcat-dom-factory.wide .roof-crates { left:15%; top:13.8%; width:14%; }
             #fatcat-dom-factory.wide .sign { top:13.1%; height:7.0%; }
@@ -944,7 +949,7 @@ export class BottomNavUI extends Component {
             { no: "B1", name: "原料仓库", lv: BuildingManager.getLevel("building_storage_b1"), bonus: "仓库容量", value: "+20%", scene: "storage" },
         ];
         overlay.innerHTML = `
-            <div class="art-bg"></div><div class="sky"></div><div class="town"></div><div class="roof-crates"></div><div class="roof-deck"></div>
+            <div class="art-bg"></div><div class="sky"></div><div class="town"></div><div class="factory-illustration"></div><div class="roof-crates"></div><div class="roof-deck"></div>
             <div class="sign">肥猫咖啡<span class="paw-mark"></span></div><div class="sign-posts"></div><div class="chimney"></div><div class="roof-cat"><div class="cat-sprite"><i class="cat-face"></i></div></div><div class="flag">爪</div>
             <div class="side-pipe left"></div><div class="side-pipe right"></div><div class="ladder"></div><div class="elevator-panel"><i class="elevator-paw"></i><i class="elevator-floor-indicator"></i><div class="elevator-car"></div></div>
             <div class="building">
