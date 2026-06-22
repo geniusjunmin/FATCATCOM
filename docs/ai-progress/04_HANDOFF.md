@@ -215,10 +215,10 @@ Client:
 ## Visual Continuation Notes
 
 - Target UI references live in the project root and should remain the visual source of truth.
-- Latest main factory passes in `FATCATUI/assets/scripts/ui/BottomNavUI.ts` added building depth shading, brick/grid overlay, room foreground prop layers, floor level medals, wall-detail paper/jar layers, denser room lights, extra worker-cat silhouettes, thicker KPI/bonus cards, player-badge highlights, resource icon glow, plus-button shine, and compact 360px floor-card/HUD spacing fixes.
-- Verification after the latest main factory richness pass: `tools/check-client-ts.ps1`, Cocos refresh for `db://assets/scripts`, `node tools/capture-main-regression.js`, and `node tools/verify-ui-clicks-playwright.js` passed.
-- Main factory still needs target polish through top HUD/resource pill proportion tuning and richer generated/Cocos-managed art where CSS starts to feel flat.
-- Top HUD still needs refinement: exact icon plaque proportions, diamond/coin/bean/cat-food overflow handling, and stronger company badge polish, but narrow-screen resource spacing is no longer the immediate blocker.
+- Latest main factory passes in `FATCATUI/assets/scripts/ui/BottomNavUI.ts` added building depth shading, brick/grid overlay, room foreground prop layers, floor level medals, wall-detail paper/jar layers, denser room lights, extra worker-cat silhouettes, thicker KPI/bonus cards, raised player badge, larger resource icon plaques, centered HUD values, deeper plus buttons, and compact 360px floor-card/HUD spacing fixes.
+- Verification after the latest main factory richness/HUD passes: `tools/check-client-ts.ps1`, Cocos refresh for `db://assets/scripts`, `node tools/capture-main-regression.js`, and `node tools/verify-ui-clicks-playwright.js` passed.
+- Main factory still needs target polish through richer generated/Cocos-managed art where CSS starts to feel flat, especially full room/background illustration depth.
+- Top HUD is no longer the immediate blocker; future HUD work should be final micro-alignment after asset integration.
 - Latest cat-page pass in `BottomNavUI.ts` added active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, and raised active roster card.
 - Cat command-strip z-index must stay below interactive content such as equipment buttons; a too-high z-index blocked `data-action="equipItem"` in `verify-ui-clicks-playwright.js`.
 - Latest cat density pass slimmed stats/weight rows, made compact skill/equipment cards side by side, folded compact equipment detail rows, shortened the story card, and kept equipment upgrade clickable above the roster.

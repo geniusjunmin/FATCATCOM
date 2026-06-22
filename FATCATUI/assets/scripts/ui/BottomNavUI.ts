@@ -2497,22 +2497,22 @@ export class BottomNavUI extends Component {
         style.textContent = `
             #fatcat-dom-hud { position: fixed; z-index: 2147482500; pointer-events: none; font-family: Arial, sans-serif; color: #fff3d8; }
             #fatcat-dom-hud .hud-inner { position: absolute; inset: 0; }
-            #fatcat-dom-hud .player { position: absolute; left: 2.2%; top: 2.4%; width: 25.4%; height: 7.1%; border-radius: 18px; background: radial-gradient(circle at 22% 18%, rgba(255,244,210,.45), transparent 22%), linear-gradient(#a0805f, #5e4933 72%, #372820); border: 3px solid #d1ad70; box-shadow: 0 4px 0 rgba(0,0,0,.36), inset 0 2px 0 rgba(255,249,220,.24), inset 0 0 0 2px rgba(255,242,199,.12); display: grid; grid-template-columns: 25% 1fr; align-items: center; box-sizing: border-box; overflow: visible; }
-            #fatcat-dom-hud .player:before { content:""; position:absolute; left:5%; right:5%; top:7%; height:18%; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,.34), rgba(255,255,255,.04)); pointer-events:none; }
-            #fatcat-dom-hud .player:after { content:""; position:absolute; left:26%; right:8%; bottom:9%; height:13%; border-radius:999px; background:rgba(25,17,11,.28); pointer-events:none; }
-            #fatcat-dom-hud .avatar { position: relative; width: 76%; aspect-ratio: 1; margin-left: 10%; border-radius: 50%; background: radial-gradient(circle at 38% 24%, rgba(255,255,255,.46), transparent 20%), linear-gradient(#f6d491,#c98542); color: #fff3d8; display: flex; align-items: end; justify-content: center; padding-bottom: 4%; box-sizing: border-box; font-size: 0; font-weight: 900; box-shadow: inset 0 0 0 3px #6b4326, 0 3px 0 rgba(0,0,0,.32); }
+            #fatcat-dom-hud .player { position: absolute; left: 2.1%; top: 2.2%; width: 25.8%; height: 7.35%; border-radius: 19px; background: radial-gradient(circle at 23% 16%, rgba(255,247,216,.52), transparent 22%), linear-gradient(#b28d66, #6a5038 70%, #38291f); border: 3px solid #e0bd7c; box-shadow: 0 5px 0 rgba(0,0,0,.38), inset 0 2px 0 rgba(255,250,222,.32), inset 0 -10px 18px rgba(42,27,18,.22), inset 0 0 0 2px rgba(255,242,199,.14); display: grid; grid-template-columns: 27% 1fr; align-items: center; box-sizing: border-box; overflow: visible; }
+            #fatcat-dom-hud .player:before { content:""; position:absolute; left:6%; right:6%; top:7%; height:18%; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,.38), rgba(255,255,255,.05)); pointer-events:none; }
+            #fatcat-dom-hud .player:after { content:""; position:absolute; left:30%; right:8%; bottom:8%; height:16%; border-radius:999px; background:linear-gradient(#1f160f,#3a2618); border:1px solid rgba(255,239,186,.16); pointer-events:none; }
+            #fatcat-dom-hud .avatar { position: relative; width: 82%; aspect-ratio: 1; margin-left: 8%; border-radius: 50%; background: radial-gradient(circle at 38% 24%, rgba(255,255,255,.5), transparent 20%), linear-gradient(#f6d491,#c98542); color: #fff3d8; display: flex; align-items: end; justify-content: center; padding-bottom: 4%; box-sizing: border-box; font-size: 0; font-weight: 900; box-shadow:0 0 0 4px rgba(77,48,28,.55), 0 4px 0 rgba(0,0,0,.34), inset 0 0 0 3px #ffe0a4, inset 0 -7px 0 rgba(103,57,26,.18); }
             #fatcat-dom-hud .avatar::before { content:""; position:absolute; left:24%; top:18%; width:52%; height:42%; border-radius:50%; background: radial-gradient(circle at 34% 48%, #3d281d 0 8%, transparent 9%), radial-gradient(circle at 66% 48%, #3d281d 0 8%, transparent 9%), radial-gradient(circle at 50% 66%,#8a4c2a 0 6%,transparent 7%), linear-gradient(#f0a458,#d98943); box-shadow:-8px -8px 0 -5px #5b3824, 8px -8px 0 -5px #5b3824, inset 8px -3px 0 rgba(255,238,205,.24); }
             #fatcat-dom-hud .avatar::after { content:""; position:absolute; left:25%; right:25%; bottom:15%; height:15%; border-radius:50%; background:radial-gradient(ellipse at 50% 0,#fff4d8 0 44%,transparent 45%); opacity:.72; }
-            #fatcat-dom-hud .level { position:absolute; left:-6%; bottom:-9%; width:28%; aspect-ratio:1; border-radius:50%; background:linear-gradient(#e7a345,#9d5c1d); border:2px solid #ffe0a7; color:#fff5d2; display:flex; align-items:center; justify-content:center; font-size:2.0%; font-weight:900; text-shadow:0 2px #6f3814; box-shadow:0 3px 0 rgba(0,0,0,.35); }
-            #fatcat-dom-hud .company { font-size: 2.05%; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-top:1%; }
-            #fatcat-dom-hud .exp { margin-top: 3%; width: 86%; height: 22%; border-radius: 999px; background: rgba(28,20,14,.85); overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
-            #fatcat-dom-hud .exp span { display: block; height: 100%; background: linear-gradient(90deg, #f0a51c, #ffe16b); }
+            #fatcat-dom-hud .level { position:absolute; left:-5.8%; bottom:-10%; width:29%; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle at 38% 22%, rgba(255,248,204,.45), transparent 24%), linear-gradient(#f2b657,#9c5a1b); border:2px solid #ffe8b1; color:#fff5d2; display:flex; align-items:center; justify-content:center; font-size:2.05%; font-weight:900; text-shadow:0 2px #6f3814; box-shadow:0 4px 0 rgba(0,0,0,.36), inset 0 0 0 2px rgba(120,68,25,.22); }
+            #fatcat-dom-hud .company { font-size: 2.05%; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-top:1%; color:#2d2018; text-shadow:0 1px rgba(255,235,190,.5); }
+            #fatcat-dom-hud .exp { margin-top: 3%; width: 88%; height: 24%; border-radius: 999px; background: linear-gradient(#2b1c12,#140d09); overflow: hidden; box-shadow: inset 0 0 0 2px rgba(255,238,188,.16), 0 1px 0 rgba(255,239,188,.14); }
+            #fatcat-dom-hud .exp span { display: block; height: 100%; background: linear-gradient(90deg, #e99918, #ffe373); box-shadow:inset 0 2px 0 rgba(255,255,255,.28); }
             #fatcat-dom-hud .exp-text { position: absolute; left: 32%; top: 55%; width: 50%; text-align: center; color: #fff3c5; font-size: 1.55%; font-weight: 900; text-shadow:0 1px #3a2517; }
-            #fatcat-dom-hud .resources { position: absolute; left: 28.4%; top: 3.15%; right: 1.7%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1%; }
-            #fatcat-dom-hud .res { position:relative; height: 5.15%; min-height: 42px; border-radius: 999px 12px 12px 999px; background: radial-gradient(circle at 8% 20%, rgba(255,240,183,.35), transparent 18%), linear-gradient(#7b6049, #433123 72%, #2f2118); border: 3px solid #b68b55; box-shadow: 0 4px 0 rgba(0,0,0,.34), inset 0 2px 0 rgba(255,246,207,.2), inset 0 0 0 2px rgba(255,229,173,.1); display: grid; grid-template-columns: 24% minmax(0, 1fr) 20%; align-items: center; box-sizing: border-box; overflow: visible; }
-            #fatcat-dom-hud .res:before { content:""; position:absolute; left:9%; right:16%; top:10%; height:16%; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,.28), rgba(255,255,255,0)); pointer-events:none; }
-            #fatcat-dom-hud .res:after { content:""; position:absolute; right:20%; top:18%; bottom:18%; width:1px; background:rgba(255,226,164,.16); box-shadow:-1px 0 rgba(48,31,20,.35); pointer-events:none; }
-            #fatcat-dom-hud .icon { position: relative; z-index:1; width: 96%; aspect-ratio: 1; margin-left: -8%; border-radius:50%; background:radial-gradient(circle at 36% 25%, rgba(255,255,255,.58), transparent 19%), linear-gradient(#ffe8a6,#b8792d); border:2px solid #5f3a1c; font-size: inherit; color: transparent; display: block; overflow: hidden; filter: drop-shadow(0 2px 0 rgba(0,0,0,.25)); box-sizing:border-box; box-shadow:0 0 0 3px rgba(255,231,165,.18), inset 0 -4px 0 rgba(80,45,20,.16); }
+            #fatcat-dom-hud .resources { position: absolute; left: 29.2%; top: 2.95%; right: 1.5%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .9%; }
+            #fatcat-dom-hud .res { position:relative; height: 5.45%; min-height: 44px; border-radius: 999px 13px 13px 999px; background: radial-gradient(circle at 7% 20%, rgba(255,241,184,.42), transparent 19%), linear-gradient(#80644d, #463325 70%, #2b1f18); border: 3px solid #c79a5e; box-shadow: 0 5px 0 rgba(0,0,0,.36), inset 0 2px 0 rgba(255,247,208,.25), inset 0 -8px 14px rgba(38,24,16,.22), inset 0 0 0 2px rgba(255,229,173,.12); display: grid; grid-template-columns: 25% minmax(0, 1fr) 19%; align-items: center; box-sizing: border-box; overflow: visible; }
+            #fatcat-dom-hud .res:before { content:""; position:absolute; left:10%; right:15%; top:9%; height:18%; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,.32), rgba(255,255,255,0)); pointer-events:none; }
+            #fatcat-dom-hud .res:after { content:""; position:absolute; right:18.5%; top:18%; bottom:18%; width:1px; background:rgba(255,226,164,.2); box-shadow:-1px 0 rgba(48,31,20,.38); pointer-events:none; }
+            #fatcat-dom-hud .icon { position: relative; z-index:1; width: 108%; aspect-ratio: 1; margin-left: -16%; border-radius:50%; background:radial-gradient(circle at 36% 25%, rgba(255,255,255,.6), transparent 19%), linear-gradient(#ffe8a6,#b8792d); border:2px solid #5f3a1c; font-size: inherit; color: transparent; display: block; overflow: hidden; filter: drop-shadow(0 2px 0 rgba(0,0,0,.28)); box-sizing:border-box; box-shadow:0 0 0 4px rgba(255,231,165,.2), 0 2px 0 rgba(0,0,0,.25), inset 0 -5px 0 rgba(80,45,20,.16); }
             #fatcat-dom-hud .icon:after { content:""; position:absolute; inset:9%; border-radius:inherit; pointer-events:none; box-shadow:inset 0 3px 0 rgba(255,255,255,.22), inset 0 -4px 0 rgba(80,45,20,.18); }
             #fatcat-dom-hud .coin .icon::before { content:""; position:absolute; inset:7%; border-radius:50%; background: radial-gradient(circle at 36% 30%, #fff2a4 0 12%, transparent 13%), linear-gradient(#ffd454,#d48a17); box-shadow: inset 0 0 0 3px #9a6216, inset 0 -5px 0 rgba(111,64,12,.16); }
             #fatcat-dom-hud .coin .icon::after { content:"$"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#8a5512; font-size:2.0%; font-weight:900; }
@@ -2523,38 +2523,35 @@ export class BottomNavUI extends Component {
             #fatcat-dom-hud .diamond .icon { background:radial-gradient(circle at 35% 24%, rgba(255,255,255,.72), transparent 18%), linear-gradient(#7c5bc5,#37235e); }
             #fatcat-dom-hud .diamond .icon::before { content:""; position:absolute; left:10%; right:10%; top:16%; height:66%; clip-path: polygon(50% 0, 92% 30%, 50% 100%, 8% 30%); background: linear-gradient(135deg,#f7e8ff 0 16%,#b981ff 17% 42%,#6c48d8 43% 72%,#3f2a9a 73%); box-shadow: inset 0 0 0 3px rgba(255,255,255,.32); }
             #fatcat-dom-hud .diamond .icon::after { content:""; position:absolute; left:31%; top:23%; width:17%; height:24%; clip-path:polygon(0 0,100% 0,42% 100%); background:rgba(255,255,255,.62); }
-            #fatcat-dom-hud .value { position:relative; z-index:1; font-size: 2.2%; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: clip; text-shadow:0 2px 0 rgba(0,0,0,.35); padding-left:1%; letter-spacing:0; }
-            #fatcat-dom-hud .res-name { position:absolute; left:27%; top:6%; color:#f3d79e; font-size:1.05%; font-weight:900; text-shadow:0 1px #2d1d14; letter-spacing:0; }
-            #fatcat-dom-hud .res .value { padding-top:9%; }
-            #fatcat-dom-hud .plus { position:relative; z-index:1; width: 70%; aspect-ratio: 1; border-radius: 8px; background: radial-gradient(circle at 38% 20%, rgba(255,236,164,.58), transparent 28%), linear-gradient(#ffbd45,#e48114 70%,#a84d12); color: #fff4d8; display: flex; align-items: center; justify-content: center; font-size: 2.45%; font-weight: 900; box-shadow:0 2px 0 rgba(94,48,12,.42), inset 0 1px 0 rgba(255,235,190,.28), inset 0 -2px 0 rgba(109,50,13,.18); }
+            #fatcat-dom-hud .value { position:relative; z-index:1; font-size: 2.18%; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: clip; text-shadow:0 2px 0 rgba(0,0,0,.38); padding-left:0; letter-spacing:0; transform:translateY(1%); }
+            #fatcat-dom-hud .res-name { display:none; }
+            #fatcat-dom-hud .res .value { padding-top:0; }
+            #fatcat-dom-hud .plus { position:relative; z-index:1; width: 76%; aspect-ratio: 1; border-radius: 8px; background: radial-gradient(circle at 38% 20%, rgba(255,236,164,.64), transparent 28%), linear-gradient(#ffc14d,#e48114 70%,#a84d12); color: #fff4d8; display: flex; align-items: center; justify-content: center; font-size: 2.52%; font-weight: 900; box-shadow:0 3px 0 rgba(94,48,12,.45), inset 0 1px 0 rgba(255,235,190,.32), inset 0 -2px 0 rgba(109,50,13,.2); }
             #fatcat-dom-hud .plus:before { content:""; position:absolute; left:17%; right:17%; top:17%; height:18%; border-radius:999px; background:rgba(255,246,202,.42); }
             #fatcat-dom-hud .factory-msg { position: absolute; left: 21%; top: 80%; width: 58%; min-height: 3.8%; border-radius: 999px; background: rgba(52,35,24,.88); color: #ffe6b5; display: flex; align-items: center; justify-content: center; font-size: 2.4%; font-weight: 900; box-shadow: 0 2px 0 rgba(0,0,0,.3); }
-            #fatcat-dom-hud.compact .player { width: 26.6%; left: 1.0%; }
-            #fatcat-dom-hud.compact .company { font-size: 1.74%; }
-            #fatcat-dom-hud.compact .resources { left: 28.8%; right: .8%; gap: .36%; }
-            #fatcat-dom-hud.compact .res { grid-template-columns: 21% minmax(0, 1fr) 16%; min-height: 34px; border-width: 2px; }
-            #fatcat-dom-hud.compact .icon { width:88%; margin-left:-2%; }
-            #fatcat-dom-hud.compact .value { font-size: 1.78%; }
-            #fatcat-dom-hud.compact .res-name { font-size: .92%; top:4%; }
-            #fatcat-dom-hud.compact .plus { width: 58%; font-size: 2.02%; }
-            #fatcat-dom-hud.compact.tall .player { left:.9%; width:28.1%; height:6.25%; border-radius:15px; }
-            #fatcat-dom-hud.compact.tall .company { font-size:1.50%; }
-            #fatcat-dom-hud.compact.tall .exp { height:18%; margin-top:2.3%; }
-            #fatcat-dom-hud.compact.tall .exp-text { font-size:1.25%; top:53%; }
-            #fatcat-dom-hud.compact.tall .resources { left:29.6%; right:.7%; top:3.0%; gap:.28%; }
-            #fatcat-dom-hud.compact.tall .res { min-height:29px; height:4.0%; grid-template-columns:21% minmax(0,1fr) 15%; border-radius:999px 9px 9px 999px; }
-            #fatcat-dom-hud.compact.tall .res-name { display:none; }
-            #fatcat-dom-hud.compact.tall .res .value { padding-top:0; font-size:1.45%; padding-left:0; }
-            #fatcat-dom-hud.compact.tall .icon { width:78%; margin-left:0; border-width:1px; }
-            #fatcat-dom-hud.compact.tall .plus { width:48%; border-radius:6px; font-size:1.58%; }
-            #fatcat-dom-hud.wide .player { left: 9%; top:2.0%; width: 20.5%; height:6.7%; border-radius:18px; }
+            #fatcat-dom-hud.compact .player { width: 27.2%; left: .8%; }
+            #fatcat-dom-hud.compact .company { font-size: 1.64%; }
+            #fatcat-dom-hud.compact .resources { left: 29.3%; right: .7%; gap: .28%; }
+            #fatcat-dom-hud.compact .res { grid-template-columns: 22% minmax(0, 1fr) 15.5%; min-height: 34px; border-width: 2px; }
+            #fatcat-dom-hud.compact .icon { width:90%; margin-left:-4%; border-width:1px; box-shadow:0 0 0 2px rgba(255,231,165,.2), 0 2px 0 rgba(0,0,0,.22), inset 0 -4px 0 rgba(80,45,20,.14); }
+            #fatcat-dom-hud.compact .value { font-size: 1.7%; }
+            #fatcat-dom-hud.compact .plus { width: 58%; font-size: 1.9%; border-radius:6px; }
+            #fatcat-dom-hud.compact.tall .player { left:.7%; width:28.5%; height:6.35%; border-radius:15px; }
+            #fatcat-dom-hud.compact.tall .company { font-size:1.42%; }
+            #fatcat-dom-hud.compact.tall .exp { height:19%; margin-top:2.3%; }
+            #fatcat-dom-hud.compact.tall .exp-text { font-size:1.18%; top:53%; }
+            #fatcat-dom-hud.compact.tall .resources { left:29.7%; right:.55%; top:3.0%; gap:.22%; }
+            #fatcat-dom-hud.compact.tall .res { min-height:29px; height:4.08%; grid-template-columns:20.5% minmax(0,1fr) 14.5%; border-radius:999px 9px 9px 999px; }
+            #fatcat-dom-hud.compact.tall .res .value { font-size:1.38%; padding-left:0; }
+            #fatcat-dom-hud.compact.tall .icon { width:75%; margin-left:2%; border-width:1px; }
+            #fatcat-dom-hud.compact.tall .plus { width:46%; border-radius:6px; font-size:1.5%; }
+            #fatcat-dom-hud.wide .player { left: 9%; top:2.0%; width: 20.8%; height:6.85%; border-radius:18px; }
             #fatcat-dom-hud.wide .company { font-size:1.75%; }
             #fatcat-dom-hud.wide .exp-text { font-size:1.28%; }
-            #fatcat-dom-hud.wide .resources { left: 31%; right: 9%; top:2.65%; gap:.85%; }
-            #fatcat-dom-hud.wide .res { min-height:38px; height:4.5%; grid-template-columns:23% minmax(0,1fr) 18%; }
-            #fatcat-dom-hud.wide .value { font-size:1.85%; }
-            #fatcat-dom-hud.wide .res-name { font-size:.9%; top:5%; }
-            #fatcat-dom-hud.wide .plus { width:62%; font-size:2.05%; }
+            #fatcat-dom-hud.wide .resources { left: 31.4%; right: 9%; top:2.55%; gap:.82%; }
+            #fatcat-dom-hud.wide .res { min-height:39px; height:4.75%; grid-template-columns:24% minmax(0,1fr) 18%; }
+            #fatcat-dom-hud.wide .value { font-size:1.86%; }
+            #fatcat-dom-hud.wide .plus { width:64%; font-size:2.08%; }
         `;
         document.head.appendChild(style);
         document.body.appendChild(overlay);

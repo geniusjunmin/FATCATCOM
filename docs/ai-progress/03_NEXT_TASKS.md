@@ -92,9 +92,9 @@ Keep these scripts in the regular set when touching related flows:
 - Keep the vertical factory readable on 360x800 and 768x1024.
 - Continue matching the target main screen image instead of inventing a new visual language.
 - Prefer small layered CSS/DOM additions first; generate bitmap assets only when code-native decoration no longer sells the target look.
-- Done in latest visual batch: building depth overlay, brick/grid shading, per-room foreground prop layer, floor level medals, wall-detail paper/jar layers, denser room lights, extra worker-cat silhouettes, and HUD icon/highlight polish.
+- Done in latest visual batch: building depth overlay, brick/grid shading, per-room foreground prop layer, floor level medals, wall-detail paper/jar layers, denser room lights, extra worker-cat silhouettes, thicker resource pills, larger HUD icon plaques, centered values, and stronger plus buttons.
 - Done in latest narrow-screen batch: compact floor names stay one line, compact card typography was reduced, card/KPI spacing was retuned, and 360x800 screenshot remained clean.
-- Next move: tune top HUD plaque proportions and add richer generated or Cocos-managed art only where CSS decoration starts to look flat.
+- Next move: add richer generated or Cocos-managed art only where CSS decoration starts to look flat, especially factory background/room illustrations and cat-page paper/card texture.
 
 ### 2. Top HUD Polish
 
@@ -102,8 +102,8 @@ Keep these scripts in the regular set when touching related flows:
 - Recheck diamond, coin, bean, and cat food display on narrow screens.
 - Make the company badge feel closer to the target UI.
 - Watch the 360x800 case first; if it fits there, the wider phone sizes usually follow.
-- Latest pass added player badge highlights, resource icon outer glow, and plus-button shine; next pass should tune exact proportions and narrow-screen text fit.
-- Latest narrow-screen pass tightened compact resource grid/icon/value/plus spacing. Next pass should compare against the target HUD and tune final plaque proportions.
+- Latest pass retuned player badge depth, avatar/level medallion, resource pill height, icon plaque scale, centered values, plus-button depth, and compact/wide spacing.
+- Next pass should compare against the target HUD for final micro-alignment after richer art assets are integrated.
 
 ### 3. Cat Page Polish
 
