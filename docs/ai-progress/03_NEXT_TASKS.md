@@ -19,7 +19,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Add floor richness, HUD polish, and cat-page composition improvements. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Add richer illustration assets and final main/cat proportion tuning. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Refine friend-request visuals and build deeper multiplayer interaction loops. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Split `BottomNavUI.ts` after the next stable UI checkpoint. |
@@ -94,7 +94,7 @@ Keep these scripts in the regular set when touching related flows:
 - Prefer small layered CSS/DOM additions first; generate bitmap assets only when code-native decoration no longer sells the target look.
 - Done in latest visual batch: building depth overlay, brick/grid shading, per-room foreground prop layer, floor level medals, wall-detail paper/jar layers, denser room lights, extra worker-cat silhouettes, thicker resource pills, larger HUD icon plaques, centered values, and stronger plus buttons.
 - Done in latest narrow-screen batch: compact floor names stay one line, compact card typography was reduced, card/KPI spacing was retuned, and 360x800 screenshot remained clean.
-- Next move: add richer generated or Cocos-managed art only where CSS decoration starts to look flat, especially factory background/room illustrations and cat-page paper/card texture.
+- Next move: add richer generated or Cocos-managed art only where CSS decoration starts to look flat, especially factory background/room illustrations and cat-page hero/story assets.
 
 ### 2. Top HUD Polish
 
@@ -113,14 +113,15 @@ Keep these scripts in the regular set when touching related flows:
 - Preserve the current verified DOM cat path for online upgrade, feed, unlock, assignment, and equipment upgrade.
 - Done in latest cat-page batch: active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, raised active roster card, and command-strip layering fix.
 - Done in latest cat density batch: slimmer stats/weight rows, compact skill/equipment side-by-side layout, folded compact equipment detail rows, shorter story card, and clickable equipment upgrade above roster.
-- Next move: compare against the target cat page for richer generated art depth and final card texture/proportion polish.
+- Done in latest cat texture batch: darker workshop depth, paper-grain cards, brighter portrait stage, larger center cat art, stronger story photo, thicker equipment cards, and raised roster cards.
+- Next move: compare against the target cat page for generated art depth and final proportion polish.
 
 ### 4. UI Asset Boost
 
 - If a missing illustration blocks fidelity, generate a local bitmap asset and save it under the Cocos asset tree.
 - Record generated asset path, prompt intent, and integration point in `04_HANDOFF.md`.
 - Verify the asset renders in the browser before considering the task done.
-- Strong candidates: cat-page paper/card texture, richer workshop background, and small equipment/story photo assets.
+- Strong candidates: richer workshop background, room illustration plates, cat-page hero/story photo assets, and small equipment item art.
 
 ## P2 Engineering Cleanup
 

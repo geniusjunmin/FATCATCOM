@@ -21,7 +21,7 @@ Updated: 2026-06-22
 | Economy Model | Covered | Production uses assignment, building level, equipment, research, skills, and mood. |
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
-| Biggest Gap | Visual fidelity | Main factory and cat page are closer to target, but HUD precision, paper texture, icon consistency, and deeper generated art still need work. |
+| Biggest Gap | Visual fidelity | Main factory and cat page are closer to target, but icon consistency, generated illustration depth, and final target-proportion tuning still need work. |
 | Biggest Risk | Frontend size | `BottomNavUI.ts` remains too large and should be split after another stable UI checkpoint. |
 
 ## Client UI
@@ -30,11 +30,11 @@ Updated: 2026-06-22
 - Main factory DOM layer now includes extra building depth, brick/grid shading, room foreground props, floor level medals, wall-detail layers, denser room lighting, extra worker-cat silhouettes, and a more target-like HUD with raised player badge, thicker resource pills, larger icon plaques, centered values, and stronger plus buttons.
 - Narrow-screen main factory fit improved: 360px floor names stay on one line, compact floor cards have tuned width/typography, and compact HUD resource cells use tighter icon/value/plus spacing.
 - Cat page is a full-screen DOM overlay with info, upgrade, skill, equipment, skin, bottom roster, equipment bag, and story entry.
-- Cat detail composition now has stronger target-UI cues: active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, raised roster active card, and command-strip layering that no longer blocks equipment clicks.
-- Cat lower content density is improved: stats/weight rows are slimmer, skill and equipment cards sit side by side in compact mode, compact equipment details fold away, and the equipment upgrade button remains clickable above the roster.
+- Cat detail composition now has stronger target-UI cues: active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, paper/card texture, darker workshop depth, raised roster active card, and command-strip layering that no longer blocks equipment clicks.
+- Cat lower content density is improved: stats/weight rows are slimmer, skill and equipment cards sit side by side in compact mode, compact equipment details fold away, equipment/story cards have stronger paper and photo treatment, and the equipment upgrade button remains clickable above the roster.
 - Building, shop, inventory, research, task, achievement, mail, friend, and settings panels are clickable.
 - Screenshot regression exists for 414x896, 430x932, 360x800, and 768x1024 on the main screen and cat page.
-- Remaining visual gap: more polished HUD proportions, paper/card texture, icon consistency, generated art depth where CSS still looks flat, and final cat-page target alignment.
+- Remaining visual gap: icon consistency, generated art depth where CSS still looks flat, final main/cat target proportions, and larger Cocos-managed illustration assets.
 
 ## Client Networking
 
@@ -166,6 +166,7 @@ Latest verified checks:
 - Latest narrow-screen fit check: `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`, Cocos asset refresh for `db://assets/scripts/ui`, `node tools\capture-main-regression.js`, and `node tools\verify-ui-clicks-playwright.js` passed after compact floor-card/HUD spacing changes.
 - Latest cat-page visual check: `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`, Cocos asset refresh for `db://assets/scripts/ui`, `node tools\capture-cat-regression.js`, and `node tools\verify-ui-clicks-playwright.js` passed after cat detail composition polish.
 - Latest cat-page density check: `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`, Cocos asset refresh for `db://assets/scripts/ui`, `node tools\capture-cat-regression.js`, and `node tools\verify-ui-clicks-playwright.js` passed after compact skill/equipment/story density changes.
+- 2026-06-22 cat-page texture pass: deepened the workshop backdrop, added card paper grain, improved portrait stage lighting/shadow, enlarged the center cat art, thickened roster cards, and polished stat/equipment/story cards in `BottomNavUI.ts`. Verified with `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`, Cocos asset refresh for `db://assets/scripts`, `node tools\capture-cat-regression.js`, and `node tools\verify-ui-clicks-playwright.js`.
 - `node tools\check-settings-production-preview-online.js`: passed and asserts `/api/production/server-preview`.
 - `node tools\check-production-wage-net-effect.js`: passed.
 - `node tools\capture-main-regression.js`: passed for all four target sizes.

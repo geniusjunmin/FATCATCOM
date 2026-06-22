@@ -219,9 +219,9 @@ Client:
 - Verification after the latest main factory richness/HUD passes: `tools/check-client-ts.ps1`, Cocos refresh for `db://assets/scripts`, `node tools/capture-main-regression.js`, and `node tools/verify-ui-clicks-playwright.js` passed.
 - Main factory still needs target polish through richer generated/Cocos-managed art where CSS starts to feel flat, especially full room/background illustration depth.
 - Top HUD is no longer the immediate blocker; future HUD work should be final micro-alignment after asset integration.
-- Latest cat-page pass in `BottomNavUI.ts` added active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, and raised active roster card.
+- Latest cat-page passes in `BottomNavUI.ts` added active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, darker workshop depth, paper-grain cards, brighter portrait stage, thicker equipment/story cards, and raised active roster cards.
 - Cat command-strip z-index must stay below interactive content such as equipment buttons; a too-high z-index blocked `data-action="equipItem"` in `verify-ui-clicks-playwright.js`.
-- Latest cat density pass slimmed stats/weight rows, made compact skill/equipment cards side by side, folded compact equipment detail rows, shortened the story card, and kept equipment upgrade clickable above the roster.
-- Verification after the latest cat passes: `tools/check-client-ts.ps1`, Cocos refresh for `db://assets/scripts/ui`, `node tools/capture-cat-regression.js`, and `node tools/verify-ui-clicks-playwright.js` passed.
-- Cat page still needs richer generated/Cocos-managed art and final paper/card texture polish while preserving verified online actions and roster clickability.
+- Latest cat density/texture passes slimmed stats/weight rows, made compact skill/equipment cards side by side, folded compact equipment detail rows, shortened the story card, added paper/photo treatment, and kept equipment upgrade clickable above the roster.
+- Verification after the latest cat passes: `tools/check-client-ts.ps1`, Cocos refresh for `db://assets/scripts`, `node tools/capture-cat-regression.js`, and `node tools/verify-ui-clicks-playwright.js` passed.
+- Cat page still needs richer generated/Cocos-managed art and final target-proportion polish while preserving verified online actions and roster clickability.
 - For missing art, use generated local bitmap assets only when needed; save them in the Cocos asset tree, integrate them, verify render, and document the path here.
