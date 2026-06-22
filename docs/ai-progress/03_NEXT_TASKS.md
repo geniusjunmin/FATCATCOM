@@ -92,9 +92,9 @@ Keep these scripts in the regular set when touching related flows:
 - Keep the vertical factory readable on 360x800 and 768x1024.
 - Continue matching the target main screen image instead of inventing a new visual language.
 - Prefer small layered CSS/DOM additions first; generate bitmap assets only when code-native decoration no longer sells the target look.
-- Done in latest visual batch: building depth overlay, brick/grid shading, per-room foreground prop layer, floor level medals, wall-detail paper/jar layers, denser room lights, extra worker-cat silhouettes, richer roof deck/crates/sign/chimney/flag/fat-cat staging, thicker resource pills, larger HUD icon plaques, centered values, stronger plus buttons, thicker side feature buttons, thicker bottom operation cards, larger launch button/rocket, and richer bottom nav buttons.
+- Done in latest visual batch: building depth overlay, brick/grid shading, larger per-room foreground equipment/prop layers, floor level medals, wall-detail paper/jar layers, denser room lights, larger worker-cat staging, richer roof deck/crates/sign/chimney/flag/fat-cat staging, thicker resource pills, larger HUD icon plaques, centered values, stronger plus buttons, thicker side feature buttons, thicker bottom operation cards, larger launch button/rocket, and richer bottom nav buttons.
 - Done in latest narrow-screen batch: compact floor names stay one line, compact card typography was reduced, card/KPI spacing was retuned, and 360x800 screenshot remained clean.
-- Next move: add richer generated or Cocos-managed art where CSS decoration starts to look flat, especially full factory-room illustration plates, factory background/town depth, and cat-page hero/story assets.
+- Next move: add richer generated or Cocos-managed art where CSS decoration starts to look flat, especially full factory-room illustration plates, factory background/town depth, and cat-page hero/story assets; CSS-only room polish is nearing diminishing returns.
 
 ### 2. Top HUD Polish
 

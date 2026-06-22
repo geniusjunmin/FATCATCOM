@@ -658,15 +658,22 @@ export class BottomNavUI extends Component {
             #fatcat-dom-factory .decor-roast .decor-conveyor:after, #fatcat-dom-factory .decor-mill .decor-conveyor:after { animation: fatcatBelt 2.8s linear infinite; }
             #fatcat-dom-factory .decor-clock { right:6%; top:10%; width:13%; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle,#f2dfb8 0 52%,#7c5f45 53% 65%,#2f2723 66%); }
             #fatcat-dom-factory .decor-clock:after { content:""; position:absolute; left:49%; top:24%; width:3%; height:29%; background:#4c3424; transform-origin:50% 90%; transform:rotate(42deg); box-shadow:5px 8px 0 -1px #4c3424; }
-            #fatcat-dom-factory .room-foreground { position:absolute; z-index:2; left:30%; right:24%; bottom:7%; height:28%; pointer-events:none; opacity:.82; }
+            #fatcat-dom-factory .room-foreground { position:absolute; z-index:2; left:30%; right:24%; bottom:6%; height:34%; pointer-events:none; opacity:.9; }
             #fatcat-dom-factory .room-foreground:before, #fatcat-dom-factory .room-foreground:after { content:""; position:absolute; bottom:0; filter:drop-shadow(0 3px 0 rgba(36,22,14,.2)); }
-            #fatcat-dom-factory .room-foreground:before { left:3%; width:18%; height:42%; border-radius:6px; background:linear-gradient(#aa7440,#68422a); box-shadow:18px -6px 0 -5px #c18a4f, 42px 1px 0 -8px #785134; }
-            #fatcat-dom-factory .room-foreground:after { right:2%; width:24%; height:30%; border-radius:999px 999px 10px 10px; background:radial-gradient(circle at 18% 48%,#7b3d1e 0 8%,transparent 9%), radial-gradient(circle at 38% 44%,#9b5428 0 8%,transparent 9%), radial-gradient(circle at 60% 50%,#75401f 0 8%,transparent 9%), linear-gradient(#6b4a35,#2d241f); }
-            #fatcat-dom-factory .room-foreground.office:before { left:7%; width:28%; height:34%; background:linear-gradient(#4d3a2e,#2f241e); box-shadow:30px -8px 0 -10px #25323a, 58px 0 0 -12px #c99b56; }
-            #fatcat-dom-factory .room-foreground.office:after { right:8%; width:13%; height:48%; border-radius:50% 50% 8px 8px; background:radial-gradient(ellipse at 50% 12%,#70a855 0 28%,transparent 29%), linear-gradient(#8b5a32,#4e3424); }
-            #fatcat-dom-factory .room-foreground.tank:before { width:14%; height:60%; border-radius:50% 50% 8px 8px; background:linear-gradient(#bbb39b,#675c4d); box-shadow:30px 0 0 #91856f, 60px 0 0 #aca089; }
-            #fatcat-dom-factory .room-foreground.cafe:after { right:4%; width:18%; height:36%; border-radius:0 0 12px 12px; background:#fff0d1; box-shadow:inset 0 0 0 3px #8e6039, 16px 3px 0 -9px transparent; }
-            #fatcat-dom-factory .room-foreground.storage:before { width:30%; height:44%; background:linear-gradient(#d2ad71,#87633d); border-radius:50% 50% 10px 10px; box-shadow:28px 8px 0 -6px #b88c58, 58px 2px 0 -9px #6c4a32; }
+            #fatcat-dom-factory .room-foreground:before { left:3%; width:26%; height:45%; border-radius:8px; background:linear-gradient(#aa7440,#68422a); box-shadow:20px -8px 0 -5px #c18a4f, 48px 1px 0 -8px #785134; }
+            #fatcat-dom-factory .room-foreground:after { right:2%; width:32%; height:34%; border-radius:999px 999px 10px 10px; background:radial-gradient(circle at 18% 48%,#7b3d1e 0 8%,transparent 9%), radial-gradient(circle at 38% 44%,#9b5428 0 8%,transparent 9%), radial-gradient(circle at 60% 50%,#75401f 0 8%,transparent 9%), linear-gradient(#6b4a35,#2d241f); }
+            #fatcat-dom-factory .room-foreground.office:before { left:3%; width:44%; height:38%; background:linear-gradient(#5e3e29 0 20%,#3a2a21 21% 72%,#241c18 73%); box-shadow:38px -10px 0 -12px #25323a, 76px 0 0 -15px #c99b56, inset 0 0 0 2px rgba(255,225,164,.12); }
+            #fatcat-dom-factory .room-foreground.office:after { right:4%; width:16%; height:56%; border-radius:50% 50% 8px 8px; background:radial-gradient(ellipse at 50% 12%,#70a855 0 28%,transparent 29%), radial-gradient(ellipse at 24% 34%,#87c760 0 18%,transparent 19%), linear-gradient(#8b5a32,#4e3424); }
+            #fatcat-dom-factory .room-foreground.roast:before { left:8%; width:46%; height:62%; border-radius:50% 50% 12px 12px; background:radial-gradient(circle at 46% 46%,#efb45c 0 18%,#694022 19% 27%,transparent 28%), linear-gradient(120deg,#c87b36,#5b3727); box-shadow:42px 20px 0 -18px #3b2d25, inset 0 0 0 4px rgba(70,40,24,.42); }
+            #fatcat-dom-factory .room-foreground.roast:after { right:4%; width:38%; height:20%; border-radius:999px; background:repeating-radial-gradient(circle at 10% 48%,#8a4b23 0 6%, transparent 7% 15%), linear-gradient(#5a3d2e,#2e241f); }
+            #fatcat-dom-factory .room-foreground.tank:before { left:0; width:19%; height:70%; border-radius:50% 50% 8px 8px; background:linear-gradient(#c9bea4,#756852); box-shadow:43px 0 0 #8f836d, 86px 0 0 #afa187, inset 0 0 0 4px rgba(55,43,32,.34); }
+            #fatcat-dom-factory .room-foreground.tank:after { right:3%; width:26%; aspect-ratio:1; bottom:12%; border-radius:50%; background:radial-gradient(circle,#efe2c4 0 42%,#5a4638 43% 58%,#27211f 59%); }
+            #fatcat-dom-factory .room-foreground.mill:before { left:7%; width:44%; height:55%; border-radius:14px 14px 10px 10px; background:radial-gradient(circle at 50% 48%,#e2a75a 0 16%,#513222 17% 25%,transparent 26%), linear-gradient(#b97335,#493126); box-shadow:44px 16px 0 -18px #2e2520, inset 0 0 0 4px rgba(78,47,28,.38); }
+            #fatcat-dom-factory .room-foreground.mill:after { right:2%; width:31%; height:31%; border-radius:8px 8px 18px 18px; background:linear-gradient(#d4ae70,#8a653f); box-shadow:inset 0 0 0 3px rgba(73,43,24,.24); }
+            #fatcat-dom-factory .room-foreground.cafe:before { left:0; width:58%; height:36%; border-radius:9px; background:linear-gradient(#9b6841,#5b3928); box-shadow:58px -10px 0 -21px #3d2e25, 105px -3px 0 -28px #f1e0bd, inset 0 0 0 2px rgba(255,228,170,.12); }
+            #fatcat-dom-factory .room-foreground.cafe:after { right:2%; width:22%; height:42%; border-radius:0 0 12px 12px; background:#fff0d1; box-shadow:inset 0 0 0 3px #8e6039, 16px 3px 0 -9px transparent; }
+            #fatcat-dom-factory .room-foreground.storage:before { left:2%; width:38%; height:50%; background:linear-gradient(#d2ad71,#87633d); border-radius:50% 50% 10px 10px; box-shadow:34px 8px 0 -7px #b88c58, 72px 2px 0 -10px #6c4a32; }
+            #fatcat-dom-factory .room-foreground.storage:after { right:4%; width:40%; height:40%; border-radius:8px; background:repeating-linear-gradient(0deg,#4e3527 0 20%,#8d6847 21% 30%); }
             #fatcat-dom-factory .decor-office .decor-crates { display:none; }
             #fatcat-dom-factory .decor-office .decor-table { left:8%; width:42%; bottom:12%; }
             #fatcat-dom-factory .decor-office .decor-board { left:42%; width:28%; }
@@ -704,8 +711,8 @@ export class BottomNavUI extends Component {
             #fatcat-dom-factory .props { display: grid; }
             #fatcat-dom-factory .pipe, #fatcat-dom-factory .cat { display: block; }
             #fatcat-dom-factory .pipe { position: absolute; right: 9%; top: 13%; width: 18%; height: 16%; border-top: 6px solid #48352a; border-right: 6px solid #48352a; border-radius: 0 16px 0 0; opacity: .75; }
-            #fatcat-dom-factory .cat { position: absolute; z-index:1; bottom: 10%; width: 7.5%; height: 44%; filter: drop-shadow(0 2px 0 rgba(0,0,0,.22)); }
-            #fatcat-dom-factory .cat.a { left: 36%; } #fatcat-dom-factory .cat.b { left: 52%; } #fatcat-dom-factory .cat.c { left: 68%; }
+            #fatcat-dom-factory .cat { position: absolute; z-index:3; bottom: 8%; width: 8.7%; height: 49%; filter: drop-shadow(0 3px 0 rgba(0,0,0,.24)); }
+            #fatcat-dom-factory .cat.a { left: 35%; } #fatcat-dom-factory .cat.b { left: 52%; } #fatcat-dom-factory .cat.c { left: 68%; }
             #fatcat-dom-factory .cat:after { content:""; position:absolute; left:55%; bottom:4%; width:28%; height:38%; border-radius:999px; border-right:5px solid rgba(132,75,37,.8); transform:rotate(22deg); }
             #fatcat-dom-factory .cat:before { content:""; position:absolute; z-index:3; left:43%; bottom:20%; width:34%; height:20%; border-radius:6px; opacity:.95; transform:rotate(-6deg); }
             #fatcat-dom-factory .cat.b { transform:scale(.86) translateY(7%); }
@@ -844,6 +851,8 @@ export class BottomNavUI extends Component {
             #fatcat-dom-factory.compact .floor-kpi { left: 32.3%; width: 24%; top:18%; }
             #fatcat-dom-factory.compact .props { left: 43%; right: 15%; opacity:.56; }
             #fatcat-dom-factory.compact .prop-asset { left:44%; right:15%; opacity:.88; }
+            #fatcat-dom-factory.compact .room-foreground { left:34%; right:22%; height:29%; opacity:.8; }
+            #fatcat-dom-factory.compact .cat { width:7.6%; height:43%; bottom:9%; }
             #fatcat-dom-factory.compact .cat:before { transform:scale(.85) rotate(-6deg); }
             #fatcat-dom-factory.compact .cat-dots { left:32%; bottom:7%; width:18%; }
             #fatcat-dom-factory.compact .bonus { right: 2%; width: 23%; font-size: 2.0%; }
