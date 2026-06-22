@@ -759,12 +759,13 @@ export class BottomNavUI extends Component {
             @keyframes fatcatBelt { from { background-position:0 0; } to { background-position:36px 0; } }
             @keyframes fatcatMachinePulse { 0%,100% { transform:scale(1); filter:drop-shadow(0 4px 0 rgba(34,22,14,.25)); } 50% { transform:scale(1.012); filter:drop-shadow(0 5px 0 rgba(34,22,14,.28)); } }
             @keyframes fatcatWorkerBob { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-2.5%); } }
-            #fatcat-dom-factory .left-tools, #fatcat-dom-factory .right-tools { position: absolute; width: 8.2%; display: grid; gap: 1.4%; }
-            #fatcat-dom-factory .left-tools { left: 1%; top: 14%; } #fatcat-dom-factory .right-tools { right: 1%; top: 18%; }
+            #fatcat-dom-factory .left-tools, #fatcat-dom-factory .right-tools { position: absolute; width: 8.4%; display: grid; gap: 1.35%; }
+            #fatcat-dom-factory .left-tools { left: .85%; top: 13.9%; } #fatcat-dom-factory .right-tools { right: .85%; top: 17.9%; }
             #fatcat-dom-factory button { font:inherit; color:inherit; cursor:pointer; pointer-events:auto; touch-action:manipulation; }
-            #fatcat-dom-factory .side-btn { position:relative; height: 7.8%; min-height: 66px; border-radius: 15px; background: linear-gradient(#937556, #55402f); border: 3px solid #3d2c21; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 2.05%; font-weight: 900; box-shadow: 0 4px 0 rgba(0,0,0,.34), inset 0 0 0 2px rgba(255,232,185,.1); padding:0; }
-            #fatcat-dom-factory .side-btn.alert:after { content:attr(data-badge); position:absolute; right:-6%; top:-6%; min-width:28%; padding:0 5%; aspect-ratio:1; border-radius:50%; background:#e65028; color:white; border:2px solid #ffd9a8; display:flex; align-items:center; justify-content:center; font-size:1.75%; box-shadow:0 2px 0 rgba(0,0,0,.35); box-sizing:border-box; }
-            #fatcat-dom-factory .side-btn i { position:relative; font-style: normal; font-size: 0; line-height: 1; width: 45%; aspect-ratio: 1; border-radius: 10px; background: #f3dcb2; color: #5a3c27; display: flex; align-items: center; justify-content: center; margin-bottom: 7%; box-shadow:inset 0 0 0 2px rgba(82,52,29,.2); }
+            #fatcat-dom-factory .side-btn { position:relative; height: 7.9%; min-height: 68px; border-radius: 16px; background: radial-gradient(circle at 50% 0, rgba(255,236,180,.22), transparent 34%), linear-gradient(#9a7a58, #55402f 72%, #37271e); border: 3px solid #3d2c21; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 2.05%; font-weight: 900; box-shadow: 0 5px 0 rgba(0,0,0,.36), inset 0 2px 0 rgba(255,242,203,.18), inset 0 0 0 2px rgba(255,232,185,.12); padding:0; }
+            #fatcat-dom-factory .side-btn:before { content:""; position:absolute; left:10%; right:10%; top:7%; height:15%; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,.26), rgba(255,255,255,0)); pointer-events:none; }
+            #fatcat-dom-factory .side-btn.alert:after { content:attr(data-badge); position:absolute; right:-8%; top:-7%; min-width:30%; padding:0 5%; aspect-ratio:1; border-radius:50%; background:linear-gradient(#ff7141,#d83d22); color:white; border:2px solid #ffd9a8; display:flex; align-items:center; justify-content:center; font-size:1.75%; box-shadow:0 3px 0 rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.28); box-sizing:border-box; }
+            #fatcat-dom-factory .side-btn i { position:relative; font-style: normal; font-size: 0; line-height: 1; width: 48%; aspect-ratio: 1; border-radius: 11px; background: radial-gradient(circle at 50% 8%, rgba(255,255,255,.32), transparent 30%), linear-gradient(#fff0cf,#d7b174); color: #5a3c27; display: flex; align-items: center; justify-content: center; margin-bottom: 7%; box-shadow:inset 0 0 0 2px rgba(82,52,29,.22), 0 3px 0 rgba(46,29,18,.22); }
             #fatcat-dom-factory .side-btn i:before, #fatcat-dom-factory .side-btn i:after { content:""; position:absolute; }
             #fatcat-dom-factory .ico-task:before { left:25%; top:22%; width:50%; height:58%; border-radius:4px; background:#8b6034; box-shadow:inset 0 0 0 2px #674521; }
             #fatcat-dom-factory .ico-task:after { left:34%; top:38%; width:32%; height:5%; border-radius:99px; background:#fff0c8; box-shadow:0 10px 0 #fff0c8, 0 20px 0 #fff0c8; }
@@ -830,8 +831,10 @@ export class BottomNavUI extends Component {
             #fatcat-dom-factory.compact .cat:before { transform:scale(.85) rotate(-6deg); }
             #fatcat-dom-factory.compact .cat-dots { left:32%; bottom:7%; width:18%; }
             #fatcat-dom-factory.compact .bonus { right: 2%; width: 23%; font-size: 2.0%; }
-            #fatcat-dom-factory.compact .side-btn { font-size: 1.9%; }
-            #fatcat-dom-factory.compact .left-tools, #fatcat-dom-factory.compact .right-tools { width: 8.8%; }
+            #fatcat-dom-factory.compact .side-btn { font-size: 1.66%; min-height:56px; border-radius:12px; }
+            #fatcat-dom-factory.compact .side-btn i { width:41%; border-radius:8px; margin-bottom:5%; }
+            #fatcat-dom-factory.compact .side-btn.alert:after { right:-6%; top:-6%; min-width:27%; font-size:1.45%; }
+            #fatcat-dom-factory.compact .left-tools, #fatcat-dom-factory.compact .right-tools { width: 8.7%; }
             #fatcat-dom-factory.compact .bottom-widgets { left: 2%; right: 2%; grid-template-columns: 18% 10.5% 1fr 27%; gap: 1.3%; }
             #fatcat-dom-factory.compact .launch { font-size: 4.25%; }
             #fatcat-dom-factory.compact .gift { font-size:1.72%; padding-right:2%; }
