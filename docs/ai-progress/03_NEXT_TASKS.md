@@ -119,6 +119,7 @@ Keep these scripts in the regular set when touching related flows:
 - Clean up visible mojibake on cat, equipment, settings, and building panels.
 - Preserve the current verified DOM cat path for online upgrade, feed, unlock, assignment, and equipment upgrade.
 - Latest pass: cat page now uses visible viewport bounds with a small top bleed, has its own target-like top HUD, avoids the old modal/title framing, fixes the stretched resource-pill regression, and passes four-size cat screenshots plus click regression.
+- Latest compact pass: the info card/name badge now stays readable under the top HUD on 360/430px widths, compact portrait height is tighter, and the top resource pills retain `M`/`K` suffixes.
 - Next move: tune the top HUD micro-alignment, center portrait proportions, story/equipment spacing, and visual richness against `所有猫咪页面.png`.
 - Done in latest cat-page batch: active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, raised active roster card, and command-strip layering fix.
 - Done in latest cat density batch: slimmer stats/weight rows, compact skill/equipment side-by-side layout, folded compact equipment detail rows, shorter story card, and clickable equipment upgrade above roster.

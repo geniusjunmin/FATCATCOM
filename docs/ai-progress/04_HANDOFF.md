@@ -25,6 +25,7 @@ Updated: 2026-06-25
 ## Latest UI Note
 
 - Cat page fullscreen polish is in progress: it now lays out against the visible viewport, adds a small top bleed to cover the underlying main HUD, and renders its own top HUD.
+- Latest compact cat-page pass widened the info column, restored the single-line cat name badge below the HUD, trimmed portrait height for lower-panel space, and reduced compact resource-pill text/buttons so `M`/`K` suffixes remain visible.
 - The DOM UI uses the overlay root font-size as a design-height unit. For new normal-sized UI text inside that system, set a local percentage font-size on the container first, then use `em` or fixed pixel accents inside it.
 - Verified after the latest cat-page pass: `check-client-ts.ps1`, `capture-cat-regression.js`, and `verify-ui-clicks-playwright.js`.
 

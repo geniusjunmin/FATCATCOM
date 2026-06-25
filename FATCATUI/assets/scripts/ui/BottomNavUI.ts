@@ -2872,8 +2872,8 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay .cat-card:after { content:""; position:absolute; left:7%; right:7%; top:7%; height:2px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.62),transparent); opacity:.72; }
             #fatcat-dom-cat-overlay .cat-card.info { min-height:168px; background:radial-gradient(circle at 18% 12%, rgba(255,255,255,.42), transparent 18%), repeating-linear-gradient(135deg, rgba(120,82,45,.05) 0 2px, transparent 2px 8px), linear-gradient(#fff7df,#e7c18d); }
             #fatcat-dom-cat-overlay .cat-card.info:before { content:""; position:absolute; right:-12%; top:-18%; width:54%; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle,rgba(240,165,28,.22),rgba(240,165,28,0) 68%); }
-            #fatcat-dom-cat-overlay .cat-card.info strong { display:inline-flex; align-items:center; min-height:34px; padding:0 12%; border-radius:999px; background:rgba(255,252,232,.72); box-shadow:inset 0 0 0 2px rgba(121,82,45,.16), 0 2px 0 rgba(92,56,28,.12); }
-            #fatcat-dom-cat-overlay .cat-card.info strong:after { content:""; width:18px; height:18px; margin-left:8px; border-radius:4px; background:linear-gradient(135deg, transparent 0 42%, #8a623d 43% 57%, transparent 58%), linear-gradient(#f6d28b,#c58b42); box-shadow:inset 0 0 0 2px rgba(112,70,32,.18); }
+            #fatcat-dom-cat-overlay .cat-card.info strong { display:inline-flex; align-items:center; max-width:100%; box-sizing:border-box; min-height:34px; padding:0 12%; border-radius:999px; background:rgba(255,252,232,.72); white-space:nowrap; word-break:keep-all; box-shadow:inset 0 0 0 2px rgba(121,82,45,.16), 0 2px 0 rgba(92,56,28,.12); }
+            #fatcat-dom-cat-overlay .cat-card.info strong:after { content:""; flex:0 0 auto; width:18px; height:18px; margin-left:8px; border-radius:4px; background:linear-gradient(135deg, transparent 0 42%, #8a623d 43% 57%, transparent 58%), linear-gradient(#f6d28b,#c58b42); box-shadow:inset 0 0 0 2px rgba(112,70,32,.18); }
             #fatcat-dom-cat-overlay .cat-card strong { font-size: 140%; }
             #fatcat-dom-cat-overlay .rank { font-size: 250%; color: #f3a51c; font-weight: 900; }
             #fatcat-dom-cat-overlay .type { background: #68a84a; color: white; padding: 1% 5%; border-radius: 999px; font-weight: 900; }
@@ -3003,20 +3003,26 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay .cat-list .active { transform:translateY(-4%); box-shadow:0 0 0 4px #f0a51c inset, 0 0 16px rgba(240,165,28,.45), 0 6px 0 rgba(63,36,17,.26); } #fatcat-dom-cat-overlay .cat-list .recruit { background:linear-gradient(#ffc84c,#ee991d); color:white; text-shadow:0 2px #9c5815; border-color:#ffe2a5; }
             #fatcat-dom-cat-overlay .cat-msg { position:absolute; left: 18%; right: 6%; bottom: 20.4%; min-height:3.1%; border-radius:999px; background:rgba(48,34,24,.9); color:#ffe6b5; display:flex;align-items:center;justify-content:center; font-size:2.0%; font-weight:900; pointer-events:none; box-shadow:0 3px 0 rgba(0,0,0,.22); }
             #fatcat-dom-cat-overlay .cat-msg.empty { display:none; }
-            #fatcat-dom-cat-overlay.compact .cat-bg { padding: 9.1% 2.0% 16.8% 10.7%; border-radius:0; }
+            #fatcat-dom-cat-overlay.compact .cat-bg { padding: 16.0% 2.0% 16.8% 10.7%; border-radius:0; }
             #fatcat-dom-cat-overlay.compact .cat-page-hud { left:1%; right:1%; top:.75%; height:7.2%; gap:.7%; grid-template-columns:25% repeat(4,1fr); font-size:1.55%; }
             #fatcat-dom-cat-overlay.compact .cat-page-hud .player { border-radius:14px; padding:2% 3%; }
-            #fatcat-dom-cat-overlay.compact .cat-page-hud .res { font-size:.88em; border-width:2px; }
-            #fatcat-dom-cat-overlay.compact .cat-page-hud .plus { font-size:.98em; }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .res { font-size:.78em; border-width:2px; gap:3%; padding-right:8%; }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .res i { width:min(22px,20%); }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .plus { width:min(22px,20%); font-size:.9em; }
             #fatcat-dom-cat-overlay.compact .cat-modal-title { left:31%; right:31%; min-height:42px; font-size:2.42%; }
             #fatcat-dom-cat-overlay.compact .close-x { width:6.9%; min-width:38px; font-size:3.0%; }
             #fatcat-dom-cat-overlay.compact .cat-side { left: 1.1%; top:10.0%; width: 8.8%; }
             #fatcat-dom-cat-overlay.compact .cat-overview-head div { min-height:48px; font-size:1.48%; }
             #fatcat-dom-cat-overlay.compact .back, #fatcat-dom-cat-overlay.compact .side-tab { min-height: 52px; font-size: 1.65%; border-radius: 12px; }
-            #fatcat-dom-cat-overlay.compact .cat-hero { grid-template-columns: 24% 1fr 20%; gap: 1.4%; }
+            #fatcat-dom-cat-overlay.compact .cat-hero { grid-template-columns: 27% 1fr 18%; gap: 1.1%; }
             #fatcat-dom-cat-overlay.compact .cat-card { font-size: 2.08%; padding: 5.5%; }
-            #fatcat-dom-cat-overlay.compact .cat-portrait { min-height: 258px; }
-            #fatcat-dom-cat-overlay.compact .portrait-cat.img { width:60%; min-width:176px; }
+            #fatcat-dom-cat-overlay.compact .cat-card.info { padding:4.6%; line-height:1.34; }
+            #fatcat-dom-cat-overlay.compact .cat-card.info strong { min-height:28px; padding:0 8%; font-size:118%; }
+            #fatcat-dom-cat-overlay.compact .cat-card.info strong:after { width:14px; height:14px; margin-left:5px; }
+            #fatcat-dom-cat-overlay.compact .cat-card.info .rank { font-size:212%; line-height:1; }
+            #fatcat-dom-cat-overlay.compact .cat-card.info .type { display:inline-flex; align-items:center; min-height:18px; padding:0 7%; font-size:88%; }
+            #fatcat-dom-cat-overlay.compact .cat-portrait { min-height: 238px; }
+            #fatcat-dom-cat-overlay.compact .portrait-cat.img { width:58%; min-width:164px; }
             #fatcat-dom-cat-overlay.compact .cat-portrait .cat-talk { right:5%; top:8%; max-width:42%; font-size:24%; }
             #fatcat-dom-cat-overlay.compact .cat-profile-row { font-size:20%; left:6%; right:6%; }
             #fatcat-dom-cat-overlay.compact .cat-power { width: 48%; font-size: 2.72%; }
