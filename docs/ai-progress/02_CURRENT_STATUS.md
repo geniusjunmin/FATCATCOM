@@ -1,13 +1,13 @@
 # Current Status
 
-Updated: 2026-06-22
+Updated: 2026-06-25
 
 ## Control Panel
 
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Continue visual fidelity with generated/Cocos-managed art depth or HUD precision; social next move is richer friend-request visuals and deeper multiplayer interaction polish. |
+| Best Next Move | Continue visual fidelity with final main/cat proportion tuning and richer generated/Cocos-managed art depth; social next move is richer friend-request visuals and deeper multiplayer interaction polish. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -29,12 +29,19 @@ Updated: 2026-06-22
 - Main screen has portrait factory layout, top HUD, right-side feature buttons, bottom navigation, launch button, order card, and gift card.
 - Main factory DOM layer now includes the generated `factory_cutaway_bg_640.jpg` as a low-touch illustration base, plus extra building depth, brick/grid shading, larger scene-specific room foreground machines/props, floor level medals, wall-detail layers, denser room lighting, larger worker-cat staging, richer roof signage/crates/chimney/flag/fat-cat staging, a more target-like HUD with raised player badge/resource pills, thicker side feature buttons, and thicker bottom operation/navigation buttons.
 - Narrow-screen main factory fit improved: 360px floor names stay on one line, compact floor cards have tuned width/typography, and compact HUD resource cells use tighter icon/value/plus spacing.
-- Cat page is a full-screen DOM overlay with info, upgrade, skill, equipment, skin, bottom roster, equipment bag, and story entry.
+- Cat page is a full-screen DOM overlay with its own target-like top HUD, info, upgrade, skill, equipment, skin, bottom roster, equipment bag, and story entry.
+- Latest cat-page visual pass: overlay now uses the visible viewport instead of the overflowing 640px design canvas, applies a small top bleed to cover the underlying main HUD, uses stable HUD sizing that no longer stretches resource pills, and keeps the page readable at 360x800, 414x896, 430x932, and 768x1024.
 - Cat detail composition now has stronger target-UI cues: active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, paper/card texture, darker workshop depth, raised roster active card, and command-strip layering that no longer blocks equipment clicks.
 - Cat lower content density is improved: stats/weight rows are slimmer, skill and equipment cards sit side by side in compact mode, compact equipment details fold away, equipment/story cards have stronger paper and photo treatment, and the equipment upgrade button remains clickable above the roster.
 - Building, shop, inventory, research, task, achievement, mail, friend, and settings panels are clickable.
 - Screenshot regression exists for 414x896, 430x932, 360x800, and 768x1024 on the main screen and cat page.
 - Remaining visual gap: icon consistency, generated art depth where CSS still looks flat, final main/cat target proportions, and larger Cocos-managed illustration assets.
+
+Latest verified UI commands:
+
+- `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`
+- `node .\tools\capture-cat-regression.js`
+- `node .\tools\verify-ui-clicks-playwright.js`
 
 ## Client Networking
 

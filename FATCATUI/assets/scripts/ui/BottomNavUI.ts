@@ -2818,22 +2818,35 @@ export class BottomNavUI extends Component {
         overlay.id = "fatcat-dom-cat-overlay";
         const style = document.createElement("style");
         style.textContent = `
-            #fatcat-dom-cat-overlay { position: fixed; z-index: 2147483300; display: none; pointer-events: none; color: #fff3d8; font-family: Arial, sans-serif; }
-            #fatcat-dom-cat-overlay:before { content:""; position:absolute; inset:-9%; background:radial-gradient(circle at 50% 18%, rgba(255,205,122,.1), transparent 34%), rgba(20,13,10,.52); pointer-events:none; }
-            #fatcat-dom-cat-overlay .cat-bg { position: absolute; inset: 0; background: linear-gradient(rgba(38,27,20,.08), rgba(38,27,20,.18)), linear-gradient(135deg,#7b5234,#2a1d15); border: 4px solid #4e3323; box-sizing: border-box; padding: 5.1% 2.7% 16.2% 11.5%; border-radius: 20px; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; pointer-events: auto; scrollbar-width: none; box-shadow: 0 12px 0 rgba(27,18,12,.44), inset 0 0 0 5px rgba(255,231,181,.16), inset 0 -30px 56px rgba(28,18,13,.28); }
+            #fatcat-dom-cat-overlay { position: fixed; z-index: 2147483300; display: none; pointer-events: none; color: #fff3d8; font-family: Arial, sans-serif; overflow: visible; }
+            #fatcat-dom-cat-overlay:before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 50% 18%, rgba(255,205,122,.1), transparent 34%), rgba(20,13,10,.82); pointer-events:none; }
+            #fatcat-dom-cat-overlay .cat-bg { position: absolute; inset: 0; background: linear-gradient(rgba(38,27,20,.08), rgba(38,27,20,.18)), linear-gradient(135deg,#7b5234,#2a1d15); border: 0; box-sizing: border-box; padding: 8.9% 2.7% 16.2% 11.5%; border-radius: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; pointer-events: auto; scrollbar-width: none; box-shadow: inset 0 0 0 3px rgba(255,231,181,.12), inset 0 -30px 56px rgba(28,18,13,.28); }
             #fatcat-dom-cat-overlay .cat-bg::-webkit-scrollbar { width: 0; height: 0; }
-            #fatcat-dom-cat-overlay .cat-art-bg { position: absolute; inset: 0; background-image: linear-gradient(rgba(22,14,10,.18),rgba(22,14,10,.34)), url("${this.getDomAssetDataUri(GeneratedBackgroundAssets.catDetailWorkshop)}"); background-size: cover; background-position: center top; filter: saturate(1.12) contrast(1.06) brightness(.98); opacity:.98; }
-            #fatcat-dom-cat-overlay .cat-art-bg:before { content:""; position:absolute; left:12%; right:5%; top:7%; height:24%; border-radius:18px; background:radial-gradient(circle at 23% 22%, rgba(255,218,128,.34), transparent 13%), radial-gradient(circle at 58% 18%, rgba(255,218,128,.26), transparent 12%), linear-gradient(90deg, transparent 0 24%, rgba(45,30,21,.52) 24% 25%, transparent 25% 50%, rgba(45,30,21,.52) 50% 51%, transparent 51% 76%, rgba(45,30,21,.52) 76% 77%, transparent 77%); box-shadow:inset 0 -12px 20px rgba(24,15,10,.28); }
-            #fatcat-dom-cat-overlay .cat-art-bg:after { content:""; position:absolute; right:4%; top:7%; width:18%; height:28%; border-radius:12px; background:linear-gradient(#bfe9ff,#7fb0d1); box-shadow:inset 0 0 0 4px rgba(62,40,25,.62), inset 50% 0 0 rgba(255,255,255,.12); opacity:.72; }
+            #fatcat-dom-cat-overlay .cat-art-bg { position: absolute; inset: 0; background-color:#3b261b; background-image: radial-gradient(circle at 52% 22%, rgba(255,199,107,.24), transparent 24%), radial-gradient(circle at 80% 17%, rgba(120,184,220,.16), transparent 18%), linear-gradient(rgba(28,18,13,.18),rgba(28,18,13,.52)); background-size: 100% 100%; background-repeat: no-repeat; background-position: center; filter: saturate(1.05) contrast(1.02) brightness(.9); opacity:.82; }
+            #fatcat-dom-cat-overlay .cat-art-bg:before { content:""; position:absolute; left:11%; right:4%; top:9%; height:21%; border-radius:18px; background:radial-gradient(circle at 20% 18%, rgba(255,218,128,.22), transparent 12%), radial-gradient(circle at 62% 18%, rgba(255,218,128,.18), transparent 13%), linear-gradient(90deg, transparent 0 24%, rgba(45,30,21,.28) 24% 25%, transparent 25% 50%, rgba(45,30,21,.28) 50% 51%, transparent 51% 76%, rgba(45,30,21,.28) 76% 77%, transparent 77%); box-shadow:inset 0 -10px 18px rgba(24,15,10,.18); }
+            #fatcat-dom-cat-overlay .cat-art-bg:after { content:""; position:absolute; right:5%; top:10%; width:16%; height:23%; border-radius:12px; background:linear-gradient(rgba(191,233,255,.48),rgba(127,176,209,.38)); box-shadow:inset 0 0 0 3px rgba(62,40,25,.38); opacity:.45; }
             #fatcat-dom-cat-overlay .cat-bg::before { content: ""; position: absolute; left: 9%; right: 0; top: 0; height: 34%; background: radial-gradient(ellipse at 48% 4%, rgba(255,221,136,.32), transparent 34%), linear-gradient(rgba(255,224,150,.16), rgba(255,202,115,0)); opacity: .82; }
             #fatcat-dom-cat-overlay .cat-bg::after { content: ""; position: absolute; left: 10%; right: 2%; top: 13%; height: 25%; border-radius: 12px; background: radial-gradient(circle at 50% 48%, rgba(237,158,77,.18) 0 10%, transparent 11%); box-shadow: inset 0 -6px 0 rgba(44,29,22,.12); }
             #fatcat-dom-cat-overlay .cat-bg:has(.cat-side)::selection { background: rgba(236,171,73,.35); }
             #fatcat-dom-cat-overlay .cat-bg > * { position: relative; z-index: 1; }
-            #fatcat-dom-cat-overlay .cat-modal-title { position:absolute; z-index:4; left:34%; right:34%; top:.75%; min-height:54px; border-radius:0 0 17px 17px; background:radial-gradient(circle at 50% 0, rgba(255,224,150,.2), transparent 38%), linear-gradient(#895b3b,#4a2f22); border:3px solid #2f2018; color:#ffe7b0; display:flex; align-items:center; justify-content:center; font-size:2.82%; font-weight:900; text-shadow:0 2px #2b1b12; box-shadow:0 5px 0 rgba(0,0,0,.3), inset 0 0 0 2px rgba(255,231,178,.16); }
+            #fatcat-dom-cat-overlay .cat-page-hud { position:absolute; z-index:6; left:1.6%; right:1.6%; top:.8%; height:7.0%; display:grid; grid-template-columns:26% repeat(4,1fr); gap:1.1%; align-items:stretch; pointer-events:none; font-size:2%; }
+            #fatcat-dom-cat-overlay .cat-page-hud .player { position:relative; height:100%; min-height:0; box-sizing:border-box; border-radius:18px; background:linear-gradient(#e9d0a5,#8a6a4b); border:3px solid #5a402b; color:#3d281c; font-size:.96em; line-height:1; font-weight:900; display:grid; grid-template-columns:34% 1fr; align-items:center; padding:4px 10px; box-shadow:0 4px 0 rgba(0,0,0,.3), inset 0 0 0 2px rgba(255,248,220,.36); }
+            #fatcat-dom-cat-overlay .cat-page-hud .player span { display:flex; min-width:0; flex-direction:column; justify-content:center; gap:5px; white-space:nowrap; overflow:hidden; }
+            #fatcat-dom-cat-overlay .cat-page-hud .avatar { width:min(42px,88%); aspect-ratio:1; border-radius:50%; background:radial-gradient(circle at 34% 45%,#3d281d 0 6%,transparent 7%), radial-gradient(circle at 66% 45%,#3d281d 0 6%,transparent 7%), linear-gradient(#f3c27e,#d27c37); box-shadow:0 0 0 3px #7a5131 inset, 0 3px 0 rgba(0,0,0,.2); }
+            #fatcat-dom-cat-overlay .cat-page-hud .level { position:absolute; left:2%; bottom:-10%; width:min(30px,24%); aspect-ratio:1; border-radius:50%; background:linear-gradient(#f0b04a,#9c5a1b); color:white; display:flex; align-items:center; justify-content:center; border:3px solid #5c351d; font-size:.88em; }
+            #fatcat-dom-cat-overlay .cat-page-hud .exp { height:7px; border-radius:999px; background:#3f2a1c; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(0,0,0,.3); }
+            #fatcat-dom-cat-overlay .cat-page-hud .exp i { display:block; width:80%; height:100%; background:linear-gradient(#ffd65c,#d98d1f); }
+            #fatcat-dom-cat-overlay .cat-page-hud .res { position:relative; height:100%; min-height:0; box-sizing:border-box; border-radius:999px; background:linear-gradient(rgba(71,50,35,.96),rgba(31,23,18,.96)); border:3px solid #8a6a48; display:flex; align-items:center; justify-content:center; gap:6%; color:#fff5dd; font-size:1.08em; line-height:1; font-weight:900; box-shadow:0 4px 0 rgba(0,0,0,.32), inset 0 0 0 2px rgba(255,232,184,.1); }
+            #fatcat-dom-cat-overlay .cat-page-hud .res i { width:min(28px,24%); aspect-ratio:1; flex:0 0 auto; border-radius:50%; background:linear-gradient(#ffd75c,#d58918); box-shadow:inset 0 0 0 3px rgba(98,61,17,.35); }
+            #fatcat-dom-cat-overlay .cat-page-hud .bean i { border-radius:52% 48% 50% 50%; background:linear-gradient(135deg,#8a4b24,#4d2816); transform:rotate(24deg); }
+            #fatcat-dom-cat-overlay .cat-page-hud .food i { border-radius:0 0 38% 38%; background:linear-gradient(#f4ead7 0 35%,#9f5a22 36%); }
+            #fatcat-dom-cat-overlay .cat-page-hud .gem i { border-radius:28%; background:linear-gradient(135deg,#e4b7ff,#7938c9); transform:rotate(45deg); }
+            #fatcat-dom-cat-overlay .cat-page-hud .plus { position:absolute; right:-2%; width:min(28px,24%); aspect-ratio:1; border-radius:8px; background:linear-gradient(#ffbd4f,#d46f1f); color:white; display:flex; align-items:center; justify-content:center; border:2px solid #683919; font-size:1.1em; }
+            #fatcat-dom-cat-overlay .cat-modal-title { display:none; }
             #fatcat-dom-cat-overlay .close-x { position:absolute; z-index:5; right:1.7%; top:1.1%; width:6.4%; min-width:46px; aspect-ratio:1; border-radius:50%; background:linear-gradient(#f7ce71,#d48626); color:white; border:3px solid #5b351d; font-size:3.4%; font-weight:900; line-height:1; box-shadow:0 4px 0 rgba(0,0,0,.3), inset 0 0 0 2px rgba(255,238,193,.2); }
-            #fatcat-dom-cat-overlay .cat-side { position: absolute; left: 1.65%; top: 5.4%; width: 8.4%; display: grid; gap: 1.15%; padding:.8% .55%; border-radius:18px; background:linear-gradient(rgba(82,58,42,.78),rgba(45,32,25,.82)); border:2px solid rgba(238,198,126,.22); box-shadow:0 6px 0 rgba(22,14,10,.24), inset 0 0 0 2px rgba(255,239,201,.06); }
+            #fatcat-dom-cat-overlay .cat-side { position: absolute; left: 1.65%; top: 10.1%; width: 8.4%; display: grid; gap: 1.15%; padding:.8% .55%; border-radius:18px; background:linear-gradient(rgba(82,58,42,.78),rgba(45,32,25,.82)); border:2px solid rgba(238,198,126,.22); box-shadow:0 6px 0 rgba(22,14,10,.24), inset 0 0 0 2px rgba(255,239,201,.06); }
             #fatcat-dom-cat-overlay .cat-side:before { content:""; position:absolute; left:12%; right:12%; top:1%; height:7%; border-radius:999px; background:linear-gradient(90deg, rgba(255,243,205,.28), rgba(255,243,205,0)); pointer-events:none; }
-            #fatcat-dom-cat-overlay .cat-overview-head { display:grid; grid-template-columns:repeat(4,1fr); gap:1.1%; margin:0 0 1.1%; }
+            #fatcat-dom-cat-overlay .cat-overview-head { display:none; grid-template-columns:repeat(4,1fr); gap:1.1%; margin:0 0 1.1%; }
             #fatcat-dom-cat-overlay .cat-overview-head div { min-height:58px; border-radius:14px; background:linear-gradient(rgba(91,65,45,.94),rgba(49,34,25,.94)); border:3px solid rgba(233,188,112,.36); color:#fff5d8; display:flex; align-items:center; justify-content:center; flex-direction:column; font-size:1.75%; font-weight:900; box-shadow:0 4px 0 rgba(0,0,0,.25), inset 0 0 0 2px rgba(255,236,190,.08); }
             #fatcat-dom-cat-overlay .cat-overview-head b { color:#ffffff; font-size:142%; line-height:1; text-shadow:0 2px rgba(0,0,0,.28); }
             #fatcat-dom-cat-overlay .cat-overview-head span { margin-top:4px; color:#f4d6a5; font-size:82%; }
@@ -2853,7 +2866,7 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay .tab-skill i:before { inset:18%; border-radius:50%; background:radial-gradient(circle,#ffe66a 0 18%,#d8871e 19% 55%,transparent 56%); box-shadow:0 0 9px #ffc857; }
             #fatcat-dom-cat-overlay .tab-equip i:before { inset:20%; border-radius:50%; background:radial-gradient(circle at 50% 54%, transparent 0 35%, #617b50 36% 57%, #34442b 58%); box-shadow:inset 0 0 0 4px #8e9d79; }
             #fatcat-dom-cat-overlay .tab-skin i:before { left:22%; right:22%; top:18%; height:58%; border-radius:46% 46% 28% 28%; background:#f0c188; box-shadow:inset 0 0 0 3px #875430; }
-            #fatcat-dom-cat-overlay .cat-hero { display: grid; grid-template-columns: 23% 1fr 22%; gap: 2%; align-items: start; margin-top:1.8%; }
+            #fatcat-dom-cat-overlay .cat-hero { display: grid; grid-template-columns: 23% 1fr 22%; gap: 2%; align-items: start; margin-top:0; }
             #fatcat-dom-cat-overlay .cat-card, #fatcat-dom-cat-overlay .cat-portrait, #fatcat-dom-cat-overlay .cat-power, #fatcat-dom-cat-overlay .cat-stats, #fatcat-dom-cat-overlay .cat-weight, #fatcat-dom-cat-overlay .cat-grid > div, #fatcat-dom-cat-overlay .cat-list, #fatcat-dom-cat-overlay .cat-story { background: radial-gradient(circle at 18% 14%, rgba(255,255,255,.34), transparent 16%), repeating-linear-gradient(135deg, rgba(120,82,45,.045) 0 2px, transparent 2px 7px), linear-gradient(rgba(255,248,230,.94), rgba(225,192,140,.94)); color: #4a2f1f; border: 3px solid #7b5636; border-radius: 14px; box-shadow: inset 0 0 0 2px rgba(255,250,224,.45), inset 0 -12px 22px rgba(143,91,42,.1), 0 5px 0 rgba(0,0,0,.25); box-sizing: border-box; }
             #fatcat-dom-cat-overlay .cat-card { position:relative; padding: 7%; font-size: 2.4%; line-height: 1.45; overflow:hidden; }
             #fatcat-dom-cat-overlay .cat-card:after { content:""; position:absolute; left:7%; right:7%; top:7%; height:2px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.62),transparent); opacity:.72; }
@@ -2864,13 +2877,13 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay .cat-card strong { font-size: 140%; }
             #fatcat-dom-cat-overlay .rank { font-size: 250%; color: #f3a51c; font-weight: 900; }
             #fatcat-dom-cat-overlay .type { background: #68a84a; color: white; padding: 1% 5%; border-radius: 999px; font-weight: 900; }
-            #fatcat-dom-cat-overlay .cat-portrait { position: relative; height: 30%; min-height: 280px; display: flex; align-items: center; justify-content: center; flex-direction: column; font-size: 7%; font-weight: 900; background: radial-gradient(circle at 50% 76%, rgba(246,194,123,.66) 0 26%, transparent 27%), linear-gradient(rgba(250,225,184,.42),rgba(230,192,136,.86)); overflow: hidden; }
+            #fatcat-dom-cat-overlay .cat-portrait { position: relative; height: 34%; min-height: 342px; display: flex; align-items: center; justify-content: center; flex-direction: column; font-size: 7%; font-weight: 900; background: radial-gradient(circle at 50% 76%, rgba(246,194,123,.66) 0 26%, transparent 27%), linear-gradient(rgba(250,225,184,.32),rgba(230,192,136,.68)); overflow: hidden; }
             #fatcat-dom-cat-overlay .cat-portrait:before { content:""; position:absolute; inset:3%; border-radius:12px; background-image:linear-gradient(rgba(39,25,17,.12),rgba(39,25,17,.32)), url("${this.getDomAssetDataUri(GeneratedBackgroundAssets.catDetailWorkshop)}"); background-size:cover; background-position:center 42%; opacity:.74; filter:saturate(1.08) brightness(1.02); }
             #fatcat-dom-cat-overlay .cat-portrait:after { content:""; position:absolute; left:13%; right:13%; bottom:9%; height:24%; border-radius:50%; background:radial-gradient(ellipse,rgba(77,45,24,.38),rgba(77,45,24,0) 70%); box-shadow:0 -18px 48px rgba(255,198,96,.1); }
             #fatcat-dom-cat-overlay .portrait-cat { position: relative; z-index:2; width: 34%; min-width: 108px; aspect-ratio: .92; margin-top: 1%; filter: drop-shadow(0 7px 0 rgba(72,45,28,.24)); }
             #fatcat-dom-cat-overlay .portrait-cat::before { content: ""; position: absolute; left: 17%; right: 17%; bottom: 2%; height: 64%; border-radius: 48% 48% 38% 38%; background: radial-gradient(circle at 34% 28%, #fff2d5 0 13%, transparent 14%), radial-gradient(circle at 67% 28%, #fff2d5 0 13%, transparent 14%), linear-gradient(#f1a14b,#d17b35); box-shadow: inset -13px -9px 0 rgba(111,62,30,.14); }
             #fatcat-dom-cat-overlay .portrait-cat::after { content: ""; position: absolute; left: 23%; top: 2%; width: 54%; height: 50%; border-radius: 50%; background: radial-gradient(circle at 35% 45%, #3f271b 0 5%, transparent 6%), radial-gradient(circle at 65% 45%, #3f271b 0 5%, transparent 6%), radial-gradient(circle at 50% 59%, #8b4a2a 0 6%, transparent 7%), linear-gradient(#ffd198,#df8c42); box-shadow: -16px -11px 0 -8px #6b4228, 16px -11px 0 -8px #6b4228, inset 10px -4px 0 rgba(255,255,255,.3); }
-            #fatcat-dom-cat-overlay .portrait-cat.img { width: 62%; min-width: 198px; background: center/contain no-repeat; aspect-ratio: 1; }
+            #fatcat-dom-cat-overlay .portrait-cat.img { width: 72%; min-width: 232px; background: center/contain no-repeat; aspect-ratio: 1; }
             #fatcat-dom-cat-overlay .portrait-cat.img::before, #fatcat-dom-cat-overlay .portrait-cat.img::after { display: none; }
             #fatcat-dom-cat-overlay .portrait-name { position:relative; z-index:2; margin-top: -1%; font-size: 68%; color: #4a2f1f; text-shadow: 0 2px #fff0cd; }
             #fatcat-dom-cat-overlay .cat-portrait span { position:relative; z-index:2; margin-top: 1%; padding: 1.5% 4%; border-radius: 12px; background: #fff2d5; border:2px solid rgba(117,82,47,.25); font-size: 28%; font-weight: 700; }
@@ -2990,16 +3003,20 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay .cat-list .active { transform:translateY(-4%); box-shadow:0 0 0 4px #f0a51c inset, 0 0 16px rgba(240,165,28,.45), 0 6px 0 rgba(63,36,17,.26); } #fatcat-dom-cat-overlay .cat-list .recruit { background:linear-gradient(#ffc84c,#ee991d); color:white; text-shadow:0 2px #9c5815; border-color:#ffe2a5; }
             #fatcat-dom-cat-overlay .cat-msg { position:absolute; left: 18%; right: 6%; bottom: 20.4%; min-height:3.1%; border-radius:999px; background:rgba(48,34,24,.9); color:#ffe6b5; display:flex;align-items:center;justify-content:center; font-size:2.0%; font-weight:900; pointer-events:none; box-shadow:0 3px 0 rgba(0,0,0,.22); }
             #fatcat-dom-cat-overlay .cat-msg.empty { display:none; }
-            #fatcat-dom-cat-overlay.compact .cat-bg { padding: 5.0% 2.0% 16.8% 10.7%; border-radius:16px; }
+            #fatcat-dom-cat-overlay.compact .cat-bg { padding: 9.1% 2.0% 16.8% 10.7%; border-radius:0; }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud { left:1%; right:1%; top:.75%; height:7.2%; gap:.7%; grid-template-columns:25% repeat(4,1fr); font-size:1.55%; }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .player { border-radius:14px; padding:2% 3%; }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .res { font-size:.88em; border-width:2px; }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .plus { font-size:.98em; }
             #fatcat-dom-cat-overlay.compact .cat-modal-title { left:31%; right:31%; min-height:42px; font-size:2.42%; }
             #fatcat-dom-cat-overlay.compact .close-x { width:6.9%; min-width:38px; font-size:3.0%; }
-            #fatcat-dom-cat-overlay.compact .cat-side { left: 1.1%; top:5.4%; width: 8.8%; }
+            #fatcat-dom-cat-overlay.compact .cat-side { left: 1.1%; top:10.0%; width: 8.8%; }
             #fatcat-dom-cat-overlay.compact .cat-overview-head div { min-height:48px; font-size:1.48%; }
             #fatcat-dom-cat-overlay.compact .back, #fatcat-dom-cat-overlay.compact .side-tab { min-height: 52px; font-size: 1.65%; border-radius: 12px; }
             #fatcat-dom-cat-overlay.compact .cat-hero { grid-template-columns: 24% 1fr 20%; gap: 1.4%; }
             #fatcat-dom-cat-overlay.compact .cat-card { font-size: 2.08%; padding: 5.5%; }
-            #fatcat-dom-cat-overlay.compact .cat-portrait { min-height: 238px; }
-            #fatcat-dom-cat-overlay.compact .portrait-cat.img { width:54%; min-width:154px; }
+            #fatcat-dom-cat-overlay.compact .cat-portrait { min-height: 258px; }
+            #fatcat-dom-cat-overlay.compact .portrait-cat.img { width:60%; min-width:176px; }
             #fatcat-dom-cat-overlay.compact .cat-portrait .cat-talk { right:5%; top:8%; max-width:42%; font-size:24%; }
             #fatcat-dom-cat-overlay.compact .cat-profile-row { font-size:20%; left:6%; right:6%; }
             #fatcat-dom-cat-overlay.compact .cat-power { width: 48%; font-size: 2.72%; }
@@ -3026,12 +3043,14 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay.compact .cat-roster-label { left:10.9%; bottom:12.7%; font-size:1.32%; }
             #fatcat-dom-cat-overlay.compact .cat-list { left: 10.7%; right: 2%; bottom:.3%; height: 12.35%; font-size: 1.58%; gap: .7%; }
             #fatcat-dom-cat-overlay.tall .cat-bg { padding-bottom: 16.8%; }
-            #fatcat-dom-cat-overlay.wide .cat-bg { left: 2.5%; right: 2.5%; }
+            #fatcat-dom-cat-overlay.wide .cat-bg { left: 0; right: 0; padding-top:8.2%; }
+            #fatcat-dom-cat-overlay.wide .cat-page-hud { left:2%; right:2%; height:6.4%; font-size:1.55%; }
+            #fatcat-dom-cat-overlay.wide .cat-page-hud .res { font-size:.92em; }
             #fatcat-dom-cat-overlay.wide .cat-overview-head div { min-height:42px; font-size:1.25%; }
             #fatcat-dom-cat-overlay.wide .cat-hero { margin-top:.55%; grid-template-columns:22% 1fr 20%; gap:1.4%; }
             #fatcat-dom-cat-overlay.wide .cat-card.info { min-height:142px; padding:4.8%; font-size:2.05%; }
-            #fatcat-dom-cat-overlay.wide .cat-portrait { min-height:190px; }
-            #fatcat-dom-cat-overlay.wide .portrait-cat.img { min-width:126px; width:44%; }
+            #fatcat-dom-cat-overlay.wide .cat-portrait { min-height:214px; }
+            #fatcat-dom-cat-overlay.wide .portrait-cat.img { min-width:150px; width:52%; }
             #fatcat-dom-cat-overlay.wide .portrait-name { font-size:58%; }
             #fatcat-dom-cat-overlay.wide .cat-profile-row { display:none; }
             #fatcat-dom-cat-overlay.wide .cat-power { margin:.7% auto; padding:.65%; font-size:2.6%; }
@@ -3199,6 +3218,13 @@ export class BottomNavUI extends Component {
         overlay.innerHTML = `
             <div class="cat-bg">
                 <div class="cat-art-bg"></div>
+                <div class="cat-page-hud">
+                    <div class="player"><i class="avatar"></i><span>肥猫咖啡公司<div class="exp"><i></i></div></span><b class="level">28</b></div>
+                    <div class="res coin"><i></i>${this.formatNumber(ResourceManager.get("coin"))}<b class="plus">+</b></div>
+                    <div class="res bean"><i></i>${this.formatNumber(ResourceManager.get("bean"))}<b class="plus">+</b></div>
+                    <div class="res food"><i></i>${this.formatNumber(ResourceManager.get("catFood"))}<b class="plus">+</b></div>
+                    <div class="res gem"><i></i>${this.formatNumber(ResourceManager.get("diamond"))}<b class="plus">+</b></div>
+                </div>
                 <div class="cat-modal-title">猫咪图鉴</div>
                 <button class="close-x" data-action="back">×</button>
                 <div class="cat-side">
@@ -3428,17 +3454,15 @@ export class BottomNavUI extends Component {
         const canvas = document.querySelector("canvas");
         if (!canvas) return;
 
-        const rect = canvas.getBoundingClientRect();
-        const aspect = rect.width / Math.max(1, rect.height);
-        const compact = rect.width < 520 || aspect < 0.58;
-        const widthRatio = compact ? 0.995 : aspect > 0.68 ? 0.90 : 0.985;
-        const heightRatio = compact ? 0.965 : aspect > 0.68 ? 0.93 : 0.945;
-        this.applyResponsiveOverlayBounds(this._domCatOverlay, rect, {
-            left: (1 - widthRatio) * 0.5,
-            top: compact ? 0.035 : 0.055,
-            width: widthRatio,
-            height: heightRatio,
-        });
+        const rect = this.getVisibleCanvasRect(canvas.getBoundingClientRect());
+        const topBleed = Math.min(64, Math.max(34, rect.height * 0.055));
+        const height = rect.height + topBleed;
+        this._domCatOverlay.style.left = `${rect.left}px`;
+        this._domCatOverlay.style.top = `${rect.top - topBleed}px`;
+        this._domCatOverlay.style.width = `${rect.width}px`;
+        this._domCatOverlay.style.height = `${height}px`;
+        this._domCatOverlay.style.fontSize = `${this.getResponsiveFontBase(rect.width, height)}px`;
+        this.applyResponsiveClasses(this._domCatOverlay, rect.width, height);
     }
 
     private ensureCatOverlay(): Node | null {

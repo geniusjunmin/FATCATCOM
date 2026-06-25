@@ -1,6 +1,6 @@
 # Next Tasks
 
-Updated: 2026-06-22
+Updated: 2026-06-25
 
 ## Round Contract
 
@@ -19,7 +19,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Add richer illustration assets and final main/cat proportion tuning. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Continue final main/cat proportion tuning and add richer illustration assets where CSS is still flat. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Refine friend-request visuals and build deeper multiplayer interaction loops. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Split `BottomNavUI.ts` after the next stable UI checkpoint. |
@@ -118,6 +118,8 @@ Keep these scripts in the regular set when touching related flows:
 - Keep roster cards clickable; avoid z-index regressions.
 - Clean up visible mojibake on cat, equipment, settings, and building panels.
 - Preserve the current verified DOM cat path for online upgrade, feed, unlock, assignment, and equipment upgrade.
+- Latest pass: cat page now uses visible viewport bounds with a small top bleed, has its own target-like top HUD, avoids the old modal/title framing, fixes the stretched resource-pill regression, and passes four-size cat screenshots plus click regression.
+- Next move: tune the top HUD micro-alignment, center portrait proportions, story/equipment spacing, and visual richness against `所有猫咪页面.png`.
 - Done in latest cat-page batch: active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, raised active roster card, and command-strip layering fix.
 - Done in latest cat density batch: slimmer stats/weight rows, compact skill/equipment side-by-side layout, folded compact equipment detail rows, shorter story card, and clickable equipment upgrade above roster.
 - Done in latest cat texture batch: darker workshop depth, paper-grain cards, brighter portrait stage, larger center cat art, stronger story photo, thicker equipment cards, and raised roster cards.

@@ -1,6 +1,6 @@
 # Handoff
 
-Updated: 2026-06-22
+Updated: 2026-06-25
 
 ## 90-Second Boot
 
@@ -21,6 +21,12 @@ Updated: 2026-06-22
 | Server/economy work | Run `dotnet test`, `check-server-api.ps1`, balance generation, drift, and effect coverage checks. |
 | Frontend script edit | Refresh Cocos asset-db before trusting preview behavior. |
 | Online script work | Avoid concurrent users of `http://localhost:5144`. |
+
+## Latest UI Note
+
+- Cat page fullscreen polish is in progress: it now lays out against the visible viewport, adds a small top bleed to cover the underlying main HUD, and renders its own top HUD.
+- The DOM UI uses the overlay root font-size as a design-height unit. For new normal-sized UI text inside that system, set a local percentage font-size on the container first, then use `em` or fixed pixel accents inside it.
+- Verified after the latest cat-page pass: `check-client-ts.ps1`, `capture-cat-regression.js`, and `verify-ui-clicks-playwright.js`.
 
 ## Read Order
 
