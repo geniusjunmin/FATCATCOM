@@ -130,6 +130,7 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest narrow-main batch: the gift card uses the tuxedo hero art and <=390px layouts keep side tools, order, gift, and launch controls readable.
 - Done in latest proportion batch: the main nav is 7.2-7.4% tall instead of roughly 10%, the factory/action strip extends downward, click hotspots match the visual positions, and generated feature art is used by the right-side tools.
 - Done in latest equipment batch: compact/tablet equipment and focus icons are larger, equipment names remain on one line, and the bottom cat nav entry uses the generated orange hero while the other nav entries keep clearer semantic silhouettes.
+- Done in latest geometry batch: main nav is now 6.2-6.4% with bottom safety inset, floor bonus cards are narrower, cat side tabs are wider, upper cat content begins at the reference-aligned inset, and lower skill/story/roster sections regain near-full width on compact and tablet screens.
 - Next move: compare the remaining generic panels against the target visual language, then perform final main/cat micro-alignment from fresh screenshots.
 - Done in latest cat-page batch: active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, raised active roster card, and command-strip layering fix.
 - Done in latest cat density batch: slimmer stats/weight rows, compact skill/equipment side-by-side layout, folded compact equipment detail rows, shorter story card, and clickable equipment upgrade above roster.
