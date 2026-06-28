@@ -798,7 +798,7 @@ export class BottomNavUI extends Component {
                 border-radius:0;
                 background-color:transparent;
                 background-position:center;
-                background-size:contain;
+                background-size:125%;
                 background-repeat:no-repeat;
                 box-shadow:none;
                 filter:drop-shadow(0 2px 0 rgba(0,0,0,.28));
@@ -842,7 +842,7 @@ export class BottomNavUI extends Component {
                 border-radius:0;
                 background-color:transparent;
                 background-position:center;
-                background-size:145%;
+                background-size:175%;
                 background-repeat:no-repeat;
                 box-shadow:none;
             }
@@ -1057,13 +1057,14 @@ export class BottomNavUI extends Component {
                 right:3%;
                 bottom:7.8%;
                 height:7.25%;
-                grid-template-columns:19fr 11fr 35fr 34fr;
+                grid-template-columns:18fr 10fr 39fr 32fr;
                 gap:1.3%;
             }
             #fatcat-dom-factory.wide .bottom-widgets { left:9%; right:9%; }
             #fatcat-dom-factory .launch { height:100%; font-size:4.1%; white-space:nowrap; }
-            #fatcat-dom-factory.compact .launch { font-size:3%; }
-            #fatcat-dom-factory.compact .rocket-shape { width:15%; margin-right:2%; }
+            #fatcat-dom-factory.compact .launch { font-size:3.4%; }
+            #fatcat-dom-factory.compact .rocket-shape { width:22%; margin-right:3%; }
+            #fatcat-dom-factory.compact .side-btn i.asset { width:62%; margin-bottom:4%; }
             #fatcat-dom-factory .launch-count,
             #fatcat-dom-factory.wide .launch-count { bottom:6.1%; }
             #fatcat-dom-factory .order .order-text { align-self:center; line-height:1.05; }
@@ -1076,6 +1077,10 @@ export class BottomNavUI extends Component {
                 }
                 #fatcat-dom-factory .side-btn i {
                     width:35%;
+                    margin-bottom:2%;
+                }
+                #fatcat-dom-factory.compact .side-btn i.asset {
+                    width:50%;
                     margin-bottom:2%;
                 }
                 #fatcat-dom-factory .bottom-widgets,
@@ -3378,6 +3383,24 @@ export class BottomNavUI extends Component {
                 transform:none;
                 filter:drop-shadow(0 2px 0 rgba(0,0,0,.28));
             }
+            #fatcat-dom-cat-overlay .side-tab i.asset {
+                width:60%;
+                flex:0 0 auto;
+                border-radius:0;
+                background-color:transparent;
+                background-position:center;
+                background-size:125%;
+                background-repeat:no-repeat;
+                box-shadow:none;
+                filter:drop-shadow(0 2px 0 rgba(0,0,0,.24));
+            }
+            #fatcat-dom-cat-overlay .side-tab i.asset:before,
+            #fatcat-dom-cat-overlay .side-tab i.asset:after { display:none !important; }
+            #fatcat-dom-cat-overlay .tab-info i.asset,
+            #fatcat-dom-cat-overlay .tab-skin i.asset {
+                background-position:center 28%;
+                background-size:155%;
+            }
             #fatcat-dom-cat-overlay .stat-icon.asset {
                 border-radius:0;
                 background-position:center;
@@ -4083,7 +4106,16 @@ export class BottomNavUI extends Component {
     }
 
     private renderCatSideTab(tab: string, label: string): string {
-        return `<button class="side-tab tab-${tab} ${this._domCatTab === tab ? "active" : ""}" data-action="tab" data-tab="${tab}"><i></i>${label}</button>`;
+        return `<button class="side-tab tab-${tab} ${this._domCatTab === tab ? "active" : ""}" data-action="tab" data-tab="${tab}"><i class="asset" style="background-image:url('${this.getCatSideTabIcon(tab)}')"></i>${label}</button>`;
+    }
+
+    private getCatSideTabIcon(tab: string): string {
+        const config = CatManager.getConfig(this._selectedDomCatId);
+        if (tab === "info") return this.getCatFullArtAsset(config?.id ?? "c_001", config?.portrait);
+        if (tab === "upgrade") return this.getGeneratedIconAsset("coin");
+        if (tab === "skill") return this.getSkillIconAsset(config?.role ?? "producer");
+        if (tab === "equip") return this.getEquipIconAsset("collar");
+        return this.getEquipIconAsset("cushion");
     }
 
     private renderCatFocusContent(catId: string, unlocked: boolean, upgradeCost: number, unlockCost: number, canUpgrade: boolean): string {
