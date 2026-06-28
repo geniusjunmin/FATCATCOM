@@ -2806,6 +2806,36 @@ export class BottomNavUI extends Component {
             }
             #fatcat-dom-hud .icon.asset:before,
             #fatcat-dom-hud .icon.asset:after { display:none !important; }
+            #fatcat-dom-hud.compact.tall .player {
+                left:1.8%;
+                width:26.5%;
+            }
+            #fatcat-dom-hud.compact.tall .level { left:0; }
+            #fatcat-dom-hud.compact.tall .res {
+                grid-template-columns:26% minmax(0,1fr) 22%;
+            }
+            #fatcat-dom-hud.compact.tall .icon.asset {
+                width:108%;
+                margin-left:-8%;
+            }
+            #fatcat-dom-hud.compact.tall .plus {
+                width:82%;
+                font-size:1.8%;
+            }
+            @media (max-width:390px) {
+                #fatcat-dom-hud.compact.tall .res {
+                    grid-template-columns:22% minmax(0,1fr) 18%;
+                }
+                #fatcat-dom-hud.compact.tall .res .value { font-size:1.22%; }
+                #fatcat-dom-hud.compact.tall .icon.asset {
+                    width:96%;
+                    margin-left:0;
+                }
+                #fatcat-dom-hud.compact.tall .plus {
+                    width:72%;
+                    font-size:1.45%;
+                }
+            }
         `;
         document.head.appendChild(style);
         document.body.appendChild(overlay);
@@ -3439,10 +3469,11 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay.compact .cat-page-hud .res {
                 border-radius:999px 10px 10px 999px;
                 font-size:.82em;
-                padding-right:9%;
+                gap:2%;
+                padding-right:15%;
             }
-            #fatcat-dom-cat-overlay.compact .cat-page-hud .res i { width:min(20px,20%); }
-            #fatcat-dom-cat-overlay.compact .cat-page-hud .plus { width:min(20px,20%); border-radius:6px; }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .res i { width:min(22px,25%); }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .plus { width:min(22px,24%); border-radius:6px; }
             #fatcat-dom-cat-overlay.compact .cat-hero {
                 position:relative;
                 grid-template-columns:24% 1fr 21%;
@@ -3657,10 +3688,11 @@ export class BottomNavUI extends Component {
                 border-radius:999px 11px 11px 999px;
                 border-width:2px;
                 font-size:.9em;
-                padding-right:6%;
+                gap:3%;
+                padding-right:13%;
             }
-            #fatcat-dom-cat-overlay.tablet .cat-page-hud .res i { width:min(22px,20%); }
-            #fatcat-dom-cat-overlay.tablet .cat-page-hud .plus { width:min(21px,19%); border-radius:6px; }
+            #fatcat-dom-cat-overlay.tablet .cat-page-hud .res i { width:min(28px,26%); }
+            #fatcat-dom-cat-overlay.tablet .cat-page-hud .plus { width:min(26px,24%); border-radius:6px; }
             #fatcat-dom-cat-overlay.tablet .cat-side { left:1.8%; top:7.3%; width:9.4%; }
             #fatcat-dom-cat-overlay.tablet .back,
             #fatcat-dom-cat-overlay.tablet .side-tab {
