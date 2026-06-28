@@ -4,40 +4,35 @@
 
 This repository contains a Cocos Creator client and an ASP.NET Core server.
 
-- `FATCATUI/`: Cocos Creator 3.8.8 client project. TypeScript source lives in `FATCATUI/assets/scripts/`; current UI-heavy work is centered in `FATCATUI/assets/scripts/ui/BottomNavUI.ts`.
-- `FATCATUI/assets/resources/`: gameplay configs, generated textures, and client resources.
-- `FATCATServer/`: .NET solution with `FatCat.Api`, `FatCat.Application`, `FatCat.Domain`, `FatCat.Infrastructure`, and `FatCat.Tests`.
-- `tools/`: verification, screenshot regression, smoke-test, asset generation, and balance-sync scripts.
-- `docs/ai-progress/`: current status, task plans, and handoff notes. Read these before large changes.
-- Root PNG files (`主页面.png` and `所有猫咪页面.png`) are the visual source of truth for UI work.
+- `FATCATUI/`: Cocos Creator 3.8.8 client. TypeScript source is under `assets/scripts/`; current UI work is concentrated in `assets/scripts/ui/BottomNavUI.ts`.
+- `FATCATUI/assets/resources/`: gameplay configuration, generated textures, and runtime resources.
+- `FATCATServer/`: .NET solution containing API, Application, Domain, Infrastructure, and `FatCat.Tests` projects.
+- `tools/`: client diagnostics, Playwright smoke tests, screenshot regression, asset generation, and balance-sync scripts.
+- `docs/ai-progress/`: current status, task plans, and handoff notes. Read these before substantial changes.
+- Root images such as `主页面.png` and `所有猫咪页面.png` are the visual source of truth.
 
 ## Build, Test, and Development Commands
 
-- `dotnet test FATCATServer/FATCATServer.sln --no-restore`: run server tests.
-- `powershell -ExecutionPolicy Bypass -File ./tools/check-client-ts.ps1`: run focused client TypeScript diagnostics.
-- `powershell -ExecutionPolicy Bypass -File ./tools/quick-verify.ps1`: run the baseline no-browser verification suite.
-- `node tools/capture-main-regression.js`: capture main screen regression screenshots.
-- `node tools/capture-cat-regression.js`: capture cat page regression screenshots.
-- `node tools/capture-cat-lineup.js`: cycle all five cats at 430x932 and verify their embedded hero art.
-- `node tools/verify-ui-clicks-playwright.js`: verify important UI click paths.
-- `node tools/generate-server-balance.js --check`: check client/server balance data drift.
+- `dotnet test FATCATServer/FATCATServer.sln --no-restore`: run all server tests.
+- `powershell -ExecutionPolicy Bypass -File ./tools/check-client-ts.ps1`: run focused TypeScript diagnostics.
+- `powershell -ExecutionPolicy Bypass -File ./tools/quick-verify.ps1`: run the baseline verification suite.
+- `node tools/capture-main-regression.js`: capture main-screen reference sizes.
+- `node tools/capture-cat-regression.js`: capture cat-page reference sizes.
+- `node tools/verify-ui-clicks-playwright.js`: exercise critical UI navigation.
+- `node tools/generate-server-balance.js --check`: detect client/server balance drift.
 
 ## Coding Style & Naming Conventions
 
-Follow existing local patterns before introducing abstractions. Use four-space indentation unless the surrounding file differs. TypeScript uses PascalCase component classes and camelCase methods or variables. C# follows standard .NET conventions: PascalCase public types and members, camelCase locals. Keep edits scoped, especially in large UI files, and avoid unrelated formatting churn.
-
-## Architecture Overview
-
-Keep presentation and Cocos lifecycle code in the client. Put multiplayer rules and authoritative state in the server, with application use cases separated from domain models and infrastructure adapters. Shared balance data must remain synchronized through the repository's generation scripts.
+Follow nearby code and use four-space indentation unless a file establishes another style. Use PascalCase for TypeScript components and C# public types or members; use camelCase for methods, variables, and locals. Prefer existing Cocos helpers and .NET project boundaries over new abstractions. Keep large UI-file edits focused and avoid unrelated formatting changes.
 
 ## Testing Guidelines
 
-For server changes, add or update tests in `FatCat.Tests` and run `dotnet test`. For client UI changes, run `check-client-ts.ps1` plus the relevant screenshot or Playwright script. When editing gameplay configs, also run balance drift checks. Name tests after the behavior being protected, not the implementation detail.
+Add server tests to `FatCat.Tests`, naming them after observable behavior. Client UI changes require TypeScript diagnostics plus the relevant screenshot and Playwright checks. Run the balance drift check whenever gameplay configuration changes. Inspect screenshots at all supported viewport sizes rather than relying only on script exit codes.
 
 ## Commit & Pull Request Guidelines
 
-Use short, imperative commit messages, such as `Polish cat page layout` or `Document GitHub handoff`. Pull requests should include a concise summary, changed areas, verification commands run, screenshots for UI work, known risks, and follow-up tasks.
+Use short imperative commits, for example `Polish cat page layout`. Pull requests should summarize changed areas, verification commands, known risks, and follow-up work. Include before/after screenshots for visual changes and link relevant issues when available.
 
 ## Agent-Specific Instructions
 
-Do not commit generated caches, local databases, `node_modules`, Cocos `library/temp/build`, or `.git.embedded-backup` directories. After meaningful milestones, update `docs/ai-progress/02_CURRENT_STATUS.md` and `docs/ai-progress/04_HANDOFF.md` so the next agent can resume safely.
+Never commit `node_modules`, local databases, generated Cocos `library`, `temp`, or `build` directories, or `.git.embedded-backup`. After meaningful milestones, update `docs/ai-progress/02_CURRENT_STATUS.md` and `docs/ai-progress/04_HANDOFF.md`.

@@ -44,9 +44,17 @@ export const GeneratedItemIconAssets: Record<string, string> = {
 
 export const GeneratedFeatureIconAssets: Record<string, string> = {
     achievement: `${GENERATED_ROOT}/ui/icon_achievement.png`,
+    buildings: `${GENERATED_ROOT}/ui/nav_buildings.png`,
+    factory: `${GENERATED_ROOT}/ui/nav_factory.png`,
     friend: `${GENERATED_ROOT}/ui/icon_friend.png`,
+    inventory: `${GENERATED_ROOT}/ui/nav_inventory.png`,
+    launch: `${GENERATED_ROOT}/ui/icon_launch_rocket.png`,
     mail: `${GENERATED_ROOT}/ui/icon_mail.png`,
+    research: `${GENERATED_ROOT}/ui/nav_research.png`,
+    rewardChest: `${GENERATED_ROOT}/ui/icon_reward_chest.png`,
     settings: `${GENERATED_ROOT}/ui/icon_settings.png`,
+    shop: `${GENERATED_ROOT}/ui/nav_shop.png`,
+    task: `${GENERATED_ROOT}/ui/icon_task_clipboard.png`,
 };
 
 export const GeneratedSkillIconAssets: Record<string, string> = {
