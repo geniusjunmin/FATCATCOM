@@ -1,6 +1,6 @@
 # Next Tasks
 
-Updated: 2026-06-25
+Updated: 2026-06-28
 
 ## Round Contract
 
@@ -88,13 +88,14 @@ Keep these scripts in the regular set when touching related flows:
 
 ### 1. Main Factory Richness
 
-- Add more machine silhouettes, cat poses, light layers, pipes, sacks, crates, shelves, gauges, signs, and floor-specific props.
+- Preserve the generated cutaway as the primary room artwork; do not restore the hidden duplicate CSS room/machine/cat layers.
 - Keep the vertical factory readable on 360x800 and 768x1024.
 - Continue matching the target main screen image instead of inventing a new visual language.
-- Prefer small layered CSS/DOM additions first; generate bitmap assets only when code-native decoration no longer sells the target look.
+- Prefer generated/Cocos-managed artwork for major visual surfaces and keep DOM/CSS focused on live labels, cards, buttons, and interaction states.
 - Done in latest visual batch: generated factory cutaway art is now used as a DOM illustration base, with building depth overlay, brick/grid shading, larger per-room foreground equipment/prop layers, floor level medals, wall-detail paper/jar layers, denser room lights, larger worker-cat staging, richer roof deck/crates/sign/chimney/flag/fat-cat staging, thicker resource pills, larger HUD icon plaques, centered values, stronger plus buttons, thicker side feature buttons, thicker bottom operation cards, larger launch button/rocket, and richer bottom nav buttons.
 - Done in latest narrow-screen batch: compact floor names stay one line, compact card typography was reduced, card/KPI spacing was retuned, and 360x800 screenshot remained clean.
-- Next move: evaluate whether the factory should transition more fully to Cocos-managed layered art plates instead of CSS floors, then continue with cat-page hero/story assets and final proportion polish.
+- Done in latest cutaway-first batch: the full generated factory is now undimmed and carries the roof plus all six room interiors; duplicate CSS room art and center KPI cards are removed from view, left/right floor cards follow the target hierarchy, the building span is taller, and bottom controls no longer collide with navigation at the four regression sizes.
+- Next move: final HUD/company-badge micro-alignment and small floor-card typography tuning only; prioritize cat-page hero/story artwork after that.
 
 ### 2. Top HUD Polish
 

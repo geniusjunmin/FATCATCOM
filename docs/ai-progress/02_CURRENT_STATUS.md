@@ -1,6 +1,6 @@
 # Current Status
 
-Updated: 2026-06-25
+Updated: 2026-06-28
 
 ## Control Panel
 
@@ -27,7 +27,8 @@ Updated: 2026-06-25
 ## Client UI
 
 - Main screen has portrait factory layout, top HUD, right-side feature buttons, bottom navigation, launch button, order card, and gift card.
-- Main factory DOM layer now includes the generated `factory_cutaway_bg_640.jpg` as a low-touch illustration base, plus extra building depth, brick/grid shading, larger scene-specific room foreground machines/props, floor level medals, wall-detail layers, denser room lighting, larger worker-cat staging, richer roof signage/crates/chimney/flag/fat-cat staging, a more target-like HUD with raised player badge/resource pills, thicker side feature buttons, and thicker bottom operation/navigation buttons.
+- Main factory now uses generated `factory_cutaway_bg_640.jpg` as the primary room/roof artwork instead of dimming it under duplicate CSS rooms. Floor backgrounds, duplicate machines/cats/pipes, and the extra center KPI cards are hidden; the generated rooms remain crisp while responsive DOM cards preserve interaction and live values.
+- Main floor information now matches the target hierarchy more closely: narrow left floor/level cards, one combined right-side production/bonus card per floor, a taller six-floor building span, and a lower compact bottom action strip with a single-line launch label.
 - Narrow-screen main factory fit improved: 360px floor names stay on one line, compact floor cards have tuned width/typography, and compact HUD resource cells use tighter icon/value/plus spacing.
 - Cat page is a full-screen DOM overlay with its own target-like top HUD, info, upgrade, skill, equipment, skin, bottom roster, equipment bag, and story entry.
 - Latest cat-page visual pass: overlay now uses the visible viewport instead of the overflowing 640px design canvas, applies a small top bleed to cover the underlying main HUD, uses stable HUD sizing that no longer stretches resource pills, and keeps the page readable at 360x800, 414x896, 430x932, and 768x1024.
@@ -41,6 +42,7 @@ Updated: 2026-06-25
 Latest verified UI commands:
 
 - `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`
+- `node .\tools\capture-main-regression.js`
 - `node .\tools\capture-cat-regression.js`
 - `node .\tools\verify-ui-clicks-playwright.js`
 

@@ -1,6 +1,6 @@
 # Handoff
 
-Updated: 2026-06-25
+Updated: 2026-06-28
 
 ## 90-Second Boot
 
@@ -24,6 +24,9 @@ Updated: 2026-06-25
 
 ## Latest UI Note
 
+- Main factory now uses `FATCATUI/assets/resources/textures/generated/factory_cutaway_bg_640.jpg` as the visible source of truth for roof and room art. Duplicate CSS floors, props, cats, pipes, and center KPI cards are intentionally hidden; keep the live left floor cards and combined right production/bonus cards.
+- The main building now spans roughly 16%-84% of the game viewport, and the compact bottom widgets use `19fr 11fr 35fr 34fr` proportions. The launch label is single-line at 360/414/430 widths.
+- Verified after this main-screen pass: `check-client-ts.ps1`, all four `capture-main-regression.js` sizes, Cocos asset refresh, and the full `verify-ui-clicks-playwright.js` flow.
 - Cat page fullscreen polish is in progress: it now lays out against the visible viewport, adds a small top bleed to cover the underlying main HUD, and renders its own top HUD.
 - Latest compact cat-page pass widened the info column, restored the single-line cat name badge below the HUD, trimmed portrait height for lower-panel space, and reduced compact resource-pill text/buttons so `M`/`K` suffixes remain visible.
 - The DOM UI uses the overlay root font-size as a design-height unit. For new normal-sized UI text inside that system, set a local percentage font-size on the container first, then use `em` or fixed pixel accents inside it.

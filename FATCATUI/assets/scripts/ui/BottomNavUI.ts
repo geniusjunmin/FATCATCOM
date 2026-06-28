@@ -891,6 +891,160 @@ export class BottomNavUI extends Component {
             #fatcat-dom-factory.wide .launch-count { left:34%; right:34%; bottom:12.8%; }
             #fatcat-dom-factory.wide .left-tools { left: 5%; }
             #fatcat-dom-factory.wide .right-tools { right: 5%; }
+
+            /* Let the generated cutaway carry the room art. The controls stay
+               separate so they remain sharp, responsive, and clickable. */
+            #fatcat-dom-factory .art-bg { background:linear-gradient(#bfe9ff 0 44%,#a8ca8c 100%); }
+            #fatcat-dom-factory .sky, #fatcat-dom-factory .town { display:none; }
+            #fatcat-dom-factory .factory-illustration,
+            #fatcat-dom-factory.compact .factory-illustration,
+            #fatcat-dom-factory.tall .factory-illustration,
+            #fatcat-dom-factory.wide .factory-illustration {
+                inset:0;
+                background-position:center top;
+                background-size:auto 92%;
+                opacity:1;
+                filter:saturate(1.08) contrast(1.04) brightness(1.01);
+            }
+            #fatcat-dom-factory .factory-illustration:after { display:none; }
+            #fatcat-dom-factory .roof-deck,
+            #fatcat-dom-factory .roof-crates,
+            #fatcat-dom-factory .sign-posts,
+            #fatcat-dom-factory .chimney,
+            #fatcat-dom-factory .roof-cat,
+            #fatcat-dom-factory .flag,
+            #fatcat-dom-factory .side-pipe,
+            #fatcat-dom-factory .ladder,
+            #fatcat-dom-factory .elevator-panel { display:none; }
+            #fatcat-dom-factory .sign {
+                left:24%;
+                top:8.2%;
+                width:43%;
+                height:6.7%;
+                border:0;
+                border-radius:0;
+                background:transparent;
+                box-shadow:none;
+                font-size:4.25%;
+                text-shadow:0 3px 0 #5a321b,0 0 5px rgba(255,223,150,.3);
+            }
+            #fatcat-dom-factory .sign:before,
+            #fatcat-dom-factory .sign:after { display:none; }
+            #fatcat-dom-factory .building,
+            #fatcat-dom-factory.compact .building,
+            #fatcat-dom-factory.tall .building {
+                left:6.2%;
+                right:6.2%;
+                top:16.4%;
+                bottom:16.4%;
+                border:0;
+                border-radius:0;
+                background:transparent;
+                box-shadow:none;
+                overflow:visible;
+            }
+            #fatcat-dom-factory.wide .building {
+                left:13%;
+                right:13%;
+                top:17%;
+                bottom:16%;
+            }
+            #fatcat-dom-factory .building:before,
+            #fatcat-dom-factory .building:after,
+            #fatcat-dom-factory .floor:before,
+            #fatcat-dom-factory .floor:after { display:none; }
+            #fatcat-dom-factory .floor,
+            #fatcat-dom-factory .floor:nth-child(odd) {
+                border:0;
+                background:transparent;
+                overflow:visible;
+            }
+            #fatcat-dom-factory .floor-glow,
+            #fatcat-dom-factory .room-lights,
+            #fatcat-dom-factory .wall-details,
+            #fatcat-dom-factory .room-decor,
+            #fatcat-dom-factory .room-foreground,
+            #fatcat-dom-factory .props,
+            #fatcat-dom-factory .prop-asset,
+            #fatcat-dom-factory .pipe,
+            #fatcat-dom-factory .cat,
+            #fatcat-dom-factory .worker-cats,
+            #fatcat-dom-factory .cat-dots,
+            #fatcat-dom-factory .floor-kpi { display:none; }
+            #fatcat-dom-factory .floor-card,
+            #fatcat-dom-factory.compact .floor-card {
+                left:10%;
+                top:21%;
+                width:24%;
+                height:52%;
+                grid-template-columns:38% 1fr;
+                border-radius:10px;
+                border-width:2px;
+                box-shadow:0 3px 0 rgba(0,0,0,.3),inset 0 0 0 2px rgba(255,255,255,.34);
+            }
+            #fatcat-dom-factory .floor-card:before,
+            #fatcat-dom-factory.compact .floor-card:before { width:38%; }
+            #fatcat-dom-factory .floor-no,
+            #fatcat-dom-factory.compact .floor-no { font-size:3.3%; }
+            #fatcat-dom-factory .floor-name,
+            #fatcat-dom-factory.compact .floor-name { font-size:1.45%; line-height:1.08; }
+            #fatcat-dom-factory .floor-name span,
+            #fatcat-dom-factory.compact .floor-name span { font-size:82%; margin-top:4%; }
+            #fatcat-dom-factory .floor-medal { display:none; }
+            #fatcat-dom-factory .bonus,
+            #fatcat-dom-factory.compact .bonus {
+                right:6%;
+                top:14%;
+                width:20.5%;
+                height:70%;
+                grid-template-columns:30% 1fr;
+                grid-template-rows:42% 25% 33%;
+                column-gap:5%;
+                padding:0 4%;
+                border-radius:10px;
+                border-width:2px;
+                font-size:1.25%;
+            }
+            #fatcat-dom-factory .bonus-icon { grid-row:1/4; width:90%; }
+            #fatcat-dom-factory .bonus strong {
+                color:#fff;
+                font-size:172%;
+                line-height:1;
+                align-self:end;
+                white-space:nowrap;
+                text-shadow:0 2px #141414;
+            }
+            #fatcat-dom-factory .bonus span {
+                align-self:center;
+                color:#f4d49a;
+                font-size:88%;
+                white-space:nowrap;
+            }
+            #fatcat-dom-factory .bonus b {
+                align-self:start;
+                color:#fff;
+                font-size:150%;
+                line-height:1;
+            }
+            #fatcat-dom-factory .bottom-widgets,
+            #fatcat-dom-factory.compact .bottom-widgets,
+            #fatcat-dom-factory.tall .bottom-widgets,
+            #fatcat-dom-factory.wide .bottom-widgets {
+                left:3%;
+                right:3%;
+                bottom:10.2%;
+                height:7.25%;
+                grid-template-columns:19fr 11fr 35fr 34fr;
+                gap:1.3%;
+            }
+            #fatcat-dom-factory.wide .bottom-widgets { left:9%; right:9%; }
+            #fatcat-dom-factory .launch { height:100%; font-size:4.1%; white-space:nowrap; }
+            #fatcat-dom-factory.compact .launch { font-size:3%; }
+            #fatcat-dom-factory.compact .rocket-shape { width:15%; margin-right:2%; }
+            #fatcat-dom-factory .launch-count,
+            #fatcat-dom-factory.wide .launch-count { bottom:8.35%; }
+            #fatcat-dom-factory .order .order-text { align-self:center; line-height:1.05; }
+            #fatcat-dom-factory .order .order-text b { margin-top:4%; }
         `;
         document.head.appendChild(style);
         overlay.addEventListener("pointerdown", this.onDomFactoryPointerDown);
@@ -961,15 +1115,14 @@ export class BottomNavUI extends Component {
                         <div class="cat cat-${floor.scene} ${index % 3 === 0 ? "a" : index % 3 === 1 ? "b" : "c"}"><div class="cat-sprite"><i class="cat-face"></i></div></div>
                         <div class="worker-cats ${floor.scene}">${this.renderFactoryWorkerCats(floor.scene)}</div>
                         <div class="floor-card"><div class="floor-no">${floor.no}</div><div class="floor-name">${floor.name}<span>Lv.${floor.lv}</span></div><div class="floor-medal">${floor.lv}</div></div>
-                        <div class="floor-kpi ${this.getFloorKpiIconClass(floor.scene)}"><i></i><div><strong>${this.getFloorOutputText(floor.scene)}</strong><span>${this.getFloorOutputLabel(floor.scene)}</span></div></div>
                         <div class="cat-dots"><span class="cat-dot"></span><span class="cat-dot gray"></span><span class="cat-dot black"></span></div>
-                        <div class="bonus"><i class="bonus-icon ${this.getFloorBonusIconClass(floor.scene)}"></i><span>${floor.bonus}</span><b>${floor.value}</b></div>
+                        <div class="bonus"><i class="bonus-icon ${this.getFloorBonusIconClass(floor.scene)}"></i><strong>${this.getFloorOutputText(floor.scene)}</strong><span>${floor.bonus}</span><b>${floor.value}</b></div>
                     </div>`).join("")}
             </div>
             <div class="left-tools"><button class="side-btn alert" data-action="tasks"><i class="ico-task"></i>任务</button></div>
             <div class="right-tools"><button class="side-btn alert" data-action="achievement"><i class="ico-trophy"></i>成就</button><button class="side-btn alert" data-action="mail"><i class="ico-mail"></i>邮件</button><button class="side-btn" data-action="friend"><i class="ico-friend"></i>好友</button><button class="side-btn" data-action="settings"><i class="ico-gear"></i>设置</button></div>
             <div class="bottom-widgets">
-                <button class="order" data-action="order"><span class="order-icon"></span>今日订单<b>56/60</b><span class="bar"><i></i></span></button>
+                <button class="order" data-action="order"><span class="order-icon"></span><span class="order-text">今日订单<b>56/60</b></span><span class="bar"><i></i></span></button>
                 <button class="chest" data-action="claim">可领取</button>
                 <button class="launch" data-action="launch"><span class="rocket-shape"></span>发射猫咪</button>
                 <button class="gift" data-action="gift"><span><b>超级猫粮礼包</b><br><em>03:25:15</em></span></button>
@@ -1107,23 +1260,6 @@ export class BottomNavUI extends Component {
         if (scene === "cafe") return `${this.formatNumber(Math.max(1, snapshot.coinPerSecond))}/秒`;
         if (scene === "mill") return `${this.formatNumber(Math.max(1, snapshot.coinPerSecond * 0.25))}/秒`;
         return `${this.formatNumber(Math.max(1, snapshot.coinPerSecond * 0.12))}/秒`;
-    }
-
-    private getFloorOutputLabel(scene: string): string {
-        if (scene === "storage") return "库存容量";
-        if (scene === "tank") return "咖啡豆消耗";
-        if (scene === "office") return "全局收益";
-        if (scene === "cafe") return "订单金币";
-        if (scene === "mill") return "咖啡价值";
-        return "原料产量";
-    }
-
-    private getFloorKpiIconClass(scene: string): string {
-        if (scene === "storage") return "kpi-storage";
-        if (scene === "tank") return "kpi-bean";
-        if (scene === "office") return "kpi-office";
-        if (scene === "mill" || scene === "roast") return "kpi-food";
-        return "kpi-coin";
     }
 
     private getFloorBonusIconClass(scene: string): string {
