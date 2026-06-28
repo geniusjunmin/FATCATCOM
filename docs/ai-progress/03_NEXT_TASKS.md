@@ -123,7 +123,9 @@ Keep these scripts in the regular set when touching related flows:
 - Latest compact pass: the info card/name badge now stays readable under the top HUD on 360/430px widths, compact portrait height is tighter, and the top resource pills retain `M`/`K` suffixes.
 - Done in latest generated-hero batch: `c_001` now uses a transparent, target-style chubby orange cafe cat; compact HUD pills are flatter, the hero uses target-like three-column proportions, switch arrows sit outside the stage, mood/feed placement is corrected, production/stats/weight sections align vertically, weight stages have cat silhouettes, story photo/button form a three-column card, and the non-target floating action strip is hidden.
 - Done in latest narrow-screen batch: under 390px the equipment bag folds away, the story card remains visible, and the roster is thinner and anchored at the bottom.
-- Next move: generate matching full-art variants for `c_002` through `c_005`, then tune wide/tablet cat-page density and final icon polish.
+- Done in latest lineup-art batch: `c_002` through `c_005` now have matching transparent painterly full art, are registered through `UiAssetRegistry.ts`, and are embedded by the DOM asset bridge.
+- Done in latest lineup regression batch: `tools/capture-cat-lineup.js` switches through all five cats at 430x932, saves one screenshot per cat, and fails on missing embedded art, console errors, or failed requests.
+- Next move: tune wide/tablet cat-page density and finish small HUD/equipment/role icon polish.
 - Done in latest cat-page batch: active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, raised active roster card, and command-strip layering fix.
 - Done in latest cat density batch: slimmer stats/weight rows, compact skill/equipment side-by-side layout, folded compact equipment detail rows, shorter story card, and clickable equipment upgrade above roster.
 - Done in latest cat texture batch: darker workshop depth, paper-grain cards, brighter portrait stage, larger center cat art, stronger story photo, thicker equipment cards, and raised roster cards.
@@ -134,7 +136,7 @@ Keep these scripts in the regular set when touching related flows:
 - If a missing illustration blocks fidelity, generate a local bitmap asset and save it under the Cocos asset tree.
 - Record generated asset path, prompt intent, and integration point in `04_HANDOFF.md`.
 - Verify the asset renders in the browser before considering the task done.
-- Strong candidates: matching full-art variants for the remaining cats and final small equipment/role icons.
+- Strong candidates: final small equipment/role icons and richer active/locked roster thumbnails.
 
 ## P2 Engineering Cleanup
 

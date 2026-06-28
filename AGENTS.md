@@ -18,6 +18,7 @@ This repository contains a Cocos Creator client and a .NET server.
 - `powershell -ExecutionPolicy Bypass -File ./tools/quick-verify.ps1`: run the baseline no-browser verification suite.
 - `node tools/capture-main-regression.js`: capture main screen regression screenshots.
 - `node tools/capture-cat-regression.js`: capture cat page regression screenshots.
+- `node tools/capture-cat-lineup.js`: cycle all five cats at 430x932 and verify their embedded hero art.
 - `node tools/verify-ui-clicks-playwright.js`: verify important UI click paths.
 - `node tools/generate-server-balance.js --check`: check client/server balance data drift.
 

@@ -34,6 +34,8 @@ Updated: 2026-06-28
 - Latest cat-page visual pass: overlay now uses the visible viewport instead of the overflowing 640px design canvas, applies a small top bleed to cover the underlying main HUD, uses stable HUD sizing that no longer stretches resource pills, and keeps the page readable at 360x800, 414x896, 430x932, and 768x1024.
 - Latest compact cat-page tuning: the mobile info card is wider, the cat name badge is single-line and no longer sits under the HUD, the center portrait was trimmed to preserve lower content, and compact resource pills now keep suffixes such as `M`/`K` visible.
 - Latest cat hero/art pass replaces `c_001`'s flat egg-shaped portrait with generated transparent `cat_hero_orange_v2.png`: a dimensional chubby orange cafe cat with green scarf and paw mug. The workshop art now carries the upper-page background, while the compact HUD, hero columns, mood/feed cards, production strip, stats, visual weight stages, story wall, and roster follow the target layout more closely.
+- The complete five-cat lineup now has matching generated full art: black launcher with red scarf/rocket badge, white ragdoll saver with blue scarf/jar, calico producer with plum scarf/dripper, and tuxedo support with teal scarf/star badge/ledger. All five use the same proportions and rendering language as the orange hero.
+- `tools/capture-cat-lineup.js` cycles `c_001` through `c_005` at 430x932, captures each state, and verifies every portrait is backed by an embedded PNG without failed requests or console errors.
 - At widths below 390px, the secondary equipment-bag row folds away so the story card and roster remain visible in the 360x800 first viewport.
 - Cat detail composition now has stronger target-UI cues: active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, paper/card texture, darker workshop depth, raised roster active card, and command-strip layering that no longer blocks equipment clicks.
 - Cat lower content density is improved: stats/weight rows are slimmer, skill and equipment cards sit side by side in compact mode, compact equipment details fold away, equipment/story cards have stronger paper and photo treatment, and the equipment upgrade button remains clickable above the roster.
@@ -46,6 +48,7 @@ Latest verified UI commands:
 - `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`
 - `node .\tools\capture-main-regression.js`
 - `node .\tools\capture-cat-regression.js`
+- `node .\tools\capture-cat-lineup.js`
 - `node .\tools\verify-ui-clicks-playwright.js`
 
 ## Client Networking
