@@ -37,6 +37,9 @@ Updated: 2026-06-28
 - The complete five-cat lineup now has matching generated full art: black launcher with red scarf/rocket badge, white ragdoll saver with blue scarf/jar, calico producer with plum scarf/dripper, and tuxedo support with teal scarf/star badge/ledger. All five use the same proportions and rendering language as the orange hero.
 - Latest shared-asset polish replaces CSS placeholder art in both top HUDs with the generated player portrait and resource icons. Cat stats use real bean/food/coin icons, weight stages reuse the selected cat art at three scales, and roster cards use the five full hero illustrations instead of the legacy three-thumb bridge.
 - Main-screen polish now uses the tuxedo cat illustration in the super-food gift card and adds a dedicated <=390px layout for readable side tools, order progress, gift text, and launch controls.
+- Latest navigation-proportion pass reduces the main bottom nav from roughly 10% to 7.2-7.4% of the visible canvas, moves the operation cards and factory base down with it, and synchronizes all invisible click hotspots to the new positions. The factory now occupies more of the first viewport and matches the target composition more closely.
+- Main right-side achievement/mail/friend/settings buttons now use generated local feature art. The bottom cat entry uses the orange hero illustration while factory/building/shop/inventory/research retain their clearer target-like semantic silhouettes.
+- Cat skill/focus art and equipment icons are larger in compact, wide, and tablet layouts; equipment names have a dedicated single-line label so the target-like item cards stay readable.
 - The unused `GeneratedCatThumbAssets` registry and three legacy thumb entries were removed from the DOM Data URI generator, reducing duplicated embedded art while preserving the physical source files.
 - `tools/capture-cat-lineup.js` cycles `c_001` through `c_005` at 430x932, captures each state, and verifies every portrait is backed by an embedded PNG without failed requests or console errors.
 - At widths below 390px, the secondary equipment-bag row folds away so the story card and roster remain visible in the 360x800 first viewport.
@@ -196,6 +199,7 @@ Latest verified checks:
 - `node tools\capture-main-regression.js`: passed for all four target sizes.
 - `node tools\capture-cat-regression.js`: passed for all four target sizes.
 - 2026-06-28 final icon/roster pass: main and cat screenshot regressions passed at 414x896, 430x932, 360x800, and 768x1024; all five lineup captures used embedded PNG art; all 18 UI click steps passed; browser open/close checks had no console errors; `tools/quick-verify.ps1` passed with 63/63 server tests.
+- 2026-06-28 navigation/equipment pass: four-size main regression, four-size cat regression, all 18 UI click steps, focused TypeScript diagnostics, and `tools/quick-verify.ps1` passed after the shorter nav, moved action strip/hotspots, generated side icons, larger equipment art, and single-line equipment labels.
 - `node tools\check-launch-production-preview-online.js`: passed and asserts `/api/production/server-preview` before `/api/launch`; online launch showed net production around 224/sec after the 105% mood multiplier.
 - `node tools\check-cat-upgrade-online.js`: passed.
 - `node tools\check-cat-feed-online.js`: passed.

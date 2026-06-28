@@ -370,11 +370,12 @@ export class BottomNavUI extends Component {
 
         const bottomNavNames = new Set(["factory", "cats", "buildings", "shop", "inventory", "research"]);
         if (bottomNavNames.has(name)) {
-            return { cx, cy: 0.948, w: Math.min(0.145, w * 1.08), h: Math.min(0.09, h * 1.08) };
+            return { cx, cy: 0.96, w: Math.min(0.145, w * 1.08), h: Math.min(0.075, h) };
         }
-        if (name === "launch") return { cx, cy: 0.846, w: Math.min(0.30, w * 1.12), h: Math.min(0.10, h * 1.08) };
-        if (name === "order") return { cx: 0.105, cy, w: Math.min(0.18, w * 1.08), h };
-        if (name === "gift") return { cx: 0.805, cy, w: Math.min(0.27, w * 1.04), h };
+        if (name === "launch") return { cx, cy: 0.886, w: Math.min(0.30, w * 1.12), h: Math.min(0.09, h) };
+        if (name === "order") return { cx: 0.105, cy: 0.886, w: Math.min(0.18, w * 1.08), h };
+        if (name === "claim chest") return { cx, cy: 0.886, w, h };
+        if (name === "gift") return { cx: 0.805, cy: 0.886, w: Math.min(0.27, w * 1.04), h };
         if (name === "tasks") return { cx: 0.052, cy: 0.205, w: Math.min(0.09, w * 1.1), h };
         if (name === "achievements" || name === "mail" || name === "friends" || name === "settings") {
             return { cx: 0.948, cy, w: Math.min(0.09, w * 1.1), h };
@@ -792,6 +793,18 @@ export class BottomNavUI extends Component {
             #fatcat-dom-factory .side-btn.alert:after { content:attr(data-badge); position:absolute; right:-8%; top:-7%; min-width:30%; padding:0 5%; aspect-ratio:1; border-radius:50%; background:linear-gradient(#ff7141,#d83d22); color:white; border:2px solid #ffd9a8; display:flex; align-items:center; justify-content:center; font-size:1.75%; box-shadow:0 3px 0 rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.28); box-sizing:border-box; }
             #fatcat-dom-factory .side-btn i { position:relative; font-style: normal; font-size: 0; line-height: 1; width: 48%; aspect-ratio: 1; border-radius: 11px; background: radial-gradient(circle at 50% 8%, rgba(255,255,255,.32), transparent 30%), linear-gradient(#fff0cf,#d7b174); color: #5a3c27; display: flex; align-items: center; justify-content: center; margin-bottom: 7%; box-shadow:inset 0 0 0 2px rgba(82,52,29,.22), 0 3px 0 rgba(46,29,18,.22); }
             #fatcat-dom-factory .side-btn i:before, #fatcat-dom-factory .side-btn i:after { content:""; position:absolute; }
+            #fatcat-dom-factory .side-btn i.asset {
+                width:58%;
+                border-radius:0;
+                background-color:transparent;
+                background-position:center;
+                background-size:contain;
+                background-repeat:no-repeat;
+                box-shadow:none;
+                filter:drop-shadow(0 2px 0 rgba(0,0,0,.28));
+            }
+            #fatcat-dom-factory .side-btn i.asset:before,
+            #fatcat-dom-factory .side-btn i.asset:after { display:none !important; }
             #fatcat-dom-factory .ico-task:before { left:25%; top:22%; width:50%; height:58%; border-radius:4px; background:#8b6034; box-shadow:inset 0 0 0 2px #674521; }
             #fatcat-dom-factory .ico-task:after { left:34%; top:38%; width:32%; height:5%; border-radius:99px; background:#fff0c8; box-shadow:0 10px 0 #fff0c8, 0 20px 0 #fff0c8; }
             #fatcat-dom-factory .ico-trophy:before { left:22%; top:22%; width:56%; height:42%; border-radius:8px 8px 18px 18px; background:#d89a25; box-shadow:inset 0 0 0 3px #8b5c16; }
@@ -834,7 +847,7 @@ export class BottomNavUI extends Component {
                 box-shadow:none;
             }
             #fatcat-dom-factory .gift-cat.asset:after { display:none; }
-            #fatcat-dom-factory .gift b { color:#5f351d; font-size:110%; }
+            #fatcat-dom-factory .gift b { color:#5f351d; font-size:100%; }
             #fatcat-dom-factory .gift em { display:inline-block; margin-top:2%; padding:1% 6%; border-radius:999px; background:#5a3924; color:#ffe0a1; font-style:normal; font-size:86%; }
             #fatcat-dom-factory .launch-count { position: absolute; left: 31.0%; right: 31.0%; bottom: 13.0%; height: 2.45%; border-radius: 999px; background: linear-gradient(#7a4d27,#4e2e18); border: 2px solid #c1863d; color: #ffd26f; display: flex; align-items: center; justify-content: center; font-size: 1.78%; font-weight: 900; box-shadow: 0 3px 0 rgba(0,0,0,.36), inset 0 0 0 1px rgba(255,225,150,.18); }
             #fatcat-dom-factory .factory-msg { position: absolute; left: 21%; top: 79%; width: 58%; min-height: 3.8%; border-radius: 999px; background: rgba(52,35,24,.9); color: #ffe6b5; display: flex; align-items: center; justify-content: center; font-size: 2.4%; font-weight: 900; box-shadow: 0 2px 0 rgba(0,0,0,.3); }
@@ -946,7 +959,7 @@ export class BottomNavUI extends Component {
                 left:6.2%;
                 right:6.2%;
                 top:16.4%;
-                bottom:16.4%;
+                bottom:15%;
                 border:0;
                 border-radius:0;
                 background:transparent;
@@ -957,7 +970,7 @@ export class BottomNavUI extends Component {
                 left:13%;
                 right:13%;
                 top:17%;
-                bottom:16%;
+                bottom:14.6%;
             }
             #fatcat-dom-factory .building:before,
             #fatcat-dom-factory .building:after,
@@ -1042,7 +1055,7 @@ export class BottomNavUI extends Component {
             #fatcat-dom-factory.wide .bottom-widgets {
                 left:3%;
                 right:3%;
-                bottom:10.2%;
+                bottom:7.8%;
                 height:7.25%;
                 grid-template-columns:19fr 11fr 35fr 34fr;
                 gap:1.3%;
@@ -1052,7 +1065,7 @@ export class BottomNavUI extends Component {
             #fatcat-dom-factory.compact .launch { font-size:3%; }
             #fatcat-dom-factory.compact .rocket-shape { width:15%; margin-right:2%; }
             #fatcat-dom-factory .launch-count,
-            #fatcat-dom-factory.wide .launch-count { bottom:8.35%; }
+            #fatcat-dom-factory.wide .launch-count { bottom:6.1%; }
             #fatcat-dom-factory .order .order-text { align-self:center; line-height:1.05; }
             #fatcat-dom-factory .order .order-text b { margin-top:4%; }
             @media (max-width:390px) {
@@ -1083,9 +1096,10 @@ export class BottomNavUI extends Component {
                     grid-template-columns:34% 1fr;
                     gap:1%;
                     padding:0 2%;
-                    font-size:1.34%;
+                    font-size:1.15%;
+                    line-height:1;
                 }
-                #fatcat-dom-factory .gift em { padding:1% 3%; font-size:78%; }
+                #fatcat-dom-factory .gift em { padding:1% 3%; font-size:72%; }
                 #fatcat-dom-factory.compact .launch {
                     border-width:3px;
                     font-size:2.7%;
@@ -1166,7 +1180,7 @@ export class BottomNavUI extends Component {
                     </div>`).join("")}
             </div>
             <div class="left-tools"><button class="side-btn alert" data-action="tasks"><i class="ico-task"></i>任务</button></div>
-            <div class="right-tools"><button class="side-btn alert" data-action="achievement"><i class="ico-trophy"></i>成就</button><button class="side-btn alert" data-action="mail"><i class="ico-mail"></i>邮件</button><button class="side-btn" data-action="friend"><i class="ico-friend"></i>好友</button><button class="side-btn" data-action="settings"><i class="ico-gear"></i>设置</button></div>
+            <div class="right-tools"><button class="side-btn alert" data-action="achievement"><i class="ico-trophy asset" style="background-image:url('${this.getFeatureIconAsset("achievement")}')"></i>成就</button><button class="side-btn alert" data-action="mail"><i class="ico-mail asset" style="background-image:url('${this.getFeatureIconAsset("mail")}')"></i>邮件</button><button class="side-btn" data-action="friend"><i class="ico-friend asset" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></i>好友</button><button class="side-btn" data-action="settings"><i class="ico-gear asset" style="background-image:url('${this.getFeatureIconAsset("settings")}')"></i>设置</button></div>
             <div class="bottom-widgets">
                 <button class="order" data-action="order"><span class="order-icon"></span><span class="order-text">今日订单<b>56/60</b></span><span class="bar"><i></i></span></button>
                 <button class="chest" data-action="claim">可领取</button>
@@ -2858,7 +2872,7 @@ export class BottomNavUI extends Component {
         const style = document.createElement("style");
         style.textContent = `
             #fatcat-dom-nav { position: fixed; z-index: 2147483100; pointer-events: none; font-family: Arial, sans-serif; color: #fff4d8; }
-            #fatcat-dom-nav .nav-bar { position: absolute; left: 2.7%; right: 2.7%; bottom: .55%; height: 9.65%; border-radius: 21px; background: radial-gradient(circle at 50% 0, rgba(255,228,170,.2), transparent 36%), linear-gradient(#6b5545, #30241d); border: 3px solid #8a6a50; box-shadow: 0 -2px 0 rgba(255,255,255,.1) inset, 0 7px 0 rgba(0,0,0,.42), inset 0 0 0 2px rgba(255,224,170,.08); display: grid; grid-template-columns: 1.15fr repeat(5, 1fr); gap: 1.0%; padding: .8%; box-sizing: border-box; }
+            #fatcat-dom-nav .nav-bar { position: absolute; left: 2.7%; right: 2.7%; bottom: .55%; height: 7.2%; border-radius: 17px; background: radial-gradient(circle at 50% 0, rgba(255,228,170,.2), transparent 36%), linear-gradient(#6b5545, #30241d); border: 3px solid #8a6a50; box-shadow: 0 -2px 0 rgba(255,255,255,.1) inset, 0 7px 0 rgba(0,0,0,.42), inset 0 0 0 2px rgba(255,224,170,.08); display: grid; grid-template-columns: 1.15fr repeat(5, 1fr); gap: 1.0%; padding: .55%; box-sizing: border-box; }
             #fatcat-dom-nav .nav-item { position: relative; border:0; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4%; color: #f7e3c1; font-family:inherit; font-weight: 900; font-size: 2.18%; text-shadow: 0 2px 0 rgba(0,0,0,.38); background:radial-gradient(circle at 50% 0, rgba(255,236,188,.08), transparent 38%), rgba(255,224,180,.05); box-shadow:inset 0 0 0 1px rgba(255,231,190,.1), 0 2px 0 rgba(0,0,0,.18); cursor:pointer; pointer-events:auto; padding:0; touch-action:manipulation; }
             #fatcat-dom-nav .nav-item.active { background: radial-gradient(circle at 50% 0, rgba(255,244,190,.45), transparent 40%), linear-gradient(#f6a334, #c86418); color: white; box-shadow: inset 0 0 0 3px rgba(255,226,159,.3), 0 5px 0 rgba(0,0,0,.34); }
             #fatcat-dom-nav .nav-item.active:before { content:""; position:absolute; left:12%; right:12%; bottom:-8%; height:12%; border-radius:999px; background:#7a431b; box-shadow:0 2px 0 rgba(0,0,0,.3); }
@@ -2877,11 +2891,31 @@ export class BottomNavUI extends Component {
             #fatcat-dom-nav .ico-research::before { content: ""; position: absolute; left: 37%; right: 37%; top: 19%; height: 24%; border-radius: 3px; background: #d8eee2; box-shadow: inset 0 0 0 2px #5c756b; }
             #fatcat-dom-nav .ico-research::after { content: ""; position: absolute; left: 25%; right: 25%; bottom: 18%; height: 42%; border-radius: 0 0 18px 18px; background: linear-gradient(#d8eee2 0 36%, #58a684 37%); box-shadow: inset 0 0 0 2px #5c756b; }
             #fatcat-dom-nav .badge { position: absolute; top: -3%; right: 13%; width: 22%; aspect-ratio: 1; border-radius: 50%; background: linear-gradient(#ff6a36,#d83c1f); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.65%; border: 2px solid #ffd2a6; box-shadow: 0 3px 0 rgba(0,0,0,.36); z-index:2; }
-            #fatcat-dom-nav.compact .nav-bar { left: 1.2%; right: 1.2%; height: 10.0%; gap: .6%; padding: .65%; }
+            #fatcat-dom-nav.compact .nav-bar { left: 1.2%; right: 1.2%; height: 7.4%; gap: .6%; padding: .5%; }
             #fatcat-dom-nav.compact .nav-item { font-size: 1.98%; border-radius: 12px; }
-            #fatcat-dom-nav.compact .nav-icon { width: 44%; }
+            #fatcat-dom-nav.compact .nav-icon { width: 54%; }
             #fatcat-dom-nav.compact .badge { width: 20%; right: 10%; }
             #fatcat-dom-nav.wide .nav-bar { left: 14%; right: 14%; }
+            #fatcat-dom-nav .nav-icon.asset {
+                width:58%;
+                border-radius:0;
+                background-color:transparent;
+                background-position:center;
+                background-size:contain;
+                background-repeat:no-repeat;
+                box-shadow:none;
+                overflow:visible;
+                filter:drop-shadow(0 3px 0 rgba(39,24,15,.28));
+            }
+            #fatcat-dom-nav .nav-icon.asset:before,
+            #fatcat-dom-nav .nav-icon.asset:after { display:none !important; }
+            #fatcat-dom-nav .nav-icon.asset.ico-cats {
+                background-position:center 30%;
+                background-size:165%;
+            }
+            #fatcat-dom-nav .nav-icon.asset.ico-factory,
+            #fatcat-dom-nav .nav-icon.asset.ico-building { background-size:140%; }
+            #fatcat-dom-nav.compact .nav-icon.asset { width:55%; }
         `;
         document.head.appendChild(style);
         overlay.addEventListener("pointerdown", this.onDomNavPointerDown);
@@ -2937,7 +2971,7 @@ export class BottomNavUI extends Component {
         overlay.innerHTML = `<div class="nav-bar">${navItems.map((item) => `
             <button type="button" class="nav-item ${this.currentPanel === item.id ? "active" : ""}" data-panel="${item.id}">
                 ${item.badge ? `<div class="badge">${item.badge}</div>` : ""}
-                <div class="nav-icon ${item.iconClass}"></div>
+                <div class="nav-icon ${item.id === "cats" ? "asset" : ""} ${item.iconClass}" ${item.id === "cats" ? `style="background-image:url('${this.getCatFullArtAsset("c_001")}')"` : ""}></div>
                 <div class="nav-label">${item.label}</div>
             </button>`).join("")}</div>`;
         this.layoutDomNavOverlay();
@@ -3129,7 +3163,7 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay .upgrade { display:inline-block; margin-top:4%; padding:3% 12%; border-radius:999px; background:#70a845; color:white; font-weight:900; }
             #fatcat-dom-cat-overlay .focus-tag { display:inline-block; margin:2% 2% 0 0; padding:1.8% 6%; border-radius:999px; background:rgba(91,57,31,.12); color:#6a3e22; font-weight:900; }
             #fatcat-dom-cat-overlay .focus-card { display:grid; grid-template-columns:27% 1fr; gap:4%; align-items:center; padding:1.5%; border-radius:12px; background:rgba(255,248,226,.34); box-shadow:inset 0 0 0 1px rgba(111,78,45,.12); }
-            #fatcat-dom-cat-overlay .focus-icon { width:100%; aspect-ratio:1; border-radius:14px; background:center/contain no-repeat; box-shadow:inset 0 0 0 2px rgba(106,72,40,.18), 0 3px 0 rgba(78,47,26,.18); }
+            #fatcat-dom-cat-overlay .focus-icon { width:100%; aspect-ratio:1; border-radius:14px; background:center/118% no-repeat; box-shadow:inset 0 0 0 2px rgba(106,72,40,.18), 0 3px 0 rgba(78,47,26,.18); }
             #fatcat-dom-cat-overlay .focus-actions { display:flex; flex-wrap:wrap; gap:2%; margin-top:2.7%; }
             #fatcat-dom-cat-overlay .mini-action { padding:1.9% 7%; border-radius:999px; background:linear-gradient(#f2c66a,#d88b2b); color:#5a351d; font-weight:900; box-shadow:0 3px 0 rgba(111,64,24,.28), inset 0 0 0 2px rgba(255,244,202,.22); }
             #fatcat-dom-cat-overlay .mini-action.green { background:linear-gradient(#8ac05a,#4e8c34); color:#fff; text-shadow:0 1px rgba(53,85,29,.55); }
@@ -3142,6 +3176,13 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay .equip-slot.selected { background:linear-gradient(#fff1bd,#e0a33e); box-shadow:0 0 0 3px rgba(241,173,48,.52) inset, 0 0 12px rgba(241,173,48,.34); }
             #fatcat-dom-cat-overlay .equip-slot small { font-size:76%; color:#725139; }
             #fatcat-dom-cat-overlay .equip-slot em { font-style:normal; color:#6d4728; }
+            #fatcat-dom-cat-overlay .equip-name {
+                display:block;
+                max-width:96%;
+                white-space:nowrap;
+                font-size:92%;
+                line-height:1.05;
+            }
             #fatcat-dom-cat-overlay .equip-row .locked { filter: grayscale(1); opacity:.65; }
             #fatcat-dom-cat-overlay .equip-bag { margin-top:1.2%; padding:1.0%; border-radius:12px; background:rgba(255,246,224,.48); box-shadow:inset 0 0 0 1px rgba(112,78,44,.13); }
             #fatcat-dom-cat-overlay .equip-bag strong { display:block; margin-bottom:1%; color:#6a4328; }
@@ -3233,13 +3274,13 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay.compact .cat-weight { font-size: 2.05%; padding: 1.8%; }
             #fatcat-dom-cat-overlay.compact .cat-grid { grid-template-columns: 38% 1fr; gap: 1.0%; }
             #fatcat-dom-cat-overlay.compact .cat-grid > div { min-height: 106px; font-size: 1.58%; padding: 1.35%; line-height:1.18; }
-            #fatcat-dom-cat-overlay.compact .focus-card { grid-template-columns:24% 1fr; gap:2.6%; padding:1.1%; }
+            #fatcat-dom-cat-overlay.compact .focus-card { grid-template-columns:31% 1fr; gap:2.6%; padding:1.1%; }
             #fatcat-dom-cat-overlay.compact .focus-tag { padding:1.2% 4.2%; margin-top:1.4%; }
             #fatcat-dom-cat-overlay.compact .mini-action { padding:1.4% 5.5%; }
             #fatcat-dom-cat-overlay.compact .equip-row { gap:.8%; margin-top:.8%; }
             #fatcat-dom-cat-overlay.compact .equip-slot { min-height: 58px; border-radius:9px; font-size:86%; }
             #fatcat-dom-cat-overlay.compact .equip-slot small { font-size:64%; }
-            #fatcat-dom-cat-overlay.compact .equip-icon { width:34%; margin-bottom:2%; }
+            #fatcat-dom-cat-overlay.compact .equip-icon { width:48%; margin-bottom:1%; }
             #fatcat-dom-cat-overlay.compact .equip-bag { margin-top:.8%; padding:.8%; }
             #fatcat-dom-cat-overlay.compact .equip-pack { min-height:44px; padding:1.8%; font-size:82%; }
             #fatcat-dom-cat-overlay.compact .equip-pack small { font-size:68%; }
@@ -3273,7 +3314,7 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay.wide .equip-row { gap:1%; margin-top:1%; }
             #fatcat-dom-cat-overlay.wide .equip-slot { min-height:46px; }
             #fatcat-dom-cat-overlay.wide .equip-bag { display:none; }
-            #fatcat-dom-cat-overlay.wide .equip-icon { width:28%; margin-bottom:2%; }
+            #fatcat-dom-cat-overlay.wide .equip-icon { width:42%; margin-bottom:1%; }
             #fatcat-dom-cat-overlay.wide .cat-story { display:none; }
             #fatcat-dom-cat-overlay.wide .cat-msg { bottom:16.1%; }
             #fatcat-dom-cat-overlay.wide .cat-roster-label { display:none; }
@@ -3760,7 +3801,7 @@ export class BottomNavUI extends Component {
                 height:98px;
                 font-size:82%;
             }
-            #fatcat-dom-cat-overlay.tablet .equip-icon { width:30%; margin-bottom:2%; }
+            #fatcat-dom-cat-overlay.tablet .equip-icon { width:48%; margin-bottom:1%; }
             #fatcat-dom-cat-overlay.tablet .equip-upgrade { min-height:28px; margin-top:.7%; }
             #fatcat-dom-cat-overlay.tablet .cat-story {
                 display:grid;
@@ -4048,7 +4089,7 @@ export class BottomNavUI extends Component {
             const equipped = this.getEquipDefinition(equipment[item.slot]);
             const equipLevel = CatManager.getEquipmentLevel(catId, equipped.id);
             const maxLevel = equipped.levelMax ?? 5;
-            return `<button class="equip-slot ${active}" data-action="equipItem" data-slot="${item.slot}" data-id="${catId}"><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset(equipped.kind)}')"></i>${equipped.name}<br><em>${equipped.rarity} Lv.${equipLevel}/${maxLevel}</em><small>${equipped.bonus}</small></button>`;
+            return `<button class="equip-slot ${active}" data-action="equipItem" data-slot="${item.slot}" data-id="${catId}"><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset(equipped.kind)}')"></i><span class="equip-name">${equipped.name}</span><em>${equipped.rarity} Lv.${equipLevel}/${maxLevel}</em><small>${equipped.bonus}</small></button>`;
         }).join("");
         const backpack = this.getEquipOptions(this._selectedEquipSlot).map(item => {
             const active = this._selectedEquipSlot === item.slot ? "ready" : "";
@@ -4062,7 +4103,7 @@ export class BottomNavUI extends Component {
         const upgradeLabel = upgradeState.isMax ? "已满级" : upgradeState.canAfford ? "升级装备" : "金币不足";
         const upgradeDisabled = upgradeState.isMax || !upgradeState.canAfford;
         const nextText = upgradeState.isMax ? "已达上限" : `Lv.${upgradeState.nextLevel}/${upgradeState.maxLevel}`;
-        return `<div class="equip-row">${row}<button class="equip-slot locked"><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset("lock")}')"></i>饰品槽<br><em>30级解锁</em><small>等待开放</small></button></div><div class="equip-bag"><strong>装备背包</strong><div>${backpack}</div><div class="equip-upgrade-info"><span>当前等级<b>Lv.${upgradeState.level}/${upgradeState.maxLevel}</b></span><span>下级预览<b>${nextText}</b></span><span>升级消耗<b>${upgradeState.cost} 金币</b></span></div><div class="equip-effect-info"><span>当前加成<b>${upgradeState.currentEffect}</b></span><span>下级加成<b>${upgradeState.nextEffect}</b></span></div><button class="equip-upgrade ${upgradeDisabled ? "disabled" : ""}" data-action="upgradeEquip" data-slot="${this._selectedEquipSlot}" data-id="${catId}" ${upgradeDisabled ? "disabled" : ""}>${upgradeLabel}</button></div>`;
+        return `<div class="equip-row">${row}<button class="equip-slot locked"><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset("lock")}')"></i><span class="equip-name">饰品槽</span><em>30级解锁</em><small>等待开放</small></button></div><div class="equip-bag"><strong>装备背包</strong><div>${backpack}</div><div class="equip-upgrade-info"><span>当前等级<b>Lv.${upgradeState.level}/${upgradeState.maxLevel}</b></span><span>下级预览<b>${nextText}</b></span><span>升级消耗<b>${upgradeState.cost} 金币</b></span></div><div class="equip-effect-info"><span>当前加成<b>${upgradeState.currentEffect}</b></span><span>下级加成<b>${upgradeState.nextEffect}</b></span></div><button class="equip-upgrade ${upgradeDisabled ? "disabled" : ""}" data-action="upgradeEquip" data-slot="${this._selectedEquipSlot}" data-id="${catId}" ${upgradeDisabled ? "disabled" : ""}>${upgradeLabel}</button></div>`;
     }
 
     private getEquipDefinition(itemId = ""): { id: string; slot: string; kind: string; name: string; rarity: string; bonus: string; levelMax?: number; upgradeCost?: number; source?: string; effects?: Array<{ label: string; baseValue: number; perLevel?: number; unit?: string }> } {
