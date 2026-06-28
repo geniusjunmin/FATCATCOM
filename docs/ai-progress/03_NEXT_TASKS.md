@@ -126,7 +126,9 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest lineup-art batch: `c_002` through `c_005` now have matching transparent painterly full art, are registered through `UiAssetRegistry.ts`, and are embedded by the DOM asset bridge.
 - Done in latest lineup regression batch: `tools/capture-cat-lineup.js` switches through all five cats at 430x932, saves one screenshot per cat, and fails on missing embedded art, console errors, or failed requests.
 - Done in latest tablet batch: `applyResponsiveClasses()` exposes a visible-width `tablet` class, and the 768x1024 cat page now has a flatter HUD, compact hero/status cards, fixed-height equipment slots, restored story card, nonrepeating story photo, and a roster that no longer covers equipment.
-- Next move: finish small HUD/equipment/role icon polish, then compare the remaining generic panels against their target visual language.
+- Done in latest shared-asset batch: main/cat HUDs use generated player/resource art, cat stats use generated item icons, weight stages reuse real selected-cat art, roster cards use all five full hero illustrations, and the obsolete three-thumb Data URI bridge is removed.
+- Done in latest narrow-main batch: the gift card uses the tuxedo hero art and <=390px layouts keep side tools, order, gift, and launch controls readable.
+- Next move: compare the remaining generic panels against the target visual language, then perform final main/cat micro-alignment from fresh screenshots.
 - Done in latest cat-page batch: active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, raised active roster card, and command-strip layering fix.
 - Done in latest cat density batch: slimmer stats/weight rows, compact skill/equipment side-by-side layout, folded compact equipment detail rows, shorter story card, and clickable equipment upgrade above roster.
 - Done in latest cat texture batch: darker workshop depth, paper-grain cards, brighter portrait stage, larger center cat art, stronger story photo, thicker equipment cards, and raised roster cards.

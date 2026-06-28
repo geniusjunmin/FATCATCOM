@@ -18,7 +18,7 @@ import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
 import { DomAssetDataUris } from "./DomAssetDataUris";
 import { FactoryPropDataUris } from "./FactoryPropDataUris";
-import { GeneratedBackgroundAssets, GeneratedCatFullArtAssets, GeneratedCatThumbAssets, GeneratedFeatureIconAssets, GeneratedItemIconAssets, GeneratedSkillIconAssets } from "./UiAssetRegistry";
+import { GeneratedBackgroundAssets, GeneratedCatFullArtAssets, GeneratedFeatureIconAssets, GeneratedItemIconAssets, GeneratedSkillIconAssets } from "./UiAssetRegistry";
 
 const { ccclass, property } = _decorator;
 
@@ -824,6 +824,16 @@ export class BottomNavUI extends Component {
             #fatcat-dom-factory .gift:before { content:""; position:relative; width:100%; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle at 34% 45%,#3d281d 0 5%,transparent 6%), radial-gradient(circle at 66% 45%,#3d281d 0 5%,transparent 6%), linear-gradient(#b9c2c7,#69777f); box-shadow:-9px -7px 0 -5px #3d3d3d, 9px -7px 0 -5px #3d3d3d, inset 7px -3px 0 rgba(255,255,255,.22), 0 3px 0 rgba(0,0,0,.2); }
             #fatcat-dom-factory .gift-cat { position:relative; width:100%; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle at 34% 45%,#3d281d 0 5%,transparent 6%), radial-gradient(circle at 66% 45%,#3d281d 0 5%,transparent 6%), linear-gradient(#b9c2c7,#69777f); box-shadow:-9px -7px 0 -5px #3d3d3d, 9px -7px 0 -5px #3d3d3d, inset 7px -3px 0 rgba(255,255,255,.22), 0 3px 0 rgba(0,0,0,.2); }
             #fatcat-dom-factory .gift-cat:after { content:""; position:absolute; left:24%; right:24%; bottom:-12%; height:22%; border-radius:999px; background:#6d482b; box-shadow:inset 0 0 0 2px rgba(255,225,168,.18); }
+            #fatcat-dom-factory .gift:before { display:none; }
+            #fatcat-dom-factory .gift-cat.asset {
+                border-radius:0;
+                background-color:transparent;
+                background-position:center;
+                background-size:145%;
+                background-repeat:no-repeat;
+                box-shadow:none;
+            }
+            #fatcat-dom-factory .gift-cat.asset:after { display:none; }
             #fatcat-dom-factory .gift b { color:#5f351d; font-size:110%; }
             #fatcat-dom-factory .gift em { display:inline-block; margin-top:2%; padding:1% 6%; border-radius:999px; background:#5a3924; color:#ffe0a1; font-style:normal; font-size:86%; }
             #fatcat-dom-factory .launch-count { position: absolute; left: 31.0%; right: 31.0%; bottom: 13.0%; height: 2.45%; border-radius: 999px; background: linear-gradient(#7a4d27,#4e2e18); border: 2px solid #c1863d; color: #ffd26f; display: flex; align-items: center; justify-content: center; font-size: 1.78%; font-weight: 900; box-shadow: 0 3px 0 rgba(0,0,0,.36), inset 0 0 0 1px rgba(255,225,150,.18); }
@@ -1045,6 +1055,42 @@ export class BottomNavUI extends Component {
             #fatcat-dom-factory.wide .launch-count { bottom:8.35%; }
             #fatcat-dom-factory .order .order-text { align-self:center; line-height:1.05; }
             #fatcat-dom-factory .order .order-text b { margin-top:4%; }
+            @media (max-width:390px) {
+                #fatcat-dom-factory .side-btn {
+                    min-height:50px;
+                    font-size:1.42%;
+                    white-space:nowrap;
+                }
+                #fatcat-dom-factory .side-btn i {
+                    width:35%;
+                    margin-bottom:2%;
+                }
+                #fatcat-dom-factory .bottom-widgets,
+                #fatcat-dom-factory.compact .bottom-widgets,
+                #fatcat-dom-factory.tall .bottom-widgets {
+                    grid-template-columns:20fr 10fr 42fr 26fr;
+                    gap:.8%;
+                }
+                #fatcat-dom-factory .order {
+                    grid-template-columns:1fr;
+                    grid-template-rows:1fr 22%;
+                    gap:0;
+                    padding:3% 5%;
+                    text-align:center;
+                }
+                #fatcat-dom-factory .order .order-icon { display:none; }
+                #fatcat-dom-factory .gift {
+                    grid-template-columns:34% 1fr;
+                    gap:1%;
+                    padding:0 2%;
+                    font-size:1.34%;
+                }
+                #fatcat-dom-factory .gift em { padding:1% 3%; font-size:78%; }
+                #fatcat-dom-factory.compact .launch {
+                    border-width:3px;
+                    font-size:2.7%;
+                }
+            }
         `;
         document.head.appendChild(style);
         overlay.addEventListener("pointerdown", this.onDomFactoryPointerDown);
@@ -1125,7 +1171,7 @@ export class BottomNavUI extends Component {
                 <button class="order" data-action="order"><span class="order-icon"></span><span class="order-text">今日订单<b>56/60</b></span><span class="bar"><i></i></span></button>
                 <button class="chest" data-action="claim">可领取</button>
                 <button class="launch" data-action="launch"><span class="rocket-shape"></span>发射猫咪</button>
-                <button class="gift" data-action="gift"><span><b>超级猫粮礼包</b><br><em>03:25:15</em></span></button>
+                <button class="gift" data-action="gift"><span class="gift-cat asset" style="background-image:url('${this.getCatFullArtAsset("c_005")}')"></span><span><b>超级猫粮礼包</b><br><em>03:25:15</em></span></button>
             </div>
             <div class="launch-count">今日剩余次数：5/5</div>
             ${this._factoryMessage ? `<div class="factory-msg">${this._factoryMessage}</div>` : ""}
@@ -2726,6 +2772,26 @@ export class BottomNavUI extends Component {
             #fatcat-dom-hud.wide .res { min-height:39px; height:4.75%; grid-template-columns:24% minmax(0,1fr) 18%; }
             #fatcat-dom-hud.wide .value { font-size:1.86%; }
             #fatcat-dom-hud.wide .plus { width:64%; font-size:2.08%; }
+            #fatcat-dom-hud .avatar.asset {
+                background-color:#e5b269;
+                background-position:center 24%;
+                background-size:175%;
+                background-repeat:no-repeat;
+            }
+            #fatcat-dom-hud .avatar.asset:before,
+            #fatcat-dom-hud .avatar.asset:after { display:none !important; }
+            #fatcat-dom-hud .icon.asset {
+                border:0;
+                border-radius:0;
+                background-color:transparent;
+                background-position:center;
+                background-size:contain;
+                background-repeat:no-repeat;
+                box-shadow:none;
+                filter:drop-shadow(0 2px 0 rgba(0,0,0,.3));
+            }
+            #fatcat-dom-hud .icon.asset:before,
+            #fatcat-dom-hud .icon.asset:after { display:none !important; }
         `;
         document.head.appendChild(style);
         document.body.appendChild(overlay);
@@ -2761,7 +2827,7 @@ export class BottomNavUI extends Component {
         overlay.innerHTML = `
             <div class="hud-inner">
                 <div class="player">
-                    <div class="avatar"></div><div class="level">28</div>
+                    <div class="avatar asset" style="background-image:url('${this.getCatFullArtAsset("c_001")}')"></div><div class="level">28</div>
                     <div>
                         <div class="company">肥猫咖啡公司</div>
                         <div class="exp"><span style="width:80%"></span></div>
@@ -2780,7 +2846,7 @@ export class BottomNavUI extends Component {
     }
 
     private renderHudResource(kind: string, label: string, value: string): string {
-        return `<div class="res ${kind}" aria-label="${label} ${value}"><div class="icon" aria-hidden="true"></div><div class="res-name">${label}</div><div class="value">${value}</div><div class="plus">+</div></div>`;
+        return `<div class="res ${kind}" aria-label="${label} ${value}"><div class="icon asset" style="background-image:url('${this.getGeneratedIconAsset(kind)}')" aria-hidden="true"></div><div class="res-name">${label}</div><div class="value">${value}</div><div class="plus">+</div></div>`;
     }
 
     private ensureDomNavOverlay(): HTMLElement | null {
@@ -3226,6 +3292,90 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay .cat-index,
             #fatcat-dom-cat-overlay .cat-actions,
             #fatcat-dom-cat-overlay .cat-roster-label { display:none; }
+            #fatcat-dom-cat-overlay .cat-page-hud .avatar.asset {
+                background-color:#e5b269;
+                background-position:center 20%;
+                background-size:155%;
+                background-repeat:no-repeat;
+            }
+            #fatcat-dom-cat-overlay .cat-page-hud .res i.asset {
+                border-radius:0;
+                background-position:center;
+                background-size:contain;
+                background-repeat:no-repeat;
+                box-shadow:none;
+                transform:none;
+                filter:drop-shadow(0 2px 0 rgba(0,0,0,.28));
+            }
+            #fatcat-dom-cat-overlay .stat-icon.asset {
+                border-radius:0;
+                background-position:center;
+                background-size:contain;
+                background-repeat:no-repeat;
+                box-shadow:none;
+                transform:none;
+            }
+            #fatcat-dom-cat-overlay .cat-thumb.hero-art {
+                width:82%;
+                margin-top:1%;
+                border-radius:0;
+                background-color:transparent;
+                background-position:center 32%;
+                background-size:142%;
+                background-repeat:no-repeat;
+                box-shadow:none;
+            }
+            #fatcat-dom-cat-overlay .cat-role-dot.asset {
+                width:18%;
+                border-radius:6px;
+                background-position:center;
+                background-size:contain;
+                background-repeat:no-repeat;
+                box-shadow:0 2px 0 rgba(64,42,20,.22);
+            }
+            #fatcat-dom-cat-overlay .weight-row span.stage-art {
+                position:relative;
+                min-height:62px;
+                box-sizing:border-box;
+                display:flex;
+                align-items:flex-end;
+                justify-content:center;
+                padding:39px 0 5px;
+                border-radius:12px;
+            }
+            #fatcat-dom-cat-overlay .weight-row span.stage-art:before {
+                content:"";
+                position:absolute !important;
+                left:10% !important;
+                right:10% !important;
+                top:2px !important;
+                height:48px !important;
+                border-radius:0 !important;
+                background-color:transparent !important;
+                background-image:var(--stage-art) !important;
+                background-position:center bottom !important;
+                background-size:contain !important;
+                background-repeat:no-repeat !important;
+                box-shadow:none !important;
+                transform:scale(.82) !important;
+                transform-origin:center bottom !important;
+                z-index:1;
+            }
+            #fatcat-dom-cat-overlay .weight-row span.stage-art.fat:before { transform:scale(.98) !important; }
+            #fatcat-dom-cat-overlay .weight-row span.stage-art.super:before {
+                filter:grayscale(.9) sepia(.12) !important;
+                transform:scale(1.12) !important;
+            }
+            #fatcat-dom-cat-overlay .weight-row span.stage-art:after { display:none !important; }
+            #fatcat-dom-cat-overlay .weight-row span.stage-art b { position:relative; z-index:2; }
+            #fatcat-dom-cat-overlay.tablet .weight-row span.stage-art {
+                min-height:44px;
+                padding:27px 0 3px;
+            }
+            #fatcat-dom-cat-overlay.tablet .weight-row span.stage-art:before {
+                top:0 !important;
+                height:34px !important;
+            }
             #fatcat-dom-cat-overlay.compact .cat-page-hud {
                 left:1.2%;
                 right:1.2%;
@@ -3800,11 +3950,11 @@ export class BottomNavUI extends Component {
             <div class="cat-bg">
                 <div class="cat-art-bg"></div>
                 <div class="cat-page-hud">
-                    <div class="player"><i class="avatar"></i><span>肥猫咖啡公司<div class="exp"><i></i></div></span><b class="level">28</b></div>
-                    <div class="res coin"><i></i>${this.formatNumber(ResourceManager.get("coin"))}<b class="plus">+</b></div>
-                    <div class="res bean"><i></i>${this.formatNumber(ResourceManager.get("bean"))}<b class="plus">+</b></div>
-                    <div class="res food"><i></i>${this.formatNumber(ResourceManager.get("catFood"))}<b class="plus">+</b></div>
-                    <div class="res gem"><i></i>${this.formatNumber(ResourceManager.get("diamond"))}<b class="plus">+</b></div>
+                    <div class="player"><i class="avatar asset" style="background-image:url('${this.getCatFullArtAsset("c_001")}')"></i><span>肥猫咖啡公司<div class="exp"><i></i></div></span><b class="level">28</b></div>
+                    <div class="res coin"><i class="asset" style="background-image:url('${this.getGeneratedIconAsset("coin")}')"></i>${this.formatNumber(ResourceManager.get("coin"))}<b class="plus">+</b></div>
+                    <div class="res bean"><i class="asset" style="background-image:url('${this.getGeneratedIconAsset("bean")}')"></i>${this.formatNumber(ResourceManager.get("bean"))}<b class="plus">+</b></div>
+                    <div class="res food"><i class="asset" style="background-image:url('${this.getGeneratedIconAsset("food")}')"></i>${this.formatNumber(ResourceManager.get("catFood"))}<b class="plus">+</b></div>
+                    <div class="res gem"><i class="asset" style="background-image:url('${this.getGeneratedIconAsset("diamond")}')"></i>${this.formatNumber(ResourceManager.get("diamond"))}<b class="plus">+</b></div>
                 </div>
                 <div class="cat-modal-title">猫咪图鉴</div>
                 <button class="close-x" data-action="back">×</button>
@@ -3831,8 +3981,8 @@ export class BottomNavUI extends Component {
                     </div>
                 </div>
                 <div class="cat-power">生产力：${this.formatNumber(production)}/秒</div>
-                <div class="cat-stats"><div><i class="stat-icon bean"></i>咖啡豆消耗<br><b>${this.formatNumber(config.baseBeanCost)}/秒</b></div><div><i class="stat-icon food"></i>原料产量<br><b>${this.formatNumber(production)}/秒</b></div><div><i class="stat-icon coin"></i>工资<br><b>${this.formatNumber(wageCost)}/分钟</b></div><div><i class="stat-icon weight"></i>体重<br><b>${weightLabel}</b></div><div><i class="stat-icon paw"></i>品种<br><b>${config.breed}</b></div></div>
-                <div class="cat-weight"><b>体重阶段</b><div class="weight-row"><span class="${weightStage === WeightStage.NORMAL ? "selected" : ""}"><b>正常</b></span><span class="${weightStage === WeightStage.FAT ? "selected" : ""}"><b>胖猫</b></span><span class="${weightStage === WeightStage.SUPER_FAT ? "selected" : ""}"><b>巨胖</b></span><div class="bar"><i style="width:${Math.min(100, data.weight)}%"></i></div><em>${data.weight}/100</em></div></div>
+                <div class="cat-stats"><div><i class="stat-icon asset" style="background-image:url('${this.getGeneratedIconAsset("bean")}')"></i>咖啡豆消耗<br><b>${this.formatNumber(config.baseBeanCost)}/秒</b></div><div><i class="stat-icon asset" style="background-image:url('${this.getGeneratedIconAsset("food")}')"></i>原料产量<br><b>${this.formatNumber(production)}/秒</b></div><div><i class="stat-icon asset" style="background-image:url('${this.getGeneratedIconAsset("coin")}')"></i>工资<br><b>${this.formatNumber(wageCost)}/分钟</b></div><div><i class="stat-icon weight"></i>体重<br><b>${weightLabel}</b></div><div><i class="stat-icon paw"></i>品种<br><b>${config.breed}</b></div></div>
+                <div class="cat-weight"><b>体重阶段</b><div class="weight-row"><span class="stage-art normal ${weightStage === WeightStage.NORMAL ? "selected" : ""}" style="--stage-art:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"><b>正常</b></span><span class="stage-art fat ${weightStage === WeightStage.FAT ? "selected" : ""}" style="--stage-art:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"><b>胖猫</b></span><span class="stage-art super ${weightStage === WeightStage.SUPER_FAT ? "selected" : ""}" style="--stage-art:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"><b>巨胖</b></span><div class="bar"><i style="width:${Math.min(100, data.weight)}%"></i></div><em>${data.weight}/100</em></div></div>
                 <div class="cat-grid">
                     <div><b>${this.getCatTabTitle()}</b><br>${this.renderCatFocusContent(config.id, unlocked, upgradeCost, unlockCost, canUpgrade)}</div>
                     <div><b>装备</b>${this.renderCatEquipPanel(config.id)}</div>
@@ -3933,13 +4083,7 @@ export class BottomNavUI extends Component {
         const status = data.isUnlocked ? `Lv.${data.level}` : "未招募";
         const workStatus = data.isUnlocked ? (CatManager.getAssignedBuildingId(id) ? "工作中" : "待命") : "招募";
         const rarityClass = config.rarity === "S" || config.rarity === "SS" ? "s-rarity" : "a-rarity";
-        return `<button class="${active} ${locked}" data-action="selectCat" data-id="${id}"><span class="rarity-badge ${rarityClass}">${config.rarity}</span><span class="cat-role-dot ${config.role}"></span><span class="cat-thumb" style="background-image:url('${this.getCatThumbAsset(config.portrait)}')"></span><span>${config.name}</span><span class="cat-stars">${this.renderStars(config.rarity).slice(0, 3)}</span><em>${status}</em><span class="cat-status">${workStatus}</span></button>`;
-    }
-
-    private getCatThumbAsset(portrait?: string): string {
-        if (portrait?.includes("black")) return this.getDomAssetDataUri(GeneratedCatThumbAssets.black);
-        if (portrait?.includes("white")) return this.getDomAssetDataUri(GeneratedCatThumbAssets.white);
-        return this.getDomAssetDataUri(GeneratedCatThumbAssets.orange);
+        return `<button class="${active} ${locked}" data-action="selectCat" data-id="${id}"><span class="rarity-badge ${rarityClass}">${config.rarity}</span><span class="cat-role-dot asset ${config.role}" style="background-image:url('${this.getSkillIconAsset(config.role)}')"></span><span class="cat-thumb hero-art" style="background-image:url('${this.getCatFullArtAsset(id, config.portrait)}')"></span><span>${config.name}</span><span class="cat-stars">${this.renderStars(config.rarity).slice(0, 3)}</span><em>${status}</em><span class="cat-status">${workStatus}</span></button>`;
     }
 
     private getCatFullArtAsset(catId: string, portrait?: string): string {

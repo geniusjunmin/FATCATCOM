@@ -7,9 +7,6 @@ $outFile = Join-Path $root "FATCATUI/assets/scripts/ui/DomAssetDataUris.ts"
 $relativeAssets = @(
     "factory_cutaway_bg_640.jpg",
     "cat_detail_workshop_bg_640.jpg",
-    "cat_thumb_black.png",
-    "cat_thumb_orange.png",
-    "cat_thumb_white.png",
     "cats/cat_hero_orange_v2.png",
     "cats/cat_hero_black_v2.png",
     "cats/cat_hero_white_v2.png",

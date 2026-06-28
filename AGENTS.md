@@ -2,14 +2,14 @@
 
 ## Project Structure & Module Organization
 
-This repository contains a Cocos Creator client and a .NET server.
+This repository contains a Cocos Creator client and an ASP.NET Core server.
 
 - `FATCATUI/`: Cocos Creator 3.8.8 client project. TypeScript source lives in `FATCATUI/assets/scripts/`; current UI-heavy work is centered in `FATCATUI/assets/scripts/ui/BottomNavUI.ts`.
 - `FATCATUI/assets/resources/`: gameplay configs, generated textures, and client resources.
 - `FATCATServer/`: .NET solution with `FatCat.Api`, `FatCat.Application`, `FatCat.Domain`, `FatCat.Infrastructure`, and `FatCat.Tests`.
 - `tools/`: verification, screenshot regression, smoke-test, asset generation, and balance-sync scripts.
 - `docs/ai-progress/`: current status, task plans, and handoff notes. Read these before large changes.
-- Root PNG files, including `主页面.png` and `所有猫咪页面.png`, are the visual source of truth for UI work.
+- Root PNG files (`主页面.png` and `所有猫咪页面.png`) are the visual source of truth for UI work.
 
 ## Build, Test, and Development Commands
 
@@ -24,7 +24,11 @@ This repository contains a Cocos Creator client and a .NET server.
 
 ## Coding Style & Naming Conventions
 
-Follow existing local patterns before introducing new abstractions. TypeScript uses Cocos-style classes with PascalCase component names and camelCase methods or variables. C# follows standard .NET conventions: PascalCase public types and members, camelCase locals. Keep edits scoped, especially in large UI files, and avoid unrelated formatting churn.
+Follow existing local patterns before introducing abstractions. Use four-space indentation unless the surrounding file differs. TypeScript uses PascalCase component classes and camelCase methods or variables. C# follows standard .NET conventions: PascalCase public types and members, camelCase locals. Keep edits scoped, especially in large UI files, and avoid unrelated formatting churn.
+
+## Architecture Overview
+
+Keep presentation and Cocos lifecycle code in the client. Put multiplayer rules and authoritative state in the server, with application use cases separated from domain models and infrastructure adapters. Shared balance data must remain synchronized through the repository's generation scripts.
 
 ## Testing Guidelines
 

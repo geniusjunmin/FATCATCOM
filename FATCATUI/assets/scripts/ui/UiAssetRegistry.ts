@@ -20,12 +20,6 @@ export const GeneratedCatFullArtAssets: Record<string, string> = {
     white: `${GENERATED_ROOT}/cats/cat_full_white.png`,
 };
 
-export const GeneratedCatThumbAssets: Record<string, string> = {
-    black: `${GENERATED_ROOT}/cat_thumb_black.png`,
-    orange: `${GENERATED_ROOT}/cat_thumb_orange.png`,
-    white: `${GENERATED_ROOT}/cat_thumb_white.png`,
-};
-
 export const GeneratedFactoryAssets: Record<string, string> = {
     office: `${GENERATED_ROOT}/factory/prop_office.png`,
     roast: `${GENERATED_ROOT}/factory/prop_roaster.png`,

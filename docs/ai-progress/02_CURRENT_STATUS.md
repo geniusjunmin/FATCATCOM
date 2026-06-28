@@ -35,6 +35,9 @@ Updated: 2026-06-28
 - Latest compact cat-page tuning: the mobile info card is wider, the cat name badge is single-line and no longer sits under the HUD, the center portrait was trimmed to preserve lower content, and compact resource pills now keep suffixes such as `M`/`K` visible.
 - Latest cat hero/art pass replaces `c_001`'s flat egg-shaped portrait with generated transparent `cat_hero_orange_v2.png`: a dimensional chubby orange cafe cat with green scarf and paw mug. The workshop art now carries the upper-page background, while the compact HUD, hero columns, mood/feed cards, production strip, stats, visual weight stages, story wall, and roster follow the target layout more closely.
 - The complete five-cat lineup now has matching generated full art: black launcher with red scarf/rocket badge, white ragdoll saver with blue scarf/jar, calico producer with plum scarf/dripper, and tuxedo support with teal scarf/star badge/ledger. All five use the same proportions and rendering language as the orange hero.
+- Latest shared-asset polish replaces CSS placeholder art in both top HUDs with the generated player portrait and resource icons. Cat stats use real bean/food/coin icons, weight stages reuse the selected cat art at three scales, and roster cards use the five full hero illustrations instead of the legacy three-thumb bridge.
+- Main-screen polish now uses the tuxedo cat illustration in the super-food gift card and adds a dedicated <=390px layout for readable side tools, order progress, gift text, and launch controls.
+- The unused `GeneratedCatThumbAssets` registry and three legacy thumb entries were removed from the DOM Data URI generator, reducing duplicated embedded art while preserving the physical source files.
 - `tools/capture-cat-lineup.js` cycles `c_001` through `c_005` at 430x932, captures each state, and verifies every portrait is backed by an embedded PNG without failed requests or console errors.
 - At widths below 390px, the secondary equipment-bag row folds away so the story card and roster remain visible in the 360x800 first viewport.
 - The 768x1024 cat page now uses a dedicated `tablet` responsive class triggered by visible canvas width >= 600px. It no longer depends on the landscape-oriented `wide` aspect check, so its HUD, 250px hero, compact status cards, stats, equipment, restored story card, and bottom roster all fit without overlap.
@@ -192,6 +195,7 @@ Latest verified checks:
 - `node tools\check-production-wage-net-effect.js`: passed.
 - `node tools\capture-main-regression.js`: passed for all four target sizes.
 - `node tools\capture-cat-regression.js`: passed for all four target sizes.
+- 2026-06-28 final icon/roster pass: main and cat screenshot regressions passed at 414x896, 430x932, 360x800, and 768x1024; all five lineup captures used embedded PNG art; all 18 UI click steps passed; browser open/close checks had no console errors; `tools/quick-verify.ps1` passed with 63/63 server tests.
 - `node tools\check-launch-production-preview-online.js`: passed and asserts `/api/production/server-preview` before `/api/launch`; online launch showed net production around 224/sec after the 105% mood multiplier.
 - `node tools\check-cat-upgrade-online.js`: passed.
 - `node tools\check-cat-feed-online.js`: passed.
