@@ -34,6 +34,8 @@ Updated: 2026-06-28
 - Compact cat layout now uses a 5.25%-high HUD, 24%/fluid/21% hero columns, outside chevron switching, visual weight-stage cats, a clickable three-column story card, no floating action strip, and a below-390px fold for the equipment bag.
 - Verified after this cat-art pass: `check-client-ts.ps1`, all four `capture-cat-regression.js` sizes, Cocos refresh for the asset/script folders, and the complete `verify-ui-clicks-playwright.js` path.
 - `node tools/capture-cat-lineup.js` is the visual/asset gate for all five heroes. Latest run captured all five names with embedded PNG art and no browser errors or failed requests.
+- `applyResponsiveClasses()` now adds `tablet` when the visible canvas width is at least 600px. Use `.tablet` for 768x1024 portrait-canvas rules; `.wide` remains aspect-ratio based and does not trigger for this preview.
+- The tablet cat layout uses a 250px hero, compact right status cards, 98px equipment slots, a restored three-column story card, and a 10.4%-high bottom roster. Do not revert to the old wide-only rules, which left the roster over the equipment panel.
 - Cat page fullscreen polish is in progress: it now lays out against the visible viewport, adds a small top bleed to cover the underlying main HUD, and renders its own top HUD.
 - Latest compact cat-page pass widened the info column, restored the single-line cat name badge below the HUD, trimmed portrait height for lower-panel space, and reduced compact resource-pill text/buttons so `M`/`K` suffixes remain visible.
 - The DOM UI uses the overlay root font-size as a design-height unit. For new normal-sized UI text inside that system, set a local percentage font-size on the container first, then use `em` or fixed pixel accents inside it.

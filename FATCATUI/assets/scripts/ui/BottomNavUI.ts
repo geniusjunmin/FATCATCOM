@@ -1301,6 +1301,7 @@ export class BottomNavUI extends Component {
         const aspect = width / Math.max(1, height);
         element.classList.toggle("compact", width < 520 || aspect < 0.58);
         element.classList.toggle("tall", aspect < 0.56);
+        element.classList.toggle("tablet", width >= 600);
         element.classList.toggle("wide", aspect > 0.68);
     }
 
@@ -3434,6 +3435,210 @@ export class BottomNavUI extends Component {
                 font-size:92%;
             }
             #fatcat-dom-cat-overlay.compact .cat-list { height:10.3%; bottom:2.2%; }
+            #fatcat-dom-cat-overlay.tablet .cat-bg {
+                padding:7.2% 2.4% 13.2% 10.7%;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-page-hud {
+                left:2%;
+                right:2%;
+                top:.8%;
+                height:5.55%;
+                grid-template-columns:25% repeat(4,1fr);
+                gap:.75%;
+                font-size:1.42%;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-page-hud .player {
+                grid-template-columns:29% 1fr;
+                padding:3px 7px;
+                font-size:.84em;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-page-hud .player span { gap:3px; }
+            #fatcat-dom-cat-overlay.tablet .cat-page-hud .avatar { width:min(38px,88%); }
+            #fatcat-dom-cat-overlay.tablet .cat-page-hud .level { width:min(25px,23%); border-width:2px; }
+            #fatcat-dom-cat-overlay.tablet .cat-page-hud .exp { height:5px; }
+            #fatcat-dom-cat-overlay.tablet .cat-page-hud .res {
+                border-radius:999px 11px 11px 999px;
+                border-width:2px;
+                font-size:.9em;
+                padding-right:6%;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-page-hud .res i { width:min(22px,20%); }
+            #fatcat-dom-cat-overlay.tablet .cat-page-hud .plus { width:min(21px,19%); border-radius:6px; }
+            #fatcat-dom-cat-overlay.tablet .cat-side { top:7.3%; width:7.7%; }
+            #fatcat-dom-cat-overlay.tablet .back,
+            #fatcat-dom-cat-overlay.tablet .side-tab {
+                min-height:52px;
+                font-size:1.55%;
+                border-radius:11px;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-hero {
+                grid-template-columns:23% 1fr 19%;
+                gap:1.4%;
+                align-items:start;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-card.info {
+                min-height:154px;
+                margin-top:6px;
+                padding:4%;
+                font-size:1.65%;
+                line-height:1.12;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-card.info strong {
+                min-height:28px;
+                padding:0 8%;
+                font-size:118%;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-card.info .rank {
+                font-size:190%;
+                line-height:1;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-card.info .type {
+                display:inline-flex;
+                align-items:center;
+                min-height:20px;
+                padding:0 6%;
+                font-size:82%;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-portrait {
+                height:auto;
+                min-height:250px;
+                overflow:visible;
+            }
+            #fatcat-dom-cat-overlay.tablet .portrait-cat.img {
+                width:66%;
+                min-width:180px;
+                margin-top:2%;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-portrait .cat-talk {
+                right:4%;
+                top:7%;
+                max-width:42%;
+                font-size:23%;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-hero > div:last-child {
+                padding-top:32px;
+            }
+            #fatcat-dom-cat-overlay.tablet .mood,
+            #fatcat-dom-cat-overlay.tablet .feed {
+                margin-bottom:5%;
+                padding:24% 4% 8%;
+                font-size:1.55%;
+                line-height:1.18;
+                border-radius:11px;
+            }
+            #fatcat-dom-cat-overlay.tablet .mood:before,
+            #fatcat-dom-cat-overlay.tablet .feed:before {
+                top:4%;
+                width:17%;
+            }
+            #fatcat-dom-cat-overlay.tablet .mood:after {
+                left:46%;
+                top:9%;
+                width:8%;
+                height:6%;
+            }
+            #fatcat-dom-cat-overlay.tablet .feed:after {
+                left:46%;
+                top:10%;
+                width:8%;
+                height:6%;
+            }
+            #fatcat-dom-cat-overlay.tablet .feed button {
+                margin-top:5%;
+                padding:4% 10%;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-switch {
+                z-index:7;
+                top:51%;
+                width:32px;
+                min-width:32px;
+                border:0;
+                border-radius:0;
+                background:transparent;
+                color:#f4ad36;
+                font-size:46px;
+                line-height:1;
+                text-shadow:0 2px 0 #5f3218;
+                box-shadow:none;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-switch.prev { left:-9%; }
+            #fatcat-dom-cat-overlay.tablet .cat-switch.next { right:-9%; }
+            #fatcat-dom-cat-overlay.tablet .cat-power {
+                width:38%;
+                margin:.45% auto;
+                padding:.55%;
+                font-size:2.35%;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-stats {
+                margin-top:.45%;
+                padding:.72%;
+                font-size:1.34%;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-stats div { min-height:46px; }
+            #fatcat-dom-cat-overlay.tablet .cat-weight {
+                min-height:64px;
+                margin-top:.45%;
+                padding:.8% 1.1%;
+                font-size:1.55%;
+            }
+            #fatcat-dom-cat-overlay.tablet .weight-row { margin-top:.45%; }
+            #fatcat-dom-cat-overlay.tablet .cat-grid {
+                grid-template-columns:34% 1fr;
+                gap:1%;
+                margin-top:.5%;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-grid > div {
+                min-height:180px;
+                padding:1%;
+                font-size:1.25%;
+                line-height:1.14;
+            }
+            #fatcat-dom-cat-overlay.tablet .focus-card {
+                grid-template-columns:22% 1fr;
+                gap:2%;
+                padding:1%;
+            }
+            #fatcat-dom-cat-overlay.tablet .focus-actions { margin-top:1.5%; }
+            #fatcat-dom-cat-overlay.tablet .mini-action { padding:1.2% 4%; }
+            #fatcat-dom-cat-overlay.tablet .equip-row {
+                gap:.8%;
+                margin-top:.6%;
+                align-items:start;
+            }
+            #fatcat-dom-cat-overlay.tablet .equip-slot {
+                min-height:0;
+                height:98px;
+                font-size:82%;
+            }
+            #fatcat-dom-cat-overlay.tablet .equip-icon { width:30%; margin-bottom:2%; }
+            #fatcat-dom-cat-overlay.tablet .equip-upgrade { min-height:28px; margin-top:.7%; }
+            #fatcat-dom-cat-overlay.tablet .cat-story {
+                display:grid;
+                min-height:78px;
+                margin-top:.5%;
+                padding:.8%;
+                grid-template-columns:1fr 16% 16%;
+                font-size:1.28%;
+            }
+            #fatcat-dom-cat-overlay.tablet .story-photo {
+                min-height:66px;
+                background-position:center;
+                background-size:contain;
+                background-repeat:no-repeat;
+                background-color:#d2a875;
+            }
+            #fatcat-dom-cat-overlay.tablet .story-button {
+                margin:0;
+                padding:7% 3%;
+                border:0;
+                font-size:90%;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-list {
+                height:10.4%;
+                bottom:.7%;
+                font-size:1.42%;
+                gap:.75%;
+            }
             @media (max-width:390px) {
                 #fatcat-dom-cat-overlay.compact .equip-bag { display:none; }
                 #fatcat-dom-cat-overlay.compact .cat-story {
