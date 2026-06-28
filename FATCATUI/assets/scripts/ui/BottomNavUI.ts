@@ -3108,7 +3108,7 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay .equip-icon.lock:before { left:25%; right:25%; bottom:24%; height:38%; border-radius:8px; background:#8b765c; box-shadow:inset 0 0 0 3px #5c4b38; }
             #fatcat-dom-cat-overlay .equip-icon.lock:after { left:34%; right:34%; top:20%; height:32%; border-radius:999px 999px 0 0; border:5px solid #5c4b38; border-bottom:0; }
             #fatcat-dom-cat-overlay .cat-story { margin-top:.8%; padding:1.15%; font-size:1.68%; line-height:1.25; }
-            #fatcat-dom-cat-overlay .cat-story { display:grid; grid-template-columns:1fr 17%; gap:1.5%; align-items:center; }
+            #fatcat-dom-cat-overlay .cat-story { display:grid; grid-template-columns:1fr 17% 17%; gap:1.5%; align-items:center; }
             #fatcat-dom-cat-overlay .story-photo { min-height:76px; border-radius:12px; background:linear-gradient(rgba(70,48,34,.08),rgba(70,48,34,.16)), center/cover no-repeat; box-shadow:inset 0 0 0 3px rgba(126,86,48,.18), 0 4px 0 rgba(74,45,25,.2), 0 0 0 5px rgba(255,248,224,.52); position:relative; transform:rotate(3deg); }
             #fatcat-dom-cat-overlay .story-photo:before { content:""; position:absolute; left:35%; top:-10%; width:28%; height:18%; border-radius:4px; background:#b44f37; box-shadow:0 2px 0 rgba(0,0,0,.22); }
             #fatcat-dom-cat-overlay .story-button { display:inline-flex; align-items:center; justify-content:center; margin-top:3%; padding:2.6% 8%; border-radius:999px; background:linear-gradient(#f6cf70,#d8942a); color:#5c351e; font-weight:900; box-shadow:0 3px 0 rgba(115,66,22,.32), inset 0 0 0 2px rgba(255,244,205,.24); }
@@ -3210,6 +3210,240 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay.wide .cat-story { display:none; }
             #fatcat-dom-cat-overlay.wide .cat-msg { bottom:16.1%; }
             #fatcat-dom-cat-overlay.wide .cat-roster-label { display:none; }
+
+            #fatcat-dom-cat-overlay .cat-art-bg {
+                background-color:#3b261b;
+                background-image:linear-gradient(rgba(37,24,16,.12),rgba(37,24,16,.56)),url("${this.getDomAssetDataUri(GeneratedBackgroundAssets.catDetailWorkshop)}");
+                background-size:100% auto;
+                background-position:center top;
+                background-repeat:no-repeat;
+                opacity:.62;
+                filter:saturate(1.04) contrast(1.03) brightness(.86);
+            }
+            #fatcat-dom-cat-overlay .portrait-name,
+            #fatcat-dom-cat-overlay .cat-profile-row,
+            #fatcat-dom-cat-overlay .cat-index,
+            #fatcat-dom-cat-overlay .cat-actions,
+            #fatcat-dom-cat-overlay .cat-roster-label { display:none; }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud {
+                left:1.2%;
+                right:1.2%;
+                top:1.0%;
+                height:5.25%;
+                grid-template-columns:27% repeat(4,1fr);
+                gap:.65%;
+                font-size:1.58%;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .player {
+                grid-template-columns:30% 1fr;
+                padding:2px 6px;
+                border-radius:13px;
+                border-width:2px;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .player span { gap:3px; }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .avatar { width:min(38px,90%); }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .level { width:min(25px,23%); border-width:2px; }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .exp { height:5px; }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .res {
+                border-radius:999px 10px 10px 999px;
+                font-size:.82em;
+                padding-right:9%;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .res i { width:min(20px,20%); }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .plus { width:min(20px,20%); border-radius:6px; }
+            #fatcat-dom-cat-overlay.compact .cat-hero {
+                position:relative;
+                grid-template-columns:24% 1fr 21%;
+                gap:1.2%;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-side { top:6.55%; }
+            #fatcat-dom-cat-overlay.compact .cat-card.info {
+                min-height:116px;
+                margin-top:15px;
+                padding:3.2%;
+                font-size:1.9%;
+                line-height:1.02;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-portrait {
+                min-height:232px;
+                border-radius:12px;
+                overflow:visible;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-portrait:before {
+                inset:1.5%;
+                opacity:.88;
+                background-position:center 36%;
+            }
+            #fatcat-dom-cat-overlay.compact .portrait-cat.img {
+                width:70%;
+                min-width:180px;
+                margin-top:5%;
+                filter:drop-shadow(0 7px 0 rgba(72,45,28,.2));
+            }
+            #fatcat-dom-cat-overlay.compact .cat-portrait .cat-talk {
+                right:3%;
+                top:7%;
+                max-width:43%;
+                font-size:22%;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-hero > div:last-child {
+                position:absolute;
+                right:0;
+                top:0;
+                width:21%;
+                box-sizing:border-box;
+                padding-top:6.4vh;
+            }
+            #fatcat-dom-cat-overlay.compact .mood,
+            #fatcat-dom-cat-overlay.compact .feed {
+                margin-bottom:14px;
+                padding:22% 3% 8%;
+                font-size:1.7%;
+                line-height:1.18;
+                border-radius:11px;
+            }
+            #fatcat-dom-cat-overlay.compact .mood { margin-bottom:30px; }
+            #fatcat-dom-cat-overlay.compact .feed button {
+                margin-top:5%;
+                padding:4% 10%;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-switch {
+                z-index:7;
+                top:55%;
+                width:32px;
+                min-width:32px;
+                border:0;
+                border-radius:0;
+                background:transparent;
+                color:#f4ad36;
+                font-size:46px;
+                line-height:1;
+                text-shadow:0 2px 0 #5f3218;
+                box-shadow:none;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-switch.prev { left:-35%; }
+            #fatcat-dom-cat-overlay.compact .cat-switch.next { right:-36%; }
+            #fatcat-dom-cat-overlay.compact .cat-power {
+                position:relative;
+                z-index:5;
+                width:48%;
+                margin:-5.4% auto .45%;
+                padding:.62%;
+                font-size:2.45%;
+                border-radius:11px;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-stats {
+                margin-top:.35%;
+                padding:1.05%;
+                font-size:1.62%;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-stats div { min-height:64px; }
+            #fatcat-dom-cat-overlay.compact .cat-weight {
+                min-height:105px;
+                margin-top:.55%;
+                padding:1.45% 1.7%;
+            }
+            #fatcat-dom-cat-overlay.compact .weight-row {
+                grid-template-columns:15% 15% 15% 1fr 12%;
+                gap:.8%;
+                margin-top:.55%;
+            }
+            #fatcat-dom-cat-overlay.compact .weight-row span {
+                position:relative;
+                min-height:72px;
+                box-sizing:border-box;
+                display:flex;
+                align-items:flex-end;
+                justify-content:center;
+                padding:44px 0 7px;
+                border-radius:12px;
+                font-size:82%;
+            }
+            #fatcat-dom-cat-overlay.compact .weight-row span:before {
+                content:"";
+                position:absolute;
+                left:21%;
+                right:21%;
+                top:7px;
+                aspect-ratio:1;
+                border-radius:48% 48% 42% 42%;
+                background:
+                    radial-gradient(circle at 35% 42%,#3d281d 0 5%,transparent 6%),
+                    radial-gradient(circle at 65% 42%,#3d281d 0 5%,transparent 6%),
+                    linear-gradient(#f3c27e,#d27c37);
+                box-shadow:-6px -5px 0 -4px #6b4228,6px -5px 0 -4px #6b4228,inset -6px -5px 0 rgba(116,65,32,.13),0 2px 0 rgba(75,45,24,.18);
+                z-index:2;
+            }
+            #fatcat-dom-cat-overlay.compact .weight-row span:after {
+                content:"";
+                position:absolute;
+                left:27%;
+                right:27%;
+                top:31px;
+                height:28px;
+                border-radius:50% 50% 38% 38%;
+                background:linear-gradient(#f3c27e,#d27c37);
+                box-shadow:inset -5px -4px 0 rgba(116,65,32,.13);
+                z-index:1;
+            }
+            #fatcat-dom-cat-overlay.compact .weight-row span:nth-child(2):before {
+                left:14%;
+                right:14%;
+                top:3px;
+            }
+            #fatcat-dom-cat-overlay.compact .weight-row span:nth-child(3):before {
+                left:7%;
+                right:7%;
+                top:0;
+                background:
+                    radial-gradient(circle at 35% 42%,#3d281d 0 5%,transparent 6%),
+                    radial-gradient(circle at 65% 42%,#3d281d 0 5%,transparent 6%),
+                    linear-gradient(#a99c8e,#6f665e);
+            }
+            #fatcat-dom-cat-overlay.compact .weight-row span:nth-child(3):after {
+                left:17%;
+                right:17%;
+                background:linear-gradient(#a99c8e,#6f665e);
+            }
+            #fatcat-dom-cat-overlay.compact .weight-row span b {
+                position:relative;
+                z-index:3;
+                font-size:100%;
+                color:inherit;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-grid { margin-top:.65%; }
+            #fatcat-dom-cat-overlay.compact .equip-slot { min-height:52px; }
+            #fatcat-dom-cat-overlay.compact .equip-pack { min-height:40px; }
+            #fatcat-dom-cat-overlay.compact .equip-upgrade { min-height:27px; }
+            #fatcat-dom-cat-overlay.compact .cat-story {
+                min-height:88px;
+                margin-top:.65%;
+                grid-template-columns:1fr 18% 18%;
+            }
+            #fatcat-dom-cat-overlay.compact .story-photo {
+                min-height:78px;
+                background-position:center;
+                background-size:contain;
+                background-repeat:no-repeat;
+                background-color:#d2a875;
+            }
+            #fatcat-dom-cat-overlay.compact .story-button {
+                margin:0;
+                padding:8% 4%;
+                border:0;
+                font-size:92%;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-list { height:10.3%; bottom:2.2%; }
+            @media (max-width:390px) {
+                #fatcat-dom-cat-overlay.compact .equip-bag { display:none; }
+                #fatcat-dom-cat-overlay.compact .cat-story {
+                    min-height:74px;
+                    font-size:1.35%;
+                    grid-template-columns:1fr 17% 18%;
+                }
+                #fatcat-dom-cat-overlay.compact .story-photo { min-height:62px; }
+                #fatcat-dom-cat-overlay.compact .cat-list { height:9.4%; bottom:.5%; }
+            }
         `;
         document.head.appendChild(style);
         overlay.addEventListener("pointerdown", this.onDomCatPointerDown);
@@ -3393,12 +3627,12 @@ export class BottomNavUI extends Component {
                 </div>
                 <div class="cat-power">生产力：${this.formatNumber(production)}/秒</div>
                 <div class="cat-stats"><div><i class="stat-icon bean"></i>咖啡豆消耗<br><b>${this.formatNumber(config.baseBeanCost)}/秒</b></div><div><i class="stat-icon food"></i>原料产量<br><b>${this.formatNumber(production)}/秒</b></div><div><i class="stat-icon coin"></i>工资<br><b>${this.formatNumber(wageCost)}/分钟</b></div><div><i class="stat-icon weight"></i>体重<br><b>${weightLabel}</b></div><div><i class="stat-icon paw"></i>品种<br><b>${config.breed}</b></div></div>
-                <div class="cat-weight"><b>体重阶段</b><div class="weight-row"><span class="${weightStage === WeightStage.NORMAL ? "selected" : ""}">正常</span><span class="${weightStage === WeightStage.FAT ? "selected" : ""}">胖猫</span><span class="${weightStage === WeightStage.SUPER_FAT ? "selected" : ""}">巨胖</span><div class="bar"><i style="width:${Math.min(100, data.weight)}%"></i></div><em>${data.weight}/100</em></div></div>
+                <div class="cat-weight"><b>体重阶段</b><div class="weight-row"><span class="${weightStage === WeightStage.NORMAL ? "selected" : ""}"><b>正常</b></span><span class="${weightStage === WeightStage.FAT ? "selected" : ""}"><b>胖猫</b></span><span class="${weightStage === WeightStage.SUPER_FAT ? "selected" : ""}"><b>巨胖</b></span><div class="bar"><i style="width:${Math.min(100, data.weight)}%"></i></div><em>${data.weight}/100</em></div></div>
                 <div class="cat-grid">
                     <div><b>${this.getCatTabTitle()}</b><br>${this.renderCatFocusContent(config.id, unlocked, upgradeCost, unlockCost, canUpgrade)}</div>
                     <div><b>装备</b>${this.renderCatEquipPanel(config.id)}</div>
                 </div>
-                <div class="cat-story"><div><b>猫咪故事</b><br>${this.getCatStory(config.name, config.personality, config.breed, assignedName)}<br><span class="story-button">故事墙</span></div><div class="story-photo" style="background-image:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"></div></div>
+                <div class="cat-story"><div><b>猫咪故事</b><br>${this.getCatStory(config.name, config.personality, config.breed, assignedName)}</div><div class="story-photo" style="background-image:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"></div><button class="story-button" data-action="storyWall" data-id="${config.id}">故事墙</button></div>
                 <div class="cat-actions"><button class="dismiss" data-action="dismissCat" data-id="${config.id}">解雇</button><button class="change" data-action="changeCat" data-id="${config.id}">更换</button><button class="level" data-action="upgradeCat" data-id="${config.id}" ${canUpgrade ? "" : "disabled"}>升级1级 ${this.formatNumber(upgradeCost)}</button></div>
                 <div class="cat-roster-label">猫咪队伍</div>
                 <div class="cat-list">${configs.map(item => this.renderCatListButton(item.id)).join("")}<button class="recruit" data-action="unlockCat" data-id="${config.id}">招募猫咪<br>${this.formatNumber(unlockCost)} 金币</button></div>

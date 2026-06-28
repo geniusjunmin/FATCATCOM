@@ -10,7 +10,7 @@ export const GeneratedCatAssets = {
 };
 
 export const GeneratedCatFullArtAssets: Record<string, string> = {
-    c_001: `${GENERATED_ROOT}/cats/cat_full_orange.png`,
+    c_001: `${GENERATED_ROOT}/cats/cat_hero_orange_v2.png`,
     c_002: `${GENERATED_ROOT}/cats/cat_full_black.png`,
     c_003: `${GENERATED_ROOT}/cats/cat_full_white.png`,
     c_004: `${GENERATED_ROOT}/cats/cat_full_calico.png`,

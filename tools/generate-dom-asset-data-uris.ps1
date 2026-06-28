@@ -10,6 +10,7 @@ $relativeAssets = @(
     "cat_thumb_black.png",
     "cat_thumb_orange.png",
     "cat_thumb_white.png",
+    "cats/cat_hero_orange_v2.png",
     "cats/cat_full_orange.png",
     "cats/cat_full_black.png",
     "cats/cat_full_white.png",
