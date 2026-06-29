@@ -1673,6 +1673,20 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay .visit-report-floors em { color:#7c5432; font-style:normal; font-size:86%; }
             #fatcat-dom-panel-overlay .visit-report-actions { margin-top:2%; display:grid; grid-template-columns:1fr 1fr; gap:2%; }
             #fatcat-dom-panel-overlay .visit-report-actions .tag { margin:0; min-height:30px; }
+            #fatcat-dom-panel-overlay .friend-factory-detail { margin-bottom:2%; padding:2.4%; border-radius:16px; background:linear-gradient(#6a4930,#3f2a20); border:2px solid #9a6d42; color:#ffe9bd; box-shadow:inset 0 0 0 2px rgba(255,231,180,.12), 0 4px 0 rgba(48,32,22,.24); font-size:2.0%; }
+            #fatcat-dom-panel-overlay .factory-detail-head { display:grid; grid-template-columns:1fr auto; gap:2%; align-items:center; }
+            #fatcat-dom-panel-overlay .factory-detail-head b { display:block; color:#fff7dd; font-size:116%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .factory-detail-head em { color:#f4c774; font-style:normal; font-weight:900; }
+            #fatcat-dom-panel-overlay .factory-detail-head .tag { margin:0; min-height:28px; }
+            #fatcat-dom-panel-overlay .factory-detail-stats { margin-top:2%; display:grid; grid-template-columns:repeat(3,1fr); gap:1.2%; }
+            #fatcat-dom-panel-overlay .factory-detail-stats span { min-height:38px; border-radius:10px; background:rgba(255,241,205,.13); display:flex; align-items:center; justify-content:center; flex-direction:column; text-align:center; font-weight:900; }
+            #fatcat-dom-panel-overlay .factory-detail-stats b { color:#ffe58f; }
+            #fatcat-dom-panel-overlay .factory-room-list { margin-top:2%; display:grid; gap:5px; }
+            #fatcat-dom-panel-overlay .factory-room-row { min-height:34px; display:grid; grid-template-columns:14% 1fr 24%; gap:2%; align-items:center; padding:1.2% 2%; border-radius:10px; background:rgba(255,246,216,.9); color:#4a2f1f; box-shadow:inset 0 0 0 1px rgba(93,59,33,.2); font-weight:900; }
+            #fatcat-dom-panel-overlay .factory-room-row i { min-height:24px; border-radius:8px; background:#7c5736; color:#ffe9bd; font-style:normal; display:flex; align-items:center; justify-content:center; }
+            #fatcat-dom-panel-overlay .factory-room-row b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .factory-room-row small { color:#7b5838; font-weight:900; }
+            #fatcat-dom-panel-overlay .factory-room-row em { color:#5d3920; font-style:normal; text-align:right; }
             #fatcat-dom-panel-overlay.compact .friends-shell .feature-mini { grid-template-columns:repeat(3,1fr); }
             #fatcat-dom-panel-overlay.compact .friends-shell .feature-mini span { min-height:46px; font-size:1.58%; }
             #fatcat-dom-panel-overlay.compact .friend-card { min-height:86px; grid-template-columns:15% 1fr 25%; padding:2%; }
@@ -1684,6 +1698,8 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay.compact .visit-report-head { grid-template-columns:15% 1fr auto; }
             #fatcat-dom-panel-overlay.compact .visit-report-grid span { min-height:34px; font-size:84%; }
             #fatcat-dom-panel-overlay.compact .visit-report-floors span { min-height:34px; font-size:82%; }
+            #fatcat-dom-panel-overlay.compact .factory-detail-stats span { min-height:31px; font-size:82%; }
+            #fatcat-dom-panel-overlay.compact .factory-room-row { grid-template-columns:16% 1fr 27%; min-height:28px; font-size:82%; }
             #fatcat-dom-panel-overlay .setting-row { display:grid; grid-template-columns:1fr 24%; gap:2%; align-items:center; }
             #fatcat-dom-panel-overlay .settings-shell .feature-card { min-height:84px; padding:2.2%; }
             #fatcat-dom-panel-overlay .settings-shell .setting-row { min-height:64px; }
@@ -2568,7 +2584,7 @@ export class BottomNavUI extends Component {
             const width = Math.max(8, Math.min(100, Math.floor(friend.income / maxIncome * 100)));
             return `<div class="feature-card friend-card"><span class="friend-avatar"><i class="friend-rank">#${index + 1}</i></span><div class="friend-copy"><b>${friend.name}</b><em>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒</em><div class="friend-income"><i style="width:${width}%"></i></div><div class="friend-states"><span>${friend.status}</span><span>${lastVisit ? `访问 ${lastVisit}` : "待访问"}</span><span>${lastGift ? `送礼 ${lastGift}` : "可送礼"}</span></div></div><div class="friend-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问工厂</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再次送礼" : "赠送猫粮"}</button></div></div>`;
         }).join("");
-        return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendVisitReport(friends)}${this.renderFriendSnapshotCard(friends, maxIncome)}<div class="feature-list">${rowsNew}</div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
+        return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendVisitReport(friends)}${this.renderFriendFactoryDetail(friends)}${this.renderFriendSnapshotCard(friends, maxIncome)}<div class="feature-list">${rowsNew}</div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
     }
 
     private renderFriendSnapshotCard(friends: FriendPanelRow[], maxIncome: number): string {
@@ -2596,7 +2612,21 @@ export class BottomNavUI extends Component {
         return `<div class="friend-visit-report"><div class="visit-report-head"><span class="visit-report-badge">${report.kind === "gift" ? "礼" : "访"}</span><div class="visit-report-copy"><b>${friend.name} ${actionLabel}</b><em>${report.statusText} · ${this.formatFriendReportTime(report.updatedAt)}</em></div><button class="visit-report-close" data-action="closeFriendVisitReport">×</button></div><div class="visit-report-grid"><span>互动奖励<b>${report.rewardText}</b></span><span>好友收益<b>${this.formatNumber(friend.income)}/秒</b></span></div><div class="visit-report-floors">${floorRows}</div><div class="visit-report-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">再次访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button></div></div>`;
     }
 
-    private getFriendRoomRows(friend: FriendPanelRow): Array<{ floor: string; name: string; production: number }> {
+    private renderFriendFactoryDetail(friends: FriendPanelRow[]): string {
+        const selectedId = this._friendVisitReport?.friendId || this._selectedFriendSnapshotId;
+        const friend = friends.find(item => item.id === selectedId) ?? friends[0];
+        if (!friend) return "";
+        const rooms = this.getFriendRoomRows(friend);
+        const topRoom = rooms[0];
+        const roomTotal = rooms.reduce((sum, room) => sum + room.production, 0);
+        const source = friend.rooms?.length ? "服务端房间" : "本地估算";
+        const roomRows = rooms.slice(0, 6)
+            .map(room => `<div class="factory-room-row"><i>${room.floor}</i><b>${room.name}<small> Lv.${room.level}</small></b><em>${this.formatNumber(room.production)}/秒</em></div>`)
+            .join("");
+        return `<div class="friend-factory-detail"><div class="factory-detail-head"><div><b>${friend.name} 工厂详情</b><em>${source} · ${rooms.length} 个楼层</em></div><button class="tag" data-action="visitFriend" data-id="${friend.id}">进入访问</button></div><div class="factory-detail-stats"><span>总收益<b>${this.formatNumber(friend.income)}/秒</b></span><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>房间合计<b>${this.formatNumber(roomTotal)}/秒</b></span></div><div class="factory-room-list">${roomRows}</div></div>`;
+    }
+
+    private getFriendRoomRows(friend: FriendPanelRow): Array<{ floor: string; name: string; level: number; production: number }> {
         const rooms = friend.rooms?.length
             ? friend.rooms
                 .slice()
@@ -2604,14 +2634,15 @@ export class BottomNavUI extends Component {
                 .map(room => ({
                     floor: room.floor,
                     name: room.name,
+                    level: room.level,
                     production: Math.max(0, Math.floor(room.productionPerSecond)),
                 }))
             : [];
         if (rooms.length > 0) return rooms;
         return [
-            { floor: "3F", name: "发酵车间", production: Math.max(1, Math.floor(friend.income * 0.34)) },
-            { floor: "2F", name: "原料车间", production: Math.max(1, Math.floor(friend.income * 0.28)) },
-            { floor: "1F", name: "咖啡厅", production: Math.max(1, Math.floor(friend.income * 0.22)) },
+            { floor: "3F", name: "发酵车间", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.34)) },
+            { floor: "2F", name: "原料车间", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.28)) },
+            { floor: "1F", name: "咖啡厅", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.22)) },
         ];
     }
 

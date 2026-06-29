@@ -101,7 +101,8 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest friend-snapshot batch: the selected friend snapshot now exposes reward preview, last interaction state, and three compact factory-floor production slices. Utility regression asserts the snapshot stats/actions/floors at 430x932, 360x800, and 768x1024.
 - Done in latest visit-report batch: the friend regression now clicks visit before capture, and the panel renders a dark visit report with reward state, two stat cells, three floor yield chips, close/revisit/gift actions, and a 360px-checked first-screen layout.
 - Done in latest room-summary batch: `FriendDto.rooms` now exposes server-derived friend factory floor summaries, and the friend snapshot/report consume those rooms online while preserving offline estimates. `tools/check-friend-sync-contract.js` guards the DTO/type/UI path.
-- Next move: use these room summaries in a fuller dedicated friend visit/profile scene, or expand the server snapshot with assigned cats/decor once that data is available.
+- Done in latest factory-detail batch: the friend panel now renders a richer factory-detail card from `FriendDto.rooms`, with source/room count, total income, primary floor, room-yield total, and room rows; utility regression asserts detail stats and rows.
+- Next move: expand the server snapshot with assigned cats/decor, or move this detail card into a dedicated full friend-visit/profile scene when the visual direction needs more space.
 
 ### 1. Main Factory Richness
 
