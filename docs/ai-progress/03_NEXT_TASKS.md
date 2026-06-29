@@ -99,7 +99,8 @@ Keep these scripts in the regular set when touching related flows:
 - `tools/capture-utility-regression.js` now covers those five panels at 430x932, 360x800, and 768x1024. It opens panels through the real main-screen hotspots, closes between captures, and checks panel shell classes plus runtime errors.
 - Done in latest friend-panel batch: compact friend stats stay three-column, friend cards appear before request/leaderboard/activity modules, and each friend card has avatar/rank, income bar, visit/gift chips, and action buttons. Utility regression asserts these friend-specific structures.
 - Done in latest friend-snapshot batch: the selected friend snapshot now exposes reward preview, last interaction state, and three compact factory-floor production slices. Utility regression asserts the snapshot stats/actions/floors at 430x932, 360x800, and 768x1024.
-- Next move: turn the snapshot into a deeper visit flow, such as a dedicated friend-factory profile/visit panel, clearer reward-claim animation, and server-backed friend factory room data when available.
+- Done in latest visit-report batch: the friend regression now clicks visit before capture, and the panel renders a dark visit report with reward state, two stat cells, three floor yield chips, close/revisit/gift actions, and a 360px-checked first-screen layout.
+- Next move: deepen the report with server-backed friend factory room data or a fuller dedicated visit/profile scene once the server exposes richer per-room snapshots.
 
 ### 1. Main Factory Richness
 

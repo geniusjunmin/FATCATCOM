@@ -56,6 +56,10 @@ async function isVisible(page, selector) {
         for (const [panel, hotspotTitle, shellClass] of panels) {
             await page.click(`button[title="${hotspotTitle}"]`);
             await page.waitForTimeout(500);
+            if (panel === "friends") {
+                await page.click("#fatcat-dom-panel-overlay .friend-actions .tag");
+                await page.waitForTimeout(400);
+            }
             const file = path.join(outDir, `${panel}-${width}x${height}.png`);
             await page.screenshot({ path: file, fullPage: false });
             const state = await page.evaluate((expectedShell) => {
@@ -81,6 +85,10 @@ async function isVisible(page, selector) {
                     friendSnapshotStats: document.querySelectorAll("#fatcat-dom-panel-overlay .snapshot-stats span").length,
                     friendSnapshotActions: document.querySelectorAll("#fatcat-dom-panel-overlay .snapshot-action .tag").length,
                     friendSnapshotFloors: document.querySelectorAll("#fatcat-dom-panel-overlay .snapshot-floor").length,
+                    friendVisitReport: !!document.querySelector("#fatcat-dom-panel-overlay .friend-visit-report"),
+                    friendVisitReportStats: document.querySelectorAll("#fatcat-dom-panel-overlay .visit-report-grid span").length,
+                    friendVisitReportFloors: document.querySelectorAll("#fatcat-dom-panel-overlay .visit-report-floors span").length,
+                    friendVisitReportActions: document.querySelectorAll("#fatcat-dom-panel-overlay .visit-report-actions .tag").length,
                     visibleHeight: shell ? Math.round(shell.getBoundingClientRect().height) : 0,
                 };
             }, shellClass);
@@ -112,7 +120,7 @@ async function isVisible(page, selector) {
         }
         if (!entry.visible || entry.state.shellCount !== 1 || !entry.state.title || !entry.state.hasExpectedShell || !entry.state.hasUtilityShell) return true;
         if (entry.panel === "tasks") return !entry.state.taskBoard || entry.state.taskRows < 1;
-        if (entry.panel === "friends") return entry.state.heroCount !== 1 || entry.state.friendCards < 3 || entry.state.friendIncomeBars < 3 || entry.state.friendActionButtons < 6 || !entry.state.friendSnapshotCard || entry.state.friendSnapshotStats < 3 || entry.state.friendSnapshotActions < 2 || entry.state.friendSnapshotFloors < 3 || !entry.state.friendRequestCard || !entry.state.friendLeaderboardCard || !entry.state.friendActivityCard || !entry.state.friendSearchCard;
+        if (entry.panel === "friends") return entry.state.heroCount !== 1 || entry.state.friendCards < 3 || entry.state.friendIncomeBars < 3 || entry.state.friendActionButtons < 6 || !entry.state.friendSnapshotCard || entry.state.friendSnapshotStats < 3 || entry.state.friendSnapshotActions < 2 || entry.state.friendSnapshotFloors < 3 || !entry.state.friendVisitReport || entry.state.friendVisitReportStats < 2 || entry.state.friendVisitReportFloors < 3 || entry.state.friendVisitReportActions < 2 || !entry.state.friendRequestCard || !entry.state.friendLeaderboardCard || !entry.state.friendActivityCard || !entry.state.friendSearchCard;
         if (entry.panel === "settings") return entry.state.heroCount !== 1 || entry.state.miniCount < 3 || entry.state.cardCount < 4;
         return entry.state.heroCount !== 1 || entry.state.cardCount < 1;
     });
