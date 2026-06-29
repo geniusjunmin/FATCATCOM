@@ -63,9 +63,13 @@ async function isVisible(page, selector) {
             rosterCards: document.querySelectorAll("#fatcat-dom-cat-overlay .cat-list button").length,
             hasPortrait: !!document.querySelector("#fatcat-dom-cat-overlay .portrait-cat.img"),
             hasEquipCards: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-slot").length,
+            hasStoryPhoto: !!document.querySelector("#fatcat-dom-cat-overlay .story-photo"),
+            storyTags: document.querySelectorAll("#fatcat-dom-cat-overlay .story-tags span").length,
         }));
 
         state.overlayVisible = await isVisible(page, "#fatcat-dom-cat-overlay");
+        state.storyVisible = await isVisible(page, "#fatcat-dom-cat-overlay .cat-story");
+        state.storyButtonVisible = await isVisible(page, '#fatcat-dom-cat-overlay .story-button[data-action="storyWall"]');
         await page.click('#fatcat-dom-cat-overlay [data-action="tab"][data-tab="equip"]');
         await page.waitForTimeout(350);
         const equipFile = path.join(outDir, `cat-equip-${width}x${height}-edge.png`);
@@ -92,7 +96,7 @@ async function isVisible(page, selector) {
 
     await browser.close();
     console.log(JSON.stringify(results, null, 2));
-    if (results.some((entry) => entry.messages.length || entry.failedRequests.length || !entry.state.overlayVisible || !entry.state.hasPortrait || !entry.equipState.bagVisible || !entry.equipState.upgradeVisible || !entry.skinState.wardrobeVisible || entry.skinState.skinCards < 4 || entry.skinState.selectedCards < 1)) {
+    if (results.some((entry) => entry.messages.length || entry.failedRequests.length || !entry.state.overlayVisible || !entry.state.hasPortrait || !entry.state.hasStoryPhoto || !entry.state.storyVisible || !entry.state.storyButtonVisible || entry.state.storyTags < 3 || !entry.equipState.bagVisible || !entry.equipState.upgradeVisible || !entry.skinState.wardrobeVisible || entry.skinState.skinCards < 4 || entry.skinState.selectedCards < 1)) {
         process.exit(1);
     }
 })().catch((error) => {

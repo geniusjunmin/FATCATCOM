@@ -50,6 +50,7 @@ Updated: 2026-06-29
 - Cat responsive heights now scale between 360 and 430 widths instead of reusing 430px fixed heights. The 360x800 story and roster no longer overlap, and the 768x1024 tablet allocates spare height to the hero, stats, weight, equipment, and story rather than leaving a large empty band.
 - `tools/capture-cat-regression.js` now captures information, equipment, and skin views at all four supported sizes and fails if the equipment backpack/upgrade action or skin wardrobe/card structure is not visible.
 - Latest cat skin pass replaces the old single text card with a target-like wardrobe panel: active skin preview, four skin state cards, enabled/activity/locked states, compact 360px guards, and local generated cat art reused as wardrobe thumbnails.
+- Latest cat story pass deepens the lower story card without moving the verified geometry: story copy now has paper-strip hierarchy and contextual tags, the selected-cat photo reads as a pinned work-photo sticker, and the story-wall action has a chapter-style button treatment.
 - Generated achievement/mail/friend/settings art now uses a cropped, larger presentation in the main side tools. Cat info/upgrade/skill/equipment/skin tabs dynamically use the selected cat, coin, role skill, collar, and cushion assets instead of CSS-only symbols.
 - A new eight-icon project-native pack now replaces the remaining main-screen CSS placeholders: task clipboard, reward chest, launch rocket, factory, buildings, shop, inventory, and research. Final transparent PNGs live under `FATCATUI/assets/resources/textures/generated/ui/`, are registered in `UiAssetRegistry.ts`, and are embedded through `DomAssetDataUris.ts`.
 - The generated 2x4 source was chroma-key processed into 384x384 frames. Independent alpha-bounds QC confirmed every final icon retains at least 42px transparent margin on every side; 430px uses stronger crop/scale while <=390px reduces nav icon width to preserve labels.
@@ -67,7 +68,7 @@ Updated: 2026-06-29
 - `tools/capture-utility-regression.js` captures task, achievement, mail, friend, and settings panels at 430x932, 360x800, and 768x1024, asserting shell classes, key cards, task rows, and clean browser runtime state.
 - Building, shop, inventory, research, task, achievement, mail, friend, and settings panels are clickable.
 - Screenshot regression exists for 414x896, 430x932, 360x800, and 768x1024 on the main screen and cat page.
-- Remaining visual gap: generated art depth where CSS still looks flat, final main/cat target proportions, richer cat story/skin/equipment illustrations, and larger Cocos-managed illustration assets.
+- Remaining visual gap: generated art depth where CSS still looks flat, final main/cat target proportions, richer skin/equipment illustrations, and larger Cocos-managed illustration assets.
 
 Latest verified UI commands:
 
@@ -228,6 +229,7 @@ Latest verified checks:
 - 2026-06-28 generated navigation pack: four-size main captures, all 18 UI click steps, generated Data URI refresh, focused TypeScript checks, and `tools/quick-verify.ps1` passed after replacing task/chest/rocket and five bottom-nav placeholders; server tests remain 63/63.
 - 2026-06-28 target-coordinate pass: fresh 430x932 browser comparison plus four-size main/cat captures, five-cat lineup capture, all 18 UI click steps, and focused TypeScript diagnostics passed after the taller main operation/navigation bands and the wider compact/tablet cat production/status composition.
 - 2026-06-29 cat skin wardrobe pass: refreshed the DOM cat skin tab into a compact target-like wardrobe panel, extended `tools/capture-cat-regression.js` to capture `cat-skin-<size>-edge.png` for 414x896, 430x932, 360x800, and 768x1024, verified focused TypeScript diagnostics, four-size main/cat/feature/utility regressions, UI click regression, Cocos asset refresh, and `tools/quick-verify.ps1` with 63/63 server tests.
+- 2026-06-29 cat story card pass: added story tags, pinned work-photo treatment, and chapter-style story-wall button to the DOM cat page; `tools/capture-cat-regression.js` now asserts story visibility, story photo, story-wall button, and three tags across all four viewport sizes. Verified focused TypeScript diagnostics, Cocos asset refresh, four-size cat regression, UI click regression, and `tools/quick-verify.ps1` with 63/63 server tests.
 - `node tools\check-launch-production-preview-online.js`: passed and asserts `/api/production/server-preview` before `/api/launch`; online launch showed net production around 224/sec after the 105% mood multiplier.
 - `node tools\check-cat-upgrade-online.js`: passed.
 - `node tools\check-cat-feed-online.js`: passed.

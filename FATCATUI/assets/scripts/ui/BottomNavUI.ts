@@ -3892,9 +3892,15 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay .equip-icon.lock:after { left:34%; right:34%; top:20%; height:32%; border-radius:999px 999px 0 0; border:5px solid #5c4b38; border-bottom:0; }
             #fatcat-dom-cat-overlay .cat-story { margin-top:.8%; padding:1.15%; font-size:1.68%; line-height:1.25; }
             #fatcat-dom-cat-overlay .cat-story { display:grid; grid-template-columns:1fr 17% 17%; gap:1.5%; align-items:center; }
-            #fatcat-dom-cat-overlay .story-photo { min-height:76px; border-radius:12px; background:linear-gradient(rgba(70,48,34,.08),rgba(70,48,34,.16)), center/cover no-repeat; box-shadow:inset 0 0 0 3px rgba(126,86,48,.18), 0 4px 0 rgba(74,45,25,.2), 0 0 0 5px rgba(255,248,224,.52); position:relative; transform:rotate(3deg); }
-            #fatcat-dom-cat-overlay .story-photo:before { content:""; position:absolute; left:35%; top:-10%; width:28%; height:18%; border-radius:4px; background:#b44f37; box-shadow:0 2px 0 rgba(0,0,0,.22); }
-            #fatcat-dom-cat-overlay .story-button { display:inline-flex; align-items:center; justify-content:center; margin-top:3%; padding:2.6% 8%; border-radius:999px; background:linear-gradient(#f6cf70,#d8942a); color:#5c351e; font-weight:900; box-shadow:0 3px 0 rgba(115,66,22,.32), inset 0 0 0 2px rgba(255,244,205,.24); }
+            #fatcat-dom-cat-overlay .story-copy { position:relative; min-height:58px; padding:1.0% 1.2% 1.0% 2.2%; border-radius:11px; background:linear-gradient(90deg,rgba(255,249,231,.54),rgba(231,198,145,.22)); box-shadow:inset 4px 0 0 rgba(126,83,43,.42), inset 0 0 0 1px rgba(126,83,43,.09); }
+            #fatcat-dom-cat-overlay .story-copy b { display:inline-flex; align-items:center; padding:.7% 3.2%; border-radius:999px; background:linear-gradient(#7b573f,#4d3323); color:#ffe4ad; box-shadow:0 2px 0 rgba(71,44,24,.18); }
+            #fatcat-dom-cat-overlay .story-tags { display:flex; flex-wrap:wrap; gap:1.4%; margin-top:1.4%; }
+            #fatcat-dom-cat-overlay .story-tags span { padding:.6% 3.2%; border-radius:999px; background:rgba(111,72,39,.14); color:#724724; font-size:82%; font-weight:900; }
+            #fatcat-dom-cat-overlay .story-photo { min-height:76px; border-radius:8px; background:linear-gradient(rgba(70,48,34,.08),rgba(70,48,34,.16)), center/cover no-repeat; box-shadow:0 0 0 6px #fff1d1, 0 0 0 8px rgba(123,86,49,.46), 0 5px 0 rgba(74,45,25,.22), inset 0 -16px 18px rgba(74,45,25,.2); position:relative; transform:rotate(3deg); overflow:visible; }
+            #fatcat-dom-cat-overlay .story-photo:before { content:""; position:absolute; z-index:3; left:35%; top:-12%; width:28%; height:18%; border-radius:4px; background:linear-gradient(#ca5d42,#8d3329); box-shadow:0 2px 0 rgba(0,0,0,.22), inset 0 0 0 1px rgba(255,238,194,.22); }
+            #fatcat-dom-cat-overlay .story-photo:after { content:"工作照"; position:absolute; left:8%; right:8%; bottom:4%; min-height:18%; border-radius:999px; background:rgba(58,38,27,.72); color:#fff2c8; display:flex; align-items:center; justify-content:center; font-size:76%; font-weight:900; box-shadow:inset 0 0 0 1px rgba(255,232,174,.18); }
+            #fatcat-dom-cat-overlay .story-button { position:relative; display:inline-flex; align-items:center; justify-content:center; flex-direction:column; margin-top:3%; padding:2.6% 8%; min-height:70px; border-radius:16px; background:radial-gradient(circle at 50% 10%, rgba(255,255,255,.42), transparent 28%), linear-gradient(#f6cf70,#d8942a); color:#5c351e; font-weight:900; box-shadow:0 4px 0 rgba(115,66,22,.32), inset 0 0 0 3px rgba(255,244,205,.26); }
+            #fatcat-dom-cat-overlay .story-button:after { content:"章节 1"; margin-top:4%; padding:2% 12%; border-radius:999px; background:rgba(83,49,24,.16); font-size:72%; color:#74451f; }
             #fatcat-dom-cat-overlay .cat-actions { position:absolute; z-index:3; left:11.5%; right:2.7%; bottom:14.1%; height:4.2%; display:grid; grid-template-columns:1fr 1fr 1.4fr; gap:1.2%; }
             #fatcat-dom-cat-overlay .cat-actions button { border-radius:999px; color:#fff7de; font-size:2.05%; font-weight:900; text-shadow:0 2px rgba(80,43,18,.5); border:3px solid rgba(80,50,26,.42); box-shadow:0 4px 0 rgba(0,0,0,.26), inset 0 0 0 2px rgba(255,240,192,.14); }
             #fatcat-dom-cat-overlay .cat-actions .dismiss { background:linear-gradient(#a77a56,#74482e); }
@@ -4325,11 +4331,15 @@ export class BottomNavUI extends Component {
                 background-repeat:no-repeat;
                 background-color:#d2a875;
             }
+            #fatcat-dom-cat-overlay.compact .story-copy { min-height:70px; padding:1.3% 1.5% 1.3% 2.8%; }
+            #fatcat-dom-cat-overlay.compact .story-tags span { padding:.5% 2.4%; font-size:74%; }
+            #fatcat-dom-cat-overlay.compact .story-photo:after { font-size:68%; }
             #fatcat-dom-cat-overlay.compact .story-button {
                 margin:0;
-                padding:8% 4%;
+                padding:7% 4%;
+                min-height:76px;
                 border:0;
-                font-size:92%;
+                font-size:86%;
             }
             #fatcat-dom-cat-overlay.compact .cat-list { height:10.3%; bottom:2.2%; }
             #fatcat-dom-cat-overlay.tablet .cat-bg {
@@ -4531,9 +4541,12 @@ export class BottomNavUI extends Component {
                 background-repeat:no-repeat;
                 background-color:#d2a875;
             }
+            #fatcat-dom-cat-overlay.tablet .story-copy { min-height:64px; }
+            #fatcat-dom-cat-overlay.tablet .story-tags span { font-size:76%; }
             #fatcat-dom-cat-overlay.tablet .story-button {
                 margin:0;
                 padding:7% 3%;
+                min-height:66px;
                 border:0;
                 font-size:90%;
             }
@@ -4703,7 +4716,8 @@ export class BottomNavUI extends Component {
                 background-repeat:no-repeat;
             }
             #fatcat-dom-cat-overlay .story-book {
-                margin-right:8%;
+                display:block;
+                margin:0 0 5%;
                 color:#7d4c1f;
                 transform:rotate(90deg);
             }
@@ -5045,7 +5059,7 @@ export class BottomNavUI extends Component {
                     <div class="focus-panel"><b>${this.getCatTabTitle()}</b>${this.renderCatFocusContent(config.id, unlocked, upgradeCost, unlockCost, canUpgrade)}</div>
                     <div class="equipment-panel"><b>装备</b>${this.renderCatEquipPanel(config.id)}</div>
                 </div>
-                <div class="cat-story"><div class="story-copy"><b>猫咪故事</b><p>${this.getCatStory(config.name, config.personality, config.breed, assignedName)}</p></div><div class="story-photo" style="--story-cat:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"></div><button class="story-button" data-action="storyWall" data-id="${config.id}"><span class="story-book">▰</span>故事墙</button></div>
+                <div class="cat-story"><div class="story-copy"><b>猫咪故事</b><p>${this.getCatStory(config.name, config.personality, config.breed, assignedName)}</p><div class="story-tags"><span>${roleLabel}</span><span>${assignedName}</span><span>${weightLabel}</span></div></div><div class="story-photo" style="--story-cat:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"></div><button class="story-button" data-action="storyWall" data-id="${config.id}"><span class="story-book">▰</span>故事墙</button></div>
                 <div class="cat-actions"><button class="dismiss" data-action="dismissCat" data-id="${config.id}">解雇</button><button class="change" data-action="changeCat" data-id="${config.id}">更换</button><button class="level" data-action="upgradeCat" data-id="${config.id}" ${canUpgrade ? "" : "disabled"}>升级1级 ${this.formatNumber(upgradeCost)}</button></div>
                 <div class="cat-roster-label">猫咪队伍</div>
                 <div class="cat-list">${configs.map(item => this.renderCatListButton(item.id)).join("")}<button class="recruit" data-action="unlockCat" data-id="${config.id}"><span class="recruit-art" style="background-image:url('${this.getCatFullArtAsset("c_005")}')"></span><b>招募猫咪</b><small>${this.formatNumber(unlockCost)} 金币</small></button></div>
