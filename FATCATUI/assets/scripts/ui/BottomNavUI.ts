@@ -92,6 +92,7 @@ export class BottomNavUI extends Component {
     private _friendSearchPreview: FriendSearchResultDto | null = null;
     private _friendSearchMessage = "";
     private _serverLeaderboard: LeaderboardDto | null = null;
+    private _selectedFriendSnapshotId = "";
     private _friendRefreshInFlight = false;
     private _friendActivityRefreshInFlight = false;
     private _friendRequestRefreshInFlight = false;
@@ -1631,11 +1632,31 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay .friend-states span { padding:.8% 4%; border-radius:999px; background:rgba(98,62,34,.12); color:#694226; font-size:78%; font-weight:900; }
             #fatcat-dom-panel-overlay .friend-actions { display:flex; flex-direction:column; gap:8px; align-items:stretch; }
             #fatcat-dom-panel-overlay .friend-actions .tag { width:100%; margin:0; min-height:28px; }
+            #fatcat-dom-panel-overlay .friend-snapshot-card { margin-bottom:2%; padding:2.2%; border-radius:14px; background:linear-gradient(#fff3d3,#d9b17a); border:2px solid #7c5736; color:#4a2f1f; box-shadow:inset 0 0 0 2px rgba(255,250,224,.38), 0 3px 0 rgba(72,43,25,.22); font-size:2.0%; }
+            #fatcat-dom-panel-overlay .friend-snapshot-card .snapshot-head { display:grid; grid-template-columns:16% 1fr 22%; gap:2%; align-items:center; }
+            #fatcat-dom-panel-overlay .friend-snapshot-card .friend-avatar { width:100%; }
+            #fatcat-dom-panel-overlay .snapshot-copy b { display:block; color:#3f2818; font-size:116%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .snapshot-copy em { display:block; color:#725137; font-style:normal; font-weight:900; }
+            #fatcat-dom-panel-overlay .snapshot-meter { height:12px; margin:1.4% 0; border-radius:999px; background:#d7bd8e; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(91,61,34,.2); }
+            #fatcat-dom-panel-overlay .snapshot-meter i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#77aa43,#f1c34f); }
+            #fatcat-dom-panel-overlay .snapshot-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:1.2%; margin-top:2%; }
+            #fatcat-dom-panel-overlay .snapshot-stats span { min-height:34px; border-radius:10px; background:rgba(87,55,31,.12); color:#6d4325; display:flex; align-items:center; justify-content:center; flex-direction:column; font-weight:900; text-align:center; }
+            #fatcat-dom-panel-overlay .snapshot-stats b { color:#3f2818; }
+            #fatcat-dom-panel-overlay .snapshot-floors { margin-top:2%; display:grid; gap:5px; }
+            #fatcat-dom-panel-overlay .snapshot-floor { min-height:32px; display:grid; grid-template-columns:16% 1fr 26%; align-items:center; gap:2%; padding:1.2% 2%; border-radius:10px; background:linear-gradient(90deg,rgba(102,70,42,.18),rgba(255,244,204,.42)); box-shadow:inset 0 0 0 1px rgba(110,75,42,.18); font-weight:900; }
+            #fatcat-dom-panel-overlay .snapshot-floor i { display:flex; align-items:center; justify-content:center; min-height:24px; border-radius:8px; background:#795636; color:#ffe8b8; font-style:normal; font-size:92%; }
+            #fatcat-dom-panel-overlay .snapshot-floor b { color:#3f2818; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .snapshot-floor em { color:#6c472b; font-style:normal; text-align:right; }
+            #fatcat-dom-panel-overlay .snapshot-action { justify-self:end; display:flex; flex-direction:column; gap:7px; width:100%; }
+            #fatcat-dom-panel-overlay .snapshot-action .tag { margin:0; width:100%; min-height:28px; }
             #fatcat-dom-panel-overlay.compact .friends-shell .feature-mini { grid-template-columns:repeat(3,1fr); }
             #fatcat-dom-panel-overlay.compact .friends-shell .feature-mini span { min-height:46px; font-size:1.58%; }
             #fatcat-dom-panel-overlay.compact .friend-card { min-height:86px; grid-template-columns:15% 1fr 25%; padding:2%; }
             #fatcat-dom-panel-overlay.compact .friend-actions { gap:5px; }
             #fatcat-dom-panel-overlay.compact .friend-actions .tag { min-height:24px; font-size:82%; }
+            #fatcat-dom-panel-overlay.compact .friend-snapshot-card .snapshot-head { grid-template-columns:15% 1fr 25%; }
+            #fatcat-dom-panel-overlay.compact .snapshot-stats span { min-height:28px; font-size:82%; }
+            #fatcat-dom-panel-overlay.compact .snapshot-floor { grid-template-columns:18% 1fr 28%; min-height:28px; font-size:84%; }
             #fatcat-dom-panel-overlay .setting-row { display:grid; grid-template-columns:1fr 24%; gap:2%; align-items:center; }
             #fatcat-dom-panel-overlay .settings-shell .feature-card { min-height:84px; padding:2.2%; }
             #fatcat-dom-panel-overlay .settings-shell .setting-row { min-height:64px; }
@@ -2163,6 +2184,7 @@ export class BottomNavUI extends Component {
             this.select("friends");
             return;
         } else if (action === "visitFriend") {
+            this._selectedFriendSnapshotId = id;
             const serverFriend = NetworkManager.canUseServer
                 ? await SyncManager.visitServerFriend(id)
                 : null;
@@ -2477,13 +2499,31 @@ export class BottomNavUI extends Component {
         const playerHintNew = playerIdNew === "未连接" ? playerIdNew : `${playerIdNew.slice(0, 8)}...${playerIdNew.slice(-6)}`;
         const friendToolsNew = `<div class="friend-tools"><span>我的ID：${playerHintNew}</span><button class="tag" data-action="sendFriendRequest">发送申请</button><button class="tag warn" data-action="addFriend">直接添加</button></div>`;
         const maxIncome = Math.max(1, ...friends.map(friend => friend.income));
+        if (!friends.some(friend => friend.id === this._selectedFriendSnapshotId)) {
+            this._selectedFriendSnapshotId = friends[0]?.id ?? "";
+        }
         const rowsNew = friends.map((friend, index) => {
             const lastVisit = this.getFeatureTimestamp("friendVisits", friend.id);
             const lastGift = this.getFeatureTimestamp("friendGifts", friend.id);
             const width = Math.max(8, Math.min(100, Math.floor(friend.income / maxIncome * 100)));
             return `<div class="feature-card friend-card"><span class="friend-avatar"><i class="friend-rank">#${index + 1}</i></span><div class="friend-copy"><b>${friend.name}</b><em>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒</em><div class="friend-income"><i style="width:${width}%"></i></div><div class="friend-states"><span>${friend.status}</span><span>${lastVisit ? `访问 ${lastVisit}` : "待访问"}</span><span>${lastGift ? `送礼 ${lastGift}` : "可送礼"}</span></div></div><div class="friend-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问工厂</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再次送礼" : "赠送猫粮"}</button></div></div>`;
         }).join("");
-        return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div><div class="feature-list">${rowsNew}</div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
+        return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendSnapshotCard(friends, maxIncome)}<div class="feature-list">${rowsNew}</div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
+    }
+
+    private renderFriendSnapshotCard(friends: Array<{ id: string; name: string; level: number; income: number; status: string }>, maxIncome: number): string {
+        const selected = friends.find(friend => friend.id === this._selectedFriendSnapshotId) ?? friends[0];
+        if (!selected) return "";
+        const lastVisit = this.getFeatureTimestamp("friendVisits", selected.id) || "未访问";
+        const lastGift = this.getFeatureTimestamp("friendGifts", selected.id) || "未送礼";
+        const width = Math.max(8, Math.min(100, Math.floor(selected.income / Math.max(1, maxIncome) * 100)));
+        const rewardPreview = Math.max(50, Math.floor(selected.income * 0.12));
+        const floors = [
+            { label: "3F", name: "发酵车间", value: Math.floor(selected.income * 0.34) },
+            { label: "2F", name: "原料车间", value: Math.floor(selected.income * 0.28) },
+            { label: "1F", name: "咖啡厅", value: Math.floor(selected.income * 0.22) },
+        ].map(floor => `<div class="snapshot-floor"><i>${floor.label}</i><b>${floor.name}</b><em>${this.formatNumber(Math.max(1, floor.value))}/秒</em></div>`).join("");
+        return `<div class="friend-snapshot-card"><div class="snapshot-head"><span class="friend-avatar"><i class="friend-rank">工厂</i></span><div class="snapshot-copy"><b>${selected.name} 工厂快照</b><em>Lv.${selected.level} · 收益 ${this.formatNumber(selected.income)}/秒 · ${selected.status}</em><div class="snapshot-meter"><i style="width:${width}%"></i></div></div><div class="snapshot-action"><button class="tag" data-action="visitFriend" data-id="${selected.id}">访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${selected.id}">送礼</button></div></div><div class="snapshot-stats"><span>访问奖励<b>+${this.formatNumber(rewardPreview)}金币</b></span><span>最近访问<b>${lastVisit}</b></span><span>礼物状态<b>${lastGift}</b></span></div><div class="snapshot-floors">${floors}</div></div>`;
     }
 
     private renderFriendSearchCard(): string {
