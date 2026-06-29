@@ -155,11 +155,12 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest skin-wardrobe batch: the skin tab now has an active wardrobe preview, four skin-state cards, selected/activity/locked states, reused generated cat thumbnails, compact 360px rules, and a screenshot regression for `cat-skin-<size>-edge.png`.
 - Done in latest story-card batch: the lower story card now has story tags, paper-strip copy hierarchy, a pinned selected-cat work-photo sticker, chapter-style story-wall button, and regression assertions for story visibility/photo/button/tags.
 - Done in latest equipment-card batch: equipped slots and backpack cards now have rarity badges, slot labels, bonus pills, clearer level/state text, locked-slot treatment, and regression assertions for both information and equipment views.
-- Next move: improve cat skin illustration depth with richer generated or Cocos-managed assets without changing the now-aligned screen geometry.
+- Done in latest skin-theme batch: wardrobe cards now have distinct cafe/apron/manager/festival themes, CSS outfit overlays, style badges, color swatches, and regression assertions for themed skin cards.
+- Next move: only generate true bitmap skin/outfit thumbnails if the CSS themed cards are no longer enough; otherwise move to final main/cat micro-alignment or social UI polish.
 - Done in latest cat-page batch: active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, raised active roster card, and command-strip layering fix.
 - Done in latest cat density batch: slimmer stats/weight rows, compact skill/equipment side-by-side layout, folded compact equipment detail rows, shorter story card, and clickable equipment upgrade above roster.
 - Done in latest cat texture batch: darker workshop depth, paper-grain cards, brighter portrait stage, larger center cat art, stronger story photo, thicker equipment cards, and raised roster cards.
-- Next move: preserve the now-aligned cat geometry and deepen remaining skin lower-panel art, then return for final main/cat micro-alignment only.
+- Next move: preserve the now-aligned cat geometry, then return for final main/cat micro-alignment or deeper social UI/multiplayer polish.
 
 ### 4. UI Asset Boost
 

@@ -3840,11 +3840,22 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay .skin-card-target:after { content:""; position:absolute; left:7%; right:7%; top:7%; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.62),transparent); }
             #fatcat-dom-cat-overlay .skin-card-target.selected { background:linear-gradient(#ffe69a,#df9c34); box-shadow:inset 0 0 0 3px rgba(255,250,190,.55), 0 0 12px rgba(237,169,44,.42); }
             #fatcat-dom-cat-overlay .skin-card-target.locked { filter:grayscale(.45); opacity:.76; }
-            #fatcat-dom-cat-overlay .skin-card-target i { width:100%; aspect-ratio:1; border-radius:10px; background:center/contain no-repeat, linear-gradient(#f8deb1,#b88956); box-shadow:inset 0 0 0 2px rgba(92,60,34,.18); }
+            #fatcat-dom-cat-overlay .skin-card-target i { position:relative; width:100%; aspect-ratio:1; border-radius:10px; background:center/contain no-repeat, linear-gradient(#f8deb1,#b88956); box-shadow:inset 0 0 0 2px rgba(92,60,34,.18); overflow:hidden; }
+            #fatcat-dom-cat-overlay .skin-card-target i:before { content:""; position:absolute; left:18%; right:18%; bottom:8%; height:28%; border-radius:42% 42% 18% 18%; background:linear-gradient(135deg,var(--skin-a,#557448),var(--skin-b,#31482f)); box-shadow:inset 0 0 0 2px rgba(255,237,188,.28), 0 2px 0 rgba(65,39,22,.18); opacity:.92; }
+            #fatcat-dom-cat-overlay .skin-card-target i:after { content:""; position:absolute; right:8%; top:8%; width:28%; aspect-ratio:1; border-radius:50%; background:linear-gradient(#ffe06c,#d18b1e); box-shadow:inset 0 0 0 2px rgba(92,54,20,.28), 0 2px 0 rgba(65,39,22,.18); }
+            #fatcat-dom-cat-overlay .skin-card-target.apron i:before { left:24%; right:24%; bottom:6%; height:34%; border-radius:7px 7px 14px 14px; background:linear-gradient(#fff3d7 0 34%,var(--skin-a,#b75c31) 35%); }
+            #fatcat-dom-cat-overlay .skin-card-target.apron i:after { border-radius:0 0 42% 42%; background:linear-gradient(#fff6df 0 42%,#c77a35 43%); }
+            #fatcat-dom-cat-overlay .skin-card-target.manager i:before { left:14%; right:14%; bottom:9%; height:30%; border-radius:999px 999px 16px 16px; background:linear-gradient(90deg,var(--skin-a,#2f6f69),var(--skin-b,#173d44)); }
+            #fatcat-dom-cat-overlay .skin-card-target.manager i:after { border-radius:5px; transform:rotate(12deg); background:linear-gradient(#d9b06a,#8d5c2d); }
+            #fatcat-dom-cat-overlay .skin-card-target.festival i:before { left:12%; right:12%; bottom:8%; height:36%; border-radius:50% 50% 18px 18px; background:radial-gradient(circle at 35% 35%,#fff3b2 0 9%,transparent 10%), linear-gradient(135deg,var(--skin-a,#7b4bc0),var(--skin-b,#cf6a9a)); }
+            #fatcat-dom-cat-overlay .skin-card-target.festival i:after { background:radial-gradient(circle,#fff2a0 0 28%,#e35f65 30% 60%,transparent 61%); box-shadow:none; }
             #fatcat-dom-cat-overlay .skin-card-target b { display:block; color:#442915; line-height:1.08; }
             #fatcat-dom-cat-overlay .skin-card-target span { display:block; color:#735034; font-size:82%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
             #fatcat-dom-cat-overlay .skin-card-target em { display:inline-flex; width:max-content; margin-top:2%; padding:1.2% 8%; border-radius:999px; background:rgba(76,48,27,.82); color:#fff1c7; font-size:78%; font-style:normal; }
             #fatcat-dom-cat-overlay .skin-card-target.selected em { background:#5d8f38; color:#fff; }
+            #fatcat-dom-cat-overlay .skin-style-badge { display:inline-flex; width:max-content; margin:1.5% 0 0; padding:.9% 6%; border-radius:999px; background:linear-gradient(#72513a,#4c3324); color:#ffe5ad; font-size:72%; font-weight:1000; box-shadow:0 2px 0 rgba(62,39,22,.16); }
+            #fatcat-dom-cat-overlay .skin-swatches { display:flex; gap:4%; margin-top:2%; }
+            #fatcat-dom-cat-overlay .skin-swatches s { width:16%; max-width:16px; aspect-ratio:1; border-radius:50%; background:var(--swatch,#8f6a44); box-shadow:inset 0 0 0 2px rgba(255,240,200,.34), 0 1px 0 rgba(71,45,25,.22); text-decoration:none; }
             #fatcat-dom-cat-overlay .equip-row { display:grid; grid-template-columns: repeat(4,1fr); gap:1.4%; margin-top:2%; text-align:center; }
             #fatcat-dom-cat-overlay .equip-slot { position:relative; min-height: 88px; border-radius:12px; background:radial-gradient(circle at 50% 12%, rgba(255,255,255,.34), transparent 28%), linear-gradient(#f5dfbc,#d4a86f); border:2px solid rgba(111,78,45,.28); display:flex; align-items:center; justify-content:center; flex-direction:column; font-weight:900; color:#4a2f1f; box-shadow:inset 0 0 0 2px rgba(255,250,224,.28), 0 4px 0 rgba(73,44,24,.16); overflow:hidden; }
             #fatcat-dom-cat-overlay .equip-slot:after { content:""; position:absolute; left:11%; right:11%; bottom:7%; height:10%; border-radius:999px; background:rgba(83,54,29,.12); }
@@ -5107,12 +5118,12 @@ export class BottomNavUI extends Component {
         if (this._domCatTab === "skin") {
             const catArt = this.getCatFullArtAsset(config.id, config.portrait);
             const skins = [
-                { name: "默认工作服", desc: "原料产量稳定", state: "已启用", className: "selected", art: catArt },
-                { name: "烘焙围裙", desc: "咖啡价值 +2%", state: "活动", className: "", art: catArt },
-                { name: "店长披肩", desc: "金币加成 +1%", state: "待开放", className: "locked", art: catArt },
-                { name: "节日礼服", desc: "心情上限 +3", state: "待开放", className: "locked", art: catArt },
+                { name: "默认工作服", desc: "原料产量稳定", state: "已启用", style: "咖啡绿", className: "selected cafe", art: catArt, a: "#567648", b: "#2f4b32", swatches: ["#567648", "#e8c178", "#5b3924"] },
+                { name: "烘焙围裙", desc: "咖啡价值 +2%", state: "活动", style: "烘焙师", className: "apron", art: catArt, a: "#c46b34", b: "#fff0d0", swatches: ["#c46b34", "#fff0d0", "#8a5631"] },
+                { name: "店长披肩", desc: "金币加成 +1%", state: "待开放", style: "店长装", className: "manager locked", art: catArt, a: "#2f6f69", b: "#173d44", swatches: ["#2f6f69", "#d9b06a", "#173d44"] },
+                { name: "节日礼服", desc: "心情上限 +3", state: "待开放", style: "节日", className: "festival locked", art: catArt, a: "#7b4bc0", b: "#cf6a9a", swatches: ["#7b4bc0", "#cf6a9a", "#fff2a0"] },
             ];
-            const cards = skins.map(item => `<div class="skin-card-target ${item.className}"><i style="background-image:url('${item.art}')"></i><div><b>${item.name}</b><span>${item.desc}</span><em>${item.state}</em></div></div>`).join("");
+            const cards = skins.map(item => `<div class="skin-card-target ${item.className}" style="--skin-a:${item.a};--skin-b:${item.b}"><i style="background-image:url('${item.art}')"></i><div><b>${item.name}</b><span>${item.desc}</span><strong class="skin-style-badge">${item.style}</strong><div class="skin-swatches">${item.swatches.map(color => `<s style="--swatch:${color}"></s>`).join("")}</div><em>${item.state}</em></div></div>`).join("");
             return `<div class="skin-wardrobe"><div class="skin-preview-card"><span class="skin-preview-art" style="background-image:url('${catArt}')"></span><strong>皮肤衣柜</strong><small>当前启用：默认工作服</small></div><div class="skin-list-target">${cards}</div></div>`;
         }
         const skillLevel = Math.max(1, Math.floor(data.level / 10) + 1);
