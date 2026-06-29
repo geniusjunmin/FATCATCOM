@@ -1488,8 +1488,8 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay .task-row { min-height: 112px; display: grid; grid-template-columns: 1fr 24%; gap: 2%; align-items: center; }
             #fatcat-dom-panel-overlay .task-row.with-icon { grid-template-columns:16% 1fr 24%; }
             #fatcat-dom-panel-overlay .task-icon { width:100%; max-width:84px; aspect-ratio:1; border-radius:14px; background:linear-gradient(#fff1d3,#d8ad70); display:flex; align-items:center; justify-content:center; box-shadow:inset 0 0 0 3px rgba(118,78,43,.2), 0 4px 0 rgba(82,48,27,.25); }
-            #fatcat-dom-panel-overlay .task-board { display:grid; grid-template-columns:18% 1fr 22%; gap:2%; align-items:center; margin-bottom:2%; padding:2%; border-radius:16px; background:linear-gradient(#fff0d1,#d8b17d); border:3px solid #7c5736; box-shadow:inset 0 0 0 2px rgba(255,250,224,.35), 0 4px 0 rgba(72,43,25,.22); color:#4a2f1f; }
-            #fatcat-dom-panel-overlay .task-board-icon { position:relative; width:82%; aspect-ratio:1; border-radius:14px; background:linear-gradient(#fff4dc,#d9b376); box-shadow:inset 0 0 0 3px #8b6034; justify-self:center; }
+            #fatcat-dom-panel-overlay .task-board { display:grid; grid-template-columns:18% 1fr 22%; gap:2%; align-items:center; margin-bottom:2%; padding:2%; border-radius:16px; background:linear-gradient(#fff0d1,#d8b17d); border:3px solid #7c5736; box-shadow:inset 0 0 0 2px rgba(255,250,224,.35), 0 4px 0 rgba(72,43,25,.22); color:#4a2f1f; font-size:2.15%; line-height:1.18; }
+            #fatcat-dom-panel-overlay .task-board-icon { position:relative; display:block; width:82%; max-width:72px; aspect-ratio:1; border-radius:14px; background:linear-gradient(#fff4dc,#d9b376); box-shadow:inset 0 0 0 3px #8b6034; justify-self:center; overflow:hidden; }
             #fatcat-dom-panel-overlay .task-board-icon:before { content:""; position:absolute; left:26%; top:24%; width:48%; height:7%; border-radius:99px; background:#8b6034; box-shadow:0 14px 0 #8b6034, 0 28px 0 #8b6034; }
             #fatcat-dom-panel-overlay .task-board b { font-size:160%; }
             #fatcat-dom-panel-overlay .task-board .progress-line { margin-top:2%; }
@@ -1515,6 +1515,70 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay .feature-mini { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5%; margin-bottom:2%; }
             #fatcat-dom-panel-overlay .feature-mini span { min-height:66px; border-radius:12px; background:linear-gradient(#76523a,#493124); color:#ffe3ad; display:flex; align-items:center; justify-content:center; flex-direction:column; font-size:2.0%; font-weight:900; box-shadow:inset 0 0 0 2px rgba(255,226,170,.12), 0 3px 0 rgba(72,43,25,.25); text-align:center; }
             #fatcat-dom-panel-overlay .feature-mini b { color:#fff; font-size:145%; }
+            #fatcat-dom-panel-overlay .utility-shell {
+                background:
+                    repeating-linear-gradient(135deg,rgba(120,78,39,.035) 0 2px,transparent 2px 8px),
+                    radial-gradient(circle at 50% 0, rgba(255,249,225,.72), transparent 35%),
+                    linear-gradient(#f1dab1 0 64%,#ba8755 65%,#65442f);
+            }
+            #fatcat-dom-panel-overlay .utility-shell .feature-hero,
+            #fatcat-dom-panel-overlay .utility-shell .task-board {
+                border-radius:18px;
+                background:
+                    radial-gradient(circle at 10% 8%, rgba(255,255,255,.56), transparent 22%),
+                    linear-gradient(#fff7dc,#d7ad72);
+                border-width:3px;
+            }
+            #fatcat-dom-panel-overlay .utility-shell .feature-list {
+                padding:1.5%;
+                border-radius:16px;
+                background:rgba(75,49,32,.28);
+                box-shadow:inset 0 0 0 2px rgba(255,231,180,.12);
+            }
+            #fatcat-dom-panel-overlay .utility-shell .feature-card,
+            #fatcat-dom-panel-overlay .utility-shell .task-row {
+                min-height:92px;
+                border-radius:12px;
+                background:
+                    radial-gradient(circle at 8% 8%, rgba(255,255,255,.48), transparent 24%),
+                    linear-gradient(#fff4d6,#dfbd84);
+            }
+            #fatcat-dom-panel-overlay .utility-shell .feature-icon,
+            #fatcat-dom-panel-overlay .utility-shell .task-icon {
+                background-color:#f6dfad;
+                background-size:128%;
+                background-position:center;
+            }
+            #fatcat-dom-panel-overlay .utility-shell .feature-badge,
+            #fatcat-dom-panel-overlay .utility-shell .task-stamp {
+                border:2px solid rgba(255,225,160,.28);
+                box-shadow:0 3px 0 rgba(64,37,21,.28), inset 0 0 0 2px rgba(255,225,160,.12);
+            }
+            #fatcat-dom-panel-overlay .task-shell .task-daily-card,
+            #fatcat-dom-panel-overlay .achievement-shell .feature-mini span,
+            #fatcat-dom-panel-overlay .mail-shell .feature-mini span,
+            #fatcat-dom-panel-overlay .friends-shell .feature-mini span,
+            #fatcat-dom-panel-overlay .settings-shell .feature-mini span {
+                min-height:74px;
+                background:linear-gradient(#7c573b,#4a3022);
+            }
+            #fatcat-dom-panel-overlay .task-shell .task-daily-card { color:#ffe6b4; }
+            #fatcat-dom-panel-overlay .task-shell .task-daily-card b { color:#fff8dc; }
+            #fatcat-dom-panel-overlay .task-shell .css-icon {
+                width:min(52px,72%);
+                max-width:52px;
+                overflow:hidden;
+            }
+            #fatcat-dom-panel-overlay .mail-shell .feature-card.ready,
+            #fatcat-dom-panel-overlay .achievement-shell .feature-card.ready {
+                box-shadow:0 0 0 3px rgba(245,190,71,.36), inset 0 0 0 2px rgba(255,250,224,.34), 0 3px 0 rgba(72,43,25,.22);
+            }
+            #fatcat-dom-panel-overlay .friends-shell .friend-request-card,
+            #fatcat-dom-panel-overlay .friends-shell .leaderboard-card,
+            #fatcat-dom-panel-overlay .friends-shell .friend-activity-card,
+            #fatcat-dom-panel-overlay .friends-shell .friend-search-card {
+                border-radius:12px;
+            }
             #fatcat-dom-panel-overlay .leaderboard-card { margin-bottom:2%; padding:2.2%; border-radius:14px; background:linear-gradient(#76523a,#493124); border:2px solid #7c5736; color:#ffe2a8; box-shadow:inset 0 0 0 2px rgba(255,226,170,.12), 0 3px 0 rgba(72,43,25,.24); font-size:2.05%; }
             #fatcat-dom-panel-overlay .leaderboard-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5%; font-weight:900; }
             #fatcat-dom-panel-overlay .leaderboard-head span { color:#fff; }
@@ -2349,7 +2413,7 @@ export class BottomNavUI extends Component {
                 data.currentValue >= config.goalValue && !data.isClaimed ? `<button class="tag" data-action="claimTask" data-id="${config.id}">领取</button>` : `<span class="tag ${data.isClaimed ? "" : "warn"}">${data.isClaimed ? "已领取" : "进行中"}</span>`
             )).join("")
             : `<div class="feature-card">成就墙正在扩建，后续会加入更多长期目标。</div>`;
-        return `<div class="panel-shell"><h2>成就墙</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("achievement")}')"></span><div><b>肥猫咖啡荣誉室</b><br>记录长期目标、收集进度和可领取奖励。</div><span class="feature-badge">可领取<br>${claimable}</span></div><div class="feature-mini"><span>猫咪收集<b>${unlockedCats}/${totalCats}</b></span><span>任务总数<b>${totalTasks}</b></span><span>钻石库存<b>${this.formatNumber(ResourceManager.get("diamond"))}</b></span></div><div class="feature-list">${rows}</div></div>`;
+        return `<div class="panel-shell utility-shell achievement-shell"><h2>成就墙</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("achievement")}')"></span><div><b>肥猫咖啡荣誉室</b><br>记录长期目标、收集进度和可领取奖励。</div><span class="feature-badge">可领取<br>${claimable}</span></div><div class="feature-mini"><span>猫咪收集<b>${unlockedCats}/${totalCats}</b></span><span>任务总数<b>${totalTasks}</b></span><span>钻石库存<b>${this.formatNumber(ResourceManager.get("diamond"))}</b></span></div><div class="feature-list">${rows}</div></div>`;
     }
 
     private renderMailPanel(): string {
@@ -2371,7 +2435,7 @@ export class BottomNavUI extends Component {
                 : `<span class="tag warn">${claimed ? "已领取" : "保留"}</span>`;
             return `<div class="feature-card with-icon ${mail.ready && !claimed ? "ready" : ""}"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("mail")}')"></span><div><b>${mail.title}</b><br>${mail.desc}<br><span class="focus-tag">${mail.state}</span></div><div>${action}</div></div>`;
         }).join("");
-        return `<div class="panel-shell"><h2>邮件</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("mail")}')"></span><div><b>公司邮箱</b><br>奖励、系统公告和好友互动都会集中在这里。</div><span class="feature-badge ${pendingFriendRequests > 0 ? "alert" : ""}">未读<br>${unreadNew}</span></div><div class="feature-list">${requestCard}${rowsNew}</div></div>`;
+        return `<div class="panel-shell utility-shell mail-shell"><h2>邮件</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("mail")}')"></span><div><b>公司邮箱</b><br>奖励、系统公告和好友互动都会集中在这里。</div><span class="feature-badge ${pendingFriendRequests > 0 ? "alert" : ""}">未读<br>${unreadNew}</span></div><div class="feature-list">${requestCard}${rowsNew}</div></div>`;
     }
 
     private renderFriendPanel(): string {
@@ -2388,7 +2452,7 @@ export class BottomNavUI extends Component {
             const lastGift = this.getFeatureTimestamp("friendGifts", friend.id);
             return `<div class="feature-card with-icon"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>${friend.name}</b><br>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒<br><span class="focus-tag">${friend.status}</span><span class="focus-tag">${lastVisit ? `已访问 ${lastVisit}` : "未访问"}</span><span class="focus-tag">${lastGift ? `已送礼 ${lastGift}` : "可送礼"}</span></div><div><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问</button><br><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再送" : "送礼"}</button></div></div>`;
         }).join("");
-        return `<div class="panel-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}<div class="feature-list">${rowsNew}</div></div>`;
+        return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}<div class="feature-list">${rowsNew}</div></div>`;
     }
 
     private renderFriendSearchCard(): string {
@@ -2580,7 +2644,7 @@ export class BottomNavUI extends Component {
             { id: "sync", name: "同步预览", desc: "为后续服务器同步展示状态。", on: this.getSettingValue("sync") },
         ];
         const rows = settings.map(item => `<div class="feature-card setting-row"><div><b>${item.name}</b><br>${item.desc}</div><button class="toggle-pill ${item.on ? "" : "off"}" data-action="toggleSetting" data-id="${item.id}">${item.on ? "开启" : "关闭"}</button></div>`).join("");
-        return `<div class="panel-shell settings-shell"><h2>设置</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("settings")}')"></span><div><b>公司设置</b><br>当前支持本地离线和 .NET Core 服务端联调。URL 可用 ?api=http://localhost:5144 临时指定。</div><span class="feature-badge">存档<br>${created}</span></div><div class="feature-mini"><span>服务器<b>${serverLabel}</b></span><span>同步<b>${syncLabel}</b></span><span>待同步<b>${sync.pendingFeatureChanges}</b></span></div><div class="feature-list">${rows}<div class="feature-card"><b>账号状态</b><br>API：${apiBase}<br>玩家：${playerId}<br>最近错误：${sync.lastError || network.lastError || "无"}<br><button class="tag" data-action="connectServer">连接服务器</button> <button class="tag" data-action="syncSave">同步存档</button> <button class="tag warn" data-action="pushSettings">推送设置</button> <button class="tag" data-action="previewProduction">结算预览</button></div></div></div>`;
+        return `<div class="panel-shell utility-shell settings-shell"><h2>设置</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("settings")}')"></span><div><b>公司设置</b><br>当前支持本地离线和 .NET Core 服务端联调。URL 可用 ?api=http://localhost:5144 临时指定。</div><span class="feature-badge">存档<br>${created}</span></div><div class="feature-mini"><span>服务器<b>${serverLabel}</b></span><span>同步<b>${syncLabel}</b></span><span>待同步<b>${sync.pendingFeatureChanges}</b></span></div><div class="feature-list">${rows}<div class="feature-card"><b>账号状态</b><br>API：${apiBase}<br>玩家：${playerId}<br>最近错误：${sync.lastError || network.lastError || "无"}<br><button class="tag" data-action="connectServer">连接服务器</button> <button class="tag" data-action="syncSave">同步存档</button> <button class="tag warn" data-action="pushSettings">推送设置</button> <button class="tag" data-action="previewProduction">结算预览</button></div></div></div>`;
     }
 
     private renderFeatureProgressCard(icon: string, title: string, desc: string, current: number, goal: number, reward: string, action: string): string {
@@ -2779,7 +2843,7 @@ export class BottomNavUI extends Component {
             )).join("")
             : `<div class="item">当前任务已完成<br><span class="tag">等待刷新</span></div>`;
 
-        return `<div class="panel-shell"><h2>任务详情</h2><div class="task-board"><span class="task-board-icon"></span><div>今日订单<br><b>${orderProgress}/${orderGoal}</b><div class="progress-line"><i style="width:${Math.floor((orderProgress / orderGoal) * 100)}%"></i></div></div><span class="task-stamp">活跃 ${activeScore}</span></div><div class="task-daily"><div class="task-daily-card">${this.renderCssIcon("task")}<span>订单完成<br><b>${orderProgress}/${orderGoal}</b></span></div><div class="task-daily-card">${this.renderCssIcon("gift")}<span>可领取奖励<br><b>${claimableCount}</b></span></div><div class="task-daily-card">${this.renderCssIcon("coin")}<span>活跃度<br><b>${activeScore}</b></span></div></div><div class="task-reward-strip">${activeMilestones.map(value => `<span class="${activeScore >= value ? "ready" : ""}">${value}</span>`).join("")}</div><div class="list shop-list">${rows}</div><div class="wide">点击左侧任务板或底部今日订单会打开这里；主界面宝箱会优先领取已完成任务，没有可领任务时发放一份小额宝箱奖励。</div></div>`;
+        return `<div class="panel-shell utility-shell task-shell"><h2>任务详情</h2><div class="task-board"><span class="task-board-icon"></span><div>今日订单<br><b>${orderProgress}/${orderGoal}</b><div class="progress-line"><i style="width:${Math.floor((orderProgress / orderGoal) * 100)}%"></i></div></div><span class="task-stamp">活跃 ${activeScore}</span></div><div class="task-daily"><div class="task-daily-card">${this.renderCssIcon("task")}<span>订单完成<br><b>${orderProgress}/${orderGoal}</b></span></div><div class="task-daily-card">${this.renderCssIcon("gift")}<span>可领取奖励<br><b>${claimableCount}</b></span></div><div class="task-daily-card">${this.renderCssIcon("coin")}<span>活跃度<br><b>${activeScore}</b></span></div></div><div class="task-reward-strip">${activeMilestones.map(value => `<span class="${activeScore >= value ? "ready" : ""}">${value}</span>`).join("")}</div><div class="list shop-list">${rows}</div><div class="wide">点击左侧任务板或底部今日订单会打开这里；主界面宝箱会优先领取已完成任务，没有可领任务时发放一份小额宝箱奖励。</div></div>`;
     }
 
     private renderTaskRow(id: string, name: string, description: string, type: string, currentValue: number, goalValue: number, rewardText: string, claimable: boolean): string {

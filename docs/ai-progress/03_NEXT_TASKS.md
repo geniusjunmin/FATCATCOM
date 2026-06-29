@@ -93,6 +93,12 @@ Keep these scripts in the regular set when touching related flows:
 - `tools/capture-feature-regression.js` now covers these four panels at 430x932, 360x800, and 768x1024 with structural assertions and runtime error checks.
 - Next move: keep these structures stable, then replace remaining generic row icons and backgrounds with richer Cocos-managed/generated art when specific fidelity gaps are visible.
 
+### 0a. Utility Panels
+
+- Done in latest utility-panel batch: task, achievement, mail, friend, and settings panels now use a shared `utility-shell` visual language with target-like paper texture, hero cards, darker metric/status cards, stronger list containers, and fixed task-board typography.
+- `tools/capture-utility-regression.js` now covers those five panels at 430x932, 360x800, and 768x1024. It opens panels through the real main-screen hotspots, closes between captures, and checks panel shell classes plus runtime errors.
+- Next move: refine utility-panel content density and add richer generated/local art only where a screenshot shows a clear mismatch with the reference UI.
+
 ### 1. Main Factory Richness
 
 - Preserve the generated cutaway as the primary room artwork; do not restore the hidden duplicate CSS room/machine/cat layers.

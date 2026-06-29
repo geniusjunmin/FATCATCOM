@@ -62,6 +62,8 @@ Updated: 2026-06-29
 - Cat lower content density is improved: stats/weight rows are slimmer, skill and equipment cards sit side by side in compact mode, compact equipment details fold away, equipment/story cards have stronger paper and photo treatment, and the equipment upgrade button remains clickable above the roster.
 - Building, shop, inventory, and research panels now follow `其他页面.png` more closely: building has a floor selector, illustrated room hero, level-effect table, conditions, and upgrade action; shop has four target-like category tabs and six list rows; inventory has a four-by-five item grid and selected-detail card; research preserves the dark tree plus cream detail side-by-side layout even at 360px.
 - `tools/capture-feature-regression.js` captures those four feature panels at 430x932, 360x800, and 768x1024, and asserts panel visibility, expected row/card counts, building hero presence, inventory detail visibility, research side-by-side layout, and no browser errors or failed requests.
+- Task, achievement, mail, friend, and settings panels now share a target-like utility-panel shell with paper texture, stronger hero/status cards, darker metric cards, and fixed local typography for the task board. The previous task-panel oversized CSS icon/typography regression is fixed and covered by screenshot review.
+- `tools/capture-utility-regression.js` captures task, achievement, mail, friend, and settings panels at 430x932, 360x800, and 768x1024, asserting shell classes, key cards, task rows, and clean browser runtime state.
 - Building, shop, inventory, research, task, achievement, mail, friend, and settings panels are clickable.
 - Screenshot regression exists for 414x896, 430x932, 360x800, and 768x1024 on the main screen and cat page.
 - Remaining visual gap: icon consistency, generated art depth where CSS still looks flat, final main/cat target proportions, and larger Cocos-managed illustration assets.
@@ -73,6 +75,7 @@ Latest verified UI commands:
 - `node .\tools\capture-cat-regression.js`
 - `node .\tools\capture-cat-lineup.js`
 - `node .\tools\capture-feature-regression.js`
+- `node .\tools\capture-utility-regression.js`
 - `node .\tools\verify-ui-clicks-playwright.js`
 
 ## Client Networking
