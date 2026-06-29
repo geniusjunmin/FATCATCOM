@@ -3247,11 +3247,81 @@ export class BottomNavUI extends Component {
             }
             #fatcat-dom-hud .icon.asset:before,
             #fatcat-dom-hud .icon.asset:after { display:none !important; }
-            #fatcat-dom-hud.compact.tall .player {
-                left:1.8%;
-                width:26.5%;
+            #fatcat-dom-hud .player {
+                grid-template-columns:31% 1fr;
+                padding:0 3.0% 0 1.2%;
+                background:
+                    radial-gradient(circle at 21% 15%, rgba(255,255,255,.72), transparent 23%),
+                    linear-gradient(#f2dfb8 0 54%, #c49b66 55%, #7e5b3e);
+                border-color:#8b6848;
+                box-shadow:0 5px 0 rgba(0,0,0,.34), inset 0 0 0 3px rgba(255,248,220,.36), inset 0 -10px 16px rgba(82,49,25,.17);
             }
-            #fatcat-dom-hud.compact.tall .level { left:0; }
+            #fatcat-dom-hud .player span {
+                position:relative;
+                z-index:1;
+                min-width:0;
+                padding-left:2%;
+            }
+            #fatcat-dom-hud .avatar {
+                width:92%;
+                margin-left:2%;
+            }
+            #fatcat-dom-hud .level {
+                left:-7.8%;
+                bottom:-12%;
+                width:32%;
+                border-width:3px;
+                font-size:2.25%;
+            }
+            #fatcat-dom-hud .company {
+                padding-top:0;
+                font-size:2.22%;
+                line-height:1.0;
+                color:#352316;
+                text-shadow:0 1px rgba(255,244,210,.72);
+            }
+            #fatcat-dom-hud .exp {
+                position:relative;
+                z-index:1;
+                margin-top:4%;
+                width:93%;
+                height:18%;
+            }
+            #fatcat-dom-hud .exp-text {
+                left:41%;
+                top:58%;
+                width:42%;
+                font-size:1.46%;
+            }
+            #fatcat-dom-hud .resources {
+                left:30.5%;
+                right:1.2%;
+                top:2.85%;
+                gap:.72%;
+            }
+            #fatcat-dom-hud .res {
+                grid-template-columns:24% minmax(0,1fr) 18.5%;
+            }
+            #fatcat-dom-hud.compact .player {
+                width:28.2%;
+                grid-template-columns:32% 1fr;
+                padding-right:2.2%;
+            }
+            #fatcat-dom-hud.compact .company { font-size:1.54%; }
+            #fatcat-dom-hud.compact .level { left:-2.5%; width:31%; font-size:1.82%; }
+            #fatcat-dom-hud.compact .exp-text { left:40%; width:43%; font-size:1.12%; }
+            #fatcat-dom-hud.compact .resources { left:30.0%; right:.6%; gap:.24%; }
+            #fatcat-dom-hud.compact.tall .player {
+                left:.8%;
+                width:29.6%;
+                height:6.7%;
+                border-radius:15px;
+            }
+            #fatcat-dom-hud.compact.tall .company { font-size:1.56%; }
+            #fatcat-dom-hud.compact.tall .level { left:-1.2%; bottom:-8%; width:29%; }
+            #fatcat-dom-hud.compact.tall .exp { height:17%; margin-top:3%; width:92%; }
+            #fatcat-dom-hud.compact.tall .exp-text { top:55%; font-size:1.05%; }
+            #fatcat-dom-hud.compact.tall .resources { left:31.4%; right:.45%; top:3.02%; gap:.18%; }
             #fatcat-dom-hud.compact.tall .res {
                 grid-template-columns:26% minmax(0,1fr) 22%;
             }
@@ -3264,6 +3334,45 @@ export class BottomNavUI extends Component {
                 font-size:1.8%;
             }
             @media (max-width:390px) {
+                #fatcat-dom-hud.compact.tall .player {
+                    left:.55%;
+                    width:30.4%;
+                    grid-template-columns:31% 1fr;
+                    padding-left:.6%;
+                    padding-right:1.4%;
+                }
+                #fatcat-dom-hud.compact.tall .avatar.asset {
+                    width:98%;
+                    margin-left:-2%;
+                    background-size:168%;
+                }
+                #fatcat-dom-hud.compact.tall .company {
+                    font-size:1.32%;
+                    line-height:1.02;
+                }
+                #fatcat-dom-hud.compact.tall .level {
+                    width:27%;
+                    left:-.5%;
+                    bottom:-6%;
+                    font-size:1.45%;
+                    border-width:2px;
+                }
+                #fatcat-dom-hud.compact.tall .exp {
+                    height:15%;
+                    margin-top:2.6%;
+                    width:91%;
+                }
+                #fatcat-dom-hud.compact.tall .exp-text {
+                    top:55%;
+                    left:38%;
+                    width:45%;
+                    font-size:.86%;
+                }
+                #fatcat-dom-hud.compact.tall .resources {
+                    left:31.6%;
+                    right:.45%;
+                    gap:.16%;
+                }
                 #fatcat-dom-hud.compact.tall .res {
                     grid-template-columns:22% minmax(0,1fr) 18%;
                 }

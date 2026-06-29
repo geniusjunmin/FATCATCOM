@@ -111,6 +111,7 @@ Keep these scripts in the regular set when touching related flows:
 - Make the company badge feel closer to the target UI.
 - Watch the 360x800 case first; if it fits there, the wider phone sizes usually follow.
 - Latest pass retuned player badge depth, avatar/level medallion, resource pill height, icon plaque scale, centered values, plus-button depth, and compact/wide spacing.
+- Done in latest HUD micro pass: company badge now uses a lighter target-like wood/paper face, the avatar and level medallion are larger, the experience bar/text is repositioned, and compact/tall resource offsets are guarded against 360x800 value clipping.
 - Next pass should compare against the target HUD for final micro-alignment after richer art assets are integrated.
 
 ### 2a. Bottom Controls Polish
