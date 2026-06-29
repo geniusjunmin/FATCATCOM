@@ -1632,12 +1632,339 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay .warn { background: #8f5f3a; }
             #fatcat-dom-panel-overlay .wide { margin-top: 2.2%; padding: 3%; font-size: 2.8%; line-height: 1.45; }
             #fatcat-dom-panel-overlay .message { margin: 2% auto 0; width: 88%; min-height: 5%; padding: 1.2% 2%; border-radius: 999px; background: rgba(66, 48, 31, .88); color: #ffe7b3; text-align: center; font-size: 2.55%; font-weight: 800; box-shadow: inset 0 0 0 2px rgba(255,222,154,.12); }
+            #fatcat-dom-panel-overlay .building-shell,
+            #fatcat-dom-panel-overlay .shop-shell,
+            #fatcat-dom-panel-overlay .inventory-shell,
+            #fatcat-dom-panel-overlay .research-shell {
+                background:
+                    repeating-linear-gradient(135deg,rgba(102,68,38,.025) 0 2px,transparent 2px 7px),
+                    linear-gradient(#f0dbb3,#bd8e5e 68%,#684a35);
+            }
+            #fatcat-dom-panel-overlay .building-selector {
+                display:grid;
+                grid-template-columns:repeat(6,1fr);
+                gap:1%;
+                margin-bottom:1.4%;
+                padding:1%;
+                border-radius:12px;
+                background:rgba(62,39,25,.72);
+                box-shadow:inset 0 0 0 2px rgba(255,226,169,.12);
+            }
+            #fatcat-dom-panel-overlay .building-chip {
+                min-height:48px;
+                padding:3% 2%;
+                border:0;
+                border-radius:9px;
+                background:linear-gradient(#8b6849,#513728);
+                color:#f8deb0;
+                font:inherit;
+                font-size:1.65%;
+                font-weight:900;
+                cursor:pointer;
+                pointer-events:auto;
+                box-shadow:0 2px 0 rgba(36,22,14,.36),inset 0 1px 0 rgba(255,239,205,.16);
+            }
+            #fatcat-dom-panel-overlay .building-chip b,
+            #fatcat-dom-panel-overlay .building-chip span,
+            #fatcat-dom-panel-overlay .building-chip small {
+                display:block;
+            }
+            #fatcat-dom-panel-overlay .building-chip b { font-size:150%; }
+            #fatcat-dom-panel-overlay .building-chip span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+            #fatcat-dom-panel-overlay .building-chip small { color:#e6bd7e; }
+            #fatcat-dom-panel-overlay .building-chip.active {
+                background:linear-gradient(#ffd487,#d98b2c);
+                color:#5d351b;
+                box-shadow:0 0 0 2px #fff0b5 inset,0 3px 0 #8a4f22;
+            }
+            #fatcat-dom-panel-overlay .building-detail-hero {
+                position:relative;
+                min-height:225px;
+                border:3px solid #67452e;
+                border-radius:14px;
+                background-size:175% auto;
+                background-position:center 54%;
+                overflow:hidden;
+                box-shadow:inset 0 0 0 3px rgba(255,232,185,.2),0 4px 0 rgba(58,34,20,.3);
+            }
+            #fatcat-dom-panel-overlay .building-detail-hero:after {
+                content:"";
+                position:absolute;
+                inset:auto 0 0;
+                height:38%;
+                background:linear-gradient(transparent,rgba(31,19,13,.82));
+            }
+            #fatcat-dom-panel-overlay .building-floor-tag {
+                position:absolute;
+                z-index:3;
+                left:3%;
+                top:4%;
+                min-width:16%;
+                padding:2% 3%;
+                border-radius:10px;
+                background:linear-gradient(#fff0c9,#d4a363);
+                color:#62401f;
+                font-size:3.1%;
+                font-weight:900;
+                text-align:center;
+                box-shadow:0 3px 0 rgba(57,34,19,.3),inset 0 0 0 2px rgba(255,255,255,.28);
+            }
+            #fatcat-dom-panel-overlay .building-floor-tag small {
+                display:block;
+                font-size:48%;
+            }
+            #fatcat-dom-panel-overlay .building-scene-prop {
+                display:none;
+            }
+            #fatcat-dom-panel-overlay .building-hero-copy {
+                position:absolute;
+                z-index:3;
+                left:3%;
+                right:3%;
+                bottom:4%;
+                display:flex;
+                align-items:center;
+                gap:3%;
+                color:#fff1cf;
+                text-shadow:0 2px #392218;
+                font-size:2.3%;
+            }
+            #fatcat-dom-panel-overlay .building-hero-copy b { font-size:145%; }
+            #fatcat-dom-panel-overlay .building-hero-copy span,
+            #fatcat-dom-panel-overlay .building-hero-copy em {
+                padding:.8% 3%;
+                border-radius:999px;
+                background:rgba(56,36,24,.82);
+                font-style:normal;
+                font-weight:900;
+            }
+            #fatcat-dom-panel-overlay .building-description {
+                margin:1.5% 0;
+                padding:2.4% 3%;
+                border-radius:10px;
+                background:rgba(255,244,218,.72);
+                color:#604027;
+                font-size:2.15%;
+                line-height:1.35;
+                box-shadow:inset 0 0 0 1px rgba(103,67,37,.14);
+            }
+            #fatcat-dom-panel-overlay .building-target-effects,
+            #fatcat-dom-panel-overlay .building-conditions {
+                padding:2.5%;
+                border-radius:12px;
+                background:linear-gradient(#fff3d7,#e1bd87);
+                border:2px solid rgba(105,69,38,.34);
+                box-shadow:inset 0 0 0 2px rgba(255,255,255,.24),0 3px 0 rgba(62,38,22,.2);
+            }
+            #fatcat-dom-panel-overlay .building-target-title {
+                display:flex;
+                align-items:center;
+                gap:3%;
+                margin-bottom:1%;
+                font-size:2.15%;
+            }
+            #fatcat-dom-panel-overlay .building-target-title b { margin-right:auto; }
+            #fatcat-dom-panel-overlay .building-target-row {
+                display:grid;
+                grid-template-columns:1fr 20% 8% 20%;
+                gap:2%;
+                align-items:center;
+                min-height:30px;
+                border-top:1px solid rgba(107,72,40,.14);
+                font-size:1.95%;
+            }
+            #fatcat-dom-panel-overlay .building-target-row b,
+            #fatcat-dom-panel-overlay .building-target-row strong { text-align:right; }
+            #fatcat-dom-panel-overlay .building-target-row em { color:#5d8d3a; text-align:center; font-style:normal; }
+            #fatcat-dom-panel-overlay .building-conditions { margin-top:1.4%; }
+            #fatcat-dom-panel-overlay .building-conditions > b { font-size:2.15%; }
+            #fatcat-dom-panel-overlay .building-conditions > div {
+                display:grid;
+                grid-template-columns:1fr auto;
+                align-items:center;
+                min-height:31px;
+                border-top:1px solid rgba(107,72,40,.14);
+                font-size:1.9%;
+            }
+            #fatcat-dom-panel-overlay .building-conditions span {
+                display:flex;
+                align-items:center;
+                gap:3%;
+            }
+            #fatcat-dom-panel-overlay .building-conditions .css-icon { width:20px; min-width:20px; }
+            #fatcat-dom-panel-overlay .building-conditions strong.ok { color:#4f842e; }
+            #fatcat-dom-panel-overlay .building-conditions strong.bad { color:#b13f2e; }
+            #fatcat-dom-panel-overlay .building-main-upgrade {
+                display:flex;
+                justify-content:center;
+                margin:1.6% 0 2%;
+            }
+            #fatcat-dom-panel-overlay .building-main-upgrade .tag {
+                min-width:62%;
+                margin:0;
+                padding:2.4% 5%;
+                border-radius:10px;
+                text-align:center;
+                font-size:2.3%;
+            }
+            #fatcat-dom-panel-overlay .building-roster {
+                padding:2.5%;
+                border-radius:12px;
+                background:rgba(67,43,29,.72);
+                color:#ffe0a7;
+                font-size:2%;
+            }
+            #fatcat-dom-panel-overlay .building-roster .schedule-row {
+                margin-top:1.3%;
+            }
+            #fatcat-dom-panel-overlay .shop-shell .shop-list { gap:1.2%; }
+            #fatcat-dom-panel-overlay .shop-shell .shop-row {
+                min-height:91px;
+                padding:2.2% 3%;
+                grid-template-columns:19% 1fr 24%;
+                font-size:2.08%;
+                border-radius:10px;
+            }
+            #fatcat-dom-panel-overlay .shop-shell .shop-row:before,
+            #fatcat-dom-panel-overlay .shop-shell .shop-row:after { display:none; }
+            #fatcat-dom-panel-overlay .shop-shell .shop-icon {
+                width:82%;
+                justify-self:center;
+                background-size:128%;
+                box-shadow:none;
+            }
+            #fatcat-dom-panel-overlay .shop-shell .tag {
+                margin:0;
+                padding:5% 7%;
+                border-radius:9px;
+            }
+            #fatcat-dom-panel-overlay .shop-row.preview { opacity:.94; }
+            #fatcat-dom-panel-overlay .shop-row.preview .preview-price {
+                display:inline-flex;
+                background:linear-gradient(#87b94e,#4e842f);
+                color:#fff;
+            }
+            #fatcat-dom-panel-overlay .inventory-shell .bag-grid {
+                grid-template-columns:repeat(4,1fr);
+                gap:1.15%;
+            }
+            #fatcat-dom-panel-overlay .inventory-shell .bag-card {
+                min-height:92px;
+                padding:5% 3%;
+                border-radius:9px;
+                font-size:1.55%;
+                display:flex;
+                align-items:center;
+                flex-direction:column;
+                overflow:hidden;
+            }
+            #fatcat-dom-panel-overlay .inventory-shell .bag-card.selected {
+                border-color:#d98b2c;
+                box-shadow:inset 0 0 0 3px #ffd77a,0 3px 0 rgba(72,43,25,.24);
+            }
+            #fatcat-dom-panel-overlay .inventory-shell .bag-card:after,
+            #fatcat-dom-panel-overlay .inventory-shell .bag-card:before { display:none; }
+            #fatcat-dom-panel-overlay .inventory-shell .bag-icon {
+                width:68%;
+                max-width:58px;
+                margin-bottom:3%;
+                border-radius:8px;
+                background-size:136%;
+                box-shadow:none;
+            }
+            #fatcat-dom-panel-overlay .inventory-shell .bag-card > b {
+                max-width:96%;
+                white-space:nowrap;
+                overflow:hidden;
+                text-overflow:ellipsis;
+                font-size:100%;
+            }
+            #fatcat-dom-panel-overlay .inventory-shell .bag-card .tag {
+                margin-top:3%;
+                padding:2% 7%;
+                font-size:72%;
+            }
+            #fatcat-dom-panel-overlay .inventory-shell .bag-count {
+                position:static;
+                min-width:0;
+                margin-top:auto;
+                padding:1% 7%;
+                font-size:76%;
+            }
+            #fatcat-dom-panel-overlay .bag-detail-target {
+                display:grid;
+                grid-template-columns:18% 1fr;
+                gap:3%;
+                align-items:center;
+                margin-top:1.5%;
+                padding:2.5%;
+                border-radius:12px;
+                background:linear-gradient(#fff2d5,#ddb981);
+                border:2px solid rgba(105,69,38,.34);
+                color:#51331f;
+                box-shadow:inset 0 0 0 2px rgba(255,255,255,.25),0 3px 0 rgba(62,38,22,.2);
+                font-size:1.9%;
+            }
+            #fatcat-dom-panel-overlay .bag-detail-icon {
+                width:100%;
+                aspect-ratio:1;
+                border-radius:12px;
+                background:center/132% no-repeat;
+                box-shadow:inset 0 0 0 2px rgba(104,68,37,.18);
+            }
+            #fatcat-dom-panel-overlay .bag-detail-target b { font-size:140%; }
+            #fatcat-dom-panel-overlay .bag-detail-target strong { float:right; }
+            #fatcat-dom-panel-overlay .bag-detail-target p { margin:2% 0; }
+            #fatcat-dom-panel-overlay .bag-detail-target small { color:#7b573d; }
+            #fatcat-dom-panel-overlay .research-point-strip {
+                display:flex;
+                justify-content:space-between;
+                margin:-.5% 0 1.2%;
+                padding:1% 2.4%;
+                border-radius:999px;
+                background:rgba(65,42,28,.82);
+                color:#ffe1a9;
+                font-size:1.85%;
+                font-weight:900;
+            }
+            #fatcat-dom-panel-overlay .research-shell .research-view {
+                grid-template-columns:59% 1fr;
+                gap:1.4%;
+            }
+            #fatcat-dom-panel-overlay .research-shell .tree,
+            #fatcat-dom-panel-overlay .research-shell .research-detail {
+                min-height:570px;
+            }
+            #fatcat-dom-panel-overlay .research-shell .node {
+                width:34%;
+                min-height:11%;
+                padding:1.3%;
+                font-size:1.5%;
+            }
+            #fatcat-dom-panel-overlay .research-shell .research-detail {
+                gap:1.2%;
+            }
+            #fatcat-dom-panel-overlay .research-shell .research-detail .item {
+                min-height:0;
+                padding:6%;
+                font-size:1.75%;
+            }
+            #fatcat-dom-panel-overlay .research-shell .research-hero {
+                grid-template-columns:1fr;
+                text-align:center;
+            }
+            #fatcat-dom-panel-overlay .research-shell .research-hero .shop-icon {
+                width:46%;
+            }
+            #fatcat-dom-panel-overlay .research-shell .research-preview {
+                grid-template-columns:1fr;
+            }
             #fatcat-dom-panel-overlay.compact .panel-shell { padding: 4.4% 2.6% 17.5%; }
             #fatcat-dom-panel-overlay.compact .panel-close { width:7.6%; min-width:36px; }
             #fatcat-dom-panel-overlay.compact h2 { font-size: 3.85%; margin-bottom: 2.4%; }
             #fatcat-dom-panel-overlay.compact .tab { font-size: 2.05%; padding: 4.8% 1%; }
             #fatcat-dom-panel-overlay.compact .summary div { font-size: 2.25%; padding: 4.8%; }
-            #fatcat-dom-panel-overlay.compact .building-view, #fatcat-dom-panel-overlay.compact .list.research-view { grid-template-columns: 1fr; gap: 2%; }
+            #fatcat-dom-panel-overlay.compact .building-view { grid-template-columns: 1fr; gap: 2%; }
             #fatcat-dom-panel-overlay.compact .building-dashboard { grid-template-columns:repeat(2,1fr); }
             #fatcat-dom-panel-overlay.compact .building-pipeline { grid-template-columns:repeat(2,1fr); }
             #fatcat-dom-panel-overlay.compact .task-daily { grid-template-columns:1fr; }
@@ -1662,6 +1989,15 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay.compact .bag-hero { grid-template-columns:1fr; }
             #fatcat-dom-panel-overlay.compact .bag-capacity { display:none; }
             #fatcat-dom-panel-overlay.compact .list.bag-grid { grid-template-columns: repeat(3, 1fr); }
+            #fatcat-dom-panel-overlay.compact .inventory-shell .list.bag-grid { grid-template-columns:repeat(4,1fr); }
+            #fatcat-dom-panel-overlay.compact .research-shell .list.research-view { grid-template-columns:59% 1fr; gap:1.4%; }
+            #fatcat-dom-panel-overlay.compact .research-shell .tree,
+            #fatcat-dom-panel-overlay.compact .research-shell .research-detail { min-height:570px; }
+            #fatcat-dom-panel-overlay.compact .building-detail-hero { min-height:210px; }
+            #fatcat-dom-panel-overlay.compact .building-chip span { display:none; }
+            #fatcat-dom-panel-overlay.compact .building-chip { min-height:42px; font-size:1.55%; }
+            #fatcat-dom-panel-overlay.compact .shop-shell .shop-row { min-height:86px; }
+            #fatcat-dom-panel-overlay.compact .inventory-shell .bag-card { min-height:82px; }
             #fatcat-dom-panel-overlay.tall .panel-shell { padding-top: 4.8%; padding-bottom: 18.5%; }
             #fatcat-dom-panel-overlay.wide .panel-shell { left: 8%; right: 8%; }
         `;
@@ -2332,14 +2668,35 @@ export class BottomNavUI extends Component {
             this._selectedDomBuildingId = buildings[buildings.length - 1]?.id ?? "building_cafe_1f";
         }
         const selected = BuildingManager.getById(this._selectedDomBuildingId) ?? buildings[0];
-        const snapshot = ProductionManager.calculateSnapshot();
-        const assignedCount = buildings.reduce((sum, building) => sum + building.assignedCatCount, 0);
-        const capacityCount = buildings.reduce((sum, building) => sum + building.scheduleCapacity, 0);
-        const dashboard = `<div class="building-dashboard"><div class="building-stat-card">${this.renderCssIcon("coin")}<span>净金币<br><b>${this.formatRate(snapshot.coinPerSecond)}/秒</b></span></div><div class="building-stat-card">${this.renderCssIcon("coin")}<span>工资成本<br><b>${this.formatRate(snapshot.wageCostPerSecond)}/秒</b></span></div><div class="building-stat-card">${this.renderCssIcon("bean")}<span>咖啡豆消耗<br><b>${this.formatRate(snapshot.beanCostPerSecond)}/秒</b></span></div><div class="building-stat-card">${this.renderCssIcon("cat")}<span>值班猫咪<br><b>${assignedCount}/${capacityCount}</b></span></div></div>`;
-        const skins = `<div class="skin-row"><div class="skin-card classic"><div class="thumb"></div>简陋工厂<br><span class="tag">使用中</span></div><div class="skin-card classic"><div class="thumb"></div>经典工厂<br><span class="tag warn">未解锁</span></div><div class="skin-card steam"><div class="thumb"></div>蒸汽工厂<br><span class="tag warn">未解锁</span></div><div class="skin-card future"><div class="thumb"></div>未来工厂<br><span class="tag warn">未解锁</span></div></div>`;
-        const pipeline = `<div class="building-command"><div class="building-command-title"><span>经营动线</span><span>${selected.floor} · ${selected.name}</span></div><div class="building-pipeline"><span>仓库备料</span><span>烘焙生产</span><span>猫咪服务</span><span>订单结算</span></div></div>`;
-        const settlement = `<div class="wide">当前工厂结算：毛收益 ${this.formatRate(snapshot.grossCoinPerSecond)} 金币/秒，工资 ${this.formatRate(snapshot.wageCostPerSecond)} 金币/秒，净收益 ${this.formatRate(snapshot.coinPerSecond)} 金币/秒。点击左侧楼层可切换详情，排班会直接影响主楼层产能。</div>`;
-        return `<div class="panel-shell"><h2>工厂（建筑）管理</h2>${dashboard}<div class="building-view"><div><div class="mini-factory"><div class="mini-sign">肥猫咖啡</div>${buildings.map(building => this.renderMiniFloor(building.id)).join("")}</div>${skins}</div><div>${this.renderSelectedBuilding(selected.id)}${pipeline}${settlement}</div></div></div>`;
+        const sceneMap: Record<string, string> = {
+            building_office_5f: "office",
+            building_roast_4f: "roast",
+            building_ferment_3f: "tank",
+            building_material_2f: "mill",
+            building_cafe_1f: "cafe",
+            building_storage_b1: "storage",
+        };
+        const scenePosition: Record<string, number> = {
+            office: 12,
+            roast: 30,
+            tank: 47,
+            mill: 63,
+            cafe: 78,
+            storage: 92,
+        };
+        const scene = sceneMap[selected.id] ?? "cafe";
+        const nextEffect = BuildingManager.getNextEffectValue(selected.id);
+        const nextCapacity = Math.min(12, selected.scheduleCapacity + 1);
+        const levelRequirement = Math.min(30, Math.max(8, selected.level * 3 + 6));
+        const ownedCoin = ResourceManager.get("coin");
+        const selector = buildings.map(building => `<button class="building-chip ${building.id === selected.id ? "active" : ""}" data-action="selectBuilding" data-id="${building.id}"><b>${building.floor}</b><span>${building.name}</span><small>Lv.${building.level}</small></button>`).join("");
+        const effectRows = [
+            [selected.effectLabel, `${selected.effectValue}%`, `${nextEffect}%`],
+            ["生产效率", `${100 + selected.level * 5}%`, `${105 + selected.level * 5}%`],
+            ["容量上限", `${selected.scheduleCapacity}`, `${nextCapacity}`],
+        ].map(row => `<div class="building-target-row"><span>${row[0]}</span><b>${row[1]}</b><em>➜</em><strong>${row[2]}</strong></div>`).join("");
+        const conditions = `<div class="building-conditions"><b>升级条件</b><div><span>${this.renderCssIcon("deco")}工厂等级达到${levelRequirement}级</span><strong class="${28 >= levelRequirement ? "ok" : "bad"}">${Math.min(28, levelRequirement)}/${levelRequirement}</strong></div><div><span>${this.renderCssIcon("coin")}消耗金币</span><strong class="${ownedCoin >= selected.upgradeCost ? "ok" : "bad"}">${this.formatNumber(ownedCoin)}/${this.formatNumber(selected.upgradeCost)}</strong></div><div><span>${this.renderCssIcon("bean")}咖啡豆储备</span><strong class="ok">${this.formatNumber(ResourceManager.get("bean"))}/2.5K</strong></div></div>`;
+        return `<div class="panel-shell building-shell"><h2>建筑详情</h2><div class="building-selector">${selector}</div><div class="building-detail-hero" style="background-image:linear-gradient(rgba(34,22,15,.12),rgba(34,22,15,.28)),url('${this.getDomAssetDataUri(GeneratedBackgroundAssets.factoryCutaway)}');background-position:center ${scenePosition[scene]}%"><span class="building-floor-tag">${selected.floor}<small>Lv.${selected.level}</small></span><span class="building-scene-prop" style="background-image:url('${this.getFactoryPropDataUri(scene)}')"></span><div class="building-hero-copy"><b>${selected.name}</b><span>Lv.${selected.level}</span><em>生产建筑</em></div></div><div class="building-description">${selected.description}</div><div class="building-target-effects"><div class="building-target-title"><b>等级效果</b><span>Lv.${selected.level}</span><em>➜</em><span>Lv.${Math.min(selected.maxLevel, selected.level + 1)}</span></div>${effectRows}</div>${conditions}<div class="building-main-upgrade">${this.renderBuildingUpgradeButton(selected.id)}</div><div class="building-roster"><b>值班猫咪 ${selected.assignedCatCount}/${selected.scheduleCapacity}</b>${this.renderAssignedCatRows(selected.id)}${this.renderAvailableCatRows(selected.id)}</div></div>`;
     }
 
     private renderMiniFloor(id: string): string {
@@ -2486,9 +2843,39 @@ export class BottomNavUI extends Component {
         ];
         const items = ShopManager.getShopItems(this._domShopTab);
         const rows = items.length > 0
-            ? items.map(item => this.renderShopRow(item.id)).join("")
+            ? items.map(item => this.renderShopRow(item.id)).join("") + this.renderShopPreviewRows(this._domShopTab, Math.max(0, 6 - items.length))
             : this.renderEmptyShopRows(this._domShopTab);
-        return `<div class="panel-shell"><h2>商店详情</h2><div class="tabs">${tabs.map(tab => `<button class="tab ${this._domShopTab === tab.id ? "active" : ""}" data-action="shopTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="shop-hero"><div class="summary with-icons"><div><span class="summary-icon">${this.renderCssIcon("coin")}</span><span>金币<br><b>${this.formatNumber(ResourceManager.get("coin"))}</b></span></div><div><span class="summary-icon">${this.renderCssIcon("diamond")}</span><span>钻石<br><b>${this.formatNumber(ResourceManager.get("diamond"))}</b></span></div><div><span class="summary-icon">${this.renderCssIcon("gift")}</span><span>今日特惠<br><b>${items.length}</b></span></div></div><div class="shop-mascot">补给店员<br><span class="tag">营业中</span></div></div><div class="shop-shelf-title"><span>${this.getShopTabLabel()}</span><span>限时补给</span></div><div class="list shop-list">${rows}</div></div>`;
+        return `<div class="panel-shell shop-shell"><h2>商店详情</h2><div class="tabs">${tabs.map(tab => `<button class="tab ${this._domShopTab === tab.id ? "active" : ""}" data-action="shopTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list shop-list">${rows}</div></div>`;
+    }
+
+    private renderShopPreviewRows(category: string, count: number): string {
+        const catalogs: Record<string, Array<[string, string, string, string, string]>> = {
+            resource: [
+                ["精品咖啡豆", "咖啡豆 +5000", "bean", "450", "金币"],
+                ["猫粮小包", "猫粮 +200", "food", "80", "钻石"],
+                ["猫粮大袋", "猫粮 +1000", "food", "300", "钻石"],
+                ["钻石礼包", "钻石 +300", "diamond", "30", "天"],
+            ],
+            item: [
+                ["加速券", "生产加速 5分钟", "gift", "120", "金币"],
+                ["高级加速券", "生产加速 30分钟", "gift", "60", "钻石"],
+                ["订单刷新券", "立即刷新订单", "shard", "80", "钻石"],
+                ["保护罩", "收益保护 1小时", "equip", "100", "钻石"],
+            ],
+            cat: [
+                ["大橘碎片", "猫咪碎片 x10", "shard", "180", "钻石"],
+                ["黑猫碎片", "猫咪碎片 x10", "cat", "180", "钻石"],
+                ["雪球碎片", "猫咪碎片 x10", "cat", "180", "钻石"],
+                ["招募券", "进行一次猫咪招募", "gift", "300", "钻石"],
+            ],
+            deco: [
+                ["咖啡招牌", "工厂外观装饰", "deco", "800", "金币"],
+                ["绿植套装", "楼层外观装饰", "deco", "1200", "金币"],
+                ["复古时钟", "工厂外观装饰", "deco", "90", "钻石"],
+                ["猫爪旗帜", "屋顶外观装饰", "deco", "120", "钻石"],
+            ],
+        };
+        return (catalogs[category] ?? catalogs.resource).slice(0, count).map(([name, desc, icon, price, currency]) => `<div class="item shop-row preview"><div class="shop-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')"></div><div><b>${name}</b><br>${desc}<div class="limit">每日限购：3/3</div></div><div class="buy-zone"><span class="tag preview-price">${price} ${currency}</span></div></div>`).join("");
     }
 
     private getShopTabLabel(): string {
@@ -2504,7 +2891,7 @@ export class BottomNavUI extends Component {
         const item = ConfigManager.items.find(entry => entry.id === shop.itemId);
         const title = item?.name ?? shop.itemId;
         const desc = item?.description ?? "商品配置缺失";
-        const icon = this.getShopIcon(item?.type ?? shop.category);
+        const icon = this.getItemIconClass(shop.itemId);
         const remaining = ShopManager.getRemainingLimit(id);
         const cost = { [shop.priceType]: shop.priceAmount } as { coin?: number; diamond?: number; catFood?: number };
         const stateClass = remaining <= 0 ? "soldout" : ResourceManager.canSpend(cost) ? "" : "locked";
@@ -2530,7 +2917,13 @@ export class BottomNavUI extends Component {
     }
 
     private getGeneratedIconAsset(iconClass: string): string {
-        return this.getDomAssetDataUri(GeneratedItemIconAssets[iconClass] ?? GeneratedItemIconAssets.gift);
+        const aliases: Record<string, string> = {
+            cat: "shard",
+            deco: "gift",
+            equip: "equipCollar",
+        };
+        const key = aliases[iconClass] ?? iconClass;
+        return this.getDomAssetDataUri(GeneratedItemIconAssets[key] ?? GeneratedItemIconAssets.gift);
     }
 
     private getResourceIconClass(resource: string): string {
@@ -2583,8 +2976,10 @@ export class BottomNavUI extends Component {
             { id: "other", label: "其他" },
         ];
         const ownedCount = InventoryManager.getOwnedItems().reduce((sum, item) => sum + item.count, 0);
-        const capacity = Math.max(24, ownedCount + 20);
-        return `<div class="panel-shell"><h2>背包详情</h2><div class="tabs">${tabs.map(tab => `<button class="tab ${this._domInventoryTab === tab.id ? "active" : ""}" data-action="inventoryTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="bag-hero"><div class="summary with-icons"><div><span class="summary-icon">${this.renderCssIcon("gift")}</span><span>道具数量<br><b>${ownedCount}</b></span></div><div><span class="summary-icon">${this.renderCssIcon("food")}</span><span>猫粮<br><b>${this.formatNumber(ResourceManager.get("catFood"))}</b></span></div><div><span class="summary-icon">${this.renderCssIcon("bean")}</span><span>咖啡豆<br><b>${this.formatNumber(ResourceManager.get("bean"))}</b></span></div></div><div class="bag-capacity">容量<b>${ownedCount}/${capacity}</b><span class="tag">自动整理</span></div></div><div class="bag-section-title"><span>${this.getInventoryTabLabel()}</span><span>已整理</span></div><div class="list bag-grid">${this.renderInventoryItems()}</div><div class="wide"><b>${this.getInventoryTabLabel()}</b><br>${this.getInventoryTabDesc()}</div></div>`;
+        const ownedTypes = InventoryManager.getOwnedItems().filter(item => this.inventoryItemMatchesTab(item.itemId)).length;
+        const resourceTypes = this._domInventoryTab === "all" || this._domInventoryTab === "resource" ? 4 : 0;
+        const previewCount = this._domInventoryTab === "all" ? Math.max(0, 20 - resourceTypes - ownedTypes) : 0;
+        return `<div class="panel-shell inventory-shell"><h2>背包详情</h2><div class="tabs">${tabs.map(tab => `<button class="tab ${this._domInventoryTab === tab.id ? "active" : ""}" data-action="inventoryTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list bag-grid">${this.renderInventoryItems()}${this.renderInventoryPreviewCards(previewCount)}</div><div class="bag-detail-target"><span class="bag-detail-icon asset" style="background-image:url('${this.getGeneratedIconAsset("bean")}')"></span><div><b>${this.getInventoryTabLabel()}</b><strong>拥有：${ownedCount}</strong><p>${this.getInventoryTabDesc()}</p><small>主要获取途径：商店购买、订单奖励、好友赠礼</small></div></div></div>`;
     }
 
     private getInventoryTabLabel(): string {
@@ -2614,26 +3009,43 @@ export class BottomNavUI extends Component {
         if (filteredItems.length === 0) {
             return resourceCards || `<div class="item bag-card empty"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset("gift")}')">${this.renderCssIcon("gift")}</div><b>暂无物品</b><br>该分类还没有可展示内容</div>`;
         }
-        const nameMap: Record<string, string> = {
-            item_cat_food_pack: "猫粮包",
-            item_coin_pack_small: "小袋金币",
-            item_shard_orange: "大橘碎片",
-        };
-
         const itemCards = filteredItems.map(item => {
             const usable = item.itemId === "item_cat_food_pack" || item.itemId === "item_coin_pack_small";
             const action = usable
                 ? `<button class="tag" data-action="use" data-id="${item.itemId}">使用</button>`
                 : `<span class="tag warn">材料</span>`;
             const icon = this.getItemIconClass(item.itemId);
-            return `<div class="item bag-card ${usable ? "usable" : ""}"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')">${this.renderCssIcon(icon)}</div><b>${nameMap[item.itemId] ?? item.itemId}</b><br>${action}<span class="bag-count">x${item.count}</span></div>`;
+            const displayName = ConfigManager.items.find(config => config.id === item.itemId)?.name
+                ?? CatManager.getEquipmentConfig(item.itemId)?.name
+                ?? this.getItemDisplayName(item.itemId);
+            return `<div class="item bag-card ${usable ? "usable" : ""}"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')">${this.renderCssIcon(icon)}</div><b>${displayName}</b>${action}<span class="bag-count">x${item.count}</span></div>`;
         }).join("");
         return `${resourceCards}${itemCards}`;
     }
 
     private renderResourceBagCard(resource: string, label: string, amount: number): string {
         const icon = this.getResourceIconClass(resource);
-        return `<div class="item bag-card resource"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')">${this.renderCssIcon(icon)}</div><b>${label}</b><br><span class="bag-count">${this.formatNumber(amount)}</span></div>`;
+        return `<div class="item bag-card resource ${resource === "bean" ? "selected" : ""}"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')">${this.renderCssIcon(icon)}</div><b>${label}</b><span class="bag-count">${this.formatNumber(amount)}</span></div>`;
+    }
+
+    private renderInventoryPreviewCards(count: number): string {
+        if (this._domInventoryTab !== "all" || count <= 0) return "";
+        const previews: Array<[string, string, number]> = [
+            ["加速5分", "gift", 12],
+            ["加速30分", "gift", 8],
+            ["订单券", "shard", 7],
+            ["保护罩", "equipCollar", 5],
+            ["大橘碎片", "shard", 32],
+            ["黑猫碎片", "shard", 18],
+            ["布丁碎片", "shard", 22],
+            ["灰皮碎片", "shard", 15],
+            ["装饰币", "coin", 80],
+            ["研究石", "diamond", 120],
+            ["幸运杯", "equipCup", 43],
+            ["小鱼干", "food", 67],
+            ["舒适垫", "equipCushion", 9],
+        ];
+        return previews.slice(0, count).map(([name, icon, itemCount]) => `<div class="item bag-card preview"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')"></div><b>${name}</b><span class="bag-count">${itemCount}</span></div>`).join("");
     }
 
     private getItemIconClass(itemId: string): string {
@@ -2656,15 +3068,13 @@ export class BottomNavUI extends Component {
     private renderResearchPanel(): string {
         const configs = ResearchManager.getAllConfigs();
         if (configs.length === 0) {
-            return `<div class="panel-shell"><h2>研究详情</h2><div class="item">研究配置为空</div></div>`;
+            return `<div class="panel-shell research-shell"><h2>研究详情</h2><div class="item">研究配置为空</div></div>`;
         }
         if (!configs.find(item => item.id === this._selectedResearchId)) {
             this._selectedResearchId = configs[0].id;
         }
         const selected = configs.find(item => item.id === this._selectedResearchId) ?? configs[0];
-        const unlockedCount = configs.filter(item => ResearchManager.isUnlocked(item.id)).length;
-        const unlockableCount = configs.filter(item => ResearchManager.canUnlock(item.id)).length;
-        return `<div class="panel-shell"><h2>研究详情</h2><div class="research-lab"><span class="research-lab-icon"></span><div><b>咖啡实验室</b><small>围绕产量、消耗、离线收益和升级成本逐步解锁。</small></div><span class="research-badge">研究点<br>${this.formatNumber(ResourceManager.get("researchPoint"))}</span></div><div class="tabs"><button class="tab active">生产研究</button><button class="tab">经营研究</button><button class="tab">猫咪研究</button><button class="tab">特殊研究</button></div><div class="summary with-icons"><div><span class="summary-icon">${this.renderCssIcon("equip")}</span><span>当前节点<br><b>${selected.name}</b></span></div><div><span class="summary-icon">${this.renderCssIcon("coin")}</span><span>已解锁<br><b>${unlockedCount}/${configs.length}</b></span></div><div><span class="summary-icon">${this.renderCssIcon("gift")}</span><span>可研究<br><b>${unlockableCount}</b></span></div></div><div class="list research-view"><div class="tree">${this.renderResearchLines(configs)}${configs.map((config, index) => this.renderResearchNode(config.id, index)).join("")}${this.renderResearchPlaceholderNodes(configs.length)}</div><div class="research-detail">${this.renderResearchDetail(selected.id)}</div></div></div>`;
+        return `<div class="panel-shell research-shell"><h2>研究详情</h2><div class="tabs"><button class="tab active">生产研究</button><button class="tab">经营研究</button><button class="tab">猫咪研究</button><button class="tab">特殊研究</button></div><div class="research-point-strip"><span>咖啡实验室</span><b>研究点 ${this.formatNumber(ResourceManager.get("researchPoint"))}</b></div><div class="list research-view"><div class="tree">${this.renderResearchLines(configs)}${configs.map((config, index) => this.renderResearchNode(config.id, index)).join("")}${this.renderResearchPlaceholderNodes(configs.length)}</div><div class="research-detail">${this.renderResearchDetail(selected.id)}</div></div></div>`;
     }
 
     private renderResearchLines(configs: ReturnType<typeof ResearchManager.getAllConfigs>): string {

@@ -24,6 +24,8 @@ Updated: 2026-06-29
 
 ## Latest UI Note
 
+- Latest feature-panel batch aligns the building, shop, inventory, and research overlays with `其他页面.png`. The building panel now uses six floor selector chips, a generated factory-cutaway room hero, target-like level effects, conditions, and the existing upgrade action. Shop uses four category tabs plus six purchase rows. Inventory uses a 20-card grid and a selected-detail card. Research preserves a dark left tree and cream right detail panel at 360px, 430px, and 768px widths.
+- New gate: `node tools\capture-feature-regression.js`. It writes screenshots to `docs/verification/screenshots/2026-06-29-feature-regression/` and fails if the expected feature-panel structure, inventory detail, research split, or clean runtime state regresses.
 - Main factory now uses `FATCATUI/assets/resources/textures/generated/factory_cutaway_bg_640.jpg` as the visible source of truth for roof and room art. Duplicate CSS floors, props, cats, pipes, and center KPI cards are intentionally hidden; keep the live left floor cards and combined right production/bonus cards.
 - The main building now spans roughly 16%-84% of the game viewport, and the compact bottom widgets use `19fr 11fr 35fr 34fr` proportions. The launch label is single-line at 360/414/430 widths.
 - Verified after this main-screen pass: `check-client-ts.ps1`, all four `capture-main-regression.js` sizes, Cocos asset refresh, and the full `verify-ui-clicks-playwright.js` flow.
@@ -77,6 +79,7 @@ UI regression:
 node tools\verify-ui-clicks-playwright.js
 node tools\capture-main-regression.js
 node tools\capture-cat-regression.js
+node tools\capture-feature-regression.js
 node tools\check-settings-production-preview-online.js
 node tools\check-production-wage-net-effect.js
 node tools\check-equipment-mood-effect.js

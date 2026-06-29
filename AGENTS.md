@@ -9,7 +9,7 @@ This repository contains a Cocos Creator client and an ASP.NET Core server.
 - `FATCATServer/`: .NET solution containing API, Application, Domain, Infrastructure, and `FatCat.Tests` projects.
 - `tools/`: client diagnostics, Playwright smoke tests, screenshot regression, asset generation, and balance-sync scripts.
 - `docs/ai-progress/`: current status, task plans, and handoff notes. Read these before substantial changes.
-- Root images such as `主页面.png` and `所有猫咪页面.png` are the visual source of truth.
+- Root reference images such as `主页面.png`, `所有猫咪页面.png`, `猫咪详情页面.png`, and `其他页面.png` are the visual source of truth.
 
 ## Build, Test, and Development Commands
 
@@ -18,6 +18,7 @@ This repository contains a Cocos Creator client and an ASP.NET Core server.
 - `powershell -ExecutionPolicy Bypass -File ./tools/quick-verify.ps1`: run the baseline verification suite.
 - `node tools/capture-main-regression.js`: capture main-screen reference sizes.
 - `node tools/capture-cat-regression.js`: capture cat-page reference sizes.
+- `node tools/capture-feature-regression.js`: capture building, shop, inventory, and research panels.
 - `node tools/verify-ui-clicks-playwright.js`: exercise critical UI navigation.
 - `node tools/generate-server-balance.js --check`: detect client/server balance drift.
 

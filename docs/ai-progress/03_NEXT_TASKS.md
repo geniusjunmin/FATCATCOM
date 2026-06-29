@@ -86,6 +86,13 @@ Keep these scripts in the regular set when touching related flows:
 
 ## P1 Visual Push
 
+### 0. Feature Panels From `其他页面.png`
+
+- Building, shop, inventory, and research panels have been moved from generic flat cards toward the root `其他页面.png` reference.
+- Done in latest feature-panel batch: building gets six floor chips, a generated factory-room hero, level-effect comparison rows, upgrade conditions, and the existing upgrade action; shop gets four tabs and six target-like rows; inventory gets a four-column by five-row grid with a bottom selected-detail card; research keeps a dark tree and cream detail panel side by side at compact widths.
+- `tools/capture-feature-regression.js` now covers these four panels at 430x932, 360x800, and 768x1024 with structural assertions and runtime error checks.
+- Next move: keep these structures stable, then replace remaining generic row icons and backgrounds with richer Cocos-managed/generated art when specific fidelity gaps are visible.
+
 ### 1. Main Factory Richness
 
 - Preserve the generated cutaway as the primary room artwork; do not restore the hidden duplicate CSS room/machine/cat layers.
