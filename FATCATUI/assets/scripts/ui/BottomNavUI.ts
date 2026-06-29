@@ -3862,8 +3862,8 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay .equip-bag { margin-top:1.2%; padding:1.0%; border-radius:12px; background:rgba(255,246,224,.48); box-shadow:inset 0 0 0 1px rgba(112,78,44,.13); }
             #fatcat-dom-cat-overlay .equip-bag strong { display:block; margin-bottom:1%; color:#6a4328; }
             #fatcat-dom-cat-overlay .equip-bag > div { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5%; }
-            #fatcat-dom-cat-overlay .equip-pack { min-height:52px; border-radius:10px; background:linear-gradient(#fff4d6,#d9b47b); color:#4a2f1f; display:grid; grid-template-columns:26% 1fr; grid-template-rows:1fr .9fr .85fr; align-items:center; column-gap:3%; padding:2.4%; font-weight:900; box-shadow:inset 0 0 0 2px rgba(255,250,224,.24), 0 2px 0 rgba(75,45,24,.14); }
-            #fatcat-dom-cat-overlay .equip-pack .equip-icon { grid-row:1 / 4; width:100%; margin:0; }
+            #fatcat-dom-cat-overlay .equip-pack { min-height:52px; border-radius:10px; background:linear-gradient(#fff4d6,#d9b47b); color:#4a2f1f; display:grid; grid-template-columns:26% 1fr; grid-template-rows:1fr .85fr .75fr .72fr; align-items:center; column-gap:3%; padding:2.4%; font-weight:900; box-shadow:inset 0 0 0 2px rgba(255,250,224,.24), 0 2px 0 rgba(75,45,24,.14); }
+            #fatcat-dom-cat-overlay .equip-pack .equip-icon { grid-row:1 / 5; width:100%; margin:0; }
             #fatcat-dom-cat-overlay .equip-pack span, #fatcat-dom-cat-overlay .equip-pack em, #fatcat-dom-cat-overlay .equip-pack small { text-align:left; }
             #fatcat-dom-cat-overlay .equip-pack em { font-style:normal; color:#7a583c; font-size:82%; }
             #fatcat-dom-cat-overlay .equip-pack small { color:#8b6647; font-size:72%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -3890,6 +3890,13 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay .equip-icon.cushion:before { left:18%; right:18%; top:30%; height:42%; border-radius:50%; background:radial-gradient(circle at 50% 40%,#8b7a65 0 18%, transparent 19%), linear-gradient(#9b8a75,#655544); box-shadow:inset 0 0 0 3px #4d4136; }
             #fatcat-dom-cat-overlay .equip-icon.lock:before { left:25%; right:25%; bottom:24%; height:38%; border-radius:8px; background:#8b765c; box-shadow:inset 0 0 0 3px #5c4b38; }
             #fatcat-dom-cat-overlay .equip-icon.lock:after { left:34%; right:34%; top:20%; height:32%; border-radius:999px 999px 0 0; border:5px solid #5c4b38; border-bottom:0; }
+            #fatcat-dom-cat-overlay .equip-rarity { position:absolute; z-index:3; left:7%; top:6%; min-width:22%; padding:.8% 2%; border-radius:999px; background:linear-gradient(#ffe266,#d89421); color:#673719; font-weight:1000; font-size:84%; box-shadow:inset 0 0 0 1px rgba(92,55,22,.28), 0 2px 0 rgba(73,43,21,.18); }
+            #fatcat-dom-cat-overlay .equip-rarity.s-rarity { background:linear-gradient(#ffe47a,#db9624); color:#603314; }
+            #fatcat-dom-cat-overlay .equip-rarity.a-rarity { background:linear-gradient(#e9d6ff,#a974d5); color:#50306f; }
+            #fatcat-dom-cat-overlay .equip-slot-tag { position:absolute; z-index:3; right:7%; top:6%; padding:.8% 5%; border-radius:999px; background:rgba(69,43,27,.78); color:#fff0c5; font-size:72%; box-shadow:inset 0 0 0 1px rgba(255,229,172,.2); }
+            #fatcat-dom-cat-overlay .equip-bonus-pill { display:inline-flex; align-items:center; justify-content:center; width:86%; min-height:19px; margin-top:4%; border-radius:999px; background:rgba(86,54,31,.12); color:#694223; font-size:70%; font-weight:1000; box-shadow:inset 0 0 0 1px rgba(106,70,38,.12); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+            #fatcat-dom-cat-overlay .equip-pack .equip-rarity { left:4%; top:6%; min-width:18%; font-size:72%; }
+            #fatcat-dom-cat-overlay .equip-pack .equip-bonus-pill { grid-column:2; width:auto; min-height:18px; margin:0; padding:0 5%; justify-self:start; font-size:68%; }
             #fatcat-dom-cat-overlay .cat-story { margin-top:.8%; padding:1.15%; font-size:1.68%; line-height:1.25; }
             #fatcat-dom-cat-overlay .cat-story { display:grid; grid-template-columns:1fr 17% 17%; gap:1.5%; align-items:center; }
             #fatcat-dom-cat-overlay .story-copy { position:relative; min-height:58px; padding:1.0% 1.2% 1.0% 2.2%; border-radius:11px; background:linear-gradient(90deg,rgba(255,249,231,.54),rgba(231,198,145,.22)); box-shadow:inset 4px 0 0 rgba(126,83,43,.42), inset 0 0 0 1px rgba(126,83,43,.09); }
@@ -5139,7 +5146,8 @@ export class BottomNavUI extends Component {
             const equipped = this.getEquipDefinition(equipment[item.slot]);
             const equipLevel = CatManager.getEquipmentLevel(catId, equipped.id);
             const maxLevel = equipped.levelMax ?? 5;
-            return `<button class="equip-slot ${active}" data-action="equipItem" data-slot="${item.slot}" data-id="${catId}"><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset(equipped.kind)}')"></i><span class="equip-name">${equipped.name}</span><em>${equipped.rarity} · Lv.${equipLevel}</em><small>${equipped.bonus}</small><span class="equip-cta">更换</span></button>`;
+            const rarityClass = equipped.rarity === "S" ? "s-rarity" : equipped.rarity === "A" ? "a-rarity" : "";
+            return `<button class="equip-slot ${active}" data-action="equipItem" data-slot="${item.slot}" data-id="${catId}"><span class="equip-rarity ${rarityClass}">${equipped.rarity}</span><span class="equip-slot-tag">${item.slot}</span><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset(equipped.kind)}')"></i><span class="equip-name">${equipped.name}</span><em>Lv.${equipLevel}/${maxLevel}</em><span class="equip-bonus-pill">${equipped.bonus}</span><span class="equip-cta">更换</span></button>`;
         }).join("");
         const backpack = this.getEquipOptions(this._selectedEquipSlot).map(item => {
             const active = this._selectedEquipSlot === item.slot ? "ready" : "";
@@ -5147,14 +5155,15 @@ export class BottomNavUI extends Component {
             const count = InventoryManager.getItemCount(item.id);
             const disabled = !equipped && count <= 0;
             const status = equipped ? "已装备" : count > 0 ? `持有 x${count}` : "未持有";
-            return `<button class="equip-pack ${active} ${equipped ? "equipped" : ""} ${disabled ? "disabled" : ""}" data-action="equipItem" data-slot="${this._selectedEquipSlot}" data-item="${item.id}" data-id="${catId}" ${disabled ? "disabled" : ""}><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset(item.kind)}')"></i><span>${item.name}</span><em>${status}</em><small>${item.source ?? "来源待定"}</small></button>`;
+            const rarityClass = item.rarity === "S" ? "s-rarity" : item.rarity === "A" ? "a-rarity" : "";
+            return `<button class="equip-pack ${active} ${equipped ? "equipped" : ""} ${disabled ? "disabled" : ""}" data-action="equipItem" data-slot="${this._selectedEquipSlot}" data-item="${item.id}" data-id="${catId}" ${disabled ? "disabled" : ""}><span class="equip-rarity ${rarityClass}">${item.rarity}</span><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset(item.kind)}')"></i><span>${item.name}</span><em>${status}</em><span class="equip-bonus-pill">${item.bonus}</span><small>${item.source ?? "来源待定"}</small></button>`;
         }).join("");
         const upgradeState = CatManager.getEquipmentUpgradeState(catId, this._selectedEquipSlot);
         const upgradeLabel = upgradeState.isMax ? "已满级" : upgradeState.canAfford ? "升级装备" : "金币不足";
         const upgradeDisabled = upgradeState.isMax || !upgradeState.canAfford;
         const nextText = upgradeState.isMax ? "已达上限" : `Lv.${upgradeState.nextLevel}/${upgradeState.maxLevel}`;
         const detailClass = this._domCatTab === "equip" ? "detail-mode" : "overview-mode";
-        return `<div class="equip-layout ${detailClass}"><div class="equip-row">${row}<button class="equip-slot locked"><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset("lock")}')"></i><span class="equip-name">饰品槽</span><em>30级解锁</em><small>等待开放</small><span class="equip-cta">锁定</span></button></div><div class="equip-bag"><strong>装备背包</strong><div>${backpack}</div><div class="equip-upgrade-info"><span>当前等级<b>Lv.${upgradeState.level}/${upgradeState.maxLevel}</b></span><span>下级预览<b>${nextText}</b></span><span>升级消耗<b>${upgradeState.cost} 金币</b></span></div><div class="equip-effect-info"><span>当前加成<b>${upgradeState.currentEffect}</b></span><span>下级加成<b>${upgradeState.nextEffect}</b></span></div><button class="equip-upgrade ${upgradeDisabled ? "disabled" : ""}" data-action="upgradeEquip" data-slot="${this._selectedEquipSlot}" data-id="${catId}" ${upgradeDisabled ? "disabled" : ""}>${upgradeLabel}</button></div></div>`;
+        return `<div class="equip-layout ${detailClass}"><div class="equip-row">${row}<button class="equip-slot locked"><span class="equip-rarity">?</span><span class="equip-slot-tag">饰品</span><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset("lock")}')"></i><span class="equip-name">饰品槽</span><em>30级解锁</em><span class="equip-bonus-pill">等待开放</span><span class="equip-cta">锁定</span></button></div><div class="equip-bag"><strong>装备背包</strong><div>${backpack}</div><div class="equip-upgrade-info"><span>当前等级<b>Lv.${upgradeState.level}/${upgradeState.maxLevel}</b></span><span>下级预览<b>${nextText}</b></span><span>升级消耗<b>${upgradeState.cost} 金币</b></span></div><div class="equip-effect-info"><span>当前加成<b>${upgradeState.currentEffect}</b></span><span>下级加成<b>${upgradeState.nextEffect}</b></span></div><button class="equip-upgrade ${upgradeDisabled ? "disabled" : ""}" data-action="upgradeEquip" data-slot="${this._selectedEquipSlot}" data-id="${catId}" ${upgradeDisabled ? "disabled" : ""}>${upgradeLabel}</button></div></div>`;
     }
 
     private getEquipDefinition(itemId = ""): { id: string; slot: string; kind: string; name: string; rarity: string; bonus: string; levelMax?: number; upgradeCost?: number; source?: string; effects?: Array<{ label: string; baseValue: number; perLevel?: number; unit?: string }> } {

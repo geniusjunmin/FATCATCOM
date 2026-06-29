@@ -63,6 +63,9 @@ async function isVisible(page, selector) {
             rosterCards: document.querySelectorAll("#fatcat-dom-cat-overlay .cat-list button").length,
             hasPortrait: !!document.querySelector("#fatcat-dom-cat-overlay .portrait-cat.img"),
             hasEquipCards: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-slot").length,
+            equipRarityBadges: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-rarity").length,
+            equipSlotTags: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-slot-tag").length,
+            equipBonusPills: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-bonus-pill").length,
             hasStoryPhoto: !!document.querySelector("#fatcat-dom-cat-overlay .story-photo"),
             storyTags: document.querySelectorAll("#fatcat-dom-cat-overlay .story-tags span").length,
         }));
@@ -77,6 +80,8 @@ async function isVisible(page, selector) {
         const equipState = {
             bagVisible: await isVisible(page, "#fatcat-dom-cat-overlay .equip-bag"),
             upgradeVisible: await isVisible(page, "#fatcat-dom-cat-overlay .equip-upgrade"),
+            packRarityBadges: await page.locator("#fatcat-dom-cat-overlay .equip-pack .equip-rarity").count(),
+            packBonusPills: await page.locator("#fatcat-dom-cat-overlay .equip-pack .equip-bonus-pill").count(),
         };
 
         await page.click('#fatcat-dom-cat-overlay [data-action="tab"][data-tab="skin"]');
@@ -96,7 +101,7 @@ async function isVisible(page, selector) {
 
     await browser.close();
     console.log(JSON.stringify(results, null, 2));
-    if (results.some((entry) => entry.messages.length || entry.failedRequests.length || !entry.state.overlayVisible || !entry.state.hasPortrait || !entry.state.hasStoryPhoto || !entry.state.storyVisible || !entry.state.storyButtonVisible || entry.state.storyTags < 3 || !entry.equipState.bagVisible || !entry.equipState.upgradeVisible || !entry.skinState.wardrobeVisible || entry.skinState.skinCards < 4 || entry.skinState.selectedCards < 1)) {
+    if (results.some((entry) => entry.messages.length || entry.failedRequests.length || !entry.state.overlayVisible || !entry.state.hasPortrait || !entry.state.hasStoryPhoto || !entry.state.storyVisible || !entry.state.storyButtonVisible || entry.state.storyTags < 3 || entry.state.equipRarityBadges < 4 || entry.state.equipSlotTags < 4 || entry.state.equipBonusPills < 4 || !entry.equipState.bagVisible || !entry.equipState.upgradeVisible || entry.equipState.packRarityBadges < 2 || entry.equipState.packBonusPills < 2 || !entry.skinState.wardrobeVisible || entry.skinState.skinCards < 4 || entry.skinState.selectedCards < 1)) {
         process.exit(1);
     }
 })().catch((error) => {
