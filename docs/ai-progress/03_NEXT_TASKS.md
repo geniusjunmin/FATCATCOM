@@ -151,12 +151,13 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest target-coordinate batch: the compact cat hero uses target-aligned left/center/right columns, the production bar spans from the info card toward the status rail, the tablet bar follows the same relationship, and the main action/nav bands plus click hotspots use their taller target proportions.
 - Done in latest lower-section batch: skill current/next-level hierarchy, target-height equipment cards, larger cropped item art, workshop-backed story photo, roster rarity/level/status hierarchy, and an illustrated recruit card replace the flatter compact cards.
 - Done in latest responsive-detail batch: 360-430 fixed heights now scale with viewport width, the 360 story/roster overlap is removed, tablet vertical space is redistributed into content, and 360 equipment detail uses a full-width mode that keeps backpack and upgrade actions available.
-- Done in latest regression batch: `capture-cat-regression.js` captures information plus equipment states at 414x896, 430x932, 360x800, and 768x1024 and asserts both backpack and upgrade visibility.
-- Next move: compare the remaining generic panels against the target visual language, then improve the cat story/equipment illustration depth without changing the now-aligned screen geometry.
+- Done in latest regression batch: `capture-cat-regression.js` captures information, equipment, and skin states at 414x896, 430x932, 360x800, and 768x1024 and asserts backpack, upgrade, wardrobe, and skin-card visibility.
+- Done in latest skin-wardrobe batch: the skin tab now has an active wardrobe preview, four skin-state cards, selected/activity/locked states, reused generated cat thumbnails, compact 360px rules, and a screenshot regression for `cat-skin-<size>-edge.png`.
+- Next move: improve cat story/equipment/skin illustration depth with richer generated or Cocos-managed assets without changing the now-aligned screen geometry.
 - Done in latest cat-page batch: active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, raised active roster card, and command-strip layering fix.
 - Done in latest cat density batch: slimmer stats/weight rows, compact skill/equipment side-by-side layout, folded compact equipment detail rows, shorter story card, and clickable equipment upgrade above roster.
 - Done in latest cat texture batch: darker workshop depth, paper-grain cards, brighter portrait stage, larger center cat art, stronger story photo, thicker equipment cards, and raised roster cards.
-- Next move: preserve the now-aligned cat geometry and move the remaining generic building/shop/inventory/research panels toward the same illustrated target language; then return for final cat micro-alignment only.
+- Next move: preserve the now-aligned cat geometry and deepen remaining cat lower-panel art, then return for final main/cat micro-alignment only.
 
 ### 4. UI Asset Boost
 

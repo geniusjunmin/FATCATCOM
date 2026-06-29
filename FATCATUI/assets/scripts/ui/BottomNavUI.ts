@@ -3830,6 +3830,21 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay .mini-action:disabled { filter:grayscale(.8); opacity:.62; box-shadow:none; }
             #fatcat-dom-cat-overlay .mini-progress { height:12px; margin:4% 0 2%; border-radius:999px; background:#d6bd8d; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(92,62,34,.2); }
             #fatcat-dom-cat-overlay .mini-progress i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#74a846,#efc251); }
+            #fatcat-dom-cat-overlay .skin-wardrobe { display:grid; grid-template-columns:30% 1fr; gap:2%; min-height:106px; }
+            #fatcat-dom-cat-overlay .skin-preview-card { position:relative; min-height:104px; padding:4% 5%; border-radius:13px; background:radial-gradient(circle at 50% 0, rgba(255,255,255,.5), transparent 30%), linear-gradient(#fff0c7,#dfad66); box-shadow:inset 0 0 0 2px rgba(112,74,38,.18), 0 4px 0 rgba(78,47,25,.18); overflow:hidden; }
+            #fatcat-dom-cat-overlay .skin-preview-art { display:block; width:66%; aspect-ratio:1; margin:0 auto 1%; background:center/contain no-repeat; filter:drop-shadow(0 5px 0 rgba(76,48,28,.2)); }
+            #fatcat-dom-cat-overlay .skin-preview-card strong { display:block; color:#513019; font-size:118%; text-align:center; }
+            #fatcat-dom-cat-overlay .skin-preview-card small { display:block; color:#7a5638; text-align:center; font-weight:900; }
+            #fatcat-dom-cat-overlay .skin-list-target { display:grid; grid-template-columns:repeat(2,1fr); gap:2%; }
+            #fatcat-dom-cat-overlay .skin-card-target { position:relative; display:grid; grid-template-columns:30% 1fr; align-items:center; gap:3%; min-height:49px; padding:2.2%; border-radius:12px; background:linear-gradient(#fff6dc,#dfbd83); color:#4a2f1f; border:2px solid rgba(111,78,45,.24); box-shadow:inset 0 0 0 2px rgba(255,250,224,.26), 0 3px 0 rgba(76,45,24,.13); overflow:hidden; }
+            #fatcat-dom-cat-overlay .skin-card-target:after { content:""; position:absolute; left:7%; right:7%; top:7%; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.62),transparent); }
+            #fatcat-dom-cat-overlay .skin-card-target.selected { background:linear-gradient(#ffe69a,#df9c34); box-shadow:inset 0 0 0 3px rgba(255,250,190,.55), 0 0 12px rgba(237,169,44,.42); }
+            #fatcat-dom-cat-overlay .skin-card-target.locked { filter:grayscale(.45); opacity:.76; }
+            #fatcat-dom-cat-overlay .skin-card-target i { width:100%; aspect-ratio:1; border-radius:10px; background:center/contain no-repeat, linear-gradient(#f8deb1,#b88956); box-shadow:inset 0 0 0 2px rgba(92,60,34,.18); }
+            #fatcat-dom-cat-overlay .skin-card-target b { display:block; color:#442915; line-height:1.08; }
+            #fatcat-dom-cat-overlay .skin-card-target span { display:block; color:#735034; font-size:82%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+            #fatcat-dom-cat-overlay .skin-card-target em { display:inline-flex; width:max-content; margin-top:2%; padding:1.2% 8%; border-radius:999px; background:rgba(76,48,27,.82); color:#fff1c7; font-size:78%; font-style:normal; }
+            #fatcat-dom-cat-overlay .skin-card-target.selected em { background:#5d8f38; color:#fff; }
             #fatcat-dom-cat-overlay .equip-row { display:grid; grid-template-columns: repeat(4,1fr); gap:1.4%; margin-top:2%; text-align:center; }
             #fatcat-dom-cat-overlay .equip-slot { position:relative; min-height: 88px; border-radius:12px; background:radial-gradient(circle at 50% 12%, rgba(255,255,255,.34), transparent 28%), linear-gradient(#f5dfbc,#d4a86f); border:2px solid rgba(111,78,45,.28); display:flex; align-items:center; justify-content:center; flex-direction:column; font-weight:900; color:#4a2f1f; box-shadow:inset 0 0 0 2px rgba(255,250,224,.28), 0 4px 0 rgba(73,44,24,.16); overflow:hidden; }
             #fatcat-dom-cat-overlay .equip-slot:after { content:""; position:absolute; left:11%; right:11%; bottom:7%; height:10%; border-radius:999px; background:rgba(83,54,29,.12); }
@@ -3937,6 +3952,12 @@ export class BottomNavUI extends Component {
             #fatcat-dom-cat-overlay.compact .focus-card { grid-template-columns:31% 1fr; gap:2.6%; padding:1.1%; }
             #fatcat-dom-cat-overlay.compact .focus-tag { padding:1.2% 4.2%; margin-top:1.4%; }
             #fatcat-dom-cat-overlay.compact .mini-action { padding:1.4% 5.5%; }
+            #fatcat-dom-cat-overlay.compact .skin-wardrobe { grid-template-columns:29% 1fr; gap:1.4%; min-height:90px; }
+            #fatcat-dom-cat-overlay.compact .skin-preview-card { min-height:88px; padding:3%; }
+            #fatcat-dom-cat-overlay.compact .skin-preview-art { width:60%; margin-bottom:0; }
+            #fatcat-dom-cat-overlay.compact .skin-card-target { min-height:40px; padding:1.8%; font-size:88%; border-radius:9px; }
+            #fatcat-dom-cat-overlay.compact .skin-card-target span { font-size:74%; }
+            #fatcat-dom-cat-overlay.compact .skin-card-target em { font-size:70%; }
             #fatcat-dom-cat-overlay.compact .equip-row { gap:.8%; margin-top:.8%; }
             #fatcat-dom-cat-overlay.compact .equip-slot { min-height: 58px; border-radius:9px; font-size:86%; }
             #fatcat-dom-cat-overlay.compact .equip-slot small { font-size:64%; }
@@ -5063,7 +5084,15 @@ export class BottomNavUI extends Component {
             return `<div class="focus-card"><span class="focus-icon" style="background-image:url('${this.getEquipIconAsset("collar")}')"></span><div><strong>当前装备加成</strong><br>${this.renderEquipmentEffectSummary(catId)}<br><span class="focus-tag">项圈</span><span class="focus-tag">杯子</span><span class="focus-tag">坐垫</span><div class="focus-actions"><button class="mini-action green" data-action="equipItem" data-slot="项圈" data-id="${catId}">更换项圈</button><button class="mini-action" data-action="equipItem" data-slot="杯子" data-id="${catId}">装备背包</button></div></div></div>`;
         }
         if (this._domCatTab === "skin") {
-            return `<div class="focus-card"><span class="focus-icon" style="background-image:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"></span><div><strong>皮肤衣柜</strong><br>默认工作服已启用。更多皮肤会跟随建筑外观和活动奖励开放。<div class="focus-actions"><button class="mini-action green" data-action="storyWall" data-id="${catId}">查看照片</button><button class="mini-action" data-action="skillDetails" data-id="${catId}">皮肤加成</button></div></div></div>`;
+            const catArt = this.getCatFullArtAsset(config.id, config.portrait);
+            const skins = [
+                { name: "默认工作服", desc: "原料产量稳定", state: "已启用", className: "selected", art: catArt },
+                { name: "烘焙围裙", desc: "咖啡价值 +2%", state: "活动", className: "", art: catArt },
+                { name: "店长披肩", desc: "金币加成 +1%", state: "待开放", className: "locked", art: catArt },
+                { name: "节日礼服", desc: "心情上限 +3", state: "待开放", className: "locked", art: catArt },
+            ];
+            const cards = skins.map(item => `<div class="skin-card-target ${item.className}"><i style="background-image:url('${item.art}')"></i><div><b>${item.name}</b><span>${item.desc}</span><em>${item.state}</em></div></div>`).join("");
+            return `<div class="skin-wardrobe"><div class="skin-preview-card"><span class="skin-preview-art" style="background-image:url('${catArt}')"></span><strong>皮肤衣柜</strong><small>当前启用：默认工作服</small></div><div class="skin-list-target">${cards}</div></div>`;
         }
         const skillLevel = Math.max(1, Math.floor(data.level / 10) + 1);
         const nextSkillLevel = Math.min(3, skillLevel + 1);

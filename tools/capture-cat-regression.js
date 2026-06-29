@@ -75,13 +75,24 @@ async function isVisible(page, selector) {
             upgradeVisible: await isVisible(page, "#fatcat-dom-cat-overlay .equip-upgrade"),
         };
 
-        results.push({ size: `${width}x${height}`, file, equipFile, messages, failedRequests, state, equipState });
+        await page.click('#fatcat-dom-cat-overlay [data-action="tab"][data-tab="skin"]');
+        await page.waitForTimeout(350);
+        const skinFile = path.join(outDir, `cat-skin-${width}x${height}-edge.png`);
+        await page.screenshot({ path: skinFile, fullPage: false });
+        const skinState = await page.evaluate(() => ({
+            wardrobeVisible: !!document.querySelector("#fatcat-dom-cat-overlay .skin-wardrobe"),
+            skinCards: document.querySelectorAll("#fatcat-dom-cat-overlay .skin-card-target").length,
+            selectedCards: document.querySelectorAll("#fatcat-dom-cat-overlay .skin-card-target.selected").length,
+        }));
+        skinState.wardrobeVisible = await isVisible(page, "#fatcat-dom-cat-overlay .skin-wardrobe");
+
+        results.push({ size: `${width}x${height}`, file, equipFile, skinFile, messages, failedRequests, state, equipState, skinState });
         await page.close();
     }
 
     await browser.close();
     console.log(JSON.stringify(results, null, 2));
-    if (results.some((entry) => entry.messages.length || entry.failedRequests.length || !entry.state.overlayVisible || !entry.state.hasPortrait || !entry.equipState.bagVisible || !entry.equipState.upgradeVisible)) {
+    if (results.some((entry) => entry.messages.length || entry.failedRequests.length || !entry.state.overlayVisible || !entry.state.hasPortrait || !entry.equipState.bagVisible || !entry.equipState.upgradeVisible || !entry.skinState.wardrobeVisible || entry.skinState.skinCards < 4 || entry.skinState.selectedCards < 1)) {
         process.exit(1);
     }
 })().catch((error) => {
