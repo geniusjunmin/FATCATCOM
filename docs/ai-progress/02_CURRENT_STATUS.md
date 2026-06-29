@@ -1,6 +1,6 @@
 # Current Status
 
-Updated: 2026-06-28
+Updated: 2026-06-29
 
 ## Control Panel
 
@@ -44,6 +44,10 @@ Updated: 2026-06-28
 - A <=390px main-HUD fallback slightly reduces those internal controls and value font so long values such as `12.45M` retain their suffix at 360x800. The 414/430 layouts keep the larger target-like treatment.
 - Latest action-entry pass changes the 430px bottom operation tracks to `18/10/39/32`, giving the central launch action more target-like weight while reducing the oversized order/gift tracks. The launch rocket, title, and gift cat art are larger; <=390px keeps its dedicated column ratios.
 - Latest target-coordinate pass increases the main action strip and navigation height, moves the factory base upward to keep all six floors clear, and synchronizes the fallback hotspots. On the cat page, compact hero columns now follow `24 / flexible / 25`, the mood/feed rail is wider, and the production bar spans 76% of the content from the info card toward the status rail; tablet uses the same visual relationship at 78%.
+- Latest cat lower-section pass rebuilds the information tab around the target hierarchy: a current/next-level skill card with preserved detail and upgrade actions, four tall equipment cards with larger local art and replace controls, a workshop-backed pinned story photo, and cleaner rarity/level/work-state roster cards.
+- Equipment rendering now has separate overview and detail modes. The information tab hides the dense backpack while the equipment tab preserves inventory and upgrade controls; at 360px the detail view becomes a full-width single column and temporarily folds the skill/story columns instead of hiding equipment functionality.
+- Cat responsive heights now scale between 360 and 430 widths instead of reusing 430px fixed heights. The 360x800 story and roster no longer overlap, and the 768x1024 tablet allocates spare height to the hero, stats, weight, equipment, and story rather than leaving a large empty band.
+- `tools/capture-cat-regression.js` now captures both information and equipment views at all four supported sizes and fails if the equipment backpack or upgrade action is not visible.
 - Generated achievement/mail/friend/settings art now uses a cropped, larger presentation in the main side tools. Cat info/upgrade/skill/equipment/skin tabs dynamically use the selected cat, coin, role skill, collar, and cushion assets instead of CSS-only symbols.
 - A new eight-icon project-native pack now replaces the remaining main-screen CSS placeholders: task clipboard, reward chest, launch rocket, factory, buildings, shop, inventory, and research. Final transparent PNGs live under `FATCATUI/assets/resources/textures/generated/ui/`, are registered in `UiAssetRegistry.ts`, and are embedded through `DomAssetDataUris.ts`.
 - The generated 2x4 source was chroma-key processed into 384x384 frames. Independent alpha-bounds QC confirmed every final icon retains at least 42px transparent margin on every side; 430px uses stronger crop/scale while <=390px reduces nav icon width to preserve labels.

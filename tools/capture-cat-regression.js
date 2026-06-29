@@ -66,13 +66,22 @@ async function isVisible(page, selector) {
         }));
 
         state.overlayVisible = await isVisible(page, "#fatcat-dom-cat-overlay");
-        results.push({ size: `${width}x${height}`, file, messages, failedRequests, state });
+        await page.click('#fatcat-dom-cat-overlay [data-action="tab"][data-tab="equip"]');
+        await page.waitForTimeout(350);
+        const equipFile = path.join(outDir, `cat-equip-${width}x${height}-edge.png`);
+        await page.screenshot({ path: equipFile, fullPage: false });
+        const equipState = {
+            bagVisible: await isVisible(page, "#fatcat-dom-cat-overlay .equip-bag"),
+            upgradeVisible: await isVisible(page, "#fatcat-dom-cat-overlay .equip-upgrade"),
+        };
+
+        results.push({ size: `${width}x${height}`, file, equipFile, messages, failedRequests, state, equipState });
         await page.close();
     }
 
     await browser.close();
     console.log(JSON.stringify(results, null, 2));
-    if (results.some((entry) => entry.messages.length || entry.failedRequests.length || !entry.state.overlayVisible || !entry.state.hasPortrait)) {
+    if (results.some((entry) => entry.messages.length || entry.failedRequests.length || !entry.state.overlayVisible || !entry.state.hasPortrait || !entry.equipState.bagVisible || !entry.equipState.upgradeVisible)) {
         process.exit(1);
     }
 })().catch((error) => {

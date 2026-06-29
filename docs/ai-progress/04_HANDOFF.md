@@ -1,6 +1,6 @@
 # Handoff
 
-Updated: 2026-06-28
+Updated: 2026-06-29
 
 ## 90-Second Boot
 
@@ -31,11 +31,14 @@ Updated: 2026-06-28
 - Matching built-in-tool lineup assets: `cat_hero_black_v2.png` (black launcher, red scarf, rocket badge, red coffee pot), `cat_hero_white_v2.png` (white ragdoll saver, blue scarf, ingredient jar), `cat_hero_calico_v2.png` (calico producer, plum scarf, green dripper), and `cat_hero_tuxedo_v2.png` (tuxedo support, teal scarf, star badge, ledger). All live beside the orange hero under `textures/generated/cats/`.
 - The calico source used a flat cyan key because its plum scarf conflicted with the default magenta key; the other lineup sources used magenta. Only final alpha PNGs and Cocos metadata are committed.
 - `UiAssetRegistry.ts` maps `c_001` to the new hero, and `tools/generate-dom-asset-data-uris.ps1` embeds it for the DOM preview bridge. Regenerate `DomAssetDataUris.ts` after replacing or adding any DOM-consumed art.
-- Compact cat layout now uses a 5.25%-high HUD, 24%/fluid/21% hero columns, outside chevron switching, visual weight-stage cats, a clickable three-column story card, no floating action strip, and a below-390px fold for the equipment bag.
+- Compact cat layout now uses target-aligned hero columns, outside chevron switching, visual weight-stage cats, a clickable three-column story card, no floating action strip, and width-scaled lower-section heights. Below 390px, the information view remains complete while the equipment tab switches to a full-width detail mode with the backpack and upgrade button visible.
 - Verified after this cat-art pass: `check-client-ts.ps1`, all four `capture-cat-regression.js` sizes, Cocos refresh for the asset/script folders, and the complete `verify-ui-clicks-playwright.js` path.
 - `node tools/capture-cat-lineup.js` is the visual/asset gate for all five heroes. Latest run captured all five names with embedded PNG art and no browser errors or failed requests.
 - `applyResponsiveClasses()` now adds `tablet` when the visible canvas width is at least 600px. Use `.tablet` for 768x1024 portrait-canvas rules; `.wide` remains aspect-ratio based and does not trigger for this preview.
-- The tablet cat layout uses a 250px hero, compact right status cards, 98px equipment slots, a restored three-column story card, and a 10.4%-high bottom roster. Do not revert to the old wide-only rules, which left the roster over the equipment panel.
+- The tablet cat layout uses a 280px hero, expanded stats/weight/lower panels, compact right status cards, a restored three-column story card, and a 10.4%-high bottom roster. Do not revert to the old wide-only rules, which left the roster over the equipment panel.
+- Latest cat lower-section integration keeps the information tab visually close to `所有猫咪页面.png`: skill current/next levels and actions are explicit, four equipment cards use larger local art and green replace controls, the story photo layers the selected cat over the workshop, and compact roster cards prioritize rarity, art, level, stars, and work state.
+- `capture-cat-regression.js` now writes `cat-<size>-edge.png` and `cat-equip-<size>-edge.png` for all four supported viewports. It checks the equipment backpack and upgrade action in addition to the existing portrait/tab/card checks.
+- Latest full gate: four-size main screenshots, four-size cat information/equipment screenshots, five-cat lineup capture, 18-step UI click regression, focused TypeScript diagnostics, all config/social contract checks, and 63/63 server tests passed.
 - Cat page fullscreen polish is in progress: it now lays out against the visible viewport, adds a small top bleed to cover the underlying main HUD, and renders its own top HUD.
 - Latest compact cat-page pass widened the info column, restored the single-line cat name badge below the HUD, trimmed portrait height for lower-panel space, and reduced compact resource-pill text/buttons so `M`/`K` suffixes remain visible.
 - The DOM UI uses the overlay root font-size as a design-height unit. For new normal-sized UI text inside that system, set a local percentage font-size on the container first, then use `em` or fixed pixel accents inside it.

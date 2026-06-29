@@ -3933,6 +3933,277 @@ export class BottomNavUI extends Component {
                 border:0;
                 font-size:90%;
             }
+            #fatcat-dom-cat-overlay .focus-panel,
+            #fatcat-dom-cat-overlay .equipment-panel {
+                background:
+                    radial-gradient(circle at 14% 8%, rgba(255,255,255,.42), transparent 22%),
+                    repeating-linear-gradient(0deg, rgba(113,74,38,.035) 0 1px, transparent 1px 5px),
+                    linear-gradient(#fff7df,#e8c794);
+            }
+            #fatcat-dom-cat-overlay .focus-panel > b,
+            #fatcat-dom-cat-overlay .equipment-panel > b {
+                position:relative;
+                z-index:2;
+                padding:0;
+                margin:0 0 2.2%;
+                border-radius:0;
+                background:none;
+                color:#65401f;
+                box-shadow:none;
+                font-size:116%;
+            }
+            #fatcat-dom-cat-overlay .focus-card.target-skill {
+                position:relative;
+                min-height:0;
+                height:calc(100% - 28px);
+                box-sizing:border-box;
+                grid-template-columns:34% 1fr;
+                grid-template-rows:auto 1fr auto;
+                gap:3% 4%;
+                align-items:start;
+                padding:3%;
+                background:rgba(255,251,233,.55);
+                border:1px solid rgba(117,76,38,.16);
+                box-shadow:inset 0 0 0 2px rgba(255,255,255,.22);
+            }
+            #fatcat-dom-cat-overlay .target-skill .focus-icon {
+                grid-row:1 / 3;
+                width:100%;
+                background-size:142%;
+                border:3px solid #a36a22;
+                box-shadow:inset 0 0 0 3px rgba(255,224,113,.5),0 3px 0 rgba(79,45,18,.24),0 0 12px rgba(234,166,40,.24);
+            }
+            #fatcat-dom-cat-overlay .target-skill .focus-current {
+                min-width:0;
+            }
+            #fatcat-dom-cat-overlay .target-skill .focus-current strong {
+                display:block;
+                color:#4b2d19;
+                white-space:nowrap;
+                overflow:hidden;
+                text-overflow:ellipsis;
+            }
+            #fatcat-dom-cat-overlay .target-skill .focus-current > b {
+                display:block;
+                margin-top:1%;
+                color:#5d3b23;
+            }
+            #fatcat-dom-cat-overlay .target-skill p {
+                margin:3% 0 0;
+                color:#6f4a2c;
+            }
+            #fatcat-dom-cat-overlay .target-skill .focus-next {
+                grid-column:1 / 3;
+                display:grid;
+                grid-template-columns:1fr auto;
+                align-items:center;
+                padding:3% 2% 1%;
+                border-top:1px solid rgba(109,72,39,.16);
+                color:#7a4d29;
+            }
+            #fatcat-dom-cat-overlay .target-skill .focus-next b {
+                color:#4a2c1a;
+            }
+            #fatcat-dom-cat-overlay .target-skill .focus-next small {
+                grid-column:1 / 3;
+                margin-top:1%;
+            }
+            #fatcat-dom-cat-overlay .target-skill-actions {
+                grid-column:1 / 3;
+                display:grid;
+                grid-template-columns:30% 1fr;
+                gap:4%;
+                width:88%;
+                justify-self:center;
+            }
+            #fatcat-dom-cat-overlay .target-skill-actions .mini-action {
+                width:100%;
+                min-width:0;
+                padding:4% 2%;
+            }
+            #fatcat-dom-cat-overlay .target-skill .skill-details {
+                border-radius:10px;
+                background:linear-gradient(#f0d391,#bf8a42);
+                color:#5b351d;
+            }
+            #fatcat-dom-cat-overlay .target-skill .skill-upgrade {
+                border-radius:10px;
+                color:#fff;
+                box-shadow:0 3px 0 #385e24,inset 0 0 0 2px rgba(255,245,199,.24);
+            }
+            #fatcat-dom-cat-overlay .target-skill .skill-upgrade em {
+                margin-left:4%;
+                color:#fff3a5;
+                font-style:normal;
+            }
+            #fatcat-dom-cat-overlay .equip-layout.overview-mode .equip-bag {
+                display:none;
+            }
+            #fatcat-dom-cat-overlay .equip-layout.overview-mode .equip-row {
+                height:calc(100% - 2px);
+                margin-top:0;
+                align-items:stretch;
+            }
+            #fatcat-dom-cat-overlay .equip-layout.overview-mode .equip-slot {
+                min-height:0;
+                height:100%;
+                justify-content:flex-start;
+                padding:8% 3% 6%;
+                box-sizing:border-box;
+                background:linear-gradient(#fff4da 0 58%,#e0be89 59%);
+            }
+            #fatcat-dom-cat-overlay .equip-layout.overview-mode .equip-icon {
+                width:76%;
+                margin:0 auto 5%;
+                background-color:#ead5af;
+                background-size:128%;
+                border-radius:10px;
+            }
+            #fatcat-dom-cat-overlay .equip-layout.overview-mode .equip-slot small {
+                margin-top:5%;
+                min-height:2.2em;
+                line-height:1.1;
+            }
+            #fatcat-dom-cat-overlay .equip-cta {
+                position:relative;
+                z-index:2;
+                display:inline-flex;
+                align-items:center;
+                justify-content:center;
+                width:78%;
+                min-height:22px;
+                margin-top:auto;
+                border-radius:8px;
+                background:linear-gradient(#8bbb56,#4e8732);
+                color:white;
+                font-size:86%;
+                box-shadow:0 2px 0 rgba(50,81,29,.38);
+            }
+            #fatcat-dom-cat-overlay .equip-slot.locked .equip-cta {
+                background:linear-gradient(#aa9b86,#776854);
+            }
+            #fatcat-dom-cat-overlay .equip-layout.detail-mode .equip-cta {
+                display:none;
+            }
+            #fatcat-dom-cat-overlay .story-copy p {
+                margin:3% 0 0;
+                color:#664329;
+            }
+            #fatcat-dom-cat-overlay .story-photo {
+                background-image:
+                    var(--story-cat),
+                    linear-gradient(rgba(57,34,22,.08),rgba(57,34,22,.24)),
+                    url("${this.getDomAssetDataUri(GeneratedBackgroundAssets.catDetailWorkshop)}");
+                background-size:contain,cover,cover;
+                background-position:center 58%,center,center;
+                background-repeat:no-repeat;
+            }
+            #fatcat-dom-cat-overlay .story-book {
+                margin-right:8%;
+                color:#7d4c1f;
+                transform:rotate(90deg);
+            }
+            #fatcat-dom-cat-overlay .cat-list .cat-name {
+                max-width:88%;
+                white-space:nowrap;
+                overflow:hidden;
+                text-overflow:ellipsis;
+            }
+            #fatcat-dom-cat-overlay .cat-list .cat-level {
+                font-style:normal;
+                font-weight:900;
+            }
+            #fatcat-dom-cat-overlay .cat-list .recruit {
+                gap:1%;
+            }
+            #fatcat-dom-cat-overlay .recruit-art {
+                width:54%;
+                aspect-ratio:1;
+                margin-top:-7%;
+                background:center/contain no-repeat;
+                filter:drop-shadow(0 2px 0 rgba(93,48,13,.24));
+            }
+            #fatcat-dom-cat-overlay .cat-list .recruit small {
+                font-size:76%;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-grid > div {
+                min-height:clamp(166px,46vw,198px);
+            }
+            #fatcat-dom-cat-overlay.compact .focus-card.target-skill {
+                font-size:94%;
+            }
+            #fatcat-dom-cat-overlay.compact .target-skill .focus-icon {
+                border-width:2px;
+            }
+            #fatcat-dom-cat-overlay.compact .equip-layout.overview-mode {
+                height:calc(100% - 28px);
+            }
+            #fatcat-dom-cat-overlay.compact .equip-layout.overview-mode .equip-slot {
+                font-size:82%;
+            }
+            #fatcat-dom-cat-overlay.compact .equip-layout.overview-mode .equip-icon {
+                width:80%;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-story {
+                min-height:92px;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-list .cat-name,
+            #fatcat-dom-cat-overlay.compact .cat-list .cat-role-dot {
+                display:none;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-list .cat-thumb {
+                width:72%;
+                margin-top:3%;
+                border-radius:12px;
+                background-color:transparent;
+                background-size:185%;
+                background-position:center 35%;
+                box-shadow:none;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-list .cat-stars {
+                position:absolute;
+                left:8%;
+                bottom:24%;
+                font-size:68%;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-list .cat-level {
+                position:absolute;
+                right:8%;
+                bottom:22%;
+                font-size:76%;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-list .cat-status {
+                position:absolute;
+                left:8%;
+                right:8%;
+                bottom:4%;
+                margin:0;
+                padding:1.2% 2%;
+                font-size:68%;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-list .rarity-badge {
+                z-index:2;
+                min-width:25%;
+                font-size:88%;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-grid > div {
+                min-height:205px;
+            }
+            #fatcat-dom-cat-overlay.tablet .equip-layout.overview-mode {
+                height:170px;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-list .cat-name {
+                display:none;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-list .cat-thumb {
+                width:62%;
+                background-size:138%;
+                background-position:center 34%;
+            }
+            #fatcat-dom-cat-overlay.tablet .cat-portrait { min-height:280px; }
+            #fatcat-dom-cat-overlay.tablet .cat-stats div { min-height:56px; }
+            #fatcat-dom-cat-overlay.tablet .cat-weight { min-height:90px; }
+            #fatcat-dom-cat-overlay.tablet .cat-story { min-height:90px; }
             #fatcat-dom-cat-overlay.tablet .cat-list {
                 left:2.4%;
                 right:2.4%;
@@ -3943,13 +4214,44 @@ export class BottomNavUI extends Component {
             }
             @media (max-width:390px) {
                 #fatcat-dom-cat-overlay.compact .equip-bag { display:none; }
+                #fatcat-dom-cat-overlay.compact .cat-grid:has(.equip-layout.detail-mode) {
+                    grid-template-columns:1fr;
+                }
+                #fatcat-dom-cat-overlay.compact .cat-grid:has(.equip-layout.detail-mode) .focus-panel {
+                    display:none;
+                }
+                #fatcat-dom-cat-overlay.compact .cat-grid:has(.equip-layout.detail-mode) .equipment-panel {
+                    min-height:250px;
+                }
+                #fatcat-dom-cat-overlay.compact .equip-layout.detail-mode .equip-bag {
+                    display:block;
+                }
+                #fatcat-dom-cat-overlay.compact .cat-grid:has(.equip-layout.detail-mode) + .cat-story {
+                    display:none;
+                }
+                #fatcat-dom-cat-overlay.compact .cat-portrait {
+                    min-height:clamp(194px,54vw,211px);
+                }
+                #fatcat-dom-cat-overlay.compact .portrait-cat.img {
+                    min-width:clamp(150px,42vw,164px);
+                }
+                #fatcat-dom-cat-overlay.compact .cat-stats div {
+                    min-height:clamp(54px,15vw,59px);
+                }
+                #fatcat-dom-cat-overlay.compact .cat-weight {
+                    min-height:clamp(84px,24vw,94px);
+                }
+                #fatcat-dom-cat-overlay.compact .weight-row span {
+                    min-height:clamp(58px,16.5vw,64px);
+                    padding-top:clamp(35px,10vw,39px);
+                }
                 #fatcat-dom-cat-overlay.compact .cat-story {
-                    min-height:74px;
+                    min-height:90px;
                     font-size:1.35%;
                     grid-template-columns:1fr 17% 18%;
                 }
-                #fatcat-dom-cat-overlay.compact .story-photo { min-height:62px; }
-                #fatcat-dom-cat-overlay.compact .cat-list { height:9.4%; bottom:.5%; }
+                #fatcat-dom-cat-overlay.compact .story-photo { min-height:76px; }
+                #fatcat-dom-cat-overlay.compact .cat-list { height:10.6%; bottom:.5%; }
             }
         `;
         document.head.appendChild(style);
@@ -4136,13 +4438,13 @@ export class BottomNavUI extends Component {
                 <div class="cat-stats"><div><i class="stat-icon asset" style="background-image:url('${this.getGeneratedIconAsset("bean")}')"></i>咖啡豆消耗<br><b>${this.formatNumber(config.baseBeanCost)}/秒</b></div><div><i class="stat-icon asset" style="background-image:url('${this.getGeneratedIconAsset("food")}')"></i>原料产量<br><b>${this.formatNumber(production)}/秒</b></div><div><i class="stat-icon asset" style="background-image:url('${this.getGeneratedIconAsset("coin")}')"></i>工资<br><b>${this.formatNumber(wageCost)}/分钟</b></div><div><i class="stat-icon weight"></i>体重<br><b>${weightLabel}</b></div><div><i class="stat-icon paw"></i>品种<br><b>${config.breed}</b></div></div>
                 <div class="cat-weight"><b>体重阶段</b><div class="weight-row"><span class="stage-art normal ${weightStage === WeightStage.NORMAL ? "selected" : ""}" style="--stage-art:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"><b>正常</b></span><span class="stage-art fat ${weightStage === WeightStage.FAT ? "selected" : ""}" style="--stage-art:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"><b>胖猫</b></span><span class="stage-art super ${weightStage === WeightStage.SUPER_FAT ? "selected" : ""}" style="--stage-art:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"><b>巨胖</b></span><div class="bar"><i style="width:${Math.min(100, data.weight)}%"></i></div><em>${data.weight}/100</em></div></div>
                 <div class="cat-grid">
-                    <div><b>${this.getCatTabTitle()}</b><br>${this.renderCatFocusContent(config.id, unlocked, upgradeCost, unlockCost, canUpgrade)}</div>
-                    <div><b>装备</b>${this.renderCatEquipPanel(config.id)}</div>
+                    <div class="focus-panel"><b>${this.getCatTabTitle()}</b>${this.renderCatFocusContent(config.id, unlocked, upgradeCost, unlockCost, canUpgrade)}</div>
+                    <div class="equipment-panel"><b>装备</b>${this.renderCatEquipPanel(config.id)}</div>
                 </div>
-                <div class="cat-story"><div><b>猫咪故事</b><br>${this.getCatStory(config.name, config.personality, config.breed, assignedName)}</div><div class="story-photo" style="background-image:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"></div><button class="story-button" data-action="storyWall" data-id="${config.id}">故事墙</button></div>
+                <div class="cat-story"><div class="story-copy"><b>猫咪故事</b><p>${this.getCatStory(config.name, config.personality, config.breed, assignedName)}</p></div><div class="story-photo" style="--story-cat:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"></div><button class="story-button" data-action="storyWall" data-id="${config.id}"><span class="story-book">▰</span>故事墙</button></div>
                 <div class="cat-actions"><button class="dismiss" data-action="dismissCat" data-id="${config.id}">解雇</button><button class="change" data-action="changeCat" data-id="${config.id}">更换</button><button class="level" data-action="upgradeCat" data-id="${config.id}" ${canUpgrade ? "" : "disabled"}>升级1级 ${this.formatNumber(upgradeCost)}</button></div>
                 <div class="cat-roster-label">猫咪队伍</div>
-                <div class="cat-list">${configs.map(item => this.renderCatListButton(item.id)).join("")}<button class="recruit" data-action="unlockCat" data-id="${config.id}">招募猫咪<br>${this.formatNumber(unlockCost)} 金币</button></div>
+                <div class="cat-list">${configs.map(item => this.renderCatListButton(item.id)).join("")}<button class="recruit" data-action="unlockCat" data-id="${config.id}"><span class="recruit-art" style="background-image:url('${this.getCatFullArtAsset("c_005")}')"></span><b>招募猫咪</b><small>${this.formatNumber(unlockCost)} 金币</small></button></div>
                 <div class="cat-msg ${this._domCatMessage ? "" : "empty"}">${this._domCatMessage}</div>
             </div>`;
     }
@@ -4180,7 +4482,9 @@ export class BottomNavUI extends Component {
         if (this._domCatTab === "skin") {
             return `<div class="focus-card"><span class="focus-icon" style="background-image:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"></span><div><strong>皮肤衣柜</strong><br>默认工作服已启用。更多皮肤会跟随建筑外观和活动奖励开放。<div class="focus-actions"><button class="mini-action green" data-action="storyWall" data-id="${catId}">查看照片</button><button class="mini-action" data-action="skillDetails" data-id="${catId}">皮肤加成</button></div></div></div>`;
         }
-        return `<div class="focus-card"><span class="focus-icon" style="background-image:url('${skillIcon}')"></span><div><strong>${this.getSkillName(config.skillId)}</strong><br>${this.getSkillDesc(config.role)}<br><span class="focus-tag">${this.getCatRoleLabel(config.role)}</span><span class="focus-tag">Lv.${data.level}</span><div class="focus-actions"><button class="mini-action green" data-action="skillDetails" data-id="${catId}">技能详情</button><button class="mini-action" data-action="upgradeCat" data-id="${catId}" ${canUpgrade ? "" : "disabled"}>${this.formatNumber(upgradeCost)} 金币升级</button></div></div></div>`;
+        const skillLevel = Math.max(1, Math.floor(data.level / 10) + 1);
+        const nextSkillLevel = Math.min(3, skillLevel + 1);
+        return `<div class="focus-card target-skill"><span class="focus-icon" style="background-image:url('${skillIcon}')"></span><div class="focus-current"><strong>${this.getSkillName(config.skillId)}</strong><b>Lv.${skillLevel}</b><p>${this.getSkillDesc(config.role)}</p></div><div class="focus-next"><span>下一等级</span><b>Lv.${nextSkillLevel}</b><small>技能效果进一步提升</small></div><div class="target-skill-actions"><button class="mini-action skill-details" data-action="skillDetails" data-id="${catId}">详情</button><button class="mini-action green skill-upgrade" data-action="upgradeCat" data-id="${catId}" ${canUpgrade ? "" : "disabled"}>升级 <em>${this.formatNumber(upgradeCost)}</em></button></div></div>`;
     }
 
     private renderEquipmentEffectSummary(catId: string): string {
@@ -4209,7 +4513,7 @@ export class BottomNavUI extends Component {
             const equipped = this.getEquipDefinition(equipment[item.slot]);
             const equipLevel = CatManager.getEquipmentLevel(catId, equipped.id);
             const maxLevel = equipped.levelMax ?? 5;
-            return `<button class="equip-slot ${active}" data-action="equipItem" data-slot="${item.slot}" data-id="${catId}"><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset(equipped.kind)}')"></i><span class="equip-name">${equipped.name}</span><em>${equipped.rarity} Lv.${equipLevel}/${maxLevel}</em><small>${equipped.bonus}</small></button>`;
+            return `<button class="equip-slot ${active}" data-action="equipItem" data-slot="${item.slot}" data-id="${catId}"><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset(equipped.kind)}')"></i><span class="equip-name">${equipped.name}</span><em>${equipped.rarity} · Lv.${equipLevel}</em><small>${equipped.bonus}</small><span class="equip-cta">更换</span></button>`;
         }).join("");
         const backpack = this.getEquipOptions(this._selectedEquipSlot).map(item => {
             const active = this._selectedEquipSlot === item.slot ? "ready" : "";
@@ -4223,7 +4527,8 @@ export class BottomNavUI extends Component {
         const upgradeLabel = upgradeState.isMax ? "已满级" : upgradeState.canAfford ? "升级装备" : "金币不足";
         const upgradeDisabled = upgradeState.isMax || !upgradeState.canAfford;
         const nextText = upgradeState.isMax ? "已达上限" : `Lv.${upgradeState.nextLevel}/${upgradeState.maxLevel}`;
-        return `<div class="equip-row">${row}<button class="equip-slot locked"><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset("lock")}')"></i><span class="equip-name">饰品槽</span><em>30级解锁</em><small>等待开放</small></button></div><div class="equip-bag"><strong>装备背包</strong><div>${backpack}</div><div class="equip-upgrade-info"><span>当前等级<b>Lv.${upgradeState.level}/${upgradeState.maxLevel}</b></span><span>下级预览<b>${nextText}</b></span><span>升级消耗<b>${upgradeState.cost} 金币</b></span></div><div class="equip-effect-info"><span>当前加成<b>${upgradeState.currentEffect}</b></span><span>下级加成<b>${upgradeState.nextEffect}</b></span></div><button class="equip-upgrade ${upgradeDisabled ? "disabled" : ""}" data-action="upgradeEquip" data-slot="${this._selectedEquipSlot}" data-id="${catId}" ${upgradeDisabled ? "disabled" : ""}>${upgradeLabel}</button></div>`;
+        const detailClass = this._domCatTab === "equip" ? "detail-mode" : "overview-mode";
+        return `<div class="equip-layout ${detailClass}"><div class="equip-row">${row}<button class="equip-slot locked"><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset("lock")}')"></i><span class="equip-name">饰品槽</span><em>30级解锁</em><small>等待开放</small><span class="equip-cta">锁定</span></button></div><div class="equip-bag"><strong>装备背包</strong><div>${backpack}</div><div class="equip-upgrade-info"><span>当前等级<b>Lv.${upgradeState.level}/${upgradeState.maxLevel}</b></span><span>下级预览<b>${nextText}</b></span><span>升级消耗<b>${upgradeState.cost} 金币</b></span></div><div class="equip-effect-info"><span>当前加成<b>${upgradeState.currentEffect}</b></span><span>下级加成<b>${upgradeState.nextEffect}</b></span></div><button class="equip-upgrade ${upgradeDisabled ? "disabled" : ""}" data-action="upgradeEquip" data-slot="${this._selectedEquipSlot}" data-id="${catId}" ${upgradeDisabled ? "disabled" : ""}>${upgradeLabel}</button></div></div>`;
     }
 
     private getEquipDefinition(itemId = ""): { id: string; slot: string; kind: string; name: string; rarity: string; bonus: string; levelMax?: number; upgradeCost?: number; source?: string; effects?: Array<{ label: string; baseValue: number; perLevel?: number; unit?: string }> } {
@@ -4244,7 +4549,7 @@ export class BottomNavUI extends Component {
         const status = data.isUnlocked ? `Lv.${data.level}` : "未招募";
         const workStatus = data.isUnlocked ? (CatManager.getAssignedBuildingId(id) ? "工作中" : "待命") : "招募";
         const rarityClass = config.rarity === "S" || config.rarity === "SS" ? "s-rarity" : "a-rarity";
-        return `<button class="${active} ${locked}" data-action="selectCat" data-id="${id}"><span class="rarity-badge ${rarityClass}">${config.rarity}</span><span class="cat-role-dot asset ${config.role}" style="background-image:url('${this.getSkillIconAsset(config.role)}')"></span><span class="cat-thumb hero-art" style="background-image:url('${this.getCatFullArtAsset(id, config.portrait)}')"></span><span>${config.name}</span><span class="cat-stars">${this.renderStars(config.rarity).slice(0, 3)}</span><em>${status}</em><span class="cat-status">${workStatus}</span></button>`;
+        return `<button class="${active} ${locked}" data-action="selectCat" data-id="${id}"><span class="rarity-badge ${rarityClass}">${config.rarity}</span><span class="cat-role-dot asset ${config.role}" style="background-image:url('${this.getSkillIconAsset(config.role)}')"></span><span class="cat-thumb hero-art" style="background-image:url('${this.getCatFullArtAsset(id, config.portrait)}')"></span><span class="cat-name">${config.name}</span><span class="cat-stars">${this.renderStars(config.rarity).slice(0, 3)}</span><em class="cat-level">${status}</em><span class="cat-status">${workStatus}</span></button>`;
     }
 
     private getCatFullArtAsset(catId: string, portrait?: string): string {
