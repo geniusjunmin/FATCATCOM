@@ -87,6 +87,9 @@ public sealed class FatCatApiTests
         Assert.True(friends[0].GetProperty("rooms").GetArrayLength() >= 3);
         Assert.Equal("5F", friends[0].GetProperty("rooms")[0].GetProperty("floor").GetString());
         Assert.True(friends[0].GetProperty("rooms")[0].GetProperty("productionPerSecond").GetInt32() >= 0);
+        Assert.True(friends[0].GetProperty("rooms")[0].GetProperty("assignedCatCount").GetInt32() >= 0);
+        Assert.False(string.IsNullOrWhiteSpace(friends[0].GetProperty("rooms")[0].GetProperty("featuredCatName").GetString()));
+        Assert.True(friends[0].GetProperty("rooms")[0].GetProperty("decorScore").GetInt32() >= 0);
         Assert.Equal(HttpStatusCode.OK, visitResponse.StatusCode);
         Assert.Equal("mocha", visit.GetProperty("friend").GetProperty("id").GetString());
         Assert.True(visit.GetProperty("friend").GetProperty("rooms").GetArrayLength() >= 3);

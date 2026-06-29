@@ -948,10 +948,15 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         await EnsureDefaultFriendsAsync(playerId, cancellationToken);
         await RefreshRealFriendSnapshotsAsync(playerId, cancellationToken);
         var friends = await repository.GetFriendsAsync(playerId, cancellationToken);
-        return friends
+        var orderedFriends = friends
             .OrderByDescending(friend => friend.IncomePerSecond)
-            .Select(ToFriendDto)
             .ToArray();
+        var result = new List<FriendDto>(orderedFriends.Length);
+        foreach (var friend in orderedFriends)
+        {
+            result.Add(await ToFriendDtoAsync(friend, cancellationToken));
+        }
+        return result;
     }
 
     public async Task<FriendDto?> AddFriendAsync(Guid playerId, AddFriendRequest request, CancellationToken cancellationToken)
@@ -981,14 +986,14 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             await RefreshFriendSnapshotFromPlayerAsync(existing, friendPlayer, cancellationToken);
             await EnsureFriendRelationAsync(playerId, friendPlayer.Id, existing.FriendKey, cancellationToken);
             await repository.SaveChangesAsync(cancellationToken);
-            return ToFriendDto(existing);
+            return await ToFriendDtoAsync(existing, cancellationToken);
         }
 
         var friend = await EnsureRealFriendSnapshotAsync(playerId, friendPlayer, cancellationToken);
         await EnsureFriendRelationAsync(playerId, friendPlayer.Id, friend.FriendKey, cancellationToken);
         await AddSocialActivityAsync(playerId, "friend_add", friend, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
-        return ToFriendDto(friend);
+        return await ToFriendDtoAsync(friend, cancellationToken);
     }
 
     public async Task<FriendRequestDto?> CreateFriendRequestAsync(Guid playerId, CreateFriendRequestRequest request, CancellationToken cancellationToken)
@@ -1160,7 +1165,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         }
         friend.LastVisitedAt = now;
         await repository.SaveChangesAsync(cancellationToken);
-        return ToFriendActionResponse(friend, rewarded, rewardCoin, 0, resources, now, rewarded ? null : "daily_visit_claimed");
+        return await ToFriendActionResponseAsync(friend, rewarded, rewardCoin, 0, resources, now, rewarded ? null : "daily_visit_claimed", cancellationToken);
     }
 
     public async Task<FriendActionResponse?> SendFriendGiftAsync(Guid playerId, string friendId, CancellationToken cancellationToken)
@@ -1185,7 +1190,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         }
         friend.LastGiftAt = now;
         await repository.SaveChangesAsync(cancellationToken);
-        return ToFriendActionResponse(friend, rewarded, 0, rewardCatFood, resources, now, rewarded ? null : "daily_gift_claimed");
+        return await ToFriendActionResponseAsync(friend, rewarded, 0, rewardCatFood, resources, now, rewarded ? null : "daily_gift_claimed", cancellationToken);
     }
 
     public async Task<IReadOnlyList<FriendActivityDto>?> GetFriendActivitiesAsync(Guid playerId, int limit, CancellationToken cancellationToken)
@@ -2057,7 +2062,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             mail.CreatedAt.ToUnixTimeMilliseconds());
     }
 
-    private FriendDto ToFriendDto(FriendSnapshot friend)
+    private async Task<FriendDto> ToFriendDtoAsync(FriendSnapshot friend, CancellationToken cancellationToken)
     {
         return new FriendDto(
             friend.FriendKey,
@@ -2066,11 +2071,20 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             friend.IncomePerSecond,
             friend.LastVisitedAt?.ToUnixTimeMilliseconds(),
             friend.LastGiftAt?.ToUnixTimeMilliseconds(),
-            BuildFriendRooms(friend));
+            await BuildFriendRoomsAsync(friend, cancellationToken));
     }
 
-    private IReadOnlyList<FriendRoomDto> BuildFriendRooms(FriendSnapshot friend)
+    private async Task<IReadOnlyList<FriendRoomDto>> BuildFriendRoomsAsync(FriendSnapshot friend, CancellationToken cancellationToken)
     {
+        var realPlayerId = TryGetRealFriendPlayerId(friend.FriendKey, out var parsedRealPlayerId)
+            ? parsedRealPlayerId
+            : Guid.Empty;
+        IReadOnlyList<PlayerCatState> catStates = realPlayerId == Guid.Empty
+            ? []
+            : await repository.GetCatStatesAsync(realPlayerId, cancellationToken);
+        IReadOnlyList<PlayerBuildingState> buildingStates = realPlayerId == Guid.Empty
+            ? []
+            : await repository.GetBuildingStatesAsync(realPlayerId, cancellationToken);
         var orderedDefinitions = balance.BuildingDefinitions.Values
             .OrderByDescending(definition => GetFriendRoomSort(definition.Floor))
             .ToArray();
@@ -2081,6 +2095,20 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         for (var index = 0; index < orderedDefinitions.Length; index++)
         {
             var definition = orderedDefinitions[index];
+            var buildingLevel = buildingStates.FirstOrDefault(state => string.Equals(state.BuildingKey, definition.BuildingId, StringComparison.Ordinal))?.Level
+                ?? Math.Max(1, Math.Min(definition.MaxLevel, friend.Level / 3 + definition.Level / 2));
+            var assignedCats = catStates
+                .Where(cat => cat.IsUnlocked && string.Equals(NormalizeExistingBuildingId(cat.AssignedBuildingKey), definition.BuildingId, StringComparison.Ordinal))
+                .OrderByDescending(cat => cat.Level)
+                .ToArray();
+            var estimatedCatCount = realPlayerId == Guid.Empty && definition.Floor is not "B1"
+                ? Math.Clamp(friend.Level / 9, 1, 3)
+                : 0;
+            var assignedCatCount = assignedCats.Length > 0 ? assignedCats.Length : estimatedCatCount;
+            var featuredCatName = assignedCats.Length > 0
+                ? GetFriendCatName(assignedCats[0].CatKey)
+                : (assignedCatCount > 0 ? "巡逻肥猫" : "待派驻");
+            var decorScore = Math.Max(0, buildingLevel * 12 + assignedCatCount * 8);
             var production = index == orderedDefinitions.Length - 1
                 ? remaining
                 : (int)Math.Floor(friend.IncomePerSecond * (Math.Max(1, Math.Abs(definition.BaseValue) + definition.Level * 3) / (double)Math.Max(1, totalWeight)));
@@ -2090,8 +2118,11 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
                 definition.BuildingId,
                 definition.Floor,
                 GetFriendRoomName(definition.BuildingId),
-                Math.Max(1, Math.Min(definition.MaxLevel, friend.Level / 3 + definition.Level / 2)),
-                production));
+                buildingLevel,
+                production,
+                assignedCatCount,
+                featuredCatName,
+                decorScore));
         }
 
         return rooms;
@@ -2121,17 +2152,31 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         };
     }
 
-    private FriendActionResponse ToFriendActionResponse(
+    private static string GetFriendCatName(string catId)
+    {
+        return catId switch
+        {
+            "c_001" => "大橘",
+            "c_002" => "黑糖",
+            "c_003" => "雪团",
+            "c_004" => "三花",
+            "c_005" => "礼帽",
+            _ => "好友猫咪",
+        };
+    }
+
+    private async Task<FriendActionResponse> ToFriendActionResponseAsync(
         FriendSnapshot friend,
         bool rewarded,
         int rewardCoin,
         int rewardCatFood,
         PlayerResourceState resources,
         DateTimeOffset serverTime,
-        string? limitedReason)
+        string? limitedReason,
+        CancellationToken cancellationToken)
     {
         return new FriendActionResponse(
-            ToFriendDto(friend),
+            await ToFriendDtoAsync(friend, cancellationToken),
             rewarded,
             rewardCoin,
             rewardCatFood,

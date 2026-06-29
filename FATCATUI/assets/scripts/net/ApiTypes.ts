@@ -239,6 +239,9 @@ export type FriendRoomDto = {
     name: string;
     level: number;
     productionPerSecond: number;
+    assignedCatCount: number;
+    featuredCatName: string;
+    decorScore: number;
 };
 
 export type FriendActionResponse = {

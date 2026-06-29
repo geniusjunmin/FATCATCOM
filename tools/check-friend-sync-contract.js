@@ -31,8 +31,14 @@ assertContains("client visit friend api", apiClient, "visitFriend");
 assertContains("client gift friend api", apiClient, "sendFriendGift");
 assertContains("server friend room DTO", contracts, "FriendRoomDto");
 assertContains("server friend room mapping", service, "BuildFriendRooms");
+assertContains("server friend room staffing", service, "assignedCatCount");
+assertContains("server friend room decor", service, "decorScore");
 assertContains("client friend room type", apiTypes, "FriendRoomDto");
+assertContains("client friend room staffing type", apiTypes, "assignedCatCount");
+assertContains("client friend room decor type", apiTypes, "decorScore");
 assertContains("friend panel server room consumption", bottomNav, "friend.rooms");
+assertContains("friend panel room staffing render", bottomNav, "featuredCatName");
+assertContains("friend panel room decor render", bottomNav, "decorScore");
 assertContains("login fetch friends", syncManager, "void this.fetchServerFriends()");
 assertContains("save sync fetch friends", syncManager, "await this.fetchServerFriends()");
 assertContains("friend auto login", syncManager, "visitServerFriend(friendId: string)");
@@ -48,7 +54,7 @@ console.log(JSON.stringify({
   ok: true,
   checked: [
     "friend HTTP API methods",
-    "friend room summary DTO and client type",
+    "friend room summary/staffing DTO and client type",
     "SyncManager friend fetch on login/save",
     "DOM friend panel server snapshot rendering",
     "DOM friend panel server room rendering",

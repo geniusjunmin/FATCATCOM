@@ -221,7 +221,10 @@ public sealed record FriendRoomDto(
     string Floor,
     string Name,
     int Level,
-    int ProductionPerSecond);
+    int ProductionPerSecond,
+    int AssignedCatCount,
+    string FeaturedCatName,
+    int DecorScore);
 
 public sealed record FriendDto(
     string Id,

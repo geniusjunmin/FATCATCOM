@@ -102,7 +102,8 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest visit-report batch: the friend regression now clicks visit before capture, and the panel renders a dark visit report with reward state, two stat cells, three floor yield chips, close/revisit/gift actions, and a 360px-checked first-screen layout.
 - Done in latest room-summary batch: `FriendDto.rooms` now exposes server-derived friend factory floor summaries, and the friend snapshot/report consume those rooms online while preserving offline estimates. `tools/check-friend-sync-contract.js` guards the DTO/type/UI path.
 - Done in latest factory-detail batch: the friend panel now renders a richer factory-detail card from `FriendDto.rooms`, with source/room count, total income, primary floor, room-yield total, and room rows; utility regression asserts detail stats and rows.
-- Next move: expand the server snapshot with assigned cats/decor, or move this detail card into a dedicated full friend-visit/profile scene when the visual direction needs more space.
+- Done in latest staffing/decor batch: `FriendRoomDto` now includes assigned cat count, featured cat name, and decor score; real-player friends derive these from persisted cat/building state, and the friend factory detail rows render the meta.
+- Next move: move the enriched friend factory detail into a dedicated full friend-visit/profile scene, or expand room snapshots with true decor inventory when that system exists.
 
 ### 1. Main Factory Richness
 

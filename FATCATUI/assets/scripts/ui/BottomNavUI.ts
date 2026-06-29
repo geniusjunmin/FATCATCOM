@@ -1682,10 +1682,10 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay .factory-detail-stats span { min-height:38px; border-radius:10px; background:rgba(255,241,205,.13); display:flex; align-items:center; justify-content:center; flex-direction:column; text-align:center; font-weight:900; }
             #fatcat-dom-panel-overlay .factory-detail-stats b { color:#ffe58f; }
             #fatcat-dom-panel-overlay .factory-room-list { margin-top:2%; display:grid; gap:5px; }
-            #fatcat-dom-panel-overlay .factory-room-row { min-height:34px; display:grid; grid-template-columns:14% 1fr 24%; gap:2%; align-items:center; padding:1.2% 2%; border-radius:10px; background:rgba(255,246,216,.9); color:#4a2f1f; box-shadow:inset 0 0 0 1px rgba(93,59,33,.2); font-weight:900; }
+            #fatcat-dom-panel-overlay .factory-room-row { min-height:38px; display:grid; grid-template-columns:14% 1fr 24%; gap:2%; align-items:center; padding:1.2% 2%; border-radius:10px; background:rgba(255,246,216,.9); color:#4a2f1f; box-shadow:inset 0 0 0 1px rgba(93,59,33,.2); font-weight:900; }
             #fatcat-dom-panel-overlay .factory-room-row i { min-height:24px; border-radius:8px; background:#7c5736; color:#ffe9bd; font-style:normal; display:flex; align-items:center; justify-content:center; }
             #fatcat-dom-panel-overlay .factory-room-row b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-            #fatcat-dom-panel-overlay .factory-room-row small { color:#7b5838; font-weight:900; }
+            #fatcat-dom-panel-overlay .factory-room-row small { display:block; color:#7b5838; font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-panel-overlay .factory-room-row em { color:#5d3920; font-style:normal; text-align:right; }
             #fatcat-dom-panel-overlay.compact .friends-shell .feature-mini { grid-template-columns:repeat(3,1fr); }
             #fatcat-dom-panel-overlay.compact .friends-shell .feature-mini span { min-height:46px; font-size:1.58%; }
@@ -1699,7 +1699,7 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay.compact .visit-report-grid span { min-height:34px; font-size:84%; }
             #fatcat-dom-panel-overlay.compact .visit-report-floors span { min-height:34px; font-size:82%; }
             #fatcat-dom-panel-overlay.compact .factory-detail-stats span { min-height:31px; font-size:82%; }
-            #fatcat-dom-panel-overlay.compact .factory-room-row { grid-template-columns:16% 1fr 27%; min-height:28px; font-size:82%; }
+            #fatcat-dom-panel-overlay.compact .factory-room-row { grid-template-columns:16% 1fr 27%; min-height:32px; font-size:82%; }
             #fatcat-dom-panel-overlay .setting-row { display:grid; grid-template-columns:1fr 24%; gap:2%; align-items:center; }
             #fatcat-dom-panel-overlay .settings-shell .feature-card { min-height:84px; padding:2.2%; }
             #fatcat-dom-panel-overlay .settings-shell .setting-row { min-height:64px; }
@@ -2618,15 +2618,16 @@ export class BottomNavUI extends Component {
         if (!friend) return "";
         const rooms = this.getFriendRoomRows(friend);
         const topRoom = rooms[0];
-        const roomTotal = rooms.reduce((sum, room) => sum + room.production, 0);
         const source = friend.rooms?.length ? "服务端房间" : "本地估算";
+        const staffedRooms = rooms.filter(room => room.assignedCatCount > 0).length;
+        const decorTotal = rooms.reduce((sum, room) => sum + room.decorScore, 0);
         const roomRows = rooms.slice(0, 6)
-            .map(room => `<div class="factory-room-row"><i>${room.floor}</i><b>${room.name}<small> Lv.${room.level}</small></b><em>${this.formatNumber(room.production)}/秒</em></div>`)
+            .map(room => `<div class="factory-room-row"><i>${room.floor}</i><b>${room.name}<small>Lv.${room.level} · ${room.featuredCatName} · 猫 ${room.assignedCatCount} · 装饰 ${room.decorScore}</small></b><em>${this.formatNumber(room.production)}/秒</em></div>`)
             .join("");
-        return `<div class="friend-factory-detail"><div class="factory-detail-head"><div><b>${friend.name} 工厂详情</b><em>${source} · ${rooms.length} 个楼层</em></div><button class="tag" data-action="visitFriend" data-id="${friend.id}">进入访问</button></div><div class="factory-detail-stats"><span>总收益<b>${this.formatNumber(friend.income)}/秒</b></span><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>房间合计<b>${this.formatNumber(roomTotal)}/秒</b></span></div><div class="factory-room-list">${roomRows}</div></div>`;
+        return `<div class="friend-factory-detail"><div class="factory-detail-head"><div><b>${friend.name} 工厂详情</b><em>${source} · ${rooms.length} 个楼层</em></div><button class="tag" data-action="visitFriend" data-id="${friend.id}">进入访问</button></div><div class="factory-detail-stats"><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>派驻房间<b>${staffedRooms}/${rooms.length}</b></span><span>装饰评分<b>${this.formatNumber(decorTotal)}</b></span></div><div class="factory-room-list">${roomRows}</div></div>`;
     }
 
-    private getFriendRoomRows(friend: FriendPanelRow): Array<{ floor: string; name: string; level: number; production: number }> {
+    private getFriendRoomRows(friend: FriendPanelRow): Array<{ floor: string; name: string; level: number; production: number; assignedCatCount: number; featuredCatName: string; decorScore: number }> {
         const rooms = friend.rooms?.length
             ? friend.rooms
                 .slice()
@@ -2636,13 +2637,16 @@ export class BottomNavUI extends Component {
                     name: room.name,
                     level: room.level,
                     production: Math.max(0, Math.floor(room.productionPerSecond)),
+                    assignedCatCount: Math.max(0, Math.floor(room.assignedCatCount ?? 0)),
+                    featuredCatName: room.featuredCatName || "待派驻",
+                    decorScore: Math.max(0, Math.floor(room.decorScore ?? 0)),
                 }))
             : [];
         if (rooms.length > 0) return rooms;
         return [
-            { floor: "3F", name: "发酵车间", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.34)) },
-            { floor: "2F", name: "原料车间", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.28)) },
-            { floor: "1F", name: "咖啡厅", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.22)) },
+            { floor: "3F", name: "发酵车间", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.34)), assignedCatCount: 2, featuredCatName: "巡逻肥猫", decorScore: Math.max(12, friend.level * 3) },
+            { floor: "2F", name: "原料车间", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.28)), assignedCatCount: 1, featuredCatName: "搬豆肥猫", decorScore: Math.max(10, friend.level * 2) },
+            { floor: "1F", name: "咖啡厅", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.22)), assignedCatCount: 3, featuredCatName: "招待肥猫", decorScore: Math.max(14, friend.level * 3) },
         ];
     }
 
