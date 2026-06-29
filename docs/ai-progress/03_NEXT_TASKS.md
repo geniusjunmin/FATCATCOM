@@ -21,7 +21,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Continue final main/cat proportion tuning and add richer illustration assets where CSS is still flat. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
-| Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Refine friend-request visuals and build deeper multiplayer interaction loops. |
+| Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Friend panel now has richer first-screen cards; next deepen real friend visits/profile cards and interaction rewards. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Split `BottomNavUI.ts` after the next stable UI checkpoint. |
 
 ## P0 Now
@@ -97,7 +97,8 @@ Keep these scripts in the regular set when touching related flows:
 
 - Done in latest utility-panel batch: task, achievement, mail, friend, and settings panels now use a shared `utility-shell` visual language with target-like paper texture, hero cards, darker metric/status cards, stronger list containers, and fixed task-board typography.
 - `tools/capture-utility-regression.js` now covers those five panels at 430x932, 360x800, and 768x1024. It opens panels through the real main-screen hotspots, closes between captures, and checks panel shell classes plus runtime errors.
-- Next move: refine utility-panel content density and add richer generated/local art only where a screenshot shows a clear mismatch with the reference UI.
+- Done in latest friend-panel batch: compact friend stats stay three-column, friend cards appear before request/leaderboard/activity modules, and each friend card has avatar/rank, income bar, visit/gift chips, and action buttons. Utility regression asserts these friend-specific structures.
+- Next move: deepen multiplayer loops beyond presentation, such as richer friend factory visit snapshots, profile cards, or interaction reward detail.
 
 ### 1. Main Factory Richness
 

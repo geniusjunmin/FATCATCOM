@@ -1579,6 +1579,12 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay .friends-shell .friend-search-card {
                 border-radius:12px;
             }
+            #fatcat-dom-panel-overlay .friends-shell .feature-mini {
+                grid-template-columns:repeat(3,1fr);
+            }
+            #fatcat-dom-panel-overlay .friends-shell .feature-mini span {
+                min-height:58px;
+            }
             #fatcat-dom-panel-overlay .leaderboard-card { margin-bottom:2%; padding:2.2%; border-radius:14px; background:linear-gradient(#76523a,#493124); border:2px solid #7c5736; color:#ffe2a8; box-shadow:inset 0 0 0 2px rgba(255,226,170,.12), 0 3px 0 rgba(72,43,25,.24); font-size:2.05%; }
             #fatcat-dom-panel-overlay .leaderboard-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5%; font-weight:900; }
             #fatcat-dom-panel-overlay .leaderboard-head span { color:#fff; }
@@ -1612,6 +1618,24 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay .activity-row b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-panel-overlay .activity-row em { justify-self:end; font-style:normal; color:#7a5a3e; font-weight:900; }
             #fatcat-dom-panel-overlay .activity-empty { color:#7a5a3e; font-weight:900; padding-top:1%; }
+            #fatcat-dom-panel-overlay .friend-card { min-height:102px; display:grid; grid-template-columns:17% 1fr 24%; gap:2%; align-items:center; padding:2.2%; }
+            #fatcat-dom-panel-overlay .friend-avatar { position:relative; width:100%; aspect-ratio:1; border-radius:18px; background:radial-gradient(circle at 50% 16%, rgba(255,255,255,.5), transparent 30%), linear-gradient(#f4d79d,#a87340); box-shadow:inset 0 0 0 3px rgba(97,61,32,.18), 0 4px 0 rgba(74,45,25,.18); overflow:hidden; }
+            #fatcat-dom-panel-overlay .friend-avatar:before { content:""; position:absolute; left:23%; right:23%; top:17%; height:38%; border-radius:50%; background:radial-gradient(circle at 34% 46%,#3f2819 0 7%,transparent 8%), radial-gradient(circle at 66% 46%,#3f2819 0 7%,transparent 8%), linear-gradient(#ffd29a,#d9873b); box-shadow:-11px -8px 0 -6px #6b4228, 11px -8px 0 -6px #6b4228; }
+            #fatcat-dom-panel-overlay .friend-avatar:after { content:""; position:absolute; left:17%; right:17%; bottom:10%; height:34%; border-radius:44% 44% 22% 22%; background:linear-gradient(#6f8a50,#3d5f34); box-shadow:inset 0 0 0 2px rgba(255,234,184,.22); }
+            #fatcat-dom-panel-overlay .friend-rank { position:absolute; z-index:2; left:5%; top:5%; min-width:26%; padding:1% 4%; border-radius:999px; background:linear-gradient(#ffe36a,#d89421); color:#653719; text-align:center; font-weight:1000; box-shadow:inset 0 0 0 1px rgba(101,58,24,.24); }
+            #fatcat-dom-panel-overlay .friend-copy b { display:block; color:#3f2818; font-size:112%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .friend-copy em { display:block; margin:.6% 0 1.5%; color:#725137; font-style:normal; font-weight:900; }
+            #fatcat-dom-panel-overlay .friend-income { height:10px; margin:1.4% 0; border-radius:999px; background:#d7bd8e; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(91,61,34,.2); }
+            #fatcat-dom-panel-overlay .friend-income i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#79aa43,#f0c34e); }
+            #fatcat-dom-panel-overlay .friend-states { display:flex; flex-wrap:wrap; gap:2%; }
+            #fatcat-dom-panel-overlay .friend-states span { padding:.8% 4%; border-radius:999px; background:rgba(98,62,34,.12); color:#694226; font-size:78%; font-weight:900; }
+            #fatcat-dom-panel-overlay .friend-actions { display:flex; flex-direction:column; gap:8px; align-items:stretch; }
+            #fatcat-dom-panel-overlay .friend-actions .tag { width:100%; margin:0; min-height:28px; }
+            #fatcat-dom-panel-overlay.compact .friends-shell .feature-mini { grid-template-columns:repeat(3,1fr); }
+            #fatcat-dom-panel-overlay.compact .friends-shell .feature-mini span { min-height:46px; font-size:1.58%; }
+            #fatcat-dom-panel-overlay.compact .friend-card { min-height:86px; grid-template-columns:15% 1fr 25%; padding:2%; }
+            #fatcat-dom-panel-overlay.compact .friend-actions { gap:5px; }
+            #fatcat-dom-panel-overlay.compact .friend-actions .tag { min-height:24px; font-size:82%; }
             #fatcat-dom-panel-overlay .setting-row { display:grid; grid-template-columns:1fr 24%; gap:2%; align-items:center; }
             #fatcat-dom-panel-overlay .settings-shell .feature-card { min-height:84px; padding:2.2%; }
             #fatcat-dom-panel-overlay .settings-shell .setting-row { min-height:64px; }
@@ -2034,6 +2058,11 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay.compact .task-daily { grid-template-columns:1fr; }
             #fatcat-dom-panel-overlay.compact .task-reward-strip span { font-size:2.2%; min-height:36px; }
             #fatcat-dom-panel-overlay.compact .feature-grid, #fatcat-dom-panel-overlay.compact .feature-mini { grid-template-columns:1fr; }
+            #fatcat-dom-panel-overlay.compact .friends-shell .feature-mini { grid-template-columns:repeat(3,1fr); }
+            #fatcat-dom-panel-overlay.compact .friends-shell .feature-mini span { min-height:46px; font-size:1.58%; }
+            #fatcat-dom-panel-overlay.compact .friend-card { min-height:86px; grid-template-columns:15% 1fr 25%; padding:2%; }
+            #fatcat-dom-panel-overlay.compact .friend-actions { gap:5px; }
+            #fatcat-dom-panel-overlay.compact .friend-actions .tag { min-height:24px; font-size:82%; }
             #fatcat-dom-panel-overlay.compact .settings-shell .feature-mini { grid-template-columns:repeat(3,1fr); }
             #fatcat-dom-panel-overlay.compact .settings-shell .feature-mini span { min-height:48px; font-size:1.75%; }
             #fatcat-dom-panel-overlay.compact .settings-shell .feature-card { min-height:62px; font-size:1.92%; }
@@ -2447,12 +2476,14 @@ export class BottomNavUI extends Component {
         const playerIdNew = networkNew.playerId ? networkNew.playerId.replace(/-/g, "") : "未连接";
         const playerHintNew = playerIdNew === "未连接" ? playerIdNew : `${playerIdNew.slice(0, 8)}...${playerIdNew.slice(-6)}`;
         const friendToolsNew = `<div class="friend-tools"><span>我的ID：${playerHintNew}</span><button class="tag" data-action="sendFriendRequest">发送申请</button><button class="tag warn" data-action="addFriend">直接添加</button></div>`;
-        const rowsNew = friends.map(friend => {
+        const maxIncome = Math.max(1, ...friends.map(friend => friend.income));
+        const rowsNew = friends.map((friend, index) => {
             const lastVisit = this.getFeatureTimestamp("friendVisits", friend.id);
             const lastGift = this.getFeatureTimestamp("friendGifts", friend.id);
-            return `<div class="feature-card with-icon"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>${friend.name}</b><br>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒<br><span class="focus-tag">${friend.status}</span><span class="focus-tag">${lastVisit ? `已访问 ${lastVisit}` : "未访问"}</span><span class="focus-tag">${lastGift ? `已送礼 ${lastGift}` : "可送礼"}</span></div><div><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问</button><br><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再送" : "送礼"}</button></div></div>`;
+            const width = Math.max(8, Math.min(100, Math.floor(friend.income / maxIncome * 100)));
+            return `<div class="feature-card friend-card"><span class="friend-avatar"><i class="friend-rank">#${index + 1}</i></span><div class="friend-copy"><b>${friend.name}</b><em>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒</em><div class="friend-income"><i style="width:${width}%"></i></div><div class="friend-states"><span>${friend.status}</span><span>${lastVisit ? `访问 ${lastVisit}` : "待访问"}</span><span>${lastGift ? `送礼 ${lastGift}` : "可送礼"}</span></div></div><div class="friend-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问工厂</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再次送礼" : "赠送猫粮"}</button></div></div>`;
         }).join("");
-        return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}<div class="feature-list">${rowsNew}</div></div>`;
+        return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div><div class="feature-list">${rowsNew}</div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
     }
 
     private renderFriendSearchCard(): string {

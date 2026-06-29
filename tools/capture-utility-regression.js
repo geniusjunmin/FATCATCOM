@@ -70,6 +70,13 @@ async function isVisible(page, selector) {
                     cardCount: document.querySelectorAll("#fatcat-dom-panel-overlay .feature-card").length,
                     taskBoard: !!document.querySelector("#fatcat-dom-panel-overlay .task-board"),
                     taskRows: document.querySelectorAll("#fatcat-dom-panel-overlay .task-row").length,
+                    friendCards: document.querySelectorAll("#fatcat-dom-panel-overlay .friend-card").length,
+                    friendIncomeBars: document.querySelectorAll("#fatcat-dom-panel-overlay .friend-income i").length,
+                    friendActionButtons: document.querySelectorAll("#fatcat-dom-panel-overlay .friend-actions .tag").length,
+                    friendRequestCard: !!document.querySelector("#fatcat-dom-panel-overlay .friend-request-card"),
+                    friendLeaderboardCard: !!document.querySelector("#fatcat-dom-panel-overlay .leaderboard-card"),
+                    friendActivityCard: !!document.querySelector("#fatcat-dom-panel-overlay .friend-activity-card"),
+                    friendSearchCard: !!document.querySelector("#fatcat-dom-panel-overlay .friend-search-card"),
                     visibleHeight: shell ? Math.round(shell.getBoundingClientRect().height) : 0,
                 };
             }, shellClass);
@@ -101,6 +108,7 @@ async function isVisible(page, selector) {
         }
         if (!entry.visible || entry.state.shellCount !== 1 || !entry.state.title || !entry.state.hasExpectedShell || !entry.state.hasUtilityShell) return true;
         if (entry.panel === "tasks") return !entry.state.taskBoard || entry.state.taskRows < 1;
+        if (entry.panel === "friends") return entry.state.heroCount !== 1 || entry.state.friendCards < 3 || entry.state.friendIncomeBars < 3 || entry.state.friendActionButtons < 6 || !entry.state.friendRequestCard || !entry.state.friendLeaderboardCard || !entry.state.friendActivityCard || !entry.state.friendSearchCard;
         if (entry.panel === "settings") return entry.state.heroCount !== 1 || entry.state.miniCount < 3 || entry.state.cardCount < 4;
         return entry.state.heroCount !== 1 || entry.state.cardCount < 1;
     });
