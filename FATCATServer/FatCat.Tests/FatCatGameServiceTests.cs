@@ -418,6 +418,8 @@ public sealed class FatCatGameServiceTests
         }), CancellationToken.None);
 
         Assert.NotNull(visited?.Friend.LastVisitedAt);
+        Assert.True(visited!.Friend.Rooms.Count >= 3);
+        Assert.Contains(visited.Friend.Rooms, room => room.Floor == "5F" && room.ProductionPerSecond >= 0);
         Assert.NotNull(gifted?.Friend.LastGiftAt);
         Assert.False(settings!.Settings["music"]);
         Assert.True(settings.Settings["sync"]);

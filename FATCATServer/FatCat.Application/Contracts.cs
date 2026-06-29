@@ -216,13 +216,21 @@ public sealed record ResearchUnlockResponse(
     double ResearchPointBalance,
     long ServerTime);
 
+public sealed record FriendRoomDto(
+    string BuildingId,
+    string Floor,
+    string Name,
+    int Level,
+    int ProductionPerSecond);
+
 public sealed record FriendDto(
     string Id,
     string Name,
     int Level,
     int IncomePerSecond,
     long? LastVisitedAt,
-    long? LastGiftAt);
+    long? LastGiftAt,
+    IReadOnlyList<FriendRoomDto> Rooms);
 
 public sealed record FriendActionResponse(
     FriendDto Friend,

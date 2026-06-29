@@ -230,6 +230,15 @@ export type FriendDto = {
     incomePerSecond: number;
     lastVisitedAt?: number;
     lastGiftAt?: number;
+    rooms: FriendRoomDto[];
+};
+
+export type FriendRoomDto = {
+    buildingId: string;
+    floor: string;
+    name: string;
+    level: number;
+    productionPerSecond: number;
 };
 
 export type FriendActionResponse = {

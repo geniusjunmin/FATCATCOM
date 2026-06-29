@@ -100,6 +100,7 @@ Latest verified UI commands:
 - `SyncManager` supports friend request create/list/accept/reject helpers over `/api/friends/requests`; the DOM friend panel now shows received/sent request summaries, pending counts, inline invite search, search preview, send-request action, and accept/reject buttons. The main factory friend entry shows a pending-request red badge, and the mail panel surfaces pending friend requests as a notification card that jumps to the friend panel.
 - `SyncManager` fetches `/api/friends/activity`; the DOM friend panel shows recent add, visit, and gift activity from the server.
 - Friend visit/gift actions now return `FriendActionResponse`, apply server resource balances to the client, and enforce one reward per friend per UTC day.
+- `FriendDto` now includes derived `rooms` summaries for friend factory floors. The DOM friend snapshot and visit report prefer these server room yields, then fall back to local estimates offline.
 - `SyncManager` also fetches `/api/leaderboard` after login/save sync. The DOM friend panel now displays a server-backed income leaderboard with the current player highlighted when online.
 
 ## Server
@@ -113,6 +114,7 @@ Implemented server capabilities:
 - Resource transaction ledger: `/api/resources/transactions`.
 - Mail list and claim.
 - Friend list, visit, and gift endpoints, with DOM friend-panel consumption.
+- Friend factory room summaries on `FriendDto`, derived from current building balance definitions and friend income without adding a new database table.
 - Friend visit/gift rewards: first daily visit grants coin based on friend income, first daily gift grants cat food, and repeat same-day claims return `rewarded=false` with a limit reason.
 - Real-player friend add endpoint: `/api/friends/add`, accepting another player's id or persisted short invite code and storing both a `player:{guid}` friend snapshot and `PlayerFriendRelation` row.
 - Bidirectional friend request endpoints: `/api/friends/requests` create/list plus `/accept` and `/reject`, backed by `PlayerFriendRequest`. Accepting an inbound request writes both `PlayerFriendRelation` directions and both real-player `FriendSnapshot` rows.
@@ -238,6 +240,7 @@ Latest verified checks:
 - 2026-06-29 friend-panel multiplayer UI pass: reorganized the friend panel so compact stats stay three-column and friend factory cards appear in the first viewport with avatar/rank, income progress, visit/gift state chips, and clear actions. `tools/capture-utility-regression.js` now asserts the friend-specific structure at 430x932, 360x800, and 768x1024. Verified focused TypeScript diagnostics, Cocos asset refresh, utility regression screenshots, UI click regression, and `tools/quick-verify.ps1` with 63/63 server tests.
 - 2026-06-29 friend factory snapshot pass: added a selected-friend snapshot card with visit reward preview, last visit/gift status, and compact 3F/2F/1F production slices; `tools/capture-utility-regression.js` now asserts the snapshot floors across 430x932, 360x800, and 768x1024. Verified focused TypeScript diagnostics, Cocos asset refresh, utility regression screenshots, UI click regression, and `tools/quick-verify.ps1` with 63/63 server tests.
 - 2026-06-29 friend visit report pass: clicking a friend visit now persists an in-panel visit report above the snapshot, showing reward status, friend income, 3F/2F/1F yield chips, close/revisit/gift actions, and compact 360px-safe layout. `tools/capture-utility-regression.js` clicks visit before the friend screenshot and asserts report stats, floors, and actions. Verified focused TypeScript diagnostics, Cocos asset refresh, utility regression screenshots with visual 360px review, UI click regression, and `tools/quick-verify.ps1` with 63/63 server tests.
+- 2026-06-29 friend room summary contract pass: `FriendDto` now carries `rooms` with building id, floor, name, level, and production per second; service/API tests assert the field, `check-friend-sync-contract.js` guards the server/client type and UI consumption, and the friend snapshot/report render server rooms when online. Verified `dotnet test`, focused TypeScript diagnostics, Cocos asset refresh, utility regression screenshots, and `tools/quick-verify.ps1` with 63/63 server tests.
 - `node tools\check-launch-production-preview-online.js`: passed and asserts `/api/production/server-preview` before `/api/launch`; online launch showed net production around 224/sec after the 105% mood multiplier.
 - `node tools\check-cat-upgrade-online.js`: passed.
 - `node tools\check-cat-feed-online.js`: passed.

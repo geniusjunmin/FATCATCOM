@@ -13,7 +13,7 @@ import { ShopManager } from "../manager/ShopManager";
 import { TaskManager } from "../manager/TaskManager";
 import { NetworkManager } from "../manager/NetworkManager";
 import { SyncManager } from "../manager/SyncManager";
-import { FriendActivityDto, FriendDto, FriendRequestDto, FriendSearchResultDto, LeaderboardDto } from "../net/ApiTypes";
+import { FriendActivityDto, FriendDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
 import { DomAssetDataUris } from "./DomAssetDataUris";
@@ -23,6 +23,15 @@ import { GeneratedBackgroundAssets, GeneratedCatFullArtAssets, GeneratedFeatureI
 const { ccclass, property } = _decorator;
 
 export type MainPanelId = "factory" | "cats" | "buildings" | "shop" | "inventory" | "research" | "tasks" | "achievements" | "mail" | "friends" | "settings";
+
+type FriendPanelRow = {
+    id: string;
+    name: string;
+    level: number;
+    income: number;
+    status: string;
+    rooms?: FriendRoomDto[];
+};
 
 export const MainPanelEvents = {
     NAV_CHANGED: "main-nav:changed",
@@ -2562,33 +2571,54 @@ export class BottomNavUI extends Component {
         return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendVisitReport(friends)}${this.renderFriendSnapshotCard(friends, maxIncome)}<div class="feature-list">${rowsNew}</div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
     }
 
-    private renderFriendSnapshotCard(friends: Array<{ id: string; name: string; level: number; income: number; status: string }>, maxIncome: number): string {
+    private renderFriendSnapshotCard(friends: FriendPanelRow[], maxIncome: number): string {
         const selected = friends.find(friend => friend.id === this._selectedFriendSnapshotId) ?? friends[0];
         if (!selected) return "";
         const lastVisit = this.getFeatureTimestamp("friendVisits", selected.id) || "未访问";
         const lastGift = this.getFeatureTimestamp("friendGifts", selected.id) || "未送礼";
         const width = Math.max(8, Math.min(100, Math.floor(selected.income / Math.max(1, maxIncome) * 100)));
         const rewardPreview = Math.max(50, Math.floor(selected.income * 0.12));
-        const floors = [
-            { label: "3F", name: "发酵车间", value: Math.floor(selected.income * 0.34) },
-            { label: "2F", name: "原料车间", value: Math.floor(selected.income * 0.28) },
-            { label: "1F", name: "咖啡厅", value: Math.floor(selected.income * 0.22) },
-        ].map(floor => `<div class="snapshot-floor"><i>${floor.label}</i><b>${floor.name}</b><em>${this.formatNumber(Math.max(1, floor.value))}/秒</em></div>`).join("");
+        const floors = this.getFriendRoomRows(selected).slice(0, 3)
+            .map(room => `<div class="snapshot-floor"><i>${room.floor}</i><b>${room.name}</b><em>${this.formatNumber(room.production)}/秒</em></div>`)
+            .join("");
         return `<div class="friend-snapshot-card"><div class="snapshot-head"><span class="friend-avatar"><i class="friend-rank">工厂</i></span><div class="snapshot-copy"><b>${selected.name} 工厂快照</b><em>Lv.${selected.level} · 收益 ${this.formatNumber(selected.income)}/秒 · ${selected.status}</em><div class="snapshot-meter"><i style="width:${width}%"></i></div></div><div class="snapshot-action"><button class="tag" data-action="visitFriend" data-id="${selected.id}">访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${selected.id}">送礼</button></div></div><div class="snapshot-stats"><span>访问奖励<b>+${this.formatNumber(rewardPreview)}金币</b></span><span>最近访问<b>${lastVisit}</b></span><span>礼物状态<b>${lastGift}</b></span></div><div class="snapshot-floors">${floors}</div></div>`;
     }
 
-    private renderFriendVisitReport(friends: Array<{ id: string; name: string; level: number; income: number; status: string }>): string {
+    private renderFriendVisitReport(friends: FriendPanelRow[]): string {
         const report = this._friendVisitReport;
         if (!report) return "";
         const friend = friends.find(item => item.id === report.friendId);
         if (!friend) return "";
         const actionLabel = report.kind === "gift" ? "送礼报告" : "访问报告";
-        const floorRows = [
-            { label: "3F", value: Math.floor(friend.income * 0.34) },
-            { label: "2F", value: Math.floor(friend.income * 0.28) },
-            { label: "1F", value: Math.floor(friend.income * 0.22) },
-        ].map(floor => `<span>${floor.label}<em>${this.formatNumber(Math.max(1, floor.value))}/秒</em></span>`).join("");
+        const floorRows = this.getFriendRoomRows(friend).slice(0, 3)
+            .map(room => `<span>${room.floor}<em>${this.formatNumber(room.production)}/秒</em></span>`)
+            .join("");
         return `<div class="friend-visit-report"><div class="visit-report-head"><span class="visit-report-badge">${report.kind === "gift" ? "礼" : "访"}</span><div class="visit-report-copy"><b>${friend.name} ${actionLabel}</b><em>${report.statusText} · ${this.formatFriendReportTime(report.updatedAt)}</em></div><button class="visit-report-close" data-action="closeFriendVisitReport">×</button></div><div class="visit-report-grid"><span>互动奖励<b>${report.rewardText}</b></span><span>好友收益<b>${this.formatNumber(friend.income)}/秒</b></span></div><div class="visit-report-floors">${floorRows}</div><div class="visit-report-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">再次访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button></div></div>`;
+    }
+
+    private getFriendRoomRows(friend: FriendPanelRow): Array<{ floor: string; name: string; production: number }> {
+        const rooms = friend.rooms?.length
+            ? friend.rooms
+                .slice()
+                .sort((left, right) => this.getFriendFloorSort(right.floor) - this.getFriendFloorSort(left.floor))
+                .map(room => ({
+                    floor: room.floor,
+                    name: room.name,
+                    production: Math.max(0, Math.floor(room.productionPerSecond)),
+                }))
+            : [];
+        if (rooms.length > 0) return rooms;
+        return [
+            { floor: "3F", name: "发酵车间", production: Math.max(1, Math.floor(friend.income * 0.34)) },
+            { floor: "2F", name: "原料车间", production: Math.max(1, Math.floor(friend.income * 0.28)) },
+            { floor: "1F", name: "咖啡厅", production: Math.max(1, Math.floor(friend.income * 0.22)) },
+        ];
+    }
+
+    private getFriendFloorSort(floor: string): number {
+        if (floor.toUpperCase() === "B1") return 0;
+        const parsed = Number.parseInt(floor.replace(/F/i, ""), 10);
+        return Number.isFinite(parsed) ? parsed : 0;
     }
 
     private renderFriendSearchCard(): string {
@@ -2609,7 +2639,7 @@ export class BottomNavUI extends Component {
         return `<div class="friend-request-card"><div class="leaderboard-head"><b>好友申请</b><span>${received.length} 待处理</span></div>${receivedRows}${sentRows}${empty}</div>`;
     }
 
-    private getFriendPanelRows(): Array<{ id: string; name: string; level: number; income: number; status: string }> {
+    private getFriendPanelRows(): FriendPanelRow[] {
         if (this._serverFriends.length > 0) {
             return this._serverFriends.map(friend => ({
                 id: friend.id,
@@ -2617,6 +2647,7 @@ export class BottomNavUI extends Component {
                 level: friend.level,
                 income: friend.incomePerSecond,
                 status: "在线数据",
+                rooms: friend.rooms,
             }));
         }
         return [

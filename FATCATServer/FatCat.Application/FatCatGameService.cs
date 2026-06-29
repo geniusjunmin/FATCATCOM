@@ -2057,7 +2057,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             mail.CreatedAt.ToUnixTimeMilliseconds());
     }
 
-    private static FriendDto ToFriendDto(FriendSnapshot friend)
+    private FriendDto ToFriendDto(FriendSnapshot friend)
     {
         return new FriendDto(
             friend.FriendKey,
@@ -2065,10 +2065,63 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             friend.Level,
             friend.IncomePerSecond,
             friend.LastVisitedAt?.ToUnixTimeMilliseconds(),
-            friend.LastGiftAt?.ToUnixTimeMilliseconds());
+            friend.LastGiftAt?.ToUnixTimeMilliseconds(),
+            BuildFriendRooms(friend));
     }
 
-    private static FriendActionResponse ToFriendActionResponse(
+    private IReadOnlyList<FriendRoomDto> BuildFriendRooms(FriendSnapshot friend)
+    {
+        var orderedDefinitions = balance.BuildingDefinitions.Values
+            .OrderByDescending(definition => GetFriendRoomSort(definition.Floor))
+            .ToArray();
+        var totalWeight = orderedDefinitions.Sum(definition => Math.Max(1, Math.Abs(definition.BaseValue) + definition.Level * 3));
+        var remaining = Math.Max(0, friend.IncomePerSecond);
+        var rooms = new List<FriendRoomDto>(orderedDefinitions.Length);
+
+        for (var index = 0; index < orderedDefinitions.Length; index++)
+        {
+            var definition = orderedDefinitions[index];
+            var production = index == orderedDefinitions.Length - 1
+                ? remaining
+                : (int)Math.Floor(friend.IncomePerSecond * (Math.Max(1, Math.Abs(definition.BaseValue) + definition.Level * 3) / (double)Math.Max(1, totalWeight)));
+            production = Math.Max(0, production);
+            remaining = Math.Max(0, remaining - production);
+            rooms.Add(new FriendRoomDto(
+                definition.BuildingId,
+                definition.Floor,
+                GetFriendRoomName(definition.BuildingId),
+                Math.Max(1, Math.Min(definition.MaxLevel, friend.Level / 3 + definition.Level / 2)),
+                production));
+        }
+
+        return rooms;
+    }
+
+    private static int GetFriendRoomSort(string floor)
+    {
+        if (string.Equals(floor, "B1", StringComparison.OrdinalIgnoreCase))
+        {
+            return 0;
+        }
+
+        return int.TryParse(floor.TrimEnd('F', 'f'), out var value) ? value : 0;
+    }
+
+    private static string GetFriendRoomName(string buildingId)
+    {
+        return buildingId switch
+        {
+            "building_office_5f" => "管理室",
+            "building_roast_4f" => "烘焙车间",
+            "building_ferment_3f" => "发酵车间",
+            "building_material_2f" => "原料车间",
+            "building_cafe_1f" => "咖啡厅",
+            "building_storage_b1" => "原料仓库",
+            _ => "好友房间",
+        };
+    }
+
+    private FriendActionResponse ToFriendActionResponse(
         FriendSnapshot friend,
         bool rewarded,
         int rewardCoin,

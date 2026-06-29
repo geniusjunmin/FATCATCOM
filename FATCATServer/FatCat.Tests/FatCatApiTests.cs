@@ -84,8 +84,12 @@ public sealed class FatCatApiTests
         Assert.Equal(HttpStatusCode.OK, friendsResponse.StatusCode);
         Assert.Equal(3, friends.GetArrayLength());
         Assert.Equal("cocoa", friends[0].GetProperty("id").GetString());
+        Assert.True(friends[0].GetProperty("rooms").GetArrayLength() >= 3);
+        Assert.Equal("5F", friends[0].GetProperty("rooms")[0].GetProperty("floor").GetString());
+        Assert.True(friends[0].GetProperty("rooms")[0].GetProperty("productionPerSecond").GetInt32() >= 0);
         Assert.Equal(HttpStatusCode.OK, visitResponse.StatusCode);
         Assert.Equal("mocha", visit.GetProperty("friend").GetProperty("id").GetString());
+        Assert.True(visit.GetProperty("friend").GetProperty("rooms").GetArrayLength() >= 3);
         Assert.True(visit.GetProperty("friend").GetProperty("lastVisitedAt").GetInt64() > 0);
         Assert.True(visit.GetProperty("rewarded").GetBoolean());
         Assert.Equal(520, visit.GetProperty("rewardCoin").GetInt32());
