@@ -104,7 +104,8 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest factory-detail batch: the friend panel now renders a richer factory-detail card from `FriendDto.rooms`, with source/room count, total income, primary floor, room-yield total, and room rows; utility regression asserts detail stats and rows.
 - Done in latest staffing/decor batch: `FriendRoomDto` now includes assigned cat count, featured cat name, and decor score; real-player friends derive these from persisted cat/building state, and the friend factory detail rows render the meta.
 - Done in latest visit-scene batch: clicking visit or the factory-detail entry opens a dedicated `.friend-visit-scene` ahead of the smaller report, reusing server/offline room summaries for floor rows plus total income, room yield, primary floor, staffed rooms, decor score, and visit/gift/back actions. `tools/capture-utility-regression.js` now asserts the scene floors, stats, and actions at 430x932, 360x800, and 768x1024.
-- Next move: expand room snapshots with true decor inventory when that system exists, add richer visual room/cat thumbnails to the visit scene, or begin splitting `BottomNavUI.ts` after this stable social UI checkpoint.
+- Done in latest visit-scene visual batch: the scene now maps rooms to local factory prop thumbnails, renders 1-3 assigned-cat mini portraits per room, adds a visitor-cat card, and exposes a compact reward/status strip that stays visible at 360x800. Utility regression now asserts thumbs, cat portraits, mascot, and reward chips.
+- Next move: expand room snapshots with true decor inventory when that system exists, add true generated bitmap friend-room backdrops, or begin splitting `BottomNavUI.ts` after this stable social UI checkpoint.
 
 ### 1. Main Factory Richness
 
