@@ -14,7 +14,11 @@ function Invoke-Step {
 
     Write-Host ""
     Write-Host "== $Name =="
+    $global:LASTEXITCODE = 0
     & $Command
+    if ($LASTEXITCODE -ne 0) {
+        throw "$Name failed with exit code $LASTEXITCODE."
+    }
 }
 
 Invoke-Step "Client TypeScript focused check" {
@@ -71,6 +75,10 @@ Invoke-Step "HUD presentation contract check" {
 
 Invoke-Step "Nav presentation contract check" {
     node .\tools\check-nav-presentation-contract.js
+}
+
+Invoke-Step "Panel presentation contract check" {
+    node .\tools\check-panel-presentation-contract.js
 }
 
 Invoke-Step "Shop state contract check" {

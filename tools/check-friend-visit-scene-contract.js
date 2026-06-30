@@ -19,6 +19,7 @@ function assertContains(label, source, pattern) {
 }
 
 const bottomNav = read("FATCATUI/assets/scripts/ui/BottomNavUI.ts");
+const panelPresentation = read("FATCATUI/assets/scripts/ui/PanelPresentation.ts");
 const utilityRegression = read("tools/capture-utility-regression.js");
 const nextTasks = read("docs/ai-progress/03_NEXT_TASKS.md");
 const handoff = read("docs/ai-progress/04_HANDOFF.md");
@@ -36,8 +37,9 @@ assertContains("room scene resolver", bottomNav, "getFriendRoomScene");
 assertContains("assigned cat mini portraits", bottomNav, "renderFriendRoomCats");
 assertContains("visitor cat card", bottomNav, "friend-scene-mascot");
 assertContains("reward status strip", bottomNav, "friend-scene-reward");
-assertContains("compact scene guard", bottomNav, "compact .friend-scene-stage");
-assertContains("compact action visibility", bottomNav, "compact .friend-scene-actions .tag");
+assertContains("panel presentation import", bottomNav, "from \"./PanelPresentation\"");
+assertContains("compact scene guard", panelPresentation, "compact .friend-scene-stage");
+assertContains("compact action visibility", panelPresentation, "compact .friend-scene-actions .tag");
 
 assertContains("utility scene assertion", utilityRegression, "friendVisitScene");
 assertContains("utility floor assertion", utilityRegression, "friendVisitSceneFloors");

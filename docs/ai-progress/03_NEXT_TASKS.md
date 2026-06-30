@@ -22,7 +22,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Continue final main/cat proportion tuning and add richer illustration assets where CSS is still flat. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Friend panel now has richer first-screen cards; next deepen real friend visits/profile cards and interaction rewards. |
-| Code Health | P1 | Reduce frontend maintenance risk. | Asset-resolver, formatter, main-panel config, UI presentation, factory presentation, feature-panel presentation, cat presentation, HUD presentation, and nav presentation extractions are done; continue splitting remaining panel/style rendering from `BottomNavUI.ts`. |
+| Code Health | P1 | Reduce frontend maintenance risk. | Asset-resolver, formatter, main-panel config, UI/factory/feature/cat/HUD/nav/panel presentation extractions are done; continue with the remaining factory/cat overlay styles and cohesive render blocks in `BottomNavUI.ts`. |
 
 ## P0 Now
 
@@ -40,7 +40,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - `tools/check-friend-invite-contract.js` verifies `/api/social/profile`, `/api/friends/search`, persisted short invite codes, relation rows, invite-code add compatibility, client API/sync helpers, friend-panel search confirmation, and coverage.
 - `tools/check-friend-request-contract.js` verifies `/api/friends/requests`, bidirectional accept behavior, client API/sync helpers, friend-panel request UI hooks, inline invite search UI, factory friend-entry badge hooks, mail notification surfacing, and coverage.
 - `tools/check-leaderboard-contract.js` verifies `/api/leaderboard`, client leaderboard API/types/sync fetch, friend-panel rendering, and service/API coverage.
-- `tools/quick-verify.ps1` runs focused client TS, generated balance, drift, effect coverage, client catalog metadata, DOM asset resolver contract, DOM formatter contract, main panel config contract, UI presentation contract, factory presentation contract, feature panel presentation contract, cat presentation contract, HUD presentation contract, nav presentation contract, shop-state contract, friend-sync contract, friend visit-scene contract, real-friend contract, friend-activity contract, friend-reward contract, friend-invite contract, friend-request contract, leaderboard contract, and server tests together.
+- `tools/quick-verify.ps1` runs focused client TS, generated balance, drift, effect coverage, client catalog metadata, DOM asset resolver/formatter/config/presentation contracts, panel presentation contract, shop/social/leaderboard contracts, and server tests together. Native command failures now stop the suite.
 - Next move: consider loading a true single config source directly at build/runtime, or wire `tools/quick-verify.ps1` into CI once CI exists.
 
 ### 2. Server-Side Production Model
@@ -192,6 +192,7 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest cat presentation batch: cat side tabs, skin themes, equipment slot definitions, locked-slot presentation, default equipment fallback, and equipment-effect labels moved to `FATCATUI/assets/scripts/ui/CatPresentation.ts`; `tools/check-cat-presentation-contract.js` guards the split and runs in `tools/quick-verify.ps1`.
 - Done in latest HUD presentation batch: top-HUD CSS, company/level/exp constants, and resource item definitions moved to `FATCATUI/assets/scripts/ui/HudPresentation.ts`; `tools/check-hud-presentation-contract.js` guards the split and runs in `tools/quick-verify.ps1`.
 - Done in latest nav presentation batch: bottom DOM navigation CSS moved to `FATCATUI/assets/scripts/ui/NavPresentation.ts`; `tools/check-nav-presentation-contract.js` guards the split and runs in `tools/quick-verify.ps1`.
+- Done in latest panel presentation batch: the shared feature/utility/social overlay CSS moved to `FATCATUI/assets/scripts/ui/PanelPresentation.ts`; `tools/check-panel-presentation-contract.js` guards style ownership and behavior entry points. Feature and utility screenshots, the 18-step click flow, and 63/63 server tests passed.
 - First split HUD, bottom nav, main factory, cat page, and generic panels.
 - Keep existing regression scripts green during each slice.
 - Cat page and main factory CSS are now large enough that extracting DOM style/render helpers should be considered after the next visual checkpoint.

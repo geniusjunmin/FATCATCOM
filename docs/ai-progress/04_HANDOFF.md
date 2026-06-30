@@ -46,6 +46,7 @@ Updated: 2026-06-30
 - Latest cat presentation pass: `FATCATUI/assets/scripts/ui/CatPresentation.ts` now owns cat side tabs, skin wardrobe themes, equipment slot definitions, locked-slot presentation, default equipment fallback, and equipment-effect labels. `BottomNavUI.ts` keeps runtime cat data, equipment inventory, and actions local; `tools/check-cat-presentation-contract.js` guards the split in `tools/quick-verify.ps1`.
 - Latest HUD presentation pass: `FATCATUI/assets/scripts/ui/HudPresentation.ts` now owns the top-HUD CSS, company/level/exp constants, and four resource item definitions. `BottomNavUI.ts` still calculates live resource values, production snapshot cache keys, and overlay layout; `tools/check-hud-presentation-contract.js` guards the split in `tools/quick-verify.ps1`.
 - Latest nav presentation pass: `FATCATUI/assets/scripts/ui/NavPresentation.ts` now owns the bottom DOM nav CSS. `BottomNavUI.ts` still renders `MAIN_DOM_NAV_ITEMS`, badge counts, and click handling locally; `tools/check-nav-presentation-contract.js` guards the split in `tools/quick-verify.ps1`.
+- Latest panel presentation pass: `FATCATUI/assets/scripts/ui/PanelPresentation.ts` now owns the shared feature, utility, and social overlay CSS. `BottomNavUI.ts` retains DOM creation, live rendering, and button actions; `tools/check-panel-presentation-contract.js` guards the split. `check-friend-visit-scene-contract.js` now reads compact scene CSS from this module, and `quick-verify.ps1` explicitly throws on non-zero native exit codes.
 - Latest main-HUD micro pass in `BottomNavUI.ts` lightens the company badge toward the target wood/paper card, enlarges avatar/level treatment, repositions the experience readout, and nudges compact resource spacing. Verified at 360x800, 414x896, 430x932, and 768x1024 with `capture-main-regression.js`.
 - Main factory now uses `FATCATUI/assets/resources/textures/generated/factory_cutaway_bg_640.jpg` as the visible source of truth for roof and room art. Duplicate CSS floors, props, cats, pipes, and center KPI cards are intentionally hidden; keep the live left floor cards and combined right production/bonus cards.
 - The main building now spans roughly 16%-84% of the game viewport, and the compact bottom widgets use `19fr 11fr 35fr 34fr` proportions. The launch label is single-line at 360/414/430 widths.
@@ -130,6 +131,7 @@ node tools\check-feature-panel-presentation-contract.js
 node tools\check-cat-presentation-contract.js
 node tools\check-hud-presentation-contract.js
 node tools\check-nav-presentation-contract.js
+node tools\check-panel-presentation-contract.js
 node tools\check-shop-state-contract.js
 node tools\check-friend-sync-contract.js
 node tools\check-friend-visit-scene-contract.js
@@ -277,7 +279,7 @@ Client:
 - `tools/check-balance-config-drift.js` compares server `balance.json` to client `FATCATUI/assets/resources/configs/research.json`, `equipment.json`, `buildings.json`, `cats.json`, and `skills.json`. Run it after any research/equipment/building/cat/skill config edit.
 - `tools/check-balance-effect-coverage.js` fails if client research/equipment config introduces a new effect type that has not been explicitly added to the server economy coverage list.
 - `tools/check-client-catalog-metadata-consumption.js` guards the client-side use of server catalog metadata in `CatManager`, `ResearchManager`, and `ResearchPanel`.
-- `tools/quick-verify.ps1` is the no-browser baseline gate: focused client TS, generated server balance check, config drift check, effect coverage check, client catalog metadata consumption check, DOM asset/formatter/main-panel config/UI/factory/feature/cat/HUD/nav presentation contract checks, shop/friend/leaderboard contract checks, and server tests.
+- `tools/quick-verify.ps1` is the no-browser baseline gate: focused client TS, generated server balance check, config drift check, effect coverage check, client catalog metadata consumption check, DOM asset/formatter/config/presentation contract checks including panel CSS ownership, shop/friend/leaderboard contract checks, and server tests. It now propagates failed native command exit codes.
 - Online scripts now use `tools/start-api-process.js` to prefer the already-built API DLL over `dotnet run`, which avoids NuGet restore failures in restricted-network sessions.
 - `tools/check-settings-production-preview-online.js` now clears local save before running and records failed response bodies, which helps diagnose stale dev database issues.
 - `tools/check-launch-production-preview-online.js` waits long enough after clicking launch to capture both `/api/production/server-preview` and `/api/launch` on slower preview builds.
