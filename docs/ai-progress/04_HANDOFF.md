@@ -1,6 +1,6 @@
 # Handoff
 
-Updated: 2026-06-29
+Updated: 2026-06-30
 
 ## 90-Second Boot
 
@@ -34,6 +34,7 @@ Updated: 2026-06-29
 - Latest friend-room contract pass: `FriendDto` includes `rooms` (`buildingId`, `floor`, `name`, `level`, `productionPerSecond`) derived from building balance definitions and friend income. `BottomNavUI.ts` uses those rooms for snapshot/report floor chips when online and falls back to estimates offline. `check-friend-sync-contract.js` now guards the DTO/type/UI path.
 - Latest friend factory-detail pass: `BottomNavUI.ts` renders `.friend-factory-detail` from the selected/visited friend, showing room source/count, total income, primary floor, room total, and room rows. `capture-utility-regression.js` asserts `.factory-detail-stats` and `.factory-room-row`; keep those selectors updated if this moves into a dedicated visit scene.
 - Latest friend staffing/decor pass: `FriendRoomDto` also includes `assignedCatCount`, `featuredCatName`, and `decorScore`. Real-player friends derive this from `CatStates`/`BuildingStates`; seeded friends use estimates. `capture-utility-regression.js` now asserts the room-row meta contains both `猫` and `装饰`.
+- Latest friend visit-scene pass: `BottomNavUI.ts` now tracks `_friendVisitSceneId`. `visitFriend`, `sendFriendGift`, and the factory-detail `openFriendVisitScene` action open `.friend-visit-scene` ahead of the compact visit report. The scene reuses `getFriendRoomRows()` and `GeneratedBackgroundAssets.factoryCutaway` for a dark target-like friend factory view with floor rows, total income, room-yield total, primary floor, staffed room count, decor score, and visit/gift/back actions. `capture-utility-regression.js` asserts `.friend-scene-floor`, `.friend-scene-side`, and `.friend-scene-actions` across 430x932, 360x800, and 768x1024.
 - Latest main-HUD micro pass in `BottomNavUI.ts` lightens the company badge toward the target wood/paper card, enlarges avatar/level treatment, repositions the experience readout, and nudges compact resource spacing. Verified at 360x800, 414x896, 430x932, and 768x1024 with `capture-main-regression.js`.
 - Main factory now uses `FATCATUI/assets/resources/textures/generated/factory_cutaway_bg_640.jpg` as the visible source of truth for roof and room art. Duplicate CSS floors, props, cats, pipes, and center KPI cards are intentionally hidden; keep the live left floor cards and combined right production/bonus cards.
 - The main building now spans roughly 16%-84% of the game viewport, and the compact bottom widgets use `19fr 11fr 35fr 34fr` proportions. The launch label is single-line at 360/414/430 widths.

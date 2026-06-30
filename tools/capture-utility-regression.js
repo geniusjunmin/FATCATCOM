@@ -89,6 +89,10 @@ async function isVisible(page, selector) {
                     friendVisitReportStats: document.querySelectorAll("#fatcat-dom-panel-overlay .visit-report-grid span").length,
                     friendVisitReportFloors: document.querySelectorAll("#fatcat-dom-panel-overlay .visit-report-floors span").length,
                     friendVisitReportActions: document.querySelectorAll("#fatcat-dom-panel-overlay .visit-report-actions .tag").length,
+                    friendVisitScene: !!document.querySelector("#fatcat-dom-panel-overlay .friend-visit-scene"),
+                    friendVisitSceneFloors: document.querySelectorAll("#fatcat-dom-panel-overlay .friend-scene-floor").length,
+                    friendVisitSceneStats: document.querySelectorAll("#fatcat-dom-panel-overlay .friend-scene-side span").length,
+                    friendVisitSceneActions: document.querySelectorAll("#fatcat-dom-panel-overlay .friend-scene-actions .tag").length,
                     friendFactoryDetail: !!document.querySelector("#fatcat-dom-panel-overlay .friend-factory-detail"),
                     friendFactoryDetailStats: document.querySelectorAll("#fatcat-dom-panel-overlay .factory-detail-stats span").length,
                     friendFactoryRoomRows: document.querySelectorAll("#fatcat-dom-panel-overlay .factory-room-row").length,
@@ -124,7 +128,7 @@ async function isVisible(page, selector) {
         }
         if (!entry.visible || entry.state.shellCount !== 1 || !entry.state.title || !entry.state.hasExpectedShell || !entry.state.hasUtilityShell) return true;
         if (entry.panel === "tasks") return !entry.state.taskBoard || entry.state.taskRows < 1;
-        if (entry.panel === "friends") return entry.state.heroCount !== 1 || entry.state.friendCards < 3 || entry.state.friendIncomeBars < 3 || entry.state.friendActionButtons < 6 || !entry.state.friendSnapshotCard || entry.state.friendSnapshotStats < 3 || entry.state.friendSnapshotActions < 2 || entry.state.friendSnapshotFloors < 3 || !entry.state.friendVisitReport || entry.state.friendVisitReportStats < 2 || entry.state.friendVisitReportFloors < 3 || entry.state.friendVisitReportActions < 2 || !entry.state.friendFactoryDetail || entry.state.friendFactoryDetailStats < 3 || entry.state.friendFactoryRoomRows < 3 || !entry.state.friendFactoryRoomMeta || !entry.state.friendRequestCard || !entry.state.friendLeaderboardCard || !entry.state.friendActivityCard || !entry.state.friendSearchCard;
+        if (entry.panel === "friends") return entry.state.heroCount !== 1 || entry.state.friendCards < 3 || entry.state.friendIncomeBars < 3 || entry.state.friendActionButtons < 6 || !entry.state.friendSnapshotCard || entry.state.friendSnapshotStats < 3 || entry.state.friendSnapshotActions < 2 || entry.state.friendSnapshotFloors < 3 || !entry.state.friendVisitReport || entry.state.friendVisitReportStats < 2 || entry.state.friendVisitReportFloors < 3 || entry.state.friendVisitReportActions < 2 || !entry.state.friendVisitScene || entry.state.friendVisitSceneFloors < 3 || entry.state.friendVisitSceneStats < 5 || entry.state.friendVisitSceneActions < 3 || !entry.state.friendFactoryDetail || entry.state.friendFactoryDetailStats < 3 || entry.state.friendFactoryRoomRows < 3 || !entry.state.friendFactoryRoomMeta || !entry.state.friendRequestCard || !entry.state.friendLeaderboardCard || !entry.state.friendActivityCard || !entry.state.friendSearchCard;
         if (entry.panel === "settings") return entry.state.heroCount !== 1 || entry.state.miniCount < 3 || entry.state.cardCount < 4;
         return entry.state.heroCount !== 1 || entry.state.cardCount < 1;
     });

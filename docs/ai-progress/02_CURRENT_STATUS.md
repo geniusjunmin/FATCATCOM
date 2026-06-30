@@ -1,6 +1,6 @@
 # Current Status
 
-Updated: 2026-06-29
+Updated: 2026-06-30
 
 ## Control Panel
 
@@ -68,7 +68,7 @@ Updated: 2026-06-29
 - `tools/capture-feature-regression.js` captures those four feature panels at 430x932, 360x800, and 768x1024, and asserts panel visibility, expected row/card counts, building hero presence, inventory detail visibility, research side-by-side layout, and no browser errors or failed requests.
 - Task, achievement, mail, friend, and settings panels now share a target-like utility-panel shell with paper texture, stronger hero/status cards, darker metric cards, and fixed local typography for the task board. The previous task-panel oversized CSS icon/typography regression is fixed and covered by screenshot review.
 - `tools/capture-utility-regression.js` captures task, achievement, mail, friend, and settings panels at 430x932, 360x800, and 768x1024, asserting shell classes, key cards, task rows, and clean browser runtime state.
-- Latest social UI pass makes the friend panel feel more like a multiplayer game surface: compact three-column stats on phones, first-screen friend factory cards with cat-style avatars, income bars, visit/gift state chips, and dedicated action buttons. Friend factory snapshots show selected-friend reward/status metrics plus 3F/2F/1F production slices, clicking visit opens a dark target-like report, and the factory-detail card now lists room stats, primary floor, assigned cat count, featured cat, decor score, and room rows from server `FriendDto.rooms` when online. The utility regression asserts friend cards, income bars, action buttons, snapshot stats/floors, visit report stats/floors/actions, factory-detail stats/rows/meta, request/search/leaderboard/activity modules, and clean runtime state.
+- Latest social UI pass makes the friend panel feel more like a multiplayer game surface: compact three-column stats on phones, first-screen friend factory cards with cat-style avatars, income bars, visit/gift state chips, and dedicated action buttons. Friend factory snapshots show selected-friend reward/status metrics plus 3F/2F/1F production slices, clicking visit now opens a dedicated dark target-like `.friend-visit-scene` before the smaller report, with room rows, total income, room yield total, staffed room count, primary floor, decor score, and visit/gift/back actions. The factory-detail card still lists room stats, primary floor, assigned cat count, featured cat, decor score, and room rows from server `FriendDto.rooms` when online. The utility regression asserts friend cards, income bars, action buttons, snapshot stats/floors, visit scene floors/stats/actions, visit report stats/floors/actions, factory-detail stats/rows/meta, request/search/leaderboard/activity modules, and clean runtime state.
 - Building, shop, inventory, research, task, achievement, mail, friend, and settings panels are clickable.
 - Screenshot regression exists for 414x896, 430x932, 360x800, and 768x1024 on the main screen and cat page.
 - Remaining visual gap: generated art depth where CSS still looks flat, final main/cat target proportions, future true bitmap skin/outfit illustrations, and larger Cocos-managed illustration assets.

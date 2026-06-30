@@ -1,6 +1,6 @@
 # Next Tasks
 
-Updated: 2026-06-29
+Updated: 2026-06-30
 
 ## Round Contract
 
@@ -103,7 +103,8 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest room-summary batch: `FriendDto.rooms` now exposes server-derived friend factory floor summaries, and the friend snapshot/report consume those rooms online while preserving offline estimates. `tools/check-friend-sync-contract.js` guards the DTO/type/UI path.
 - Done in latest factory-detail batch: the friend panel now renders a richer factory-detail card from `FriendDto.rooms`, with source/room count, total income, primary floor, room-yield total, and room rows; utility regression asserts detail stats and rows.
 - Done in latest staffing/decor batch: `FriendRoomDto` now includes assigned cat count, featured cat name, and decor score; real-player friends derive these from persisted cat/building state, and the friend factory detail rows render the meta.
-- Next move: move the enriched friend factory detail into a dedicated full friend-visit/profile scene, or expand room snapshots with true decor inventory when that system exists.
+- Done in latest visit-scene batch: clicking visit or the factory-detail entry opens a dedicated `.friend-visit-scene` ahead of the smaller report, reusing server/offline room summaries for floor rows plus total income, room yield, primary floor, staffed rooms, decor score, and visit/gift/back actions. `tools/capture-utility-regression.js` now asserts the scene floors, stats, and actions at 430x932, 360x800, and 768x1024.
+- Next move: expand room snapshots with true decor inventory when that system exists, add richer visual room/cat thumbnails to the visit scene, or begin splitting `BottomNavUI.ts` after this stable social UI checkpoint.
 
 ### 1. Main Factory Richness
 

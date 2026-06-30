@@ -102,6 +102,7 @@ export class BottomNavUI extends Component {
     private _friendSearchMessage = "";
     private _serverLeaderboard: LeaderboardDto | null = null;
     private _selectedFriendSnapshotId = "";
+    private _friendVisitSceneId = "";
     private _friendVisitReport: { friendId: string; kind: "visit" | "gift"; rewardText: string; statusText: string; updatedAt: number } | null = null;
     private _friendRefreshInFlight = false;
     private _friendActivityRefreshInFlight = false;
@@ -1673,6 +1674,28 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay .visit-report-floors em { color:#7c5432; font-style:normal; font-size:86%; }
             #fatcat-dom-panel-overlay .visit-report-actions { margin-top:2%; display:grid; grid-template-columns:1fr 1fr; gap:2%; }
             #fatcat-dom-panel-overlay .visit-report-actions .tag { margin:0; min-height:30px; }
+            #fatcat-dom-panel-overlay .friend-visit-scene { margin-bottom:2%; padding:2.4%; border-radius:18px; background:linear-gradient(180deg,#2f241d,#5a3b27 56%,#2d2119); border:2px solid #c59b62; color:#fff2cf; box-shadow:inset 0 0 0 2px rgba(255,236,190,.13), 0 5px 0 rgba(42,28,18,.28); font-size:2.0%; overflow:hidden; position:relative; }
+            #fatcat-dom-panel-overlay .friend-visit-scene:before { content:""; position:absolute; inset:2.4%; border-radius:14px; background:linear-gradient(rgba(34,22,15,.18),rgba(34,22,15,.52)), var(--friend-factory-art) center 38%/cover no-repeat; opacity:.42; pointer-events:none; }
+            #fatcat-dom-panel-overlay .friend-scene-head,
+            #fatcat-dom-panel-overlay .friend-scene-stage,
+            #fatcat-dom-panel-overlay .friend-scene-actions { position:relative; z-index:1; }
+            #fatcat-dom-panel-overlay .friend-scene-head { display:grid; grid-template-columns:14% 1fr auto; gap:2%; align-items:center; margin-bottom:2%; }
+            #fatcat-dom-panel-overlay .friend-scene-head .friend-avatar { width:100%; }
+            #fatcat-dom-panel-overlay .friend-scene-head b { display:block; color:#fffbe4; font-size:122%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .friend-scene-head em { display:block; color:#f4c16b; font-style:normal; font-weight:900; }
+            #fatcat-dom-panel-overlay .friend-scene-close { min-width:34px; aspect-ratio:1; border-radius:50%; border:2px solid rgba(255,236,184,.36); background:#765137; color:#fff4d8; font-weight:1000; cursor:pointer; }
+            #fatcat-dom-panel-overlay .friend-scene-stage { min-height:246px; display:grid; grid-template-columns:1fr 27%; gap:2%; align-items:stretch; }
+            #fatcat-dom-panel-overlay .friend-scene-building { display:grid; gap:5px; padding:2%; border-radius:14px; background:rgba(28,20,16,.52); box-shadow:inset 0 0 0 2px rgba(255,226,170,.12); }
+            #fatcat-dom-panel-overlay .friend-scene-floor { display:grid; grid-template-columns:14% 1fr 25%; gap:2%; align-items:center; min-height:34px; padding:1% 1.6%; border-radius:9px; background:linear-gradient(90deg,rgba(255,242,204,.94),rgba(210,156,88,.78)); color:#4a2f1f; box-shadow:inset 0 0 0 1px rgba(91,57,31,.2); font-weight:900; }
+            #fatcat-dom-panel-overlay .friend-scene-floor i { min-height:24px; border-radius:7px; background:#68452d; color:#ffe6b2; font-style:normal; display:flex; align-items:center; justify-content:center; }
+            #fatcat-dom-panel-overlay .friend-scene-floor b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .friend-scene-floor small { display:block; color:#745133; font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .friend-scene-floor em { justify-self:end; color:#51311f; font-style:normal; }
+            #fatcat-dom-panel-overlay .friend-scene-side { display:grid; gap:6px; align-content:start; }
+            #fatcat-dom-panel-overlay .friend-scene-side span { min-height:50px; border-radius:11px; background:rgba(255,246,216,.9); color:#4a2f1f; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-weight:900; box-shadow:inset 0 0 0 1px rgba(93,59,33,.2); }
+            #fatcat-dom-panel-overlay .friend-scene-side b { color:#7a471e; }
+            #fatcat-dom-panel-overlay .friend-scene-actions { margin-top:2%; display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.4%; }
+            #fatcat-dom-panel-overlay .friend-scene-actions .tag { margin:0; min-height:30px; }
             #fatcat-dom-panel-overlay .friend-factory-detail { margin-bottom:2%; padding:2.4%; border-radius:16px; background:linear-gradient(#6a4930,#3f2a20); border:2px solid #9a6d42; color:#ffe9bd; box-shadow:inset 0 0 0 2px rgba(255,231,180,.12), 0 4px 0 rgba(48,32,22,.24); font-size:2.0%; }
             #fatcat-dom-panel-overlay .factory-detail-head { display:grid; grid-template-columns:1fr auto; gap:2%; align-items:center; }
             #fatcat-dom-panel-overlay .factory-detail-head b { display:block; color:#fff7dd; font-size:116%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -1698,6 +1721,11 @@ export class BottomNavUI extends Component {
             #fatcat-dom-panel-overlay.compact .visit-report-head { grid-template-columns:15% 1fr auto; }
             #fatcat-dom-panel-overlay.compact .visit-report-grid span { min-height:34px; font-size:84%; }
             #fatcat-dom-panel-overlay.compact .visit-report-floors span { min-height:34px; font-size:82%; }
+            #fatcat-dom-panel-overlay.compact .friend-scene-head { grid-template-columns:15% 1fr auto; }
+            #fatcat-dom-panel-overlay.compact .friend-scene-stage { min-height:214px; grid-template-columns:1fr 28%; }
+            #fatcat-dom-panel-overlay.compact .friend-scene-floor { min-height:29px; grid-template-columns:17% 1fr 28%; font-size:82%; }
+            #fatcat-dom-panel-overlay.compact .friend-scene-side span { min-height:40px; font-size:82%; }
+            #fatcat-dom-panel-overlay.compact .friend-scene-actions .tag { min-height:26px; font-size:82%; }
             #fatcat-dom-panel-overlay.compact .factory-detail-stats span { min-height:31px; font-size:82%; }
             #fatcat-dom-panel-overlay.compact .factory-room-row { grid-template-columns:16% 1fr 27%; min-height:32px; font-size:82%; }
             #fatcat-dom-panel-overlay .setting-row { display:grid; grid-template-columns:1fr 24%; gap:2%; align-items:center; }
@@ -2226,11 +2254,19 @@ export class BottomNavUI extends Component {
         } else if (action === "openFriendRequests") {
             this.select("friends");
             return;
+        } else if (action === "openFriendVisitScene") {
+            this._selectedFriendSnapshotId = id;
+            this._friendVisitSceneId = id;
+            success = true;
+        } else if (action === "closeFriendVisitScene") {
+            this._friendVisitSceneId = "";
+            success = true;
         } else if (action === "closeFriendVisitReport") {
             this._friendVisitReport = null;
             success = true;
         } else if (action === "visitFriend") {
             this._selectedFriendSnapshotId = id;
+            this._friendVisitSceneId = id;
             const serverFriend = NetworkManager.canUseServer
                 ? await SyncManager.visitServerFriend(id)
                 : null;
@@ -2263,6 +2299,7 @@ export class BottomNavUI extends Component {
             }
         } else if (action === "sendFriendGift") {
             this._selectedFriendSnapshotId = id;
+            this._friendVisitSceneId = id;
             const serverFriend = NetworkManager.canUseServer
                 ? await SyncManager.sendServerFriendGift(id)
                 : null;
@@ -2493,6 +2530,8 @@ export class BottomNavUI extends Component {
             if (action === "claimMail") return "邮件奖励已领取：+2500 金币，+20 猫粮。";
             if (action === "visitFriend") return "已打开好友工厂快照，联网后会显示真实工厂。";
             if (action === "sendFriendGift") return "已为好友预留一份猫粮礼物，联网后会同步。";
+            if (action === "openFriendVisitScene") return "好友访问场景已展开。";
+            if (action === "closeFriendVisitScene") return "好友访问场景已收起。";
             if (action === "closeFriendVisitReport") return "好友访问报告已收起。";
             if (action === "toggleSetting") return "设置已在本地预览中切换，后续会写入账号配置。";
             if (action === "connectServer") return "游客账号已连接服务器。";
@@ -2584,7 +2623,7 @@ export class BottomNavUI extends Component {
             const width = Math.max(8, Math.min(100, Math.floor(friend.income / maxIncome * 100)));
             return `<div class="feature-card friend-card"><span class="friend-avatar"><i class="friend-rank">#${index + 1}</i></span><div class="friend-copy"><b>${friend.name}</b><em>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒</em><div class="friend-income"><i style="width:${width}%"></i></div><div class="friend-states"><span>${friend.status}</span><span>${lastVisit ? `访问 ${lastVisit}` : "待访问"}</span><span>${lastGift ? `送礼 ${lastGift}` : "可送礼"}</span></div></div><div class="friend-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问工厂</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再次送礼" : "赠送猫粮"}</button></div></div>`;
         }).join("");
-        return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendVisitReport(friends)}${this.renderFriendFactoryDetail(friends)}${this.renderFriendSnapshotCard(friends, maxIncome)}<div class="feature-list">${rowsNew}</div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
+        return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendVisitScene(friends)}${this.renderFriendVisitReport(friends)}${this.renderFriendFactoryDetail(friends)}${this.renderFriendSnapshotCard(friends, maxIncome)}<div class="feature-list">${rowsNew}</div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
     }
 
     private renderFriendSnapshotCard(friends: FriendPanelRow[], maxIncome: number): string {
@@ -2624,7 +2663,23 @@ export class BottomNavUI extends Component {
         const roomRows = rooms.slice(0, 6)
             .map(room => `<div class="factory-room-row"><i>${room.floor}</i><b>${room.name}<small>Lv.${room.level} · ${room.featuredCatName} · 猫 ${room.assignedCatCount} · 装饰 ${room.decorScore}</small></b><em>${this.formatNumber(room.production)}/秒</em></div>`)
             .join("");
-        return `<div class="friend-factory-detail"><div class="factory-detail-head"><div><b>${friend.name} 工厂详情</b><em>${source} · ${rooms.length} 个楼层</em></div><button class="tag" data-action="visitFriend" data-id="${friend.id}">进入访问</button></div><div class="factory-detail-stats"><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>派驻房间<b>${staffedRooms}/${rooms.length}</b></span><span>装饰评分<b>${this.formatNumber(decorTotal)}</b></span></div><div class="factory-room-list">${roomRows}</div></div>`;
+        return `<div class="friend-factory-detail"><div class="factory-detail-head"><div><b>${friend.name} 工厂详情</b><em>${source} · ${rooms.length} 个楼层</em></div><button class="tag" data-action="openFriendVisitScene" data-id="${friend.id}">进入访问</button></div><div class="factory-detail-stats"><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>派驻房间<b>${staffedRooms}/${rooms.length}</b></span><span>装饰评分<b>${this.formatNumber(decorTotal)}</b></span></div><div class="factory-room-list">${roomRows}</div></div>`;
+    }
+
+    private renderFriendVisitScene(friends: FriendPanelRow[]): string {
+        const selectedId = this._friendVisitSceneId || this._friendVisitReport?.friendId;
+        if (!selectedId) return "";
+        const friend = friends.find(item => item.id === selectedId);
+        if (!friend) return "";
+        const rooms = this.getFriendRoomRows(friend);
+        const topRoom = rooms[0];
+        const staffedRooms = rooms.filter(room => room.assignedCatCount > 0).length;
+        const decorTotal = rooms.reduce((sum, room) => sum + room.decorScore, 0);
+        const roomTotal = rooms.reduce((sum, room) => sum + room.production, 0);
+        const floorRows = rooms.slice(0, 6)
+            .map(room => `<div class="friend-scene-floor"><i>${room.floor}</i><b>${room.name}<small>Lv.${room.level} · ${room.featuredCatName} · 猫 ${room.assignedCatCount}</small></b><em>${this.formatNumber(room.production)}/秒</em></div>`)
+            .join("");
+        return `<div class="friend-visit-scene" style="--friend-factory-art:url('${this.getDomAssetDataUri(GeneratedBackgroundAssets.factoryCutaway)}')"><div class="friend-scene-head"><span class="friend-avatar"><i class="friend-rank">VISIT</i></span><div><b>${friend.name} 访问中</b><em>公司 Lv.${friend.level} · ${friend.status} · ${rooms.length} 个楼层</em></div><button class="friend-scene-close" data-action="closeFriendVisitScene">×</button></div><div class="friend-scene-stage"><div class="friend-scene-building">${floorRows}</div><div class="friend-scene-side"><span>总收益<b>${this.formatNumber(friend.income)}/秒</b></span><span>房间合计<b>${this.formatNumber(roomTotal)}/秒</b></span><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>值班猫咪<b>${staffedRooms}/${rooms.length}</b></span><span>装饰评分<b>${this.formatNumber(decorTotal)}</b></span></div></div><div class="friend-scene-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">刷新访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button><button class="tag" data-action="closeFriendVisitScene">返回列表</button></div></div>`;
     }
 
     private getFriendRoomRows(friend: FriendPanelRow): Array<{ floor: string; name: string; level: number; production: number; assignedCatCount: number; featuredCatName: string; decorScore: number }> {
