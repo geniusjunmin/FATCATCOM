@@ -45,6 +45,10 @@ Invoke-Step "DOM formatter contract check" {
     node .\tools\check-dom-formatters-contract.js
 }
 
+Invoke-Step "Main panel config contract check" {
+    node .\tools\check-main-panel-config-contract.js
+}
+
 Invoke-Step "Shop state contract check" {
     node .\tools\check-shop-state-contract.js
 }

@@ -27,10 +27,16 @@ import {
     getSkillIconAsset,
 } from "./DomAssetResolver";
 import { formatClockTime, formatDisplayNumber, formatFriendReportRelativeTime, formatRateValue } from "./Formatters";
+import {
+    MAIN_DOM_NAV_ITEMS,
+    MAIN_NAV_FEATURE_ICON_BY_PANEL,
+    MAIN_PANEL_BINDINGS,
+    MAIN_PANEL_SELECTED_NAMES,
+    ORDERED_MAIN_PANELS,
+    type MainPanelId,
+} from "./MainPanelConfig";
 
 const { ccclass, property } = _decorator;
-
-export type MainPanelId = "factory" | "cats" | "buildings" | "shop" | "inventory" | "research" | "tasks" | "achievements" | "mail" | "friends" | "settings";
 
 type FriendPanelRow = {
     id: string;
@@ -254,23 +260,12 @@ export class BottomNavUI extends Component {
     }
 
     private bindNavButtons(): void {
-        const orderedPanels: MainPanelId[] = ["factory", "cats", "buildings", "shop", "inventory", "research"];
-        const bindings: Array<{ names: string[]; panel: MainPanelId }> = [
-            { names: ["factory", "工厂"], panel: "factory" },
-            { names: ["cats", "cat", "猫咪"], panel: "cats" },
-            { names: ["buildings", "building", "建筑"], panel: "buildings" },
-            { names: ["shop", "商店"], panel: "shop" },
-            { names: ["inventory", "背包"], panel: "inventory" },
-            { names: ["research", "研究"], panel: "research" },
-            { names: ["tasks", "任务"], panel: "tasks" },
-        ];
-
         for (let index = 0; index < this.navButtons.length; index++) {
             const node = this.navButtons[index];
             if (this._boundNavButtons.has(node)) continue;
             const lowerName = node.name.toLowerCase();
-            const binding = bindings.find(item => item.names.some(name => lowerName.includes(name.toLowerCase())));
-            const panel = binding?.panel ?? orderedPanels[index];
+            const binding = MAIN_PANEL_BINDINGS.find(item => item.names.some(name => lowerName.includes(name.toLowerCase())));
+            const panel = binding?.panel ?? ORDERED_MAIN_PANELS[index];
             if (!panel) continue;
             node.on(Node.EventType.TOUCH_END, () => this.select(panel), this);
             if (node.getComponent(Button)) {
@@ -3912,17 +3907,14 @@ export class BottomNavUI extends Component {
             return;
         }
         overlay.dataset.current = next;
-        const navItems: Array<{ id: MainPanelId; label: string; iconClass: string; badge?: string }> = [
-            { id: "factory", label: "工厂", iconClass: "ico-factory" },
-            { id: "cats", label: "猫咪", iconClass: "ico-cats", badge: recruitableCats > 0 ? String(recruitableCats) : undefined },
-            { id: "buildings", label: "建筑", iconClass: "ico-building", badge: upgradeableBuildings > 0 ? String(upgradeableBuildings) : undefined },
-            { id: "shop", label: "商店", iconClass: "ico-shop", badge: shopHints > 0 ? "!" : undefined },
-            { id: "inventory", label: "背包", iconClass: "ico-inventory" },
-            { id: "research", label: "研究", iconClass: "ico-research" },
-        ];
-        overlay.innerHTML = `<div class="nav-bar">${navItems.map((item) => `
+        const badges: Partial<Record<MainPanelId, string>> = {
+            cats: recruitableCats > 0 ? String(recruitableCats) : undefined,
+            buildings: upgradeableBuildings > 0 ? String(upgradeableBuildings) : undefined,
+            shop: shopHints > 0 ? "!" : undefined,
+        };
+        overlay.innerHTML = `<div class="nav-bar">${MAIN_DOM_NAV_ITEMS.map((item) => `
             <button type="button" class="nav-item ${this.currentPanel === item.id ? "active" : ""}" data-panel="${item.id}">
-                ${item.badge ? `<div class="badge">${item.badge}</div>` : ""}
+                ${badges[item.id] ? `<div class="badge">${badges[item.id]}</div>` : ""}
                 <div class="nav-icon asset ${item.iconClass}" style="background-image:url('${this.getMainNavIconAsset(item.id)}')"></div>
                 <div class="nav-label">${item.label}</div>
             </button>`).join("")}</div>`;
@@ -3931,11 +3923,7 @@ export class BottomNavUI extends Component {
 
     private getMainNavIconAsset(panel: MainPanelId): string {
         if (panel === "cats") return this.getCatFullArtAsset("c_001");
-        if (panel === "factory") return this.getFeatureIconAsset("factory");
-        if (panel === "buildings") return this.getFeatureIconAsset("buildings");
-        if (panel === "shop") return this.getFeatureIconAsset("shop");
-        if (panel === "inventory") return this.getFeatureIconAsset("inventory");
-        return this.getFeatureIconAsset("research");
+        return this.getFeatureIconAsset(MAIN_NAV_FEATURE_ICON_BY_PANEL[panel] ?? "research");
     }
 
     private layoutDomNavOverlay(): void {
@@ -5652,20 +5640,7 @@ export class BottomNavUI extends Component {
     }
 
     private updateButtons(): void {
-        const panelNameMap: Record<MainPanelId, string[]> = {
-            factory: ["factory", "工厂"],
-            cats: ["cats", "cat", "猫咪"],
-            buildings: ["buildings", "building", "建筑"],
-            shop: ["shop", "商店"],
-            inventory: ["inventory", "背包"],
-            research: ["research", "研究"],
-            tasks: ["tasks", "任务"],
-            achievements: ["achievements", "achievement", "成就"],
-            mail: ["mail", "邮件"],
-            friends: ["friends", "friend", "好友"],
-            settings: ["settings", "setting", "设置"],
-        };
-        const selectedNames = panelNameMap[this.currentPanel];
+        const selectedNames = MAIN_PANEL_SELECTED_NAMES[this.currentPanel];
 
         for (const node of this.navButtons) {
             const label = node.getComponentInChildren(Label);
