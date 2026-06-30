@@ -219,6 +219,10 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .friend-rank { position:absolute; z-index:2; left:5%; top:5%; min-width:26%; padding:1% 4%; border-radius:999px; background:linear-gradient(#ffe36a,#d89421); color:#653719; text-align:center; font-weight:1000; box-shadow:inset 0 0 0 1px rgba(101,58,24,.24); }
             #fatcat-dom-panel-overlay .friend-copy b { display:block; color:#3f2818; font-size:112%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-panel-overlay .friend-copy em { display:block; margin:.6% 0 1.5%; color:#725137; font-style:normal; font-weight:900; }
+            #fatcat-dom-panel-overlay .friend-profile-meta { display:flex; flex-wrap:wrap; gap:4px; margin:1% 0; }
+            #fatcat-dom-panel-overlay .friend-profile-meta span { padding:1px 6px; border-radius:999px; background:rgba(91,57,31,.12); color:#694226; font-size:68%; font-weight:900; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .friend-profile-meta.real-player span:first-child { background:#5f923b; color:#fff8dc; }
+            #fatcat-dom-panel-overlay .friend-profile-meta.system-player span:first-child { background:#806347; color:#fff0cf; }
             #fatcat-dom-panel-overlay .friend-income { height:10px; margin:1.4% 0; border-radius:999px; background:#d7bd8e; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(91,61,34,.2); }
             #fatcat-dom-panel-overlay .friend-income i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#79aa43,#f0c34e); }
             #fatcat-dom-panel-overlay .friend-states { display:flex; flex-wrap:wrap; gap:2%; }
@@ -265,6 +269,8 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .friend-scene-head .friend-avatar { width:100%; }
             #fatcat-dom-panel-overlay .friend-scene-head b { display:block; color:#fffbe4; font-size:122%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-panel-overlay .friend-scene-head em { display:block; color:#f4c16b; font-style:normal; font-weight:900; }
+            #fatcat-dom-panel-overlay .friend-scene-head .friend-profile-meta span { background:rgba(255,235,189,.14); color:#ffe2a5; }
+            #fatcat-dom-panel-overlay .friend-scene-head .friend-profile-meta.real-player span:first-child { background:#64993e; color:#fff; }
             #fatcat-dom-panel-overlay .friend-scene-close { min-width:34px; aspect-ratio:1; border-radius:50%; border:2px solid rgba(255,236,184,.36); background:#765137; color:#fff4d8; font-weight:1000; cursor:pointer; }
             #fatcat-dom-panel-overlay .friend-scene-stage { min-height:246px; display:grid; grid-template-columns:1fr 27%; gap:2%; align-items:stretch; }
             #fatcat-dom-panel-overlay .friend-scene-building { display:grid; gap:5px; padding:2%; border-radius:14px; background:rgba(28,20,16,.52); box-shadow:inset 0 0 0 2px rgba(255,226,170,.12); }

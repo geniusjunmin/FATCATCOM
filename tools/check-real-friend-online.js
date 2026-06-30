@@ -132,6 +132,12 @@ async function get(path) {
             && added.json.data?.id === targetKey
             && added.json.data?.name === "Beta Beans"
             && added.json.data?.incomePerSecond > 0
+            && added.json.data?.profile?.isRealPlayer === true
+            && added.json.data?.profile?.playerId === targetId.replace(/-/g, "")
+            && added.json.data?.profile?.inviteCode?.startsWith("FC")
+            && added.json.data?.profile?.lastActiveAt > 0
+            && added.json.data?.profile?.unlockedCatCount > 0
+            && added.json.data?.profile?.totalBuildingLevel > 0
             && inviteCode?.startsWith("FC")
             && receiverInviteCode?.startsWith("FC")
             && searched.json.data?.inviteCode === inviteCode
@@ -166,6 +172,7 @@ async function get(path) {
             receiverInviteCode,
             searched: searched.json.data,
             added: added.json.data,
+            realFriendProfile: added.json.data?.profile,
             duplicate: duplicate.json.data,
             friendRequestStatus: friendRequest.json.data?.status,
             friendRequestAccepted: acceptedRequest.json.data?.status,

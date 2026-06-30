@@ -2071,7 +2071,39 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             friend.IncomePerSecond,
             friend.LastVisitedAt?.ToUnixTimeMilliseconds(),
             friend.LastGiftAt?.ToUnixTimeMilliseconds(),
+            await BuildFriendProfileAsync(friend, cancellationToken),
             await BuildFriendRoomsAsync(friend, cancellationToken));
+    }
+
+    private async Task<FriendProfileDto> BuildFriendProfileAsync(FriendSnapshot friend, CancellationToken cancellationToken)
+    {
+        if (!TryGetRealFriendPlayerId(friend.FriendKey, out var realPlayerId))
+        {
+            return new FriendProfileDto(
+                false,
+                null,
+                null,
+                null,
+                Math.Clamp(friend.Level / 6, 1, 5),
+                Math.Max(6, friend.Level * 2));
+        }
+
+        var player = await repository.FindPlayerByIdAsync(realPlayerId, cancellationToken);
+        if (player is null)
+        {
+            return new FriendProfileDto(true, realPlayerId.ToString("N"), null, null, 0, 0);
+        }
+
+        var invite = await EnsureInviteCodeAsync(realPlayerId, cancellationToken);
+        var catStates = await repository.GetCatStatesAsync(realPlayerId, cancellationToken);
+        var buildingStates = await repository.GetBuildingStatesAsync(realPlayerId, cancellationToken);
+        return new FriendProfileDto(
+            true,
+            realPlayerId.ToString("N"),
+            invite.Code,
+            player.UpdatedAt.ToUnixTimeMilliseconds(),
+            catStates.Count(cat => cat.IsUnlocked),
+            buildingStates.Sum(building => Math.Max(0, building.Level)));
     }
 
     private async Task<IReadOnlyList<FriendRoomDto>> BuildFriendRoomsAsync(FriendSnapshot friend, CancellationToken cancellationToken)

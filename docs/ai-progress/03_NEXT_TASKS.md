@@ -21,7 +21,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Continue final main/cat proportion tuning and add richer illustration assets where CSS is still flat. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
-| Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Friend panel now has richer first-screen cards; next deepen real friend visits/profile cards and interaction rewards. |
+| Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Real friend profiles, visits, daily rewards, requests, activity, and leaderboard are wired; next consider presence refresh cadence, decor inventory, or live interaction transport. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
 
 ## P0 Now
@@ -107,7 +107,8 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest visit-scene batch: clicking visit or the factory-detail entry opens a dedicated `.friend-visit-scene` ahead of the smaller report, reusing server/offline room summaries for floor rows plus total income, room yield, primary floor, staffed rooms, decor score, and visit/gift/back actions. `tools/capture-utility-regression.js` now asserts the scene floors, stats, and actions at 430x932, 360x800, and 768x1024.
 - Done in latest visit-scene visual batch: the scene now maps rooms to local factory prop thumbnails, renders 1-3 assigned-cat mini portraits per room, adds a visitor-cat card, and exposes a compact reward/status strip that stays visible at 360x800. Utility regression now asserts thumbs, cat portraits, mascot, and reward chips.
 - Done in latest visit-scene guard batch: `tools/check-friend-visit-scene-contract.js` now guards the visit-scene state/actions, render order, room reuse, visual selectors, compact guards, utility-regression assertions, and handoff notes; `tools/quick-verify.ps1` runs it after the friend sync contract.
-- Next move: expand room snapshots with true decor inventory when that system exists, add true generated bitmap friend-room backdrops, or begin splitting `BottomNavUI.ts` after this stable social UI checkpoint.
+- Done in latest real-profile batch: `FriendDto.profile` identifies real/system friends and exposes player id, invite code, last-active time, unlocked cats, and total building level. Friend cards, snapshots, and visit scenes render profile chips; utility regression requires five profile groups and at least fifteen chips in offline preview.
+- Next move: expand room snapshots with true decor inventory, add live presence refresh/transport, or add generated bitmap friend-room backdrops.
 
 ### 1. Main Factory Richness
 

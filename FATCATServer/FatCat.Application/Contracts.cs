@@ -226,6 +226,14 @@ public sealed record FriendRoomDto(
     string FeaturedCatName,
     int DecorScore);
 
+public sealed record FriendProfileDto(
+    bool IsRealPlayer,
+    string? PlayerId,
+    string? InviteCode,
+    long? LastActiveAt,
+    int UnlockedCatCount,
+    int TotalBuildingLevel);
+
 public sealed record FriendDto(
     string Id,
     string Name,
@@ -233,6 +241,7 @@ public sealed record FriendDto(
     int IncomePerSecond,
     long? LastVisitedAt,
     long? LastGiftAt,
+    FriendProfileDto Profile,
     IReadOnlyList<FriendRoomDto> Rooms);
 
 public sealed record FriendActionResponse(

@@ -168,6 +168,13 @@ public sealed class FatCatApiTests
         Assert.Equal($"player:{targetId:N}", addData.GetProperty("id").GetString());
         Assert.Equal("Beta Beans", addData.GetProperty("name").GetString());
         Assert.True(addData.GetProperty("incomePerSecond").GetInt32() > 0);
+        var profile = addData.GetProperty("profile");
+        Assert.True(profile.GetProperty("isRealPlayer").GetBoolean());
+        Assert.Equal(targetId.ToString("N"), profile.GetProperty("playerId").GetString());
+        Assert.StartsWith("FC", profile.GetProperty("inviteCode").GetString());
+        Assert.True(profile.GetProperty("lastActiveAt").GetInt64() > 0);
+        Assert.True(profile.GetProperty("unlockedCatCount").GetInt32() > 0);
+        Assert.True(profile.GetProperty("totalBuildingLevel").GetInt32() > 0);
         Assert.Equal(HttpStatusCode.OK, friends.StatusCode);
         Assert.Equal(4, friendData.GetArrayLength());
         Assert.Contains(friendData.EnumerateArray(), friend => friend.GetProperty("id").GetString() == $"player:{targetId:N}");

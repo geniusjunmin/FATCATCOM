@@ -230,7 +230,17 @@ export type FriendDto = {
     incomePerSecond: number;
     lastVisitedAt?: number;
     lastGiftAt?: number;
+    profile: FriendProfileDto;
     rooms: FriendRoomDto[];
+};
+
+export type FriendProfileDto = {
+    isRealPlayer: boolean;
+    playerId?: string | null;
+    inviteCode?: string | null;
+    lastActiveAt?: number | null;
+    unlockedCatCount: number;
+    totalBuildingLevel: number;
 };
 
 export type FriendRoomDto = {

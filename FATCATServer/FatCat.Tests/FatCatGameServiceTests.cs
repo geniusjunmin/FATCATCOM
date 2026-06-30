@@ -495,10 +495,17 @@ public sealed class FatCatGameServiceTests
         Assert.Equal($"player:{target.PlayerId:N}", added!.Id);
         Assert.Equal("Beta Beans", added.Name);
         Assert.True(added.IncomePerSecond > 0);
+        Assert.True(added.Profile.IsRealPlayer);
+        Assert.Equal(target.PlayerId.ToString("N"), added.Profile.PlayerId);
+        Assert.StartsWith("FC", added.Profile.InviteCode);
+        Assert.NotNull(added.Profile.LastActiveAt);
+        Assert.True(added.Profile.UnlockedCatCount > 0);
+        Assert.True(added.Profile.TotalBuildingLevel > 0);
         Assert.NotNull(duplicate);
         Assert.Null(self);
         Assert.Equal(4, friends.Count);
         Assert.Single(friends, friend => friend.Id == $"player:{target.PlayerId:N}");
+        Assert.All(friends.Where(friend => !friend.Profile.IsRealPlayer), friend => Assert.Null(friend.Profile.PlayerId));
         Assert.NotNull(leaderboard);
         Assert.Contains(leaderboard!.Entries, entry => entry.PlayerId == $"player:{target.PlayerId:N}");
     }

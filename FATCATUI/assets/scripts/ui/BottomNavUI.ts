@@ -13,7 +13,7 @@ import { ShopManager } from "../manager/ShopManager";
 import { TaskManager } from "../manager/TaskManager";
 import { NetworkManager } from "../manager/NetworkManager";
 import { SyncManager } from "../manager/SyncManager";
-import { FriendActivityDto, FriendDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto } from "../net/ApiTypes";
+import { FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
 import { GeneratedBackgroundAssets } from "./UiAssetRegistry";
@@ -114,6 +114,7 @@ type FriendPanelRow = {
     level: number;
     income: number;
     status: string;
+    profile?: FriendProfileDto;
     rooms?: FriendRoomDto[];
 };
 
@@ -1297,7 +1298,7 @@ export class BottomNavUI extends Component {
             const lastVisit = this.getFeatureTimestamp("friendVisits", friend.id);
             const lastGift = this.getFeatureTimestamp("friendGifts", friend.id);
             const width = Math.max(8, Math.min(100, Math.floor(friend.income / maxIncome * 100)));
-            return `<div class="feature-card friend-card"><span class="friend-avatar"><i class="friend-rank">#${index + 1}</i></span><div class="friend-copy"><b>${friend.name}</b><em>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒</em><div class="friend-income"><i style="width:${width}%"></i></div><div class="friend-states"><span>${friend.status}</span><span>${lastVisit ? `访问 ${lastVisit}` : "待访问"}</span><span>${lastGift ? `送礼 ${lastGift}` : "可送礼"}</span></div></div><div class="friend-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问工厂</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再次送礼" : "赠送猫粮"}</button></div></div>`;
+            return `<div class="feature-card friend-card"><span class="friend-avatar"><i class="friend-rank">#${index + 1}</i></span><div class="friend-copy"><b>${friend.name}</b><em>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒</em>${this.renderFriendProfileMeta(friend)}<div class="friend-income"><i style="width:${width}%"></i></div><div class="friend-states"><span>${friend.status}</span><span>${lastVisit ? `访问 ${lastVisit}` : "待访问"}</span><span>${lastGift ? `送礼 ${lastGift}` : "可送礼"}</span></div></div><div class="friend-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问工厂</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再次送礼" : "赠送猫粮"}</button></div></div>`;
         }).join("");
         return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendVisitScene(friends)}${this.renderFriendVisitReport(friends)}${this.renderFriendFactoryDetail(friends)}${this.renderFriendSnapshotCard(friends, maxIncome)}<div class="feature-list">${rowsNew}</div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
     }
@@ -1312,7 +1313,7 @@ export class BottomNavUI extends Component {
         const floors = this.getFriendRoomRows(selected).slice(0, 3)
             .map(room => `<div class="snapshot-floor"><i>${room.floor}</i><b>${room.name}</b><em>${this.formatNumber(room.production)}/秒</em></div>`)
             .join("");
-        return `<div class="friend-snapshot-card"><div class="snapshot-head"><span class="friend-avatar"><i class="friend-rank">工厂</i></span><div class="snapshot-copy"><b>${selected.name} 工厂快照</b><em>Lv.${selected.level} · 收益 ${this.formatNumber(selected.income)}/秒 · ${selected.status}</em><div class="snapshot-meter"><i style="width:${width}%"></i></div></div><div class="snapshot-action"><button class="tag" data-action="visitFriend" data-id="${selected.id}">访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${selected.id}">送礼</button></div></div><div class="snapshot-stats"><span>访问奖励<b>+${this.formatNumber(rewardPreview)}金币</b></span><span>最近访问<b>${lastVisit}</b></span><span>礼物状态<b>${lastGift}</b></span></div><div class="snapshot-floors">${floors}</div></div>`;
+        return `<div class="friend-snapshot-card"><div class="snapshot-head"><span class="friend-avatar"><i class="friend-rank">工厂</i></span><div class="snapshot-copy"><b>${selected.name} 工厂快照</b><em>Lv.${selected.level} · 收益 ${this.formatNumber(selected.income)}/秒 · ${selected.status}</em>${this.renderFriendProfileMeta(selected)}<div class="snapshot-meter"><i style="width:${width}%"></i></div></div><div class="snapshot-action"><button class="tag" data-action="visitFriend" data-id="${selected.id}">访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${selected.id}">送礼</button></div></div><div class="snapshot-stats"><span>访问奖励<b>+${this.formatNumber(rewardPreview)}金币</b></span><span>最近访问<b>${lastVisit}</b></span><span>礼物状态<b>${lastGift}</b></span></div><div class="snapshot-floors">${floors}</div></div>`;
     }
 
     private renderFriendVisitReport(friends: FriendPanelRow[]): string {
@@ -1358,7 +1359,19 @@ export class BottomNavUI extends Component {
         const floorRows = rooms.slice(0, 6)
             .map((room, index) => `<div class="friend-scene-floor"><i>${room.floor}</i><span class="room-thumb asset" style="background-image:url('${this.getFactoryPropDataUri(room.scene)}')"></span><b>${room.name}<small>Lv.${room.level} · ${room.featuredCatName} · 猫 ${room.assignedCatCount}</small><span class="room-cats">${this.renderFriendRoomCats(room.assignedCatCount, index)}</span></b><em>${this.formatNumber(room.production)}/秒</em></div>`)
             .join("");
-        return `<div class="friend-visit-scene" style="--friend-factory-art:url('${this.getDomAssetDataUri(GeneratedBackgroundAssets.factoryCutaway)}')"><div class="friend-scene-head"><span class="friend-avatar"><i class="friend-rank">VISIT</i></span><div><b>${friend.name} 访问中</b><em>公司 Lv.${friend.level} · ${friend.status} · ${rooms.length} 个楼层</em></div><button class="friend-scene-close" data-action="closeFriendVisitScene">×</button></div><div class="friend-scene-stage"><div class="friend-scene-building">${floorRows}</div><div class="friend-scene-side"><div class="friend-scene-mascot"><i style="background-image:url('${this.getCatFullArtAsset("c_001")}')"></i><b>访客猫</b><small>正在巡楼</small></div><span>总收益<b>${this.formatNumber(friend.income)}/秒</b></span><span>房间合计<b>${this.formatNumber(roomTotal)}/秒</b></span><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>值班房间<b>${staffedRooms}/${rooms.length}</b></span><span>装饰评分<b>${this.formatNumber(decorTotal)}</b></span></div></div><div class="friend-scene-reward"><span>访问奖励<b>+${this.formatNumber(rewardPreview)} 金币</b></span><span>上次访问<b>${lastVisit}</b></span><span>礼物状态<b>${lastGift}</b></span></div><div class="friend-scene-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">刷新访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button><button class="tag" data-action="closeFriendVisitScene">返回列表</button></div></div>`;
+        return `<div class="friend-visit-scene" style="--friend-factory-art:url('${this.getDomAssetDataUri(GeneratedBackgroundAssets.factoryCutaway)}')"><div class="friend-scene-head"><span class="friend-avatar"><i class="friend-rank">VISIT</i></span><div><b>${friend.name} 访问中</b><em>公司 Lv.${friend.level} · ${friend.status} · ${rooms.length} 个楼层</em>${this.renderFriendProfileMeta(friend)}</div><button class="friend-scene-close" data-action="closeFriendVisitScene">×</button></div><div class="friend-scene-stage"><div class="friend-scene-building">${floorRows}</div><div class="friend-scene-side"><div class="friend-scene-mascot"><i style="background-image:url('${this.getCatFullArtAsset("c_001")}')"></i><b>访客猫</b><small>正在巡楼</small></div><span>总收益<b>${this.formatNumber(friend.income)}/秒</b></span><span>房间合计<b>${this.formatNumber(roomTotal)}/秒</b></span><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>值班房间<b>${staffedRooms}/${rooms.length}</b></span><span>装饰评分<b>${this.formatNumber(decorTotal)}</b></span></div></div><div class="friend-scene-reward"><span>访问奖励<b>+${this.formatNumber(rewardPreview)} 金币</b></span><span>上次访问<b>${lastVisit}</b></span><span>礼物状态<b>${lastGift}</b></span></div><div class="friend-scene-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">刷新访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button><button class="tag" data-action="closeFriendVisitScene">返回列表</button></div></div>`;
+    }
+
+    private renderFriendProfileMeta(friend: FriendPanelRow): string {
+        const profile = friend.profile;
+        if (!profile) {
+            return `<div class="friend-profile-meta system-player"><span>系统好友</span><span>猫咪预览</span><span>本地数据</span></div>`;
+        }
+        const presence = profile.isRealPlayer
+            ? (profile.lastActiveAt ? this.formatFriendReportTime(profile.lastActiveAt) : "活跃时间未知")
+            : "系统好友";
+        const invite = profile.inviteCode || "无邀请码";
+        return `<div class="friend-profile-meta ${profile.isRealPlayer ? "real-player" : "system-player"}"><span>${profile.isRealPlayer ? "真人好友" : "系统好友"}</span><span>${presence}</span><span>猫 ${profile.unlockedCatCount}</span><span>建筑 Lv.${profile.totalBuildingLevel}</span><span>${invite}</span></div>`;
     }
 
     private getFriendRoomRows(friend: FriendPanelRow): Array<{ floor: string; name: string; level: number; production: number; assignedCatCount: number; featuredCatName: string; decorScore: number; scene: string }> {
@@ -1435,6 +1448,7 @@ export class BottomNavUI extends Component {
                 level: friend.level,
                 income: friend.incomePerSecond,
                 status: "在线数据",
+                profile: friend.profile,
                 rooms: friend.rooms,
             }));
         }
