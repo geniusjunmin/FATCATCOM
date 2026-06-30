@@ -3,7 +3,7 @@ const path = require("path");
 const { chromium } = require("playwright-core");
 
 const edgePath = "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
-const outDir = path.resolve("docs/verification/screenshots/2026-06-29-utility-regression");
+const outDir = path.resolve("docs/verification/screenshots/2026-06-30-utility-regression");
 const sizes = [
     [430, 932],
     [360, 800],

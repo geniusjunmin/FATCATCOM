@@ -45,6 +45,10 @@ Invoke-Step "Friend sync contract check" {
     node .\tools\check-friend-sync-contract.js
 }
 
+Invoke-Step "Friend visit-scene contract check" {
+    node .\tools\check-friend-visit-scene-contract.js
+}
+
 Invoke-Step "Real friend contract check" {
     node .\tools\check-real-friend-contract.js
 }
