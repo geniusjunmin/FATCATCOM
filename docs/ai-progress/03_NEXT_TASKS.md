@@ -22,7 +22,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Continue final main/cat proportion tuning and add richer illustration assets where CSS is still flat. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Friend panel now has richer first-screen cards; next deepen real friend visits/profile cards and interaction rewards. |
-| Code Health | P1 | Reduce frontend maintenance risk. | First asset-resolver extraction is done; continue splitting HUD, nav, factory, cat, and panel rendering from `BottomNavUI.ts`. |
+| Code Health | P1 | Reduce frontend maintenance risk. | Asset-resolver and formatter extractions are done; continue splitting HUD, nav, factory, cat, and panel rendering from `BottomNavUI.ts`. |
 
 ## P0 Now
 
@@ -40,7 +40,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - `tools/check-friend-invite-contract.js` verifies `/api/social/profile`, `/api/friends/search`, persisted short invite codes, relation rows, invite-code add compatibility, client API/sync helpers, friend-panel search confirmation, and coverage.
 - `tools/check-friend-request-contract.js` verifies `/api/friends/requests`, bidirectional accept behavior, client API/sync helpers, friend-panel request UI hooks, inline invite search UI, factory friend-entry badge hooks, mail notification surfacing, and coverage.
 - `tools/check-leaderboard-contract.js` verifies `/api/leaderboard`, client leaderboard API/types/sync fetch, friend-panel rendering, and service/API coverage.
-- `tools/quick-verify.ps1` runs focused client TS, generated balance, drift, effect coverage, client catalog metadata, DOM asset resolver contract, shop-state contract, friend-sync contract, friend visit-scene contract, real-friend contract, friend-activity contract, friend-reward contract, friend-invite contract, friend-request contract, leaderboard contract, and server tests together.
+- `tools/quick-verify.ps1` runs focused client TS, generated balance, drift, effect coverage, client catalog metadata, DOM asset resolver contract, DOM formatter contract, shop-state contract, friend-sync contract, friend visit-scene contract, real-friend contract, friend-activity contract, friend-reward contract, friend-invite contract, friend-request contract, leaderboard contract, and server tests together.
 - Next move: consider loading a true single config source directly at build/runtime, or wire `tools/quick-verify.ps1` into CI once CI exists.
 
 ### 2. Server-Side Production Model
@@ -183,6 +183,7 @@ Keep these scripts in the regular set when touching related flows:
 ### 1. Split `BottomNavUI.ts`
 
 - Done in latest code-health batch: DOM asset lookup helpers moved to `FATCATUI/assets/scripts/ui/DomAssetResolver.ts`, leaving `BottomNavUI.ts` with thin wrappers so existing render code stays stable. `tools/check-dom-asset-resolver-contract.js` guards the extraction and is part of `tools/quick-verify.ps1`.
+- Done in latest formatter batch: shared DOM display-number, rate, clock, and friend-report relative-time helpers moved to `FATCATUI/assets/scripts/ui/Formatters.ts`; `BottomNavUI.ts` now delegates through wrapper methods, and `tools/check-dom-formatters-contract.js` is part of `tools/quick-verify.ps1`.
 - First split HUD, bottom nav, main factory, cat page, and generic panels.
 - Keep existing regression scripts green during each slice.
 - Cat page and main factory CSS are now large enough that extracting DOM style/render helpers should be considered after the next visual checkpoint.

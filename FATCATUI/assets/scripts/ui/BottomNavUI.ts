@@ -26,6 +26,7 @@ import {
     getGeneratedIconAsset,
     getSkillIconAsset,
 } from "./DomAssetResolver";
+import { formatClockTime, formatDisplayNumber, formatFriendReportRelativeTime, formatRateValue } from "./Formatters";
 
 const { ccclass, property } = _decorator;
 
@@ -2908,17 +2909,11 @@ export class BottomNavUI extends Component {
     }
 
     private formatActivityTime(timestamp: number): string {
-        if (!timestamp) return "";
-        return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        return formatClockTime(timestamp);
     }
 
     private formatFriendReportTime(timestamp: number): string {
-        if (!timestamp) return "刚刚";
-        const seconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
-        if (seconds < 60) return "刚刚";
-        const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) return `${minutes}分钟前`;
-        return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        return formatFriendReportRelativeTime(timestamp);
     }
 
     private applyServerFriendSnapshot(friend: FriendDto, rerender = true): void {
@@ -2983,8 +2978,7 @@ export class BottomNavUI extends Component {
 
     private getFeatureTimestamp(bucket: "friendGifts" | "friendVisits", id: string): string {
         const timestamp = this.ensureFeatureState()[bucket][id];
-        if (!timestamp) return "";
-        return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        return formatClockTime(timestamp);
     }
 
     private getApiBaseLabel(): string {
@@ -3963,16 +3957,11 @@ export class BottomNavUI extends Component {
     }
 
     private formatNumber(value: number): string {
-        if (value >= 1000000) return `${(value / 1000000).toFixed(2).replace(/\.00$/, "")}M`;
-        if (value >= 1000) return `${(value / 1000).toFixed(2).replace(/\.00$/, "")}K`;
-        return `${Math.floor(value)}`;
+        return formatDisplayNumber(value);
     }
 
     private formatRate(value: number): string {
-        if (value >= 10) return this.formatNumber(value);
-        if (value >= 1) return value.toFixed(1).replace(/\.0$/, "");
-        if (value > 0) return value.toFixed(2).replace(/0$/, "");
-        return "0";
+        return formatRateValue(value);
     }
 
     private layoutDomPanelOverlay(): void {

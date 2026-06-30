@@ -22,7 +22,7 @@ Updated: 2026-06-30
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
 | Biggest Gap | Visual fidelity | Main factory and cat page are closer to target, but icon consistency, generated illustration depth, and final target-proportion tuning still need work. |
-| Biggest Risk | Frontend size | `BottomNavUI.ts` remains too large; the first asset-resolver extraction is done and further HUD/nav/factory/cat/panel splits should continue. |
+| Biggest Risk | Frontend size | `BottomNavUI.ts` remains too large; the asset-resolver and formatter extractions are done, and further HUD/nav/factory/cat/panel splits should continue. |
 
 ## Client UI
 
@@ -151,7 +151,7 @@ Implemented server capabilities:
 - `tools/check-balance-config-drift.js` compares server `balance.json` with client `FATCATUI/assets/resources/configs/research.json`, `equipment.json`, `buildings.json`, `cats.json`, and `skills.json` for ids, costs, caps, effects, prerequisites, default equipped items, building levels, cat economy fields, and skill values.
 - `tools/check-balance-effect-coverage.js` verifies every research/equipment effect type in client config is listed as covered by the server economy model.
 - `tools/check-client-catalog-metadata-consumption.js` verifies client managers and the research panel consume server catalog metadata instead of bypassing it.
-- `tools/quick-verify.ps1` runs the focused client TypeScript check, generated balance check, drift check, effect coverage check, client catalog metadata consumption check, DOM asset resolver contract, shop-state, friend-sync, friend visit-scene, real-friend, friend-activity, friend-reward, friend-invite, friend-request, leaderboard contract checks, and server tests as a no-browser baseline gate.
+- `tools/quick-verify.ps1` runs the focused client TypeScript check, generated balance check, drift check, effect coverage check, client catalog metadata consumption check, DOM asset resolver contract, DOM formatter contract, shop-state, friend-sync, friend visit-scene, real-friend, friend-activity, friend-reward, friend-invite, friend-request, leaderboard contract checks, and server tests as a no-browser baseline gate.
 - `tools/start-api-process.js` lets selected online scripts start the already-built API DLL before falling back to `dotnet run --no-restore`, avoiding fragile NuGet restore attempts in restricted-network environments.
 
 Client/server cat sync:
@@ -208,6 +208,7 @@ Latest verified checks:
 - `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`: passed.
 - `node tools\check-client-catalog-metadata-consumption.js`: passed; verifies `CatManager`, `ResearchManager`, and `ResearchPanel` route through server metadata-aware config access.
 - `node tools\check-dom-asset-resolver-contract.js`: passed; verifies `DomAssetResolver.ts` owns DOM Data URI, factory prop, generated item, cat, equipment, and skill asset helper logic, and `BottomNavUI.ts` delegates to it instead of importing the large Data URI/registry bridges directly.
+- 2026-06-30 code-health formatter pass: `FATCATUI/assets/scripts/ui/Formatters.ts` now owns DOM number/rate/clock/friend relative-time formatting, `BottomNavUI.ts` delegates through thin wrapper methods, and `tools/check-dom-formatters-contract.js` guards against formatter logic drifting back into the large UI file. Verified with `node tools\check-dom-formatters-contract.js`, focused TypeScript diagnostics, Cocos asset refresh for `db://assets/scripts`, `node tools\verify-ui-clicks-playwright.js`, and `tools\quick-verify.ps1` with 63/63 server tests.
 - `powershell -ExecutionPolicy Bypass -File .\tools\check-server-api.ps1 -ApiBaseUrl http://localhost:5144 -Origin http://localhost:7456`: passed with the built API DLL, including cat assignment, building snapshot, building upgrade, mood-adjusted `/api/production/server-preview`, and launch tamper resistance.
 - Latest API smoke also verifies `/api/cats` returns 5 catalog entries, including locked `c_002` plus cat metadata, and `/api/research` returns 3 catalog entries, including locked `res_bean_save` plus research metadata.
 - Cocos asset-db refreshed for `db://assets/scripts` after client manager and API type metadata updates.

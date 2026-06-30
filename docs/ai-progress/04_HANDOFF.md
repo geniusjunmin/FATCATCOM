@@ -38,6 +38,7 @@ Updated: 2026-06-30
 - Latest friend visit-scene visual pass: room rows now include `.room-thumb` local factory prop art selected by building id/floor/name, `.room-cats` assigned-cat mini portraits from the generated cat lineup, a `.friend-scene-mascot` visitor-cat card, and `.friend-scene-reward` chips for visit reward/last visit/gift state. Compact CSS was retuned so the scene action buttons remain visible at 360x800. `capture-utility-regression.js` now asserts these selectors in addition to the previous scene structure.
 - Latest friend visit-scene guard pass: `tools/check-friend-visit-scene-contract.js` now protects the visit-scene state/actions, render order before the compact report, shared room-row data path, room thumbnails, assigned-cat mini portraits, visitor mascot, reward strip, compact CSS guards, utility-regression selectors, and this handoff note. It is part of `tools/quick-verify.ps1`.
 - Latest code-health pass: DOM asset lookup helpers now live in `FATCATUI/assets/scripts/ui/DomAssetResolver.ts`. `BottomNavUI.ts` still exposes the same private wrapper methods, but no longer imports `DomAssetDataUris`, `FactoryPropDataUris`, or the generated item/cat/skill registries directly. `tools/check-dom-asset-resolver-contract.js` guards this split and runs in `tools/quick-verify.ps1`.
+- Latest formatter cleanup pass: shared DOM display-number, production-rate, clock, and friend-report relative-time helpers now live in `FATCATUI/assets/scripts/ui/Formatters.ts`. `BottomNavUI.ts` keeps thin private wrapper methods for existing render code, and `tools/check-dom-formatters-contract.js` guards this split in `tools/quick-verify.ps1`.
 - Latest main-HUD micro pass in `BottomNavUI.ts` lightens the company badge toward the target wood/paper card, enlarges avatar/level treatment, repositions the experience readout, and nudges compact resource spacing. Verified at 360x800, 414x896, 430x932, and 768x1024 with `capture-main-regression.js`.
 - Main factory now uses `FATCATUI/assets/resources/textures/generated/factory_cutaway_bg_640.jpg` as the visible source of truth for roof and room art. Duplicate CSS floors, props, cats, pipes, and center KPI cards are intentionally hidden; keep the live left floor cards and combined right production/bonus cards.
 - The main building now spans roughly 16%-84% of the game viewport, and the compact bottom widgets use `19fr 11fr 35fr 34fr` proportions. The launch label is single-line at 360/414/430 widths.
@@ -114,6 +115,7 @@ node tools\check-balance-config-drift.js
 node tools\check-balance-effect-coverage.js
 node tools\check-client-catalog-metadata-consumption.js
 node tools\check-dom-asset-resolver-contract.js
+node tools\check-dom-formatters-contract.js
 node tools\check-shop-state-contract.js
 node tools\check-friend-sync-contract.js
 node tools\check-friend-visit-scene-contract.js
@@ -168,6 +170,7 @@ Server:
 - `tools/check-balance-effect-coverage.js`
 - `tools/check-client-catalog-metadata-consumption.js`
 - `tools/check-dom-asset-resolver-contract.js`
+- `tools/check-dom-formatters-contract.js`
 - `tools/check-shop-state-contract.js`
 - `tools/check-friend-sync-contract.js`
 - `tools/check-friend-visit-scene-contract.js`
@@ -184,6 +187,7 @@ Client:
 
 - `FATCATUI/assets/scripts/ui/BottomNavUI.ts`
 - `FATCATUI/assets/scripts/ui/DomAssetResolver.ts`
+- `FATCATUI/assets/scripts/ui/Formatters.ts`
 - `FATCATUI/assets/scripts/manager/SyncManager.ts`
 - `FATCATUI/assets/scripts/manager/NetworkManager.ts`
 - `FATCATUI/assets/scripts/manager/CatManager.ts`
@@ -253,7 +257,7 @@ Client:
 - `tools/check-balance-config-drift.js` compares server `balance.json` to client `FATCATUI/assets/resources/configs/research.json`, `equipment.json`, `buildings.json`, `cats.json`, and `skills.json`. Run it after any research/equipment/building/cat/skill config edit.
 - `tools/check-balance-effect-coverage.js` fails if client research/equipment config introduces a new effect type that has not been explicitly added to the server economy coverage list.
 - `tools/check-client-catalog-metadata-consumption.js` guards the client-side use of server catalog metadata in `CatManager`, `ResearchManager`, and `ResearchPanel`.
-- `tools/quick-verify.ps1` is the no-browser baseline gate: focused client TS, generated server balance check, config drift check, effect coverage check, client catalog metadata consumption check, shop/friend/leaderboard contract checks, and server tests.
+- `tools/quick-verify.ps1` is the no-browser baseline gate: focused client TS, generated server balance check, config drift check, effect coverage check, client catalog metadata consumption check, DOM asset/formatter contract checks, shop/friend/leaderboard contract checks, and server tests.
 - Online scripts now use `tools/start-api-process.js` to prefer the already-built API DLL over `dotnet run`, which avoids NuGet restore failures in restricted-network sessions.
 - `tools/check-settings-production-preview-online.js` now clears local save before running and records failed response bodies, which helps diagnose stale dev database issues.
 - `tools/check-launch-production-preview-online.js` waits long enough after clicking launch to capture both `/api/production/server-preview` and `/api/launch` on slower preview builds.
