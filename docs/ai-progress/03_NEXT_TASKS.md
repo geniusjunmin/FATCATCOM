@@ -22,7 +22,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Continue final main/cat proportion tuning and add richer illustration assets where CSS is still flat. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Friend panel now has richer first-screen cards; next deepen real friend visits/profile cards and interaction rewards. |
-| Code Health | P1 | Reduce frontend maintenance risk. | Asset-resolver, formatter, main-panel config, UI presentation, factory presentation, and feature-panel presentation extractions are done; continue splitting HUD, nav, cat, and remaining panel rendering from `BottomNavUI.ts`. |
+| Code Health | P1 | Reduce frontend maintenance risk. | Asset-resolver, formatter, main-panel config, UI presentation, factory presentation, feature-panel presentation, and cat presentation extractions are done; continue splitting HUD, nav, and remaining panel rendering from `BottomNavUI.ts`. |
 
 ## P0 Now
 
@@ -40,7 +40,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - `tools/check-friend-invite-contract.js` verifies `/api/social/profile`, `/api/friends/search`, persisted short invite codes, relation rows, invite-code add compatibility, client API/sync helpers, friend-panel search confirmation, and coverage.
 - `tools/check-friend-request-contract.js` verifies `/api/friends/requests`, bidirectional accept behavior, client API/sync helpers, friend-panel request UI hooks, inline invite search UI, factory friend-entry badge hooks, mail notification surfacing, and coverage.
 - `tools/check-leaderboard-contract.js` verifies `/api/leaderboard`, client leaderboard API/types/sync fetch, friend-panel rendering, and service/API coverage.
-- `tools/quick-verify.ps1` runs focused client TS, generated balance, drift, effect coverage, client catalog metadata, DOM asset resolver contract, DOM formatter contract, main panel config contract, UI presentation contract, factory presentation contract, feature panel presentation contract, shop-state contract, friend-sync contract, friend visit-scene contract, real-friend contract, friend-activity contract, friend-reward contract, friend-invite contract, friend-request contract, leaderboard contract, and server tests together.
+- `tools/quick-verify.ps1` runs focused client TS, generated balance, drift, effect coverage, client catalog metadata, DOM asset resolver contract, DOM formatter contract, main panel config contract, UI presentation contract, factory presentation contract, feature panel presentation contract, cat presentation contract, shop-state contract, friend-sync contract, friend visit-scene contract, real-friend contract, friend-activity contract, friend-reward contract, friend-invite contract, friend-request contract, leaderboard contract, and server tests together.
 - Next move: consider loading a true single config source directly at build/runtime, or wire `tools/quick-verify.ps1` into CI once CI exists.
 
 ### 2. Server-Side Production Model
@@ -166,6 +166,7 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest story-card batch: the lower story card now has story tags, paper-strip copy hierarchy, a pinned selected-cat work-photo sticker, chapter-style story-wall button, and regression assertions for story visibility/photo/button/tags.
 - Done in latest equipment-card batch: equipped slots and backpack cards now have rarity badges, slot labels, bonus pills, clearer level/state text, locked-slot treatment, and regression assertions for both information and equipment views.
 - Done in latest skin-theme batch: wardrobe cards now have distinct cafe/apron/manager/festival themes, CSS outfit overlays, style badges, color swatches, and regression assertions for themed skin cards.
+- Done in latest cat presentation code-health batch: cat side tabs, skin wardrobe theme data, equipment slot definitions, locked-slot copy, default equipment fallback, and equipment-effect labels moved to `FATCATUI/assets/scripts/ui/CatPresentation.ts`; `tools/check-cat-presentation-contract.js` guards the split and runs in `tools/quick-verify.ps1`.
 - Next move: only generate true bitmap skin/outfit thumbnails if the CSS themed cards are no longer enough; otherwise move to final main/cat micro-alignment or social UI polish.
 - Done in latest cat-page batch: active side-tab pointer, larger center cat stage, speech bubble tail, right-side mood/feed icons, info-card edit badge, raised active roster card, and command-strip layering fix.
 - Done in latest cat density batch: slimmer stats/weight rows, compact skill/equipment side-by-side layout, folded compact equipment detail rows, shorter story card, and clickable equipment upgrade above roster.
@@ -188,6 +189,7 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest main-panel config batch: `MainPanelId`, Cocos nav button aliases, DOM bottom-nav items, selected-name aliases, and main-nav feature icon mapping moved to `FATCATUI/assets/scripts/ui/MainPanelConfig.ts`; `tools/check-main-panel-config-contract.js` guards the split and runs in `tools/quick-verify.ps1`.
 - Done in latest UI presentation batch: static labels, icon class choices, rarity stars, and cat skill/story/bubble presentation helpers moved to `FATCATUI/assets/scripts/ui/UiPresentation.ts`; `tools/check-ui-presentation-contract.js` guards the split and runs in `tools/quick-verify.ps1`.
 - Done in latest factory presentation batch: main factory floor definitions, building scene/name maps, room prop/decor/wall/cat snippets, and floor bonus icon classes moved to `FATCATUI/assets/scripts/ui/FactoryPresentation.ts`; `tools/check-factory-presentation-contract.js` guards the split and runs in `tools/quick-verify.ps1`.
+- Done in latest cat presentation batch: cat side tabs, skin themes, equipment slot definitions, locked-slot presentation, default equipment fallback, and equipment-effect labels moved to `FATCATUI/assets/scripts/ui/CatPresentation.ts`; `tools/check-cat-presentation-contract.js` guards the split and runs in `tools/quick-verify.ps1`.
 - First split HUD, bottom nav, main factory, cat page, and generic panels.
 - Keep existing regression scripts green during each slice.
 - Cat page and main factory CSS are now large enough that extracting DOM style/render helpers should be considered after the next visual checkpoint.

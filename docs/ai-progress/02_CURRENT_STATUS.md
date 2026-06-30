@@ -22,7 +22,7 @@ Updated: 2026-06-30
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
 | Biggest Gap | Visual fidelity | Main factory and cat page are closer to target, but icon consistency, generated illustration depth, and final target-proportion tuning still need work. |
-| Biggest Risk | Frontend size | `BottomNavUI.ts` remains too large; the asset-resolver, formatter, main-panel config, UI presentation, factory presentation, and feature-panel presentation extractions are done, and further HUD/nav/cat/panel splits should continue. |
+| Biggest Risk | Frontend size | `BottomNavUI.ts` remains too large; the asset-resolver, formatter, main-panel config, UI presentation, factory presentation, feature-panel presentation, and cat presentation extractions are done, and further HUD/nav/panel splits should continue. |
 
 ## Client UI
 
@@ -53,6 +53,7 @@ Updated: 2026-06-30
 - Latest cat story pass deepens the lower story card without moving the verified geometry: story copy now has paper-strip hierarchy and contextual tags, the selected-cat photo reads as a pinned work-photo sticker, and the story-wall action has a chapter-style button treatment.
 - Latest cat equipment-card pass adds target-like item-card affordances to equipped slots and backpack entries: rarity badges, slot labels, bonus pills, clearer level display, locked-slot state, and matching screenshot-regression assertions.
 - Latest cat skin-theme pass gives the wardrobe cards distinct outfit themes without changing geometry: cafe workwear, baking apron, manager mantle, and festival outfit now have CSS outfit overlays, style badges, color swatches, and screenshot-regression assertions for themed cards.
+- Latest cat presentation code-health pass extracts side-tab definitions, skin themes, equipment slots, locked-slot copy, default equipment fallback, and equipment-effect labels into `CatPresentation.ts`. `BottomNavUI.ts` keeps live cat/equipment values and button actions local, guarded by `tools/check-cat-presentation-contract.js`.
 - Generated achievement/mail/friend/settings art now uses a cropped, larger presentation in the main side tools. Cat info/upgrade/skill/equipment/skin tabs dynamically use the selected cat, coin, role skill, collar, and cushion assets instead of CSS-only symbols.
 - A new eight-icon project-native pack now replaces the remaining main-screen CSS placeholders: task clipboard, reward chest, launch rocket, factory, buildings, shop, inventory, and research. Final transparent PNGs live under `FATCATUI/assets/resources/textures/generated/ui/`, are registered in `UiAssetRegistry.ts`, and are embedded through `DomAssetDataUris.ts`.
 - The generated 2x4 source was chroma-key processed into 384x384 frames. Independent alpha-bounds QC confirmed every final icon retains at least 42px transparent margin on every side; 430px uses stronger crop/scale while <=390px reduces nav icon width to preserve labels.
@@ -80,6 +81,7 @@ Latest verified UI commands:
 - `node .\tools\capture-main-regression.js`
 - `node .\tools\capture-cat-regression.js`
 - `node .\tools\capture-cat-lineup.js`
+- `node .\tools\check-cat-presentation-contract.js`
 - `node .\tools\capture-feature-regression.js`
 - `node .\tools\capture-utility-regression.js`
 - `node .\tools\check-feature-panel-presentation-contract.js`

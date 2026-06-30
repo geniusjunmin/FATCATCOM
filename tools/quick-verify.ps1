@@ -61,6 +61,10 @@ Invoke-Step "Feature panel presentation contract check" {
     node .\tools\check-feature-panel-presentation-contract.js
 }
 
+Invoke-Step "Cat presentation contract check" {
+    node .\tools\check-cat-presentation-contract.js
+}
+
 Invoke-Step "Shop state contract check" {
     node .\tools\check-shop-state-contract.js
 }

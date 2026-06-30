@@ -82,6 +82,16 @@ import {
     type InventoryTabId,
     type ShopTabId,
 } from "./FeaturePanelPresentation";
+import {
+    CAT_DEFAULT_EQUIPMENT,
+    CAT_EQUIPMENT_EFFECT_LINES,
+    CAT_EQUIPMENT_SLOTS,
+    CAT_LOCKED_EQUIPMENT_SLOT,
+    CAT_SIDE_TABS,
+    CAT_SKIN_THEMES,
+    type CatEquipmentSlotName,
+    type CatTabId,
+} from "./CatPresentation";
 
 const { ccclass, property } = _decorator;
 
@@ -147,9 +157,9 @@ export class BottomNavUI extends Component {
     private _factoryMessage = "";
     private _factoryNoticeKind: "achievement" | "mail" | "friend" | "settings" | "" = "";
     private _selectedDomCatId = "";
-    private _domCatTab = "info";
+    private _domCatTab: CatTabId = "info";
     private _domCatMessage = "";
-    private _selectedEquipSlot = "项圈";
+    private _selectedEquipSlot: CatEquipmentSlotName = "项圈";
     private _selectedDomBuildingId = "building_cafe_1f";
     private _domShopTab: ShopTabId = "resource";
     private _domInventoryTab: InventoryTabId = "all";
@@ -5058,7 +5068,7 @@ export class BottomNavUI extends Component {
             return;
         }
         if (action === "tab") {
-            this._domCatTab = button.dataset.tab || "info";
+            this._domCatTab = (button.dataset.tab as CatTabId) || "info";
             this._domCatMessage = `已切换到${button.textContent ?? "信息"}页`;
         } else if (action === "selectCat") {
             this._selectedDomCatId = id;
@@ -5115,7 +5125,7 @@ export class BottomNavUI extends Component {
             this._domCatMessage = "技能详情已展开，后续会接入升级材料和触发记录。";
         } else if (action === "equipItem") {
             this._domCatTab = "equip";
-            this._selectedEquipSlot = button.dataset.slot || "项圈";
+            this._selectedEquipSlot = (button.dataset.slot as CatEquipmentSlotName) || "项圈";
             const itemId = button.dataset.item || "";
             if (itemId) {
                 this._domCatMessage = CatManager.equipItem(id, this._selectedEquipSlot, itemId)
@@ -5126,7 +5136,7 @@ export class BottomNavUI extends Component {
             }
         } else if (action === "upgradeEquip") {
             this._domCatTab = "equip";
-            this._selectedEquipSlot = button.dataset.slot || this._selectedEquipSlot;
+            this._selectedEquipSlot = (button.dataset.slot as CatEquipmentSlotName) || this._selectedEquipSlot;
             const state = CatManager.getEquipmentUpgradeState(id, this._selectedEquipSlot);
             const serverUpgrade = NetworkManager.canUseServer && state.itemId
                 ? await SyncManager.upgradeServerEquipment(id, state.itemId)
@@ -5195,11 +5205,7 @@ export class BottomNavUI extends Component {
                 <button class="close-x" data-action="back">×</button>
                 <div class="cat-side">
                     <button class="back" data-action="back">‹</button>
-                    ${this.renderCatSideTab("info", "信息")}
-                    ${this.renderCatSideTab("upgrade", "升级")}
-                    ${this.renderCatSideTab("skill", "技能")}
-                    ${this.renderCatSideTab("equip", "装备")}
-                    ${this.renderCatSideTab("skin", "皮肤")}
+                    ${CAT_SIDE_TABS.map(tab => this.renderCatSideTab(tab.id, tab.label)).join("")}
                 </div>
                 <div class="cat-overview-head">
                     <div><b>${unlockedCount}/${configs.length}</b><span>已招募猫咪</span></div>
@@ -5230,11 +5236,11 @@ export class BottomNavUI extends Component {
             </div>`;
     }
 
-    private renderCatSideTab(tab: string, label: string): string {
+    private renderCatSideTab(tab: CatTabId, label: string): string {
         return `<button class="side-tab tab-${tab} ${this._domCatTab === tab ? "active" : ""}" data-action="tab" data-tab="${tab}"><i class="asset" style="background-image:url('${this.getCatSideTabIcon(tab)}')"></i>${label}</button>`;
     }
 
-    private getCatSideTabIcon(tab: string): string {
+    private getCatSideTabIcon(tab: CatTabId): string {
         const config = CatManager.getConfig(this._selectedDomCatId);
         if (tab === "info") return this.getCatFullArtAsset(config?.id ?? "c_001", config?.portrait);
         if (tab === "upgrade") return this.getGeneratedIconAsset("coin");
@@ -5262,13 +5268,7 @@ export class BottomNavUI extends Component {
         }
         if (this._domCatTab === "skin") {
             const catArt = this.getCatFullArtAsset(config.id, config.portrait);
-            const skins = [
-                { name: "默认工作服", desc: "原料产量稳定", state: "已启用", style: "咖啡绿", className: "selected cafe", art: catArt, a: "#567648", b: "#2f4b32", swatches: ["#567648", "#e8c178", "#5b3924"] },
-                { name: "烘焙围裙", desc: "咖啡价值 +2%", state: "活动", style: "烘焙师", className: "apron", art: catArt, a: "#c46b34", b: "#fff0d0", swatches: ["#c46b34", "#fff0d0", "#8a5631"] },
-                { name: "店长披肩", desc: "金币加成 +1%", state: "待开放", style: "店长装", className: "manager locked", art: catArt, a: "#2f6f69", b: "#173d44", swatches: ["#2f6f69", "#d9b06a", "#173d44"] },
-                { name: "节日礼服", desc: "心情上限 +3", state: "待开放", style: "节日", className: "festival locked", art: catArt, a: "#7b4bc0", b: "#cf6a9a", swatches: ["#7b4bc0", "#cf6a9a", "#fff2a0"] },
-            ];
-            const cards = skins.map(item => `<div class="skin-card-target ${item.className}" style="--skin-a:${item.a};--skin-b:${item.b}"><i style="background-image:url('${item.art}')"></i><div><b>${item.name}</b><span>${item.desc}</span><strong class="skin-style-badge">${item.style}</strong><div class="skin-swatches">${item.swatches.map(color => `<s style="--swatch:${color}"></s>`).join("")}</div><em>${item.state}</em></div></div>`).join("");
+            const cards = CAT_SKIN_THEMES.map(item => `<div class="skin-card-target ${item.className}" style="--skin-a:${item.colorA};--skin-b:${item.colorB}"><i style="background-image:url('${catArt}')"></i><div><b>${item.name}</b><span>${item.desc}</span><strong class="skin-style-badge">${item.style}</strong><div class="skin-swatches">${item.swatches.map(color => `<s style="--swatch:${color}"></s>`).join("")}</div><em>${item.state}</em></div></div>`).join("");
             return `<div class="skin-wardrobe"><div class="skin-preview-card"><span class="skin-preview-art" style="background-image:url('${catArt}')"></span><strong>皮肤衣柜</strong><small>当前启用：默认工作服</small></div><div class="skin-list-target">${cards}</div></div>`;
         }
         const skillLevel = Math.max(1, Math.floor(data.level / 10) + 1);
@@ -5281,23 +5281,16 @@ export class BottomNavUI extends Component {
         const mood = CatManager.getEquipmentEffectTotal(catId, "mood");
         const food = CatManager.getEquipmentEffectTotal(catId, "catFoodCost");
         const wage = CatManager.getEquipmentEffectTotal(catId, "wageCost");
-        const rows = [
-            material !== 0 ? `原料产量 ${material > 0 ? "+" : ""}${material}%` : "",
-            mood !== 0 ? `心情上限 ${mood > 0 ? "+" : ""}${mood}%` : "",
-            food !== 0 ? `猫粮消耗 ${food > 0 ? "+" : ""}${food}%` : "",
-            wage !== 0 ? `工资消耗 ${wage > 0 ? "+" : ""}${wage}%` : "",
-        ].filter(Boolean);
+        const values: Record<string, number> = { materialOutput: material, mood, catFoodCost: food, wageCost: wage };
+        const rows = CAT_EQUIPMENT_EFFECT_LINES
+            .map(item => values[item.type] !== 0 ? `${item.label} ${values[item.type] > 0 ? "+" : ""}${values[item.type]}%` : "")
+            .filter(Boolean);
         return rows.length ? rows.slice(0, 2).join("<br>") : "暂无装备加成";
     }
 
     private renderCatEquipPanel(catId: string): string {
         const equipment = CatManager.getEquipment(catId);
-        const slots = [
-            { slot: "项圈", kind: "collar" },
-            { slot: "杯子", kind: "cup" },
-            { slot: "坐垫", kind: "cushion" },
-        ];
-        const row = slots.map(item => {
+        const row = CAT_EQUIPMENT_SLOTS.map(item => {
             const active = this._selectedEquipSlot === item.slot ? "selected" : "";
             const equipped = this.getEquipDefinition(equipment[item.slot]);
             const equipLevel = CatManager.getEquipmentLevel(catId, equipped.id);
@@ -5319,11 +5312,11 @@ export class BottomNavUI extends Component {
         const upgradeDisabled = upgradeState.isMax || !upgradeState.canAfford;
         const nextText = upgradeState.isMax ? "已达上限" : `Lv.${upgradeState.nextLevel}/${upgradeState.maxLevel}`;
         const detailClass = this._domCatTab === "equip" ? "detail-mode" : "overview-mode";
-        return `<div class="equip-layout ${detailClass}"><div class="equip-row">${row}<button class="equip-slot locked"><span class="equip-rarity">?</span><span class="equip-slot-tag">饰品</span><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset("lock")}')"></i><span class="equip-name">饰品槽</span><em>30级解锁</em><span class="equip-bonus-pill">等待开放</span><span class="equip-cta">锁定</span></button></div><div class="equip-bag"><strong>装备背包</strong><div>${backpack}</div><div class="equip-upgrade-info"><span>当前等级<b>Lv.${upgradeState.level}/${upgradeState.maxLevel}</b></span><span>下级预览<b>${nextText}</b></span><span>升级消耗<b>${upgradeState.cost} 金币</b></span></div><div class="equip-effect-info"><span>当前加成<b>${upgradeState.currentEffect}</b></span><span>下级加成<b>${upgradeState.nextEffect}</b></span></div><button class="equip-upgrade ${upgradeDisabled ? "disabled" : ""}" data-action="upgradeEquip" data-slot="${this._selectedEquipSlot}" data-id="${catId}" ${upgradeDisabled ? "disabled" : ""}>${upgradeLabel}</button></div></div>`;
+        return `<div class="equip-layout ${detailClass}"><div class="equip-row">${row}<button class="equip-slot locked"><span class="equip-rarity">?</span><span class="equip-slot-tag">${CAT_LOCKED_EQUIPMENT_SLOT.slot}</span><i class="equip-icon asset" style="background-image:url('${this.getEquipIconAsset(CAT_LOCKED_EQUIPMENT_SLOT.kind)}')"></i><span class="equip-name">${CAT_LOCKED_EQUIPMENT_SLOT.name}</span><em>${CAT_LOCKED_EQUIPMENT_SLOT.unlockText}</em><span class="equip-bonus-pill">${CAT_LOCKED_EQUIPMENT_SLOT.bonus}</span><span class="equip-cta">${CAT_LOCKED_EQUIPMENT_SLOT.actionLabel}</span></button></div><div class="equip-bag"><strong>装备背包</strong><div>${backpack}</div><div class="equip-upgrade-info"><span>当前等级<b>Lv.${upgradeState.level}/${upgradeState.maxLevel}</b></span><span>下级预览<b>${nextText}</b></span><span>升级消耗<b>${upgradeState.cost} 金币</b></span></div><div class="equip-effect-info"><span>当前加成<b>${upgradeState.currentEffect}</b></span><span>下级加成<b>${upgradeState.nextEffect}</b></span></div><button class="equip-upgrade ${upgradeDisabled ? "disabled" : ""}" data-action="upgradeEquip" data-slot="${this._selectedEquipSlot}" data-id="${catId}" ${upgradeDisabled ? "disabled" : ""}>${upgradeLabel}</button></div></div>`;
     }
 
     private getEquipDefinition(itemId = ""): { id: string; slot: string; kind: string; name: string; rarity: string; bonus: string; levelMax?: number; upgradeCost?: number; source?: string; effects?: Array<{ label: string; baseValue: number; perLevel?: number; unit?: string }> } {
-        const fallback = this.getEquipOptions("项圈")[0] ?? { id: "equip_collar_green", slot: "项圈", kind: "collar", name: "猫咪项圈", rarity: "B", bonus: "原料 +15%", levelMax: 5, upgradeCost: 80, source: "新手任务", effects: [{ label: "原料产量", baseValue: 15, perLevel: 1, unit: "%" }] };
+        const fallback = this.getEquipOptions("项圈")[0] ?? CAT_DEFAULT_EQUIPMENT;
         return CatManager.getEquipmentConfig(itemId) ?? fallback;
     }
 
