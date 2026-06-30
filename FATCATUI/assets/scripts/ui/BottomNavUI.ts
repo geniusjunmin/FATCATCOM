@@ -101,6 +101,7 @@ import {
     HUD_RESOURCE_ITEMS,
     type HudResourceKind,
 } from "./HudPresentation";
+import { DOM_NAV_STYLES } from "./NavPresentation";
 
 const { ccclass, property } = _decorator;
 
@@ -3470,60 +3471,7 @@ export class BottomNavUI extends Component {
         const overlay = document.createElement("div");
         overlay.id = "fatcat-dom-nav";
         const style = document.createElement("style");
-        style.textContent = `
-            #fatcat-dom-nav { position: fixed; z-index: 2147483100; pointer-events: none; font-family: Arial, sans-serif; color: #fff4d8; }
-            #fatcat-dom-nav .nav-bar { position: absolute; left: 2.7%; right: 2.7%; bottom: 1%; height: 6.8%; border-radius: 15px; background: radial-gradient(circle at 50% 0, rgba(255,228,170,.2), transparent 36%), linear-gradient(#6b5545, #30241d); border: 3px solid #8a6a50; box-shadow: 0 -2px 0 rgba(255,255,255,.1) inset, 0 7px 0 rgba(0,0,0,.42), inset 0 0 0 2px rgba(255,224,170,.08); display: grid; grid-template-columns: 1.15fr repeat(5, 1fr); gap: 1.0%; padding: .45%; box-sizing: border-box; }
-            #fatcat-dom-nav .nav-item { position: relative; border:0; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4%; color: #f7e3c1; font-family:inherit; font-weight: 900; font-size: 2.18%; text-shadow: 0 2px 0 rgba(0,0,0,.38); background:radial-gradient(circle at 50% 0, rgba(255,236,188,.08), transparent 38%), rgba(255,224,180,.05); box-shadow:inset 0 0 0 1px rgba(255,231,190,.1), 0 2px 0 rgba(0,0,0,.18); cursor:pointer; pointer-events:auto; padding:0; touch-action:manipulation; }
-            #fatcat-dom-nav .nav-item.active { background: radial-gradient(circle at 50% 0, rgba(255,244,190,.45), transparent 40%), linear-gradient(#f6a334, #c86418); color: white; box-shadow: inset 0 0 0 3px rgba(255,226,159,.3), 0 5px 0 rgba(0,0,0,.34); }
-            #fatcat-dom-nav .nav-item.active:before { content:""; position:absolute; left:12%; right:12%; bottom:-8%; height:12%; border-radius:999px; background:#7a431b; box-shadow:0 2px 0 rgba(0,0,0,.3); }
-            #fatcat-dom-nav .nav-icon { position: relative; width: 48%; aspect-ratio: 1; border-radius: 13px; background: radial-gradient(circle at 50% 10%, rgba(255,255,255,.32), transparent 28%), linear-gradient(#f7e1b8, #b98848); color: #49311f; display: flex; align-items: center; justify-content: center; font-size: 2.1%; font-weight: 900; box-shadow: inset 0 0 0 2px rgba(93,58,28,.22), 0 3px 0 rgba(39,24,15,.24); overflow: hidden; }
-            #fatcat-dom-nav .nav-item.active .nav-icon { background: radial-gradient(circle at 50% 10%, rgba(255,255,255,.4), transparent 30%), linear-gradient(#fff6d9, #d8a24f); transform: translateY(-3%); box-shadow:inset 0 0 0 2px rgba(116,69,24,.18), 0 4px 0 rgba(85,45,16,.22); }
-            #fatcat-dom-nav .nav-label { max-width:94%; overflow:hidden; white-space:nowrap; text-overflow:clip; line-height:1.05; }
-            #fatcat-dom-nav .ico-factory::before { content: ""; position: absolute; left: 24%; right: 24%; bottom: 20%; height: 46%; border-radius: 3px; background: #6f7f83; box-shadow: inset 0 0 0 2px #4b5b5e; }
-            #fatcat-dom-nav .ico-factory::after { content: ""; position: absolute; left: 31%; right: 31%; top: 18%; height: 24%; border-radius: 3px 3px 0 0; background: #a6b3b4; box-shadow: 0 -7px 0 -3px #d45b31; }
-            #fatcat-dom-nav .ico-cats::before { content: ""; position: absolute; left: 31%; top: 27%; width: 38%; height: 38%; border-radius: 50%; background: #7b543b; box-shadow: -13px 13px 0 -4px #7b543b, 13px 13px 0 -4px #7b543b, -14px -10px 0 -6px #7b543b, 14px -10px 0 -6px #7b543b; }
-            #fatcat-dom-nav .ico-building::before { content: ""; position: absolute; left: 20%; right: 20%; bottom: 20%; height: 42%; border-radius: 3px; background: #806047; box-shadow: inset 0 0 0 2px #4f392b; }
-            #fatcat-dom-nav .ico-building::after { content: ""; position: absolute; left: 16%; right: 16%; top: 22%; height: 24%; transform: rotate(45deg); background: #c18b49; box-shadow: inset 0 0 0 2px #6f4b2e; }
-            #fatcat-dom-nav .ico-shop::before { content: ""; position: absolute; left: 18%; right: 18%; bottom: 20%; height: 38%; border-radius: 3px; background: #8b6547; box-shadow: inset 0 0 0 2px #553a28; }
-            #fatcat-dom-nav .ico-shop::after { content: ""; position: absolute; left: 14%; right: 14%; top: 21%; height: 22%; border-radius: 6px; background: repeating-linear-gradient(90deg,#e45d37 0 20%,#fff0ca 20% 40%); box-shadow: 0 2px 0 #6a3c2a; }
-            #fatcat-dom-nav .ico-inventory::before { content: ""; position: absolute; left: 24%; right: 24%; bottom: 18%; height: 50%; border-radius: 8px 8px 5px 5px; background: #b07a3d; box-shadow: inset 0 0 0 2px #65401f; }
-            #fatcat-dom-nav .ico-inventory::after { content: ""; position: absolute; left: 36%; right: 36%; top: 18%; height: 20%; border-radius: 999px 999px 0 0; border: 4px solid #65401f; border-bottom: 0; }
-            #fatcat-dom-nav .ico-research::before { content: ""; position: absolute; left: 37%; right: 37%; top: 19%; height: 24%; border-radius: 3px; background: #d8eee2; box-shadow: inset 0 0 0 2px #5c756b; }
-            #fatcat-dom-nav .ico-research::after { content: ""; position: absolute; left: 25%; right: 25%; bottom: 18%; height: 42%; border-radius: 0 0 18px 18px; background: linear-gradient(#d8eee2 0 36%, #58a684 37%); box-shadow: inset 0 0 0 2px #5c756b; }
-            #fatcat-dom-nav .badge { position: absolute; top: -3%; right: 13%; width: 22%; aspect-ratio: 1; border-radius: 50%; background: linear-gradient(#ff6a36,#d83c1f); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.65%; border: 2px solid #ffd2a6; box-shadow: 0 3px 0 rgba(0,0,0,.36); z-index:2; }
-            #fatcat-dom-nav.compact .nav-bar { left: 1.2%; right: 1.2%; height: 7.1%; gap: .6%; padding: .4%; }
-            #fatcat-dom-nav.compact .nav-item { gap:2%; font-size: 1.98%; border-radius: 12px; }
-            #fatcat-dom-nav.compact .nav-icon { width: 46%; }
-            #fatcat-dom-nav.compact .badge { width: 20%; right: 10%; }
-            #fatcat-dom-nav.wide .nav-bar { left: 14%; right: 14%; }
-            #fatcat-dom-nav .nav-icon.asset {
-                width:58%;
-                border-radius:0;
-                background-color:transparent;
-                background-position:center;
-                background-size:155%;
-                background-repeat:no-repeat;
-                box-shadow:none;
-                overflow:visible;
-                filter:drop-shadow(0 3px 0 rgba(39,24,15,.28));
-            }
-            #fatcat-dom-nav .nav-icon.asset:before,
-            #fatcat-dom-nav .nav-icon.asset:after { display:none !important; }
-            #fatcat-dom-nav .nav-icon.asset.ico-cats {
-                background-position:center 30%;
-                background-size:175%;
-            }
-            #fatcat-dom-nav .nav-icon.asset.ico-factory,
-            #fatcat-dom-nav .nav-icon.asset.ico-building { background-size:155%; }
-            #fatcat-dom-nav.compact .nav-icon.asset { width:58%; }
-            @media (max-width:390px) {
-                #fatcat-dom-nav.compact .nav-icon.asset {
-                    width:48%;
-                    background-size:145%;
-                }
-                #fatcat-dom-nav.compact .nav-icon.asset.ico-cats { background-size:165%; }
-            }
-        `;
+        style.textContent = DOM_NAV_STYLES;
         document.head.appendChild(style);
         overlay.addEventListener("pointerdown", this.onDomNavPointerDown);
         document.body.appendChild(overlay);

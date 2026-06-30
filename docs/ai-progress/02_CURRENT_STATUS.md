@@ -22,7 +22,7 @@ Updated: 2026-06-30
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
 | Biggest Gap | Visual fidelity | Main factory and cat page are closer to target, but icon consistency, generated illustration depth, and final target-proportion tuning still need work. |
-| Biggest Risk | Frontend size | `BottomNavUI.ts` remains too large; the asset-resolver, formatter, main-panel config, UI presentation, factory presentation, feature-panel presentation, cat presentation, and HUD presentation extractions are done, and further nav/panel splits should continue. |
+| Biggest Risk | Frontend size | `BottomNavUI.ts` remains too large; the asset-resolver, formatter, main-panel config, UI presentation, factory presentation, feature-panel presentation, cat presentation, HUD presentation, and nav presentation extractions are done, and further panel/style splits should continue. |
 
 ## Client UI
 
@@ -74,6 +74,7 @@ Updated: 2026-06-30
 - Screenshot regression exists for 414x896, 430x932, 360x800, and 768x1024 on the main screen and cat page.
 - Latest feature-panel code-health pass extracts static settings, task milestone, shop tab/catalog, inventory tab/preview, and research-tree presentation data into `FeaturePanelPresentation.ts`. `BottomNavUI.ts` now delegates those values while keeping live state and action rendering local, guarded by `tools/check-feature-panel-presentation-contract.js`.
 - Latest HUD presentation code-health pass extracts top-HUD CSS, company/level/exp constants, and four resource item definitions into `HudPresentation.ts`. `BottomNavUI.ts` keeps live resource values and layout refresh local, guarded by `tools/check-hud-presentation-contract.js`.
+- Latest nav presentation code-health pass extracts bottom DOM navigation CSS into `NavPresentation.ts`. `BottomNavUI.ts` still renders shared nav items and click handling locally, guarded by `tools/check-nav-presentation-contract.js`.
 - Remaining visual gap: generated art depth where CSS still looks flat, final main/cat target proportions, future true bitmap skin/outfit illustrations, and larger Cocos-managed illustration assets.
 
 Latest verified UI commands:
@@ -84,6 +85,7 @@ Latest verified UI commands:
 - `node .\tools\capture-cat-lineup.js`
 - `node .\tools\check-cat-presentation-contract.js`
 - `node .\tools\check-hud-presentation-contract.js`
+- `node .\tools\check-nav-presentation-contract.js`
 - `node .\tools\capture-feature-regression.js`
 - `node .\tools\capture-utility-regression.js`
 - `node .\tools\check-feature-panel-presentation-contract.js`

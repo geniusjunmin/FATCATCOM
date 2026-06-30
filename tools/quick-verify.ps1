@@ -69,6 +69,10 @@ Invoke-Step "HUD presentation contract check" {
     node .\tools\check-hud-presentation-contract.js
 }
 
+Invoke-Step "Nav presentation contract check" {
+    node .\tools\check-nav-presentation-contract.js
+}
+
 Invoke-Step "Shop state contract check" {
     node .\tools\check-shop-state-contract.js
 }
