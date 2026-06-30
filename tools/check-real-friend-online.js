@@ -144,6 +144,8 @@ async function get(path) {
             && added.json.data?.profile?.lastActiveAt > 0
             && added.json.data?.profile?.unlockedCatCount > 0
             && added.json.data?.profile?.totalBuildingLevel > 0
+            && added.json.data?.rooms?.every((room) => room.decorations?.length === 2
+                && room.decorScore === room.decorations.reduce((sum, decor) => sum + decor.score, 0))
             && presence.json.data?.status === "online"
             && presence.json.data?.lastActiveAt > 0
             && refreshed.json.data?.id === targetKey
@@ -184,6 +186,11 @@ async function get(path) {
             searched: searched.json.data,
             added: added.json.data,
             realFriendProfile: added.json.data?.profile,
+            realFriendDecorations: added.json.data?.rooms?.map((room) => ({
+                floor: room.floor,
+                score: room.decorScore,
+                names: room.decorations?.map((decor) => decor.name),
+            })),
             presence: presence.json.data,
             refreshedFriend: refreshed.json.data,
             missingFriendStatus: missingFriend.response.status,

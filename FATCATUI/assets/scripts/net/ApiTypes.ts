@@ -259,6 +259,14 @@ export type FriendRoomDto = {
     assignedCatCount: number;
     featuredCatName: string;
     decorScore: number;
+    decorations: FriendDecorDto[];
+};
+
+export type FriendDecorDto = {
+    decorId: string;
+    name: string;
+    score: number;
+    isPlaced: boolean;
 };
 
 export type FriendActionResponse = {

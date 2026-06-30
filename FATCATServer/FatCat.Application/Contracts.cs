@@ -224,7 +224,14 @@ public sealed record FriendRoomDto(
     int ProductionPerSecond,
     int AssignedCatCount,
     string FeaturedCatName,
-    int DecorScore);
+    int DecorScore,
+    IReadOnlyList<FriendDecorDto> Decorations);
+
+public sealed record FriendDecorDto(
+    string DecorId,
+    string Name,
+    int Score,
+    bool IsPlaced);
 
 public sealed record FriendProfileDto(
     bool IsRealPlayer,

@@ -20,6 +20,7 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
     public DbSet<PlayerShopPurchaseHistory> ShopPurchaseHistories => Set<PlayerShopPurchaseHistory>();
     public DbSet<PlayerCatState> CatStates => Set<PlayerCatState>();
     public DbSet<PlayerBuildingState> BuildingStates => Set<PlayerBuildingState>();
+    public DbSet<PlayerDecorState> DecorStates => Set<PlayerDecorState>();
     public DbSet<PlayerResearchState> ResearchStates => Set<PlayerResearchState>();
     public DbSet<PlayerLaunchRecord> LaunchRecords => Set<PlayerLaunchRecord>();
 
@@ -151,6 +152,27 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
         await Database.ExecuteSqlRawAsync("""
             CREATE UNIQUE INDEX IF NOT EXISTS "IX_BuildingStates_PlayerId_BuildingKey"
             ON "BuildingStates" ("PlayerId", "BuildingKey");
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "DecorStates" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_DecorStates" PRIMARY KEY,
+                "PlayerId" TEXT NOT NULL,
+                "DecorKey" TEXT NOT NULL,
+                "BuildingKey" TEXT NOT NULL,
+                "Name" TEXT NOT NULL,
+                "Score" INTEGER NOT NULL,
+                "IsPlaced" INTEGER NOT NULL,
+                "UpdatedAt" TEXT NOT NULL,
+                CONSTRAINT "FK_DecorStates_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
+            );
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_DecorStates_PlayerId_DecorKey"
+            ON "DecorStates" ("PlayerId", "DecorKey");
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE INDEX IF NOT EXISTS "IX_DecorStates_PlayerId_BuildingKey"
+            ON "DecorStates" ("PlayerId", "BuildingKey");
             """, cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS "ResearchStates" (
@@ -418,6 +440,20 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.HasOne(building => building.Player)
                 .WithMany()
                 .HasForeignKey(building => building.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlayerDecorState>(entity =>
+        {
+            entity.HasKey(decor => decor.Id);
+            entity.HasIndex(decor => new { decor.PlayerId, decor.DecorKey }).IsUnique();
+            entity.HasIndex(decor => new { decor.PlayerId, decor.BuildingKey });
+            entity.Property(decor => decor.DecorKey).HasMaxLength(120);
+            entity.Property(decor => decor.BuildingKey).HasMaxLength(120);
+            entity.Property(decor => decor.Name).HasMaxLength(120);
+            entity.HasOne(decor => decor.Player)
+                .WithMany()
+                .HasForeignKey(decor => decor.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

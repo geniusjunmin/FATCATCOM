@@ -18,6 +18,21 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         ["shop_coin_pack_1"] = new ShopItemDefinition("shop_coin_pack_1", "item_coin_pack_small", "diamond", 10, 10),
         ["shop_shard_orange_1"] = new ShopItemDefinition("shop_shard_orange_1", "item_shard_orange", "coin", 2000, 1),
     };
+    private static readonly (string DecorId, string BuildingId, string Name, int Score)[] DefaultDecorations =
+    [
+        ("decor_office_clock", "building_office_5f", "复古挂钟", 32),
+        ("decor_office_plant", "building_office_5f", "绿植书架", 26),
+        ("decor_roast_lamp", "building_roast_4f", "铜制烘焙灯", 38),
+        ("decor_roast_beans", "building_roast_4f", "豆袋陈列架", 30),
+        ("decor_ferment_gauge", "building_ferment_3f", "发酵温度计", 34),
+        ("decor_ferment_plate", "building_ferment_3f", "管道铭牌", 28),
+        ("decor_material_mill", "building_material_2f", "黄铜磨豆机", 40),
+        ("decor_material_crates", "building_material_2f", "原料木箱", 30),
+        ("decor_cafe_sign", "building_cafe_1f", "猫爪招牌", 42),
+        ("decor_cafe_cup", "building_cafe_1f", "幸运咖啡杯", 34),
+        ("decor_storage_lamp", "building_storage_b1", "仓库吊灯", 28),
+        ("decor_storage_bags", "building_storage_b1", "咖啡麻袋组", 26),
+    ];
 
     public async Task<AuthGuestResponse> AuthGuestAsync(AuthGuestRequest request, CancellationToken cancellationToken)
     {
@@ -28,6 +43,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             await EnsureResourceStateAsync(existing.Id, cancellationToken);
             await EnsureDefaultCatStateAsync(existing.Id, cancellationToken);
             await EnsureDefaultBuildingStatesAsync(existing.Id, cancellationToken);
+            await EnsureDefaultDecorStatesAsync(existing.Id, cancellationToken);
             await EnsureInviteCodeAsync(existing.Id, cancellationToken);
             existing.UpdatedAt = DateTimeOffset.UtcNow;
             await repository.SaveChangesAsync(cancellationToken);
@@ -45,6 +61,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         await EnsureResourceStateAsync(player.Id, cancellationToken);
         await EnsureDefaultCatStateAsync(player.Id, cancellationToken);
         await EnsureDefaultBuildingStatesAsync(player.Id, cancellationToken);
+        await EnsureDefaultDecorStatesAsync(player.Id, cancellationToken);
         await EnsureInviteCodeAsync(player.Id, cancellationToken);
         return new AuthGuestResponse(player.Id, CreateDevToken(player.Id), true);
     }
@@ -1762,6 +1779,23 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         }
     }
 
+    private async Task EnsureDefaultDecorStatesAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        foreach (var definition in DefaultDecorations)
+        {
+            await repository.AddDecorIfMissingAsync(new PlayerDecorState
+            {
+                PlayerId = playerId,
+                DecorKey = definition.DecorId,
+                BuildingKey = definition.BuildingId,
+                Name = definition.Name,
+                Score = definition.Score,
+                IsPlaced = true,
+                UpdatedAt = DateTimeOffset.UtcNow,
+            }, cancellationToken);
+        }
+    }
+
     private async Task<PlayerResearchState> EnsureResearchStateAsync(Guid playerId, string researchId, CancellationToken cancellationToken)
     {
         var research = await repository.GetResearchStateAsync(playerId, researchId, cancellationToken);
@@ -2165,6 +2199,16 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         IReadOnlyList<PlayerBuildingState> buildingStates = realPlayerId == Guid.Empty
             ? []
             : await repository.GetBuildingStatesAsync(realPlayerId, cancellationToken);
+        IReadOnlyList<PlayerDecorState> decorStates = [];
+        if (realPlayerId != Guid.Empty)
+        {
+            decorStates = await repository.GetDecorStatesAsync(realPlayerId, cancellationToken);
+            if (decorStates.Count < DefaultDecorations.Length)
+            {
+                await EnsureDefaultDecorStatesAsync(realPlayerId, cancellationToken);
+                decorStates = await repository.GetDecorStatesAsync(realPlayerId, cancellationToken);
+            }
+        }
         var orderedDefinitions = balance.BuildingDefinitions.Values
             .OrderByDescending(definition => GetFriendRoomSort(definition.Floor))
             .ToArray();
@@ -2188,7 +2232,16 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             var featuredCatName = assignedCats.Length > 0
                 ? GetFriendCatName(assignedCats[0].CatKey)
                 : (assignedCatCount > 0 ? "巡逻肥猫" : "待派驻");
-            var decorScore = Math.Max(0, buildingLevel * 12 + assignedCatCount * 8);
+            var decorations = realPlayerId == Guid.Empty
+                ? DefaultDecorations
+                    .Where(decor => string.Equals(decor.BuildingId, definition.BuildingId, StringComparison.Ordinal))
+                    .Select(decor => new FriendDecorDto(decor.DecorId, decor.Name, decor.Score, true))
+                    .ToArray()
+                : decorStates
+                    .Where(decor => decor.IsPlaced && string.Equals(decor.BuildingKey, definition.BuildingId, StringComparison.Ordinal))
+                    .Select(decor => new FriendDecorDto(decor.DecorKey, decor.Name, decor.Score, decor.IsPlaced))
+                    .ToArray();
+            var decorScore = decorations.Sum(decor => Math.Max(0, decor.Score));
             var production = index == orderedDefinitions.Length - 1
                 ? remaining
                 : (int)Math.Floor(friend.IncomePerSecond * (Math.Max(1, Math.Abs(definition.BaseValue) + definition.Level * 3) / (double)Math.Max(1, totalWeight)));
@@ -2202,7 +2255,8 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
                 production,
                 assignedCatCount,
                 featuredCatName,
-                decorScore));
+                decorScore,
+                decorations));
         }
 
         return rooms;

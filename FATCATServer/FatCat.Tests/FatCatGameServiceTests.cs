@@ -421,6 +421,13 @@ public sealed class FatCatGameServiceTests
         Assert.True(visited!.Friend.Rooms.Count >= 3);
         Assert.Contains(visited.Friend.Rooms, room => room.Floor == "5F" && room.ProductionPerSecond >= 0);
         Assert.Contains(visited.Friend.Rooms, room => room.AssignedCatCount >= 0 && !string.IsNullOrWhiteSpace(room.FeaturedCatName) && room.DecorScore >= 0);
+        Assert.All(visited.Friend.Rooms, room =>
+        {
+            Assert.Equal(2, room.Decorations.Count);
+            Assert.Equal(room.Decorations.Sum(decor => decor.Score), room.DecorScore);
+            Assert.All(room.Decorations, decor => Assert.True(decor.IsPlaced));
+        });
+        Assert.Equal(12, dbContext.DecorStates.Count(item => item.PlayerId == auth.PlayerId));
         Assert.NotNull(gifted?.Friend.LastGiftAt);
         Assert.False(settings!.Settings["music"]);
         Assert.True(settings.Settings["sync"]);
@@ -502,6 +509,12 @@ public sealed class FatCatGameServiceTests
         Assert.NotNull(added.Profile.LastActiveAt);
         Assert.True(added.Profile.UnlockedCatCount > 0);
         Assert.True(added.Profile.TotalBuildingLevel > 0);
+        Assert.All(added.Rooms, room =>
+        {
+            Assert.Equal(2, room.Decorations.Count);
+            Assert.Equal(room.Decorations.Sum(decor => decor.Score), room.DecorScore);
+        });
+        Assert.Equal(12, dbContext.DecorStates.Count(item => item.PlayerId == target.PlayerId));
         Assert.NotNull(duplicate);
         Assert.Null(self);
         Assert.Equal(4, friends.Count);
@@ -528,6 +541,9 @@ public sealed class FatCatGameServiceTests
         targetPlayer.CompanyName = "Beta Roastery";
         targetPlayer.Level = 9;
         targetPlayer.UpdatedAt = DateTimeOffset.UtcNow.AddMinutes(-10);
+        var hiddenDecor = await dbContext.DecorStates.SingleAsync(item =>
+            item.PlayerId == target.PlayerId && item.DecorKey == "decor_cafe_sign");
+        hiddenDecor.IsPlaced = false;
         await dbContext.SaveChangesAsync();
 
         var refreshed = await service.GetFriendAsync(player.PlayerId, friendKey, CancellationToken.None);
@@ -542,6 +558,10 @@ public sealed class FatCatGameServiceTests
         Assert.Equal(9, refreshed.Level);
         Assert.True(refreshed.Profile.IsRealPlayer);
         Assert.Equal("recent", refreshed.Profile.PresenceStatus);
+        var cafeRoom = Assert.Single(refreshed.Rooms, room => room.BuildingId == "building_cafe_1f");
+        Assert.Single(cafeRoom.Decorations);
+        Assert.Equal("decor_cafe_cup", cafeRoom.Decorations[0].DecorId);
+        Assert.Equal(34, cafeRoom.DecorScore);
         Assert.NotNull(presence);
         Assert.Equal("online", presence!.Status);
         Assert.True(presence.LastActiveAt > refreshed.Profile.LastActiveAt);

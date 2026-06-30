@@ -90,6 +90,15 @@ public sealed class FatCatApiTests
         Assert.True(friends[0].GetProperty("rooms")[0].GetProperty("assignedCatCount").GetInt32() >= 0);
         Assert.False(string.IsNullOrWhiteSpace(friends[0].GetProperty("rooms")[0].GetProperty("featuredCatName").GetString()));
         Assert.True(friends[0].GetProperty("rooms")[0].GetProperty("decorScore").GetInt32() >= 0);
+        var roomDecorations = friends[0].GetProperty("rooms")[0].GetProperty("decorations");
+        Assert.Equal(2, roomDecorations.GetArrayLength());
+        Assert.All(roomDecorations.EnumerateArray(), decor =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(decor.GetProperty("decorId").GetString()));
+            Assert.False(string.IsNullOrWhiteSpace(decor.GetProperty("name").GetString()));
+            Assert.True(decor.GetProperty("score").GetInt32() > 0);
+            Assert.True(decor.GetProperty("isPlaced").GetBoolean());
+        });
         Assert.Equal(HttpStatusCode.OK, visitResponse.StatusCode);
         Assert.Equal("mocha", visit.GetProperty("friend").GetProperty("id").GetString());
         Assert.True(visit.GetProperty("friend").GetProperty("rooms").GetArrayLength() >= 3);
@@ -183,6 +192,13 @@ public sealed class FatCatApiTests
         Assert.Equal("online", profile.GetProperty("presenceStatus").GetString());
         Assert.True(profile.GetProperty("unlockedCatCount").GetInt32() > 0);
         Assert.True(profile.GetProperty("totalBuildingLevel").GetInt32() > 0);
+        Assert.All(addData.GetProperty("rooms").EnumerateArray(), room =>
+        {
+            Assert.Equal(2, room.GetProperty("decorations").GetArrayLength());
+            Assert.Equal(
+                room.GetProperty("decorScore").GetInt32(),
+                room.GetProperty("decorations").EnumerateArray().Sum(decor => decor.GetProperty("score").GetInt32()));
+        });
         Assert.Equal(HttpStatusCode.OK, presence.StatusCode);
         Assert.Equal("online", presenceData.GetProperty("status").GetString());
         Assert.True(presenceData.GetProperty("lastActiveAt").GetInt64() > 0);

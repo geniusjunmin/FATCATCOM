@@ -284,6 +284,8 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .friend-scene-floor small { display:block; color:#745133; font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-panel-overlay .friend-scene-floor .room-cats { display:flex; gap:3px; margin-top:2px; }
             #fatcat-dom-panel-overlay .friend-scene-floor .room-cats span { width:13px; height:13px; border-radius:50%; background:center 22%/150% no-repeat #d99a56; box-shadow:inset 0 0 0 1px rgba(80,49,27,.22), 0 1px 0 rgba(255,255,255,.25); }
+            #fatcat-dom-panel-overlay .room-decor-tags { display:flex; gap:3px; min-width:0; margin-top:2px; overflow:hidden; }
+            #fatcat-dom-panel-overlay .room-decor-tags s { min-width:0; max-width:50%; padding:1px 4px; border-radius:5px; background:#a66d32; color:#fff1c7; font-size:64%; line-height:1.2; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-panel-overlay .friend-scene-floor em { justify-self:end; color:#51311f; font-style:normal; }
             #fatcat-dom-panel-overlay .friend-scene-side { display:grid; gap:6px; align-content:start; }
             #fatcat-dom-panel-overlay .friend-scene-mascot { min-height:72px; border-radius:12px; background:linear-gradient(#fff1cc,#c49158); position:relative; overflow:hidden; box-shadow:inset 0 0 0 2px rgba(93,59,33,.22); }
@@ -310,6 +312,7 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .factory-room-row i { min-height:24px; border-radius:8px; background:#7c5736; color:#ffe9bd; font-style:normal; display:flex; align-items:center; justify-content:center; }
             #fatcat-dom-panel-overlay .factory-room-row b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-panel-overlay .factory-room-row small { display:block; color:#7b5838; font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .factory-room-row .room-decor-tags s { background:#8c6037; color:#fff0c8; }
             #fatcat-dom-panel-overlay .factory-room-row em { color:#5d3920; font-style:normal; text-align:right; }
             #fatcat-dom-panel-overlay.compact .friends-shell .feature-mini { grid-template-columns:repeat(3,1fr); }
             #fatcat-dom-panel-overlay.compact .friends-shell .feature-mini span { min-height:46px; font-size:1.58%; }

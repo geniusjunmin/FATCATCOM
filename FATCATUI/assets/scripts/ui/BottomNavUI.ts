@@ -1352,7 +1352,7 @@ export class BottomNavUI extends Component {
         const staffedRooms = rooms.filter(room => room.assignedCatCount > 0).length;
         const decorTotal = rooms.reduce((sum, room) => sum + room.decorScore, 0);
         const roomRows = rooms.slice(0, 6)
-            .map(room => `<div class="factory-room-row"><i>${room.floor}</i><b>${room.name}<small>Lv.${room.level} · ${room.featuredCatName} · 猫 ${room.assignedCatCount} · 装饰 ${room.decorScore}</small></b><em>${this.formatNumber(room.production)}/秒</em></div>`)
+            .map(room => `<div class="factory-room-row"><i>${room.floor}</i><b>${room.name}<small>Lv.${room.level} · ${room.featuredCatName} · 猫 ${room.assignedCatCount} · 装饰 ${room.decorScore}</small>${this.renderFriendDecorTags(room.decorations)}</b><em>${this.formatNumber(room.production)}/秒</em></div>`)
             .join("");
         return `<div class="friend-factory-detail"><div class="factory-detail-head"><div><b>${friend.name} 工厂详情</b><em>${source} · ${rooms.length} 个楼层</em></div><button class="tag" data-action="openFriendVisitScene" data-id="${friend.id}">进入访问</button></div><div class="factory-detail-stats"><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>派驻房间<b>${staffedRooms}/${rooms.length}</b></span><span>装饰评分<b>${this.formatNumber(decorTotal)}</b></span></div><div class="factory-room-list">${roomRows}</div></div>`;
     }
@@ -1371,7 +1371,7 @@ export class BottomNavUI extends Component {
         const lastGift = this.getFeatureTimestamp("friendGifts", friend.id) || "未送礼";
         const rewardPreview = Math.max(50, Math.floor(friend.income * 0.12));
         const floorRows = rooms.slice(0, 6)
-            .map((room, index) => `<div class="friend-scene-floor"><i>${room.floor}</i><span class="room-thumb asset" style="background-image:url('${this.getFactoryPropDataUri(room.scene)}')"></span><b>${room.name}<small>Lv.${room.level} · ${room.featuredCatName} · 猫 ${room.assignedCatCount}</small><span class="room-cats">${this.renderFriendRoomCats(room.assignedCatCount, index)}</span></b><em>${this.formatNumber(room.production)}/秒</em></div>`)
+            .map((room, index) => `<div class="friend-scene-floor"><i>${room.floor}</i><span class="room-thumb asset" style="background-image:url('${this.getFactoryPropDataUri(room.scene)}')"></span><b>${room.name}<small>Lv.${room.level} · ${room.featuredCatName} · 猫 ${room.assignedCatCount}</small><span class="room-cats">${this.renderFriendRoomCats(room.assignedCatCount, index)}</span>${this.renderFriendDecorTags(room.decorations)}</b><em>${this.formatNumber(room.production)}/秒</em></div>`)
             .join("");
         return `<div class="friend-visit-scene" style="--friend-factory-art:url('${this.getDomAssetDataUri(GeneratedBackgroundAssets.factoryCutaway)}')"><div class="friend-scene-head"><span class="friend-avatar"><i class="friend-rank">VISIT</i></span><div><b>${friend.name} 访问中</b><em>公司 Lv.${friend.level} · ${friend.status} · ${rooms.length} 个楼层</em>${this.renderFriendProfileMeta(friend)}</div><button class="friend-scene-close" data-action="closeFriendVisitScene">×</button></div><div class="friend-scene-stage"><div class="friend-scene-building">${floorRows}</div><div class="friend-scene-side"><div class="friend-scene-mascot"><i style="background-image:url('${this.getCatFullArtAsset("c_001")}')"></i><b>访客猫</b><small>正在巡楼</small></div><span>总收益<b>${this.formatNumber(friend.income)}/秒</b></span><span>房间合计<b>${this.formatNumber(roomTotal)}/秒</b></span><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>值班房间<b>${staffedRooms}/${rooms.length}</b></span><span>装饰评分<b>${this.formatNumber(decorTotal)}</b></span></div></div><div class="friend-scene-reward"><span>访问奖励<b>+${this.formatNumber(rewardPreview)} 金币</b></span><span>上次访问<b>${lastVisit}</b></span><span>礼物状态<b>${lastGift}</b></span></div><div class="friend-scene-actions"><button class="tag" data-action="refreshFriendProfile" data-id="${friend.id}">同步资料</button><button class="tag" data-action="visitFriend" data-id="${friend.id}">领取访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button><button class="tag" data-action="closeFriendVisitScene">返回列表</button></div></div>`;
     }
@@ -1403,7 +1403,7 @@ export class BottomNavUI extends Component {
         return age <= 1800000 ? "recent" : "offline";
     }
 
-    private getFriendRoomRows(friend: FriendPanelRow): Array<{ floor: string; name: string; level: number; production: number; assignedCatCount: number; featuredCatName: string; decorScore: number; scene: string }> {
+    private getFriendRoomRows(friend: FriendPanelRow): Array<{ floor: string; name: string; level: number; production: number; assignedCatCount: number; featuredCatName: string; decorScore: number; decorations: Array<{ decorId: string; name: string; score: number; isPlaced: boolean }>; scene: string }> {
         const rooms = friend.rooms?.length
             ? friend.rooms
                 .slice()
@@ -1416,15 +1416,28 @@ export class BottomNavUI extends Component {
                     assignedCatCount: Math.max(0, Math.floor(room.assignedCatCount ?? 0)),
                     featuredCatName: room.featuredCatName || "待派驻",
                     decorScore: Math.max(0, Math.floor(room.decorScore ?? 0)),
+                    decorations: (room.decorations ?? []).filter(decor => decor.isPlaced).map(decor => ({
+                        decorId: decor.decorId,
+                        name: decor.name,
+                        score: Math.max(0, Math.floor(decor.score)),
+                        isPlaced: decor.isPlaced,
+                    })),
                     scene: this.getFriendRoomScene(room.buildingId, room.floor, room.name),
                 }))
             : [];
         if (rooms.length > 0) return rooms;
         return [
-            { floor: "3F", name: "发酵车间", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.34)), assignedCatCount: 2, featuredCatName: "巡逻肥猫", decorScore: Math.max(12, friend.level * 3), scene: "tank" },
-            { floor: "2F", name: "原料车间", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.28)), assignedCatCount: 1, featuredCatName: "搬豆肥猫", decorScore: Math.max(10, friend.level * 2), scene: "mill" },
-            { floor: "1F", name: "咖啡厅", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.22)), assignedCatCount: 3, featuredCatName: "招待肥猫", decorScore: Math.max(14, friend.level * 3), scene: "cafe" },
+            { floor: "3F", name: "发酵车间", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.34)), assignedCatCount: 2, featuredCatName: "巡逻肥猫", decorScore: 62, decorations: [{ decorId: "decor_ferment_gauge", name: "发酵温度计", score: 34, isPlaced: true }, { decorId: "decor_ferment_plate", name: "管道铭牌", score: 28, isPlaced: true }], scene: "tank" },
+            { floor: "2F", name: "原料车间", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.28)), assignedCatCount: 1, featuredCatName: "搬豆肥猫", decorScore: 70, decorations: [{ decorId: "decor_material_mill", name: "黄铜磨豆机", score: 40, isPlaced: true }, { decorId: "decor_material_crates", name: "原料木箱", score: 30, isPlaced: true }], scene: "mill" },
+            { floor: "1F", name: "咖啡厅", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.22)), assignedCatCount: 3, featuredCatName: "招待肥猫", decorScore: 76, decorations: [{ decorId: "decor_cafe_sign", name: "猫爪招牌", score: 42, isPlaced: true }, { decorId: "decor_cafe_cup", name: "幸运咖啡杯", score: 34, isPlaced: true }], scene: "cafe" },
         ];
+    }
+
+    private renderFriendDecorTags(decorations: Array<{ name: string; score: number }>): string {
+        if (decorations.length <= 0) {
+            return `<span class="room-decor-tags"><s>暂无装饰</s></span>`;
+        }
+        return `<span class="room-decor-tags">${decorations.slice(0, 2).map(decor => `<s>${decor.name} +${decor.score}</s>`).join("")}</span>`;
     }
 
     private renderFriendRoomCats(count: number, offset: number): string {

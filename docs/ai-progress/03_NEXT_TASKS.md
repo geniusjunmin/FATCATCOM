@@ -21,7 +21,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Continue final main/cat proportion tuning and add richer illustration assets where CSS is still flat. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
-| Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Real friend profiles, targeted refresh, heartbeat presence, visits, rewards, requests, activity, and leaderboard are wired; next consider decor inventory or live interaction transport. |
+| Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Real friend profiles, heartbeat presence, persistent decor snapshots, visits, rewards, requests, activity, and leaderboard are wired; next consider decor placement APIs or live interaction transport. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
 
 ## P0 Now
@@ -69,6 +69,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - `/api/friends/{friendId}` refreshes one selected real-player snapshot without triggering visit rewards; the visit scene exposes this as `同步资料`. The same real-friend contract, online, service/API, and utility-layout gates cover it.
 - `/api/social/presence` updates player activity, friend profiles expose `online`/`recent`/`offline`, returning login refreshes presence, and the client globally deduplicates heartbeat requests. Keep `check-friend-presence-contract.js`, `check-friend-presence-online-ui.js`, and `check-real-friend-online.js` green.
 - Seeded friend creation uses atomic SQLite insert-if-missing semantics. Preserve this when changing friend initialization because friends and leaderboard requests run concurrently after login.
+- `PlayerDecorState` persists twelve default decorations, grouped by building and guarded by atomic insert-if-missing. `FriendRoomDto.decorations` exposes only placed items and derives `decorScore` from their scores. Keep `check-friend-decor-contract.js`, `check-real-friend-online.js`, and utility screenshots green.
 - `/api/friends/activity` records and returns add/visit/gift activity for the DOM friend panel. Keep it green with `node tools\check-friend-activity-contract.js`.
 - `/api/friends/{friendId}/visit` and `/api/friends/{friendId}/gift` now return reward metadata and authoritative balances with once-per-UTC-day reward limits. Keep it green with `node tools\check-friend-reward-contract.js`.
 - `/api/social/profile` and `/api/friends/search` now provide persisted short invite-code search before add, and `/api/friends/add` accepts invite codes as well as legacy player ids while writing `PlayerFriendRelation`. Keep it green with `node tools\check-friend-invite-contract.js`.
@@ -113,7 +114,8 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest real-profile batch: `FriendDto.profile` identifies real/system friends and exposes player id, invite code, last-active time, unlocked cats, and total building level. Friend cards, snapshots, and visit scenes render profile chips; utility regression requires five profile groups and at least fifteen chips in offline preview.
 - Done in latest targeted-refresh batch: `GET /api/friends/{friendId}` refreshes one friend snapshot on demand, `ApiClient`/`SyncManager` expose the path, and the visit scene separates `同步资料` from reward-bearing `领取访问`. The four-action row remains visible at 360x800.
 - Done in latest presence batch: server heartbeat and three-state presence are live, the client sends one globally deduplicated heartbeat every 45 seconds, and an open friend panel refreshes every 30 seconds. Status badges remain visible at 430x932, 360x800, and 768x1024.
-- Next move: expand room snapshots with true decor inventory, add live event transport, or add generated bitmap friend-room backdrops.
+- Done in latest decor-inventory batch: six real friend rooms now expose two persistent placed decorations each, factory/visit rows render item names and scores, and hiding one persisted item removes it from the snapshot and lowers the room score.
+- Next move: add owner-facing decor placement APIs/UI, live event transport, or generated bitmap friend-room backdrops.
 
 ### 1. Main Factory Richness
 
