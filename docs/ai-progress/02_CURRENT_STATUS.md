@@ -7,7 +7,7 @@ Updated: 2026-07-01
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Continue visual fidelity with final main/cat proportion tuning and richer generated/Cocos-managed art depth; social next move is player-controlled decor placement or live interaction transport. |
+| Best Next Move | Continue visual fidelity with final main/cat proportion tuning and richer generated/Cocos-managed art depth; social next move is live interaction transport or expanded decor acquisition. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -78,6 +78,7 @@ Updated: 2026-07-01
 - Latest presence pass adds `/api/social/presence`, server-derived `online`/`recent`/`offline` states, returning-login activity refresh, a globally deduplicated 45-second client heartbeat, and 30-second friend-panel refresh cadence. Friend profile chips render status-specific colors. A real browser/API regression proves one heartbeat, one online real-player badge, and clean client/server logs.
 - The presence regression exposed a concurrent first-load race in seeded friend creation. Default friends now use atomic SQLite `INSERT OR IGNORE` per key, so simultaneous friends/leaderboard requests cannot duplicate rows, and partial seed sets are repaired instead of treated as complete.
 - Latest friend-decor pass adds persistent `PlayerDecorState` inventory, runtime SQLite schema/indexes, and twelve atomic default decoration records across six floors. `FriendRoomDto.decorations` now carries actual placed items; room decor scores are the sum of those items instead of a building-level estimate. Factory detail and visit scenes render compact item/score tags, with online and 430/360/768 regressions covering the full path.
+- Latest owner-decor pass adds `/api/decor` plus `/api/decor/{decorId}/placement`, client sync helpers, and a responsive building-detail decor manager. Players can withdraw and replace each floor's items; server validation rejects unknown buildings, and friend snapshots immediately reflect moved/hidden decor. A real 414x896 browser run verifies two successful state transitions with clean client/server logs.
 - Building, shop, inventory, research, task, achievement, mail, friend, and settings panels are clickable.
 - Screenshot regression exists for 414x896, 430x932, 360x800, and 768x1024 on the main screen and cat page.
 - Latest feature-panel code-health pass extracts static settings, task milestone, shop tab/catalog, inventory tab/preview, and research-tree presentation data into `FeaturePanelPresentation.ts`. `BottomNavUI.ts` now delegates those values while keeping live state and action rendering local, guarded by `tools/check-feature-panel-presentation-contract.js`.

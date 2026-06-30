@@ -57,6 +57,7 @@ async function isVisible(page, selector) {
                 shellCount: document.querySelectorAll("#fatcat-dom-panel-overlay .panel-shell").length,
                 buildingChips: document.querySelectorAll("#fatcat-dom-panel-overlay .building-chip").length,
                 buildingHero: !!document.querySelector("#fatcat-dom-panel-overlay .building-detail-hero"),
+                buildingDecorManager: !!document.querySelector("#fatcat-dom-panel-overlay .building-decor-manager"),
                 shopRows: document.querySelectorAll("#fatcat-dom-panel-overlay .shop-row").length,
                 bagCards: document.querySelectorAll("#fatcat-dom-panel-overlay .bag-card").length,
                 bagDetailVisible: (() => {
@@ -99,7 +100,7 @@ async function isVisible(page, selector) {
             return entry.messages.length > 0 || entry.failedRequests.length > 0;
         }
         if (!entry.visible || entry.state.shellCount !== 1 || !entry.state.title) return true;
-        if (entry.panel === "buildings") return entry.state.buildingChips !== 6 || !entry.state.buildingHero;
+        if (entry.panel === "buildings") return entry.state.buildingChips !== 6 || !entry.state.buildingHero || !entry.state.buildingDecorManager;
         if (entry.panel === "shop") return entry.state.shopRows < 6;
         if (entry.panel === "inventory") return entry.state.bagCards !== 20 || !entry.state.bagDetailVisible;
         if (entry.panel === "research") return !entry.state.researchSideBySide;

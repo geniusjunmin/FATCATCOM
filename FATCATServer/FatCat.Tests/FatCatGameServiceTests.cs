@@ -615,6 +615,52 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task DecorPlacement_UpdatesOwnerInventoryAndFriendSnapshot()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var owner = await service.AuthGuestAsync(new AuthGuestRequest("decor-owner", "Decor Cafe"), CancellationToken.None);
+        var visitor = await service.AuthGuestAsync(new AuthGuestRequest("decor-visitor", "Visitor Cafe"), CancellationToken.None);
+        var added = await service.AddFriendAsync(
+            visitor.PlayerId,
+            new AddFriendRequest(owner.PlayerId.ToString("N")),
+            CancellationToken.None);
+
+        var initial = await service.GetDecorationsAsync(owner.PlayerId, CancellationToken.None);
+        var removed = await service.UpdateDecorPlacementAsync(
+            owner.PlayerId,
+            "decor_cafe_sign",
+            new DecorPlacementRequest("building_cafe_1f", false),
+            CancellationToken.None);
+        var moved = await service.UpdateDecorPlacementAsync(
+            owner.PlayerId,
+            "decor_cafe_sign",
+            new DecorPlacementRequest("building_office_5f", true),
+            CancellationToken.None);
+        var invalid = await service.UpdateDecorPlacementAsync(
+            owner.PlayerId,
+            "decor_cafe_sign",
+            new DecorPlacementRequest("missing-building", true),
+            CancellationToken.None);
+        var refreshed = await service.GetFriendAsync(visitor.PlayerId, added!.Id, CancellationToken.None);
+
+        Assert.NotNull(initial);
+        Assert.Equal(12, initial!.Count);
+        Assert.NotNull(removed);
+        Assert.False(removed!.IsPlaced);
+        Assert.NotNull(moved);
+        Assert.True(moved!.IsPlaced);
+        Assert.Equal("building_office_5f", moved.BuildingId);
+        Assert.Null(invalid);
+        Assert.NotNull(refreshed);
+        var cafe = Assert.Single(refreshed!.Rooms, room => room.BuildingId == "building_cafe_1f");
+        var office = Assert.Single(refreshed.Rooms, room => room.BuildingId == "building_office_5f");
+        Assert.DoesNotContain(cafe.Decorations, decor => decor.DecorId == "decor_cafe_sign");
+        Assert.Contains(office.Decorations, decor => decor.DecorId == "decor_cafe_sign");
+        Assert.Equal(100, office.DecorScore);
+    }
+
+    [Fact]
     public async Task SocialProfileAndFriendSearch_SupportInviteCodes()
     {
         await using var dbContext = CreateDbContext();

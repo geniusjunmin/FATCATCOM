@@ -217,6 +217,41 @@ public sealed class FatCatApiTests
     }
 
     [Fact]
+    public async Task DecorPlacement_UpdatesServerDecorContract()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var auth = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-decor-owner",
+            companyName = "Decor Cafe",
+        });
+        var playerId = JsonDocument.Parse(await auth.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+
+        var list = await client.GetAsync($"/api/decor?playerId={playerId}");
+        var decorations = JsonDocument.Parse(await list.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var remove = await client.PostAsJsonAsync($"/api/decor/decor_cafe_sign/placement?playerId={playerId}", new
+        {
+            buildingId = "building_cafe_1f",
+            isPlaced = false,
+        });
+        var removed = JsonDocument.Parse(await remove.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var invalid = await client.PostAsJsonAsync($"/api/decor/decor_cafe_sign/placement?playerId={playerId}", new
+        {
+            buildingId = "missing-building",
+            isPlaced = true,
+        });
+
+        Assert.Equal(HttpStatusCode.OK, list.StatusCode);
+        Assert.Equal(12, decorations.GetArrayLength());
+        Assert.Equal(HttpStatusCode.OK, remove.StatusCode);
+        Assert.Equal("decor_cafe_sign", removed.GetProperty("decorId").GetString());
+        Assert.False(removed.GetProperty("isPlaced").GetBoolean());
+        Assert.True(removed.GetProperty("updatedAt").GetInt64() > 0);
+        Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
+    }
+
+    [Fact]
     public async Task SocialProfileAndFriendSearch_ReturnInviteCodeContract()
     {
         await using var factory = new FatCatApiFactory();

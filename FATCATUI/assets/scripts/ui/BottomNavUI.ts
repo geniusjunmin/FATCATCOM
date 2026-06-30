@@ -13,7 +13,7 @@ import { ShopManager } from "../manager/ShopManager";
 import { TaskManager } from "../manager/TaskManager";
 import { NetworkManager } from "../manager/NetworkManager";
 import { SyncManager } from "../manager/SyncManager";
-import { FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto } from "../net/ApiTypes";
+import { DecorStateDto, FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
 import { GeneratedBackgroundAssets } from "./UiAssetRegistry";
@@ -179,6 +179,8 @@ export class BottomNavUI extends Component {
     private _domInventoryTab: InventoryTabId = "all";
     private _selectedResearchId = "res_basic_prod";
     private _serverFriends: FriendDto[] = [];
+    private _serverDecorations: DecorStateDto[] = [];
+    private _decorRefreshInFlight = false;
     private _friendActivities: FriendActivityDto[] = [];
     private _receivedFriendRequests: FriendRequestDto[] = [];
     private _sentFriendRequests: FriendRequestDto[] = [];
@@ -634,6 +636,9 @@ export class BottomNavUI extends Component {
                 void this.refreshFriendActivitiesForPanel();
                 void this.refreshServerLeaderboardForPanel();
             }
+            if (panelId === "buildings") {
+                void this.refreshServerDecorationsForPanel();
+            }
             this.layoutDomPanelOverlay();
         }
     }
@@ -918,6 +923,23 @@ export class BottomNavUI extends Component {
                 success = true;
             } else {
                 success = NetworkManager.canUseServer ? false : BuildingManager.upgrade(id);
+            }
+        } else if (action === "toggleDecorPlacement") {
+            const buildingId = button.dataset.building || this._selectedDomBuildingId;
+            const current = this._serverDecorations.find(decor => decor.decorId === id);
+            const updated = current
+                ? await SyncManager.updateServerDecorPlacement(id, buildingId, !current.isPlaced)
+                : null;
+            if (updated) {
+                this.applyServerDecorState(updated);
+                success = true;
+                actionMessageOverride = updated.isPlaced
+                    ? `${updated.name} 已摆放到当前楼层。`
+                    : `${updated.name} 已收回装饰仓库。`;
+            } else {
+                actionMessageOverride = NetworkManager.canUseServer
+                    ? "装饰状态更新失败，请稍后重试。"
+                    : "请先连接服务器再管理楼层装饰。";
             }
         } else if (action === "claimTask") {
             success = TaskManager.claimReward(id);
@@ -1514,6 +1536,28 @@ export class BottomNavUI extends Component {
         this.renderDomPanel("friends");
     }
 
+    private async refreshServerDecorationsForPanel(): Promise<void> {
+        if (!NetworkManager.canUseServer || this._decorRefreshInFlight) return;
+        this._decorRefreshInFlight = true;
+        try {
+            const decorations = await SyncManager.fetchServerDecorations();
+            if (decorations.length <= 0 || this.currentPanel !== "buildings") return;
+            this._serverDecorations = decorations;
+            this.renderDomPanel("buildings");
+        } finally {
+            this._decorRefreshInFlight = false;
+        }
+    }
+
+    private applyServerDecorState(decor: DecorStateDto): void {
+        const index = this._serverDecorations.findIndex(item => item.decorId === decor.decorId);
+        if (index >= 0) {
+            this._serverDecorations[index] = decor;
+        } else {
+            this._serverDecorations.push(decor);
+        }
+    }
+
     private tickSocialPresence(): void {
         if (!NetworkManager.canUseServer || !NetworkManager.playerId) return;
         const now = Date.now();
@@ -1780,7 +1824,24 @@ export class BottomNavUI extends Component {
             ["容量上限", `${selected.scheduleCapacity}`, `${nextCapacity}`],
         ].map(row => `<div class="building-target-row"><span>${row[0]}</span><b>${row[1]}</b><em>➜</em><strong>${row[2]}</strong></div>`).join("");
         const conditions = `<div class="building-conditions"><b>升级条件</b><div><span>${this.renderCssIcon("deco")}工厂等级达到${levelRequirement}级</span><strong class="${28 >= levelRequirement ? "ok" : "bad"}">${Math.min(28, levelRequirement)}/${levelRequirement}</strong></div><div><span>${this.renderCssIcon("coin")}消耗金币</span><strong class="${ownedCoin >= selected.upgradeCost ? "ok" : "bad"}">${this.formatNumber(ownedCoin)}/${this.formatNumber(selected.upgradeCost)}</strong></div><div><span>${this.renderCssIcon("bean")}咖啡豆储备</span><strong class="ok">${this.formatNumber(ResourceManager.get("bean"))}/2.5K</strong></div></div>`;
-        return `<div class="panel-shell building-shell"><h2>建筑详情</h2><div class="building-selector">${selector}</div><div class="building-detail-hero" style="background-image:linear-gradient(rgba(34,22,15,.12),rgba(34,22,15,.28)),url('${this.getDomAssetDataUri(GeneratedBackgroundAssets.factoryCutaway)}');background-position:center ${scenePosition[scene]}%"><span class="building-floor-tag">${selected.floor}<small>Lv.${selected.level}</small></span><span class="building-scene-prop" style="background-image:url('${this.getFactoryPropDataUri(scene)}')"></span><div class="building-hero-copy"><b>${selected.name}</b><span>Lv.${selected.level}</span><em>生产建筑</em></div></div><div class="building-description">${selected.description}</div><div class="building-target-effects"><div class="building-target-title"><b>等级效果</b><span>Lv.${selected.level}</span><em>➜</em><span>Lv.${Math.min(selected.maxLevel, selected.level + 1)}</span></div>${effectRows}</div>${conditions}<div class="building-main-upgrade">${this.renderBuildingUpgradeButton(selected.id)}</div><div class="building-roster"><b>值班猫咪 ${selected.assignedCatCount}/${selected.scheduleCapacity}</b>${this.renderAssignedCatRows(selected.id)}${this.renderAvailableCatRows(selected.id)}</div></div>`;
+        return `<div class="panel-shell building-shell"><h2>建筑详情</h2><div class="building-selector">${selector}</div><div class="building-detail-hero" style="background-image:linear-gradient(rgba(34,22,15,.12),rgba(34,22,15,.28)),url('${this.getDomAssetDataUri(GeneratedBackgroundAssets.factoryCutaway)}');background-position:center ${scenePosition[scene]}%"><span class="building-floor-tag">${selected.floor}<small>Lv.${selected.level}</small></span><span class="building-scene-prop" style="background-image:url('${this.getFactoryPropDataUri(scene)}')"></span><div class="building-hero-copy"><b>${selected.name}</b><span>Lv.${selected.level}</span><em>生产建筑</em></div></div><div class="building-description">${selected.description}</div>${this.renderBuildingDecorManager(selected.id)}<div class="building-target-effects"><div class="building-target-title"><b>等级效果</b><span>Lv.${selected.level}</span><em>➜</em><span>Lv.${Math.min(selected.maxLevel, selected.level + 1)}</span></div>${effectRows}</div>${conditions}<div class="building-main-upgrade">${this.renderBuildingUpgradeButton(selected.id)}</div><div class="building-roster"><b>值班猫咪 ${selected.assignedCatCount}/${selected.scheduleCapacity}</b>${this.renderAssignedCatRows(selected.id)}${this.renderAvailableCatRows(selected.id)}</div></div>`;
+    }
+
+    private renderBuildingDecorManager(buildingId: string): string {
+        const decorations = this._serverDecorations.filter(decor => decor.buildingId === buildingId);
+        if (decorations.length <= 0) {
+            return `<div class="building-decor-manager offline"><div class="building-decor-head"><b>楼层装饰</b><span>联网管理</span></div><p>连接服务器后可摆放、撤下楼层装饰，并同步给来访好友。</p></div>`;
+        }
+        const placedScore = decorations
+            .filter(decor => decor.isPlaced)
+            .reduce((sum, decor) => sum + decor.score, 0);
+        const rows = decorations.map(decor => `
+            <div class="building-decor-item ${decor.isPlaced ? "placed" : "stored"}">
+                <span class="decor-glyph">${decor.isPlaced ? "◆" : "◇"}</span>
+                <div><b>${decor.name}</b><small>装饰评分 +${decor.score}</small></div>
+                <button class="tag ${decor.isPlaced ? "warn" : ""}" data-action="toggleDecorPlacement" data-id="${decor.decorId}" data-building="${buildingId}">${decor.isPlaced ? "撤下" : "摆放"}</button>
+            </div>`).join("");
+        return `<div class="building-decor-manager"><div class="building-decor-head"><b>楼层装饰</b><span>已摆放 ${decorations.filter(decor => decor.isPlaced).length}/${decorations.length} · 评分 ${placedScore}</span></div><div class="building-decor-list">${rows}</div></div>`;
     }
 
     private renderMiniFloor(id: string): string {

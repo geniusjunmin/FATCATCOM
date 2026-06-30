@@ -540,6 +540,37 @@ export const DOM_PANEL_STYLES = `
                 line-height:1.35;
                 box-shadow:inset 0 0 0 1px rgba(103,67,37,.14);
             }
+            #fatcat-dom-panel-overlay .building-decor-manager {
+                margin:1.4% 0;
+                padding:2.2%;
+                border-radius:12px;
+                background:linear-gradient(135deg,#6c4930,#3e2b20);
+                color:#ffe9ba;
+                box-shadow:inset 0 0 0 2px rgba(255,226,170,.12),0 3px 0 rgba(57,36,23,.2);
+                font-size:1.9%;
+            }
+            #fatcat-dom-panel-overlay .building-decor-head { display:flex; align-items:center; justify-content:space-between; gap:3%; margin-bottom:1.4%; }
+            #fatcat-dom-panel-overlay .building-decor-head b { color:#fff7db; font-size:115%; }
+            #fatcat-dom-panel-overlay .building-decor-head span { color:#efc775; font-weight:900; }
+            #fatcat-dom-panel-overlay .building-decor-list { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+            #fatcat-dom-panel-overlay .building-decor-item {
+                min-height:46px;
+                display:grid;
+                grid-template-columns:14% 1fr auto;
+                gap:3%;
+                align-items:center;
+                padding:2%;
+                border-radius:9px;
+                background:rgba(255,244,212,.92);
+                color:#4e321f;
+            }
+            #fatcat-dom-panel-overlay .building-decor-item.stored { opacity:.76; }
+            #fatcat-dom-panel-overlay .building-decor-item .decor-glyph { color:#c2762f; font-size:150%; text-align:center; }
+            #fatcat-dom-panel-overlay .building-decor-item b,
+            #fatcat-dom-panel-overlay .building-decor-item small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .building-decor-item small { color:#815d3b; font-weight:900; }
+            #fatcat-dom-panel-overlay .building-decor-item .tag { min-height:26px; margin:0; padding:3px 7px; }
+            #fatcat-dom-panel-overlay .building-decor-manager.offline p { margin:0; color:#f1d6a5; }
             #fatcat-dom-panel-overlay .building-target-effects,
             #fatcat-dom-panel-overlay .building-conditions {
                 padding:2.5%;

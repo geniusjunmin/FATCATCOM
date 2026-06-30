@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -449,6 +449,36 @@ export class SyncManager {
         if (!response.ok || !response.data) {
             this.markFailed(response.error ?? "friends_fetch_failed");
             return [];
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerDecorations(): Promise<DecorStateDto[]> {
+        if (!this.canCallServer()) return [];
+        const response = await ApiClient.getDecorations(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "decor_fetch_failed");
+            return [];
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async updateServerDecorPlacement(
+        decorId: string,
+        buildingId: string,
+        isPlaced: boolean,
+    ): Promise<DecorStateDto | null> {
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.updateDecorPlacement(
+            NetworkManager.playerId,
+            decorId,
+            { buildingId, isPlaced },
+        );
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "decor_placement_failed");
+            return null;
         }
         this.markReadyAfterServerCall();
         return response.data;

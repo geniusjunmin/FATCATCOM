@@ -93,7 +93,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -1017,6 +1017,44 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         }
 
         return await ToFriendDtoAsync(friend, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<DecorStateDto>?> GetDecorationsAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        await EnsureDefaultDecorStatesAsync(playerId, cancellationToken);
+        var decorations = await repository.GetDecorStatesAsync(playerId, cancellationToken);
+        return decorations.Select(ToDecorStateDto).ToArray();
+    }
+
+    public async Task<DecorStateDto?> UpdateDecorPlacementAsync(
+        Guid playerId,
+        string decorId,
+        DecorPlacementRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null
+            || !balance.BuildingDefinitions.ContainsKey(request.BuildingId))
+        {
+            return null;
+        }
+
+        await EnsureDefaultDecorStatesAsync(playerId, cancellationToken);
+        var decor = await repository.GetDecorStateAsync(playerId, decorId, cancellationToken);
+        if (decor is null)
+        {
+            return null;
+        }
+
+        decor.BuildingKey = request.BuildingId;
+        decor.IsPlaced = request.IsPlaced;
+        decor.UpdatedAt = DateTimeOffset.UtcNow;
+        await repository.SaveChangesAsync(cancellationToken);
+        return ToDecorStateDto(decor);
     }
 
     public async Task<FriendDto?> AddFriendAsync(Guid playerId, AddFriendRequest request, CancellationToken cancellationToken)
@@ -2186,6 +2224,17 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             return "online";
         }
         return age <= TimeSpan.FromMinutes(30) ? "recent" : "offline";
+    }
+
+    private static DecorStateDto ToDecorStateDto(PlayerDecorState decor)
+    {
+        return new DecorStateDto(
+            decor.DecorKey,
+            decor.BuildingKey,
+            decor.Name,
+            decor.Score,
+            decor.IsPlaced,
+            decor.UpdatedAt.ToUnixTimeMilliseconds());
     }
 
     private async Task<IReadOnlyList<FriendRoomDto>> BuildFriendRoomsAsync(FriendSnapshot friend, CancellationToken cancellationToken)

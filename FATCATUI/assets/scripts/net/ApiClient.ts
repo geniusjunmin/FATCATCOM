@@ -1,5 +1,5 @@
 import { GameConfig } from "../core/GameConfig";
-import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, CreateFriendRequestRequest, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendRequestDto, FriendSearchResultDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
+import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, CreateFriendRequestRequest, DecorPlacementRequest, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendRequestDto, FriendSearchResultDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
 
 export class ApiClient {
     private static _baseUrl: string = GameConfig.apiBaseUrl;
@@ -104,6 +104,14 @@ export class ApiClient {
 
     public static getFriends(playerId: string): Promise<ApiEnvelope<FriendDto[]>> {
         return this.get(`/api/friends?playerId=${encodeURIComponent(playerId)}`);
+    }
+
+    public static getDecorations(playerId: string): Promise<ApiEnvelope<DecorStateDto[]>> {
+        return this.get(`/api/decor?playerId=${encodeURIComponent(playerId)}`);
+    }
+
+    public static updateDecorPlacement(playerId: string, decorId: string, request: DecorPlacementRequest): Promise<ApiEnvelope<DecorStateDto>> {
+        return this.post(`/api/decor/${encodeURIComponent(decorId)}/placement?playerId=${encodeURIComponent(playerId)}`, request);
     }
 
     public static getFriend(playerId: string, friendId: string): Promise<ApiEnvelope<FriendDto>> {

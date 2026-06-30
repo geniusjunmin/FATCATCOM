@@ -269,6 +269,20 @@ export type FriendDecorDto = {
     isPlaced: boolean;
 };
 
+export type DecorStateDto = {
+    decorId: string;
+    buildingId: string;
+    name: string;
+    score: number;
+    isPlaced: boolean;
+    updatedAt: number;
+};
+
+export type DecorPlacementRequest = {
+    buildingId: string;
+    isPlaced: boolean;
+};
+
 export type FriendActionResponse = {
     friend: FriendDto;
     rewarded: boolean;

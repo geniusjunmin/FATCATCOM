@@ -277,6 +277,13 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
             .ToListAsync(cancellationToken);
     }
 
+    public Task<PlayerDecorState?> GetDecorStateAsync(Guid playerId, string decorKey, CancellationToken cancellationToken)
+    {
+        return dbContext.DecorStates.FirstOrDefaultAsync(
+            decor => decor.PlayerId == playerId && decor.DecorKey == decorKey,
+            cancellationToken);
+    }
+
     public async Task AddDecorIfMissingAsync(PlayerDecorState decor, CancellationToken cancellationToken)
     {
         if (dbContext.Database.IsSqlite())

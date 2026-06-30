@@ -233,6 +233,18 @@ public sealed record FriendDecorDto(
     int Score,
     bool IsPlaced);
 
+public sealed record DecorStateDto(
+    string DecorId,
+    string BuildingId,
+    string Name,
+    int Score,
+    bool IsPlaced,
+    long UpdatedAt);
+
+public sealed record DecorPlacementRequest(
+    string BuildingId,
+    bool IsPlaced);
+
 public sealed record FriendProfileDto(
     bool IsRealPlayer,
     string? PlayerId,
