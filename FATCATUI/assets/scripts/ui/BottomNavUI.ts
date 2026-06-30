@@ -190,6 +190,7 @@ export class BottomNavUI extends Component {
     private _friendVisitSceneId = "";
     private _friendVisitReport: { friendId: string; kind: "visit" | "gift"; rewardText: string; statusText: string; updatedAt: number } | null = null;
     private _friendRefreshInFlight = false;
+    private _friendProfileRefreshInFlight = false;
     private _friendActivityRefreshInFlight = false;
     private _friendRequestRefreshInFlight = false;
     private _friendRequestBadgeFetchedAt = 0;
@@ -941,6 +942,12 @@ export class BottomNavUI extends Component {
         } else if (action === "closeFriendVisitReport") {
             this._friendVisitReport = null;
             success = true;
+        } else if (action === "refreshFriendProfile") {
+            const friend = await this.refreshServerFriendProfile(id);
+            success = !!friend;
+            actionMessageOverride = friend
+                ? `${friend.name} 的实时资料已同步。`
+                : "好友资料同步失败，请检查网络连接。";
         } else if (action === "visitFriend") {
             this._selectedFriendSnapshotId = id;
             this._friendVisitSceneId = id;
@@ -1205,6 +1212,7 @@ export class BottomNavUI extends Component {
             if (action === "upgradeBuilding") return this._domPanelMessage || "升级成功，建筑等级已提升。";
             if (action === "claimTask") return "任务奖励已领取。";
             if (action === "claimMail") return "邮件奖励已领取：+2500 金币，+20 猫粮。";
+            if (action === "refreshFriendProfile") return "好友实时资料已同步。";
             if (action === "visitFriend") return "已打开好友工厂快照，联网后会显示真实工厂。";
             if (action === "sendFriendGift") return "已为好友预留一份猫粮礼物，联网后会同步。";
             if (action === "openFriendVisitScene") return "好友访问场景已展开。";
@@ -1228,6 +1236,7 @@ export class BottomNavUI extends Component {
         if (action === "upgradeBuilding") return "升级失败：金币不足或已达最高等级。";
         if (action === "claimTask") return "任务未完成或奖励已领取。";
         if (action === "claimMail") return "邮件奖励领取失败。";
+        if (action === "refreshFriendProfile") return "好友资料同步失败：请检查服务器连接。";
         if (action === "connectServer") return "连接服务器失败：请检查 apiBaseUrl 或本地服务端。";
         if (action === "syncSave") return "同步失败：尚未连接服务器或服务端拒绝。";
         if (action === "pushSettings") return "设置推送失败：尚未连接服务器。";
@@ -1359,7 +1368,7 @@ export class BottomNavUI extends Component {
         const floorRows = rooms.slice(0, 6)
             .map((room, index) => `<div class="friend-scene-floor"><i>${room.floor}</i><span class="room-thumb asset" style="background-image:url('${this.getFactoryPropDataUri(room.scene)}')"></span><b>${room.name}<small>Lv.${room.level} · ${room.featuredCatName} · 猫 ${room.assignedCatCount}</small><span class="room-cats">${this.renderFriendRoomCats(room.assignedCatCount, index)}</span></b><em>${this.formatNumber(room.production)}/秒</em></div>`)
             .join("");
-        return `<div class="friend-visit-scene" style="--friend-factory-art:url('${this.getDomAssetDataUri(GeneratedBackgroundAssets.factoryCutaway)}')"><div class="friend-scene-head"><span class="friend-avatar"><i class="friend-rank">VISIT</i></span><div><b>${friend.name} 访问中</b><em>公司 Lv.${friend.level} · ${friend.status} · ${rooms.length} 个楼层</em>${this.renderFriendProfileMeta(friend)}</div><button class="friend-scene-close" data-action="closeFriendVisitScene">×</button></div><div class="friend-scene-stage"><div class="friend-scene-building">${floorRows}</div><div class="friend-scene-side"><div class="friend-scene-mascot"><i style="background-image:url('${this.getCatFullArtAsset("c_001")}')"></i><b>访客猫</b><small>正在巡楼</small></div><span>总收益<b>${this.formatNumber(friend.income)}/秒</b></span><span>房间合计<b>${this.formatNumber(roomTotal)}/秒</b></span><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>值班房间<b>${staffedRooms}/${rooms.length}</b></span><span>装饰评分<b>${this.formatNumber(decorTotal)}</b></span></div></div><div class="friend-scene-reward"><span>访问奖励<b>+${this.formatNumber(rewardPreview)} 金币</b></span><span>上次访问<b>${lastVisit}</b></span><span>礼物状态<b>${lastGift}</b></span></div><div class="friend-scene-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">刷新访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button><button class="tag" data-action="closeFriendVisitScene">返回列表</button></div></div>`;
+        return `<div class="friend-visit-scene" style="--friend-factory-art:url('${this.getDomAssetDataUri(GeneratedBackgroundAssets.factoryCutaway)}')"><div class="friend-scene-head"><span class="friend-avatar"><i class="friend-rank">VISIT</i></span><div><b>${friend.name} 访问中</b><em>公司 Lv.${friend.level} · ${friend.status} · ${rooms.length} 个楼层</em>${this.renderFriendProfileMeta(friend)}</div><button class="friend-scene-close" data-action="closeFriendVisitScene">×</button></div><div class="friend-scene-stage"><div class="friend-scene-building">${floorRows}</div><div class="friend-scene-side"><div class="friend-scene-mascot"><i style="background-image:url('${this.getCatFullArtAsset("c_001")}')"></i><b>访客猫</b><small>正在巡楼</small></div><span>总收益<b>${this.formatNumber(friend.income)}/秒</b></span><span>房间合计<b>${this.formatNumber(roomTotal)}/秒</b></span><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>值班房间<b>${staffedRooms}/${rooms.length}</b></span><span>装饰评分<b>${this.formatNumber(decorTotal)}</b></span></div></div><div class="friend-scene-reward"><span>访问奖励<b>+${this.formatNumber(rewardPreview)} 金币</b></span><span>上次访问<b>${lastVisit}</b></span><span>礼物状态<b>${lastGift}</b></span></div><div class="friend-scene-actions"><button class="tag" data-action="refreshFriendProfile" data-id="${friend.id}">同步资料</button><button class="tag" data-action="visitFriend" data-id="${friend.id}">领取访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button><button class="tag" data-action="closeFriendVisitScene">返回列表</button></div></div>`;
     }
 
     private renderFriendProfileMeta(friend: FriendPanelRow): string {
@@ -1470,6 +1479,19 @@ export class BottomNavUI extends Component {
             this.applyServerFriendSnapshot(friend, false);
         }
         this.renderDomPanel("friends");
+    }
+
+    private async refreshServerFriendProfile(friendId: string): Promise<FriendDto | null> {
+        if (!NetworkManager.canUseServer || this._friendProfileRefreshInFlight || !friendId) return null;
+        this._friendProfileRefreshInFlight = true;
+        try {
+            const friend = await SyncManager.fetchServerFriend(friendId);
+            if (!friend) return null;
+            this.applyServerFriendSnapshot(friend, false);
+            return friend;
+        } finally {
+            this._friendProfileRefreshInFlight = false;
+        }
     }
 
     private async refreshServerLeaderboardForPanel(): Promise<void> {

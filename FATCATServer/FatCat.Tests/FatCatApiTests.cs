@@ -159,6 +159,10 @@ public sealed class FatCatApiTests
             friendPlayerId = targetId.ToString("N"),
         });
         var addData = JsonDocument.Parse(await add.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var friendKey = $"player:{targetId:N}";
+        var refreshed = await client.GetAsync($"/api/friends/{Uri.EscapeDataString(friendKey)}?playerId={playerId}");
+        var refreshedData = JsonDocument.Parse(await refreshed.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var missing = await client.GetAsync($"/api/friends/missing-friend?playerId={playerId}");
         var friends = await client.GetAsync($"/api/friends?playerId={playerId}");
         var friendData = JsonDocument.Parse(await friends.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
         var leaderboard = await client.GetAsync($"/api/leaderboard?playerId={playerId}&boardId=income");
@@ -175,6 +179,11 @@ public sealed class FatCatApiTests
         Assert.True(profile.GetProperty("lastActiveAt").GetInt64() > 0);
         Assert.True(profile.GetProperty("unlockedCatCount").GetInt32() > 0);
         Assert.True(profile.GetProperty("totalBuildingLevel").GetInt32() > 0);
+        Assert.Equal(HttpStatusCode.OK, refreshed.StatusCode);
+        Assert.Equal(friendKey, refreshedData.GetProperty("id").GetString());
+        Assert.Equal("Beta Beans", refreshedData.GetProperty("name").GetString());
+        Assert.True(refreshedData.GetProperty("profile").GetProperty("isRealPlayer").GetBoolean());
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
         Assert.Equal(HttpStatusCode.OK, friends.StatusCode);
         Assert.Equal(4, friendData.GetArrayLength());
         Assert.Contains(friendData.EnumerateArray(), friend => friend.GetProperty("id").GetString() == $"player:{targetId:N}");

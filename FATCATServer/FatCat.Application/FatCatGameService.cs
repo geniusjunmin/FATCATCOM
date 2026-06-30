@@ -959,6 +959,33 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         return result;
     }
 
+    public async Task<FriendDto?> GetFriendAsync(Guid playerId, string friendId, CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        await EnsureDefaultFriendsAsync(playerId, cancellationToken);
+        var friend = await repository.GetFriendAsync(playerId, friendId, cancellationToken);
+        if (friend is null)
+        {
+            return null;
+        }
+
+        if (TryGetRealFriendPlayerId(friend.FriendKey, out var friendPlayerId))
+        {
+            var friendPlayer = await repository.FindPlayerByIdAsync(friendPlayerId, cancellationToken);
+            if (friendPlayer is not null)
+            {
+                await RefreshFriendSnapshotFromPlayerAsync(friend, friendPlayer, cancellationToken);
+                await repository.SaveChangesAsync(cancellationToken);
+            }
+        }
+
+        return await ToFriendDtoAsync(friend, cancellationToken);
+    }
+
     public async Task<FriendDto?> AddFriendAsync(Guid playerId, AddFriendRequest request, CancellationToken cancellationToken)
     {
         if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)

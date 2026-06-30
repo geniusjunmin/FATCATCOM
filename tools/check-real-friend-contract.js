@@ -36,25 +36,32 @@ assertContains("repository player lookup", repository, "FindPlayersByIdsAsync");
 assertContains("service add friend", service, "AddFriendAsync");
 assertContains("real friend key", service, "player:");
 assertContains("real friend refresh", service, "RefreshRealFriendSnapshotsAsync");
+assertContains("single friend refresh", service, "GetFriendAsync");
 assertContains("real friend profile builder", service, "BuildFriendProfileAsync");
 assertContains("real friend profile activity", service, "player.UpdatedAt.ToUnixTimeMilliseconds()");
 assertContains("api add route", program, "MapPost(\"/api/friends/add\"");
+assertContains("api single friend route", program, "MapGet(\"/api/friends/{friendId}\"");
 assertContains("client request type", apiTypes, "AddFriendRequest");
 assertContains("client friend profile type", apiTypes, "FriendProfileDto");
 assertContains("client api add friend", apiClient, "addFriend");
+assertContains("client api single friend", apiClient, "getFriend");
 assertContains("sync add friend", syncManager, "addServerFriend");
+assertContains("sync single friend", syncManager, "fetchServerFriend");
 assertContains("friend panel button", bottomNav, "data-action=\"addFriend\"");
 assertContains("friend panel prompt", bottomNav, "输入对方玩家 ID");
 assertContains("friend profile metadata renderer", bottomNav, "renderFriendProfileMeta");
 assertContains("real friend profile badge", bottomNav, "真人好友");
+assertContains("friend profile refresh action", bottomNav, "data-action=\"refreshFriendProfile\"");
 assertContains("friend profile styles", panelPresentation, ".friend-profile-meta");
 assertContains("api coverage", apiTests, "AddFriend_CreatesRealPlayerFriendContract");
 assertContains("service coverage", serviceTests, "AddFriendAsync_CreatesRealPlayerFriendSnapshot");
+assertContains("single friend service coverage", serviceTests, "GetFriendAsync_RefreshesOneRealPlayerSnapshot");
 
 console.log(JSON.stringify({
   ok: true,
   checked: [
     "server real-friend DTO/repository/service/route",
+    "single-friend live profile refresh",
     "real-player profile metadata",
     "client API/types/sync manager",
     "friend panel add/profile rendering",

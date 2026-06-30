@@ -418,6 +418,24 @@ export class SyncManager {
         return response.data;
     }
 
+    public static async fetchServerFriend(friendId: string): Promise<FriendDto | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.getFriend(NetworkManager.playerId, friendId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "friend_fetch_failed");
+            return null;
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
     public static async fetchServerSocialProfile(): Promise<PlayerSocialProfileDto | null> {
         if (!NetworkManager.canUseServer) {
             this.setOffline();

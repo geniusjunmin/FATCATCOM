@@ -328,6 +328,18 @@ app.MapGet("/api/friends", async (
         : Results.Ok(ApiEnvelope<IReadOnlyList<FriendDto>>.Success(result));
 });
 
+app.MapGet("/api/friends/{friendId}", async (
+    Guid playerId,
+    string friendId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.GetFriendAsync(playerId, friendId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<FriendDto>.Fail("friend_not_found"))
+        : Results.Ok(ApiEnvelope<FriendDto>.Success(result));
+});
+
 app.MapGet("/api/social/profile", async (
     Guid playerId,
     FatCatGameService service,

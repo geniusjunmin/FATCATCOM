@@ -102,6 +102,10 @@ export class ApiClient {
         return this.get(`/api/friends?playerId=${encodeURIComponent(playerId)}`);
     }
 
+    public static getFriend(playerId: string, friendId: string): Promise<ApiEnvelope<FriendDto>> {
+        return this.get(`/api/friends/${encodeURIComponent(friendId)}?playerId=${encodeURIComponent(playerId)}`);
+    }
+
     public static getSocialProfile(playerId: string): Promise<ApiEnvelope<PlayerSocialProfileDto>> {
         return this.get(`/api/social/profile?playerId=${encodeURIComponent(playerId)}`);
     }

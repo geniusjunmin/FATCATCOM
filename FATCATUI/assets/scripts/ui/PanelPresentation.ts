@@ -292,7 +292,7 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .friend-scene-reward { position:relative; z-index:1; margin-top:1.5%; display:grid; grid-template-columns:repeat(3,1fr); gap:1.2%; }
             #fatcat-dom-panel-overlay .friend-scene-reward span { min-height:32px; border-radius:10px; background:rgba(255,246,216,.9); color:#4a2f1f; display:flex; align-items:center; justify-content:center; flex-direction:column; text-align:center; font-weight:900; box-shadow:inset 0 0 0 1px rgba(93,59,33,.2); }
             #fatcat-dom-panel-overlay .friend-scene-reward b { color:#7a471e; }
-            #fatcat-dom-panel-overlay .friend-scene-actions { margin-top:2%; display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.4%; }
+            #fatcat-dom-panel-overlay .friend-scene-actions { margin-top:2%; display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:1.1%; }
             #fatcat-dom-panel-overlay .friend-scene-actions .tag { margin:0; min-height:30px; }
             #fatcat-dom-panel-overlay .friend-factory-detail { margin-bottom:2%; padding:2.4%; border-radius:16px; background:linear-gradient(#6a4930,#3f2a20); border:2px solid #9a6d42; color:#ffe9bd; box-shadow:inset 0 0 0 2px rgba(255,231,180,.12), 0 4px 0 rgba(48,32,22,.24); font-size:2.0%; }
             #fatcat-dom-panel-overlay .factory-detail-head { display:grid; grid-template-columns:1fr auto; gap:2%; align-items:center; }

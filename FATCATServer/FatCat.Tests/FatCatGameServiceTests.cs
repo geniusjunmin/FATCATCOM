@@ -511,6 +511,38 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task GetFriendAsync_RefreshesOneRealPlayerSnapshot()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var player = await service.AuthGuestAsync(new AuthGuestRequest("refresh-friend-a", "Alpha Cafe"), CancellationToken.None);
+        var target = await service.AuthGuestAsync(new AuthGuestRequest("refresh-friend-b", "Beta Beans"), CancellationToken.None);
+        var friendKey = $"player:{target.PlayerId:N}";
+
+        var added = await service.AddFriendAsync(
+            player.PlayerId,
+            new AddFriendRequest(target.PlayerId.ToString("N")),
+            CancellationToken.None);
+        var targetPlayer = await dbContext.Players.SingleAsync(item => item.Id == target.PlayerId);
+        targetPlayer.CompanyName = "Beta Roastery";
+        targetPlayer.Level = 9;
+        targetPlayer.UpdatedAt = DateTimeOffset.UtcNow.AddMinutes(1);
+        await dbContext.SaveChangesAsync();
+
+        var refreshed = await service.GetFriendAsync(player.PlayerId, friendKey, CancellationToken.None);
+        var missing = await service.GetFriendAsync(player.PlayerId, "missing-friend", CancellationToken.None);
+
+        Assert.NotNull(added);
+        Assert.NotNull(refreshed);
+        Assert.Equal(friendKey, refreshed!.Id);
+        Assert.Equal("Beta Roastery", refreshed.Name);
+        Assert.Equal(9, refreshed.Level);
+        Assert.True(refreshed.Profile.IsRealPlayer);
+        Assert.Equal(targetPlayer.UpdatedAt.ToUnixTimeMilliseconds(), refreshed.Profile.LastActiveAt);
+        Assert.Null(missing);
+    }
+
+    [Fact]
     public async Task SocialProfileAndFriendSearch_SupportInviteCodes()
     {
         await using var dbContext = CreateDbContext();
