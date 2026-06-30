@@ -29,6 +29,8 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             await EnsureDefaultCatStateAsync(existing.Id, cancellationToken);
             await EnsureDefaultBuildingStatesAsync(existing.Id, cancellationToken);
             await EnsureInviteCodeAsync(existing.Id, cancellationToken);
+            existing.UpdatedAt = DateTimeOffset.UtcNow;
+            await repository.SaveChangesAsync(cancellationToken);
             return new AuthGuestResponse(existing.Id, CreateDevToken(existing.Id), false);
         }
 
@@ -53,6 +55,20 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         return player is null
             ? null
             : new PlayerDto(player.Id, player.DeviceId, player.CompanyName, player.Level, player.Exp, player.ExpToNext);
+    }
+
+    public async Task<PlayerPresenceDto?> TouchPresenceAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        var player = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
+        if (player is null)
+        {
+            return null;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        player.UpdatedAt = now;
+        await repository.SaveChangesAsync(cancellationToken);
+        return new PlayerPresenceDto("online", now.ToUnixTimeMilliseconds(), now.ToUnixTimeMilliseconds());
     }
 
     public BootstrapDto GetBootstrap()
@@ -1948,16 +1964,9 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
 
     private async Task EnsureDefaultFriendsAsync(Guid playerId, CancellationToken cancellationToken)
     {
-        var existing = await repository.GetFriendsAsync(playerId, cancellationToken);
-        if (existing.Count > 0)
-        {
-            return;
-        }
-
-        await repository.AddFriendAsync(new FriendSnapshot { PlayerId = playerId, FriendKey = "mocha", Name = "摩卡工坊", Level = 18, IncomePerSecond = 520 }, cancellationToken);
-        await repository.AddFriendAsync(new FriendSnapshot { PlayerId = playerId, FriendKey = "latte", Name = "拿铁小镇", Level = 14, IncomePerSecond = 360 }, cancellationToken);
-        await repository.AddFriendAsync(new FriendSnapshot { PlayerId = playerId, FriendKey = "cocoa", Name = "可可研究所", Level = 22, IncomePerSecond = 680 }, cancellationToken);
-        await repository.SaveChangesAsync(cancellationToken);
+        await repository.AddFriendIfMissingAsync(new FriendSnapshot { PlayerId = playerId, FriendKey = "mocha", Name = "摩卡工坊", Level = 18, IncomePerSecond = 520 }, cancellationToken);
+        await repository.AddFriendIfMissingAsync(new FriendSnapshot { PlayerId = playerId, FriendKey = "latte", Name = "拿铁小镇", Level = 14, IncomePerSecond = 360 }, cancellationToken);
+        await repository.AddFriendIfMissingAsync(new FriendSnapshot { PlayerId = playerId, FriendKey = "cocoa", Name = "可可研究所", Level = 22, IncomePerSecond = 680 }, cancellationToken);
     }
 
     private async Task<PlayerSettings> EnsureSettingsAsync(Guid playerId, CancellationToken cancellationToken)
@@ -2111,6 +2120,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
                 null,
                 null,
                 null,
+                "system",
                 Math.Clamp(friend.Level / 6, 1, 5),
                 Math.Max(6, friend.Level * 2));
         }
@@ -2118,7 +2128,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         var player = await repository.FindPlayerByIdAsync(realPlayerId, cancellationToken);
         if (player is null)
         {
-            return new FriendProfileDto(true, realPlayerId.ToString("N"), null, null, 0, 0);
+            return new FriendProfileDto(true, realPlayerId.ToString("N"), null, null, "offline", 0, 0);
         }
 
         var invite = await EnsureInviteCodeAsync(realPlayerId, cancellationToken);
@@ -2129,8 +2139,19 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
             realPlayerId.ToString("N"),
             invite.Code,
             player.UpdatedAt.ToUnixTimeMilliseconds(),
+            GetPresenceStatus(player.UpdatedAt),
             catStates.Count(cat => cat.IsUnlocked),
             buildingStates.Sum(building => Math.Max(0, building.Level)));
+    }
+
+    private static string GetPresenceStatus(DateTimeOffset lastActiveAt)
+    {
+        var age = DateTimeOffset.UtcNow - lastActiveAt;
+        if (age <= TimeSpan.FromMinutes(2))
+        {
+            return "online";
+        }
+        return age <= TimeSpan.FromMinutes(30) ? "recent" : "offline";
     }
 
     private async Task<IReadOnlyList<FriendRoomDto>> BuildFriendRoomsAsync(FriendSnapshot friend, CancellationToken cancellationToken)

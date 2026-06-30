@@ -496,6 +496,7 @@ public sealed class FatCatGameServiceTests
         Assert.Equal("Beta Beans", added.Name);
         Assert.True(added.IncomePerSecond > 0);
         Assert.True(added.Profile.IsRealPlayer);
+        Assert.Equal("online", added.Profile.PresenceStatus);
         Assert.Equal(target.PlayerId.ToString("N"), added.Profile.PlayerId);
         Assert.StartsWith("FC", added.Profile.InviteCode);
         Assert.NotNull(added.Profile.LastActiveAt);
@@ -526,10 +527,12 @@ public sealed class FatCatGameServiceTests
         var targetPlayer = await dbContext.Players.SingleAsync(item => item.Id == target.PlayerId);
         targetPlayer.CompanyName = "Beta Roastery";
         targetPlayer.Level = 9;
-        targetPlayer.UpdatedAt = DateTimeOffset.UtcNow.AddMinutes(1);
+        targetPlayer.UpdatedAt = DateTimeOffset.UtcNow.AddMinutes(-10);
         await dbContext.SaveChangesAsync();
 
         var refreshed = await service.GetFriendAsync(player.PlayerId, friendKey, CancellationToken.None);
+        var presence = await service.TouchPresenceAsync(target.PlayerId, CancellationToken.None);
+        var online = await service.GetFriendAsync(player.PlayerId, friendKey, CancellationToken.None);
         var missing = await service.GetFriendAsync(player.PlayerId, "missing-friend", CancellationToken.None);
 
         Assert.NotNull(added);
@@ -538,8 +541,57 @@ public sealed class FatCatGameServiceTests
         Assert.Equal("Beta Roastery", refreshed.Name);
         Assert.Equal(9, refreshed.Level);
         Assert.True(refreshed.Profile.IsRealPlayer);
-        Assert.Equal(targetPlayer.UpdatedAt.ToUnixTimeMilliseconds(), refreshed.Profile.LastActiveAt);
+        Assert.Equal("recent", refreshed.Profile.PresenceStatus);
+        Assert.NotNull(presence);
+        Assert.Equal("online", presence!.Status);
+        Assert.True(presence.LastActiveAt > refreshed.Profile.LastActiveAt);
+        Assert.NotNull(online);
+        Assert.Equal("online", online!.Profile.PresenceStatus);
+        Assert.Equal(presence.LastActiveAt, online.Profile.LastActiveAt);
         Assert.Null(missing);
+    }
+
+    [Fact]
+    public async Task AuthGuestAsync_RefreshesReturningPlayerPresence()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var first = await service.AuthGuestAsync(new AuthGuestRequest("presence-login", "Presence Cafe"), CancellationToken.None);
+        var player = await dbContext.Players.SingleAsync(item => item.Id == first.PlayerId);
+        player.UpdatedAt = DateTimeOffset.UtcNow.AddHours(-2);
+        await dbContext.SaveChangesAsync();
+        var staleAt = player.UpdatedAt;
+
+        var returning = await service.AuthGuestAsync(new AuthGuestRequest("presence-login", "Ignored Rename"), CancellationToken.None);
+
+        Assert.False(returning.IsNewPlayer);
+        Assert.True(player.UpdatedAt > staleAt);
+    }
+
+    [Fact]
+    public async Task GetFriendsAsync_FillsMissingDefaultRowsWhenAnotherFriendExists()
+    {
+        await using var dbContext = CreateDbContext();
+        var repository = new EfFatCatRepository(dbContext);
+        var service = new FatCatGameService(repository);
+        var player = await service.AuthGuestAsync(new AuthGuestRequest("partial-friends", "Partial Cafe"), CancellationToken.None);
+        await repository.AddFriendAsync(new FatCat.Domain.FriendSnapshot
+        {
+            PlayerId = player.PlayerId,
+            FriendKey = "custom-preview",
+            Name = "Custom Preview",
+            Level = 3,
+            IncomePerSecond = 90,
+        }, CancellationToken.None);
+        await repository.SaveChangesAsync(CancellationToken.None);
+
+        var friends = await service.GetFriendsAsync(player.PlayerId, CancellationToken.None);
+
+        Assert.Equal(4, friends.Count);
+        Assert.Contains(friends, friend => friend.Id == "custom-preview");
+        Assert.Contains(friends, friend => friend.Id == "mocha");
+        Assert.Contains(friends, friend => friend.Id == "latte");
+        Assert.Contains(friends, friend => friend.Id == "cocoa");
     }
 
     [Fact]

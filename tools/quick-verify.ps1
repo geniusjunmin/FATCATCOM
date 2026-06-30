@@ -105,6 +105,10 @@ Invoke-Step "Real friend contract check" {
     node .\tools\check-real-friend-contract.js
 }
 
+Invoke-Step "Friend presence contract check" {
+    node .\tools\check-friend-presence-contract.js
+}
+
 Invoke-Step "Friend activity contract check" {
     node .\tools\check-friend-activity-contract.js
 }

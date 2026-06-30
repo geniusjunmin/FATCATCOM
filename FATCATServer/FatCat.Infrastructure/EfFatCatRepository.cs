@@ -77,6 +77,29 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         await dbContext.FriendSnapshots.AddAsync(friend, cancellationToken);
     }
 
+    public async Task AddFriendIfMissingAsync(FriendSnapshot friend, CancellationToken cancellationToken)
+    {
+        if (dbContext.Database.IsSqlite())
+        {
+            await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT OR IGNORE INTO "FriendSnapshots"
+                    ("Id", "PlayerId", "FriendKey", "Name", "Level", "IncomePerSecond")
+                VALUES
+                    ({friend.Id}, {friend.PlayerId}, {friend.FriendKey}, {friend.Name}, {friend.Level}, {friend.IncomePerSecond})
+                """, cancellationToken);
+            return;
+        }
+
+        var exists = await dbContext.FriendSnapshots.AnyAsync(
+            item => item.PlayerId == friend.PlayerId && item.FriendKey == friend.FriendKey,
+            cancellationToken);
+        if (!exists)
+        {
+            await dbContext.FriendSnapshots.AddAsync(friend, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+    }
+
     public Task<PlayerInviteCode?> GetInviteCodeByPlayerIdAsync(Guid playerId, CancellationToken cancellationToken)
     {
         return dbContext.InviteCodes.FirstOrDefaultAsync(invite => invite.PlayerId == playerId, cancellationToken);

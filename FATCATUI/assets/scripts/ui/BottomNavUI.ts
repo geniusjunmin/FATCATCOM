@@ -194,6 +194,9 @@ export class BottomNavUI extends Component {
     private _friendActivityRefreshInFlight = false;
     private _friendRequestRefreshInFlight = false;
     private _friendRequestBadgeFetchedAt = 0;
+    private _presenceHeartbeatAt = 0;
+    private _presenceHeartbeatInFlight = false;
+    private _friendAutoRefreshAt = 0;
     private _leaderboardRefreshInFlight = false;
     private _waitingForAppReady = false;
     private _launchInProgress = false;
@@ -284,6 +287,7 @@ export class BottomNavUI extends Component {
         this.hideCocosTopBar();
         this.renderDomHudOverlay();
         this.renderDomNavOverlay();
+        this.tickSocialPresence();
     }
 
     protected onDestroy(): void {
@@ -624,6 +628,7 @@ export class BottomNavUI extends Component {
         if (visible) {
             this.renderDomPanel(panelId);
             if (panelId === "friends") {
+                this._friendAutoRefreshAt = Date.now() + 30000;
                 void this.refreshServerFriendsForPanel();
                 void this.refreshFriendRequestsForPanel();
                 void this.refreshFriendActivitiesForPanel();
@@ -1374,13 +1379,28 @@ export class BottomNavUI extends Component {
     private renderFriendProfileMeta(friend: FriendPanelRow): string {
         const profile = friend.profile;
         if (!profile) {
-            return `<div class="friend-profile-meta system-player"><span>系统好友</span><span>猫咪预览</span><span>本地数据</span></div>`;
+            return `<div class="friend-profile-meta system-player"><span>系统好友</span><span class="presence-state system">常驻</span><span>本地数据</span></div>`;
         }
-        const presence = profile.isRealPlayer
-            ? (profile.lastActiveAt ? this.formatFriendReportTime(profile.lastActiveAt) : "活跃时间未知")
-            : "系统好友";
+        const presenceStatus = profile.isRealPlayer
+            ? this.getFriendPresenceStatus(profile)
+            : "system";
+        const presenceLabels = {
+            online: "在线",
+            recent: "最近活跃",
+            offline: "离线",
+            system: "系统好友",
+        };
         const invite = profile.inviteCode || "无邀请码";
-        return `<div class="friend-profile-meta ${profile.isRealPlayer ? "real-player" : "system-player"}"><span>${profile.isRealPlayer ? "真人好友" : "系统好友"}</span><span>${presence}</span><span>猫 ${profile.unlockedCatCount}</span><span>建筑 Lv.${profile.totalBuildingLevel}</span><span>${invite}</span></div>`;
+        return `<div class="friend-profile-meta ${profile.isRealPlayer ? "real-player" : "system-player"}"><span>${profile.isRealPlayer ? "真人好友" : "系统好友"}</span><span class="presence-state ${presenceStatus}">${presenceLabels[presenceStatus]}</span><span>猫 ${profile.unlockedCatCount}</span><span>建筑 Lv.${profile.totalBuildingLevel}</span><span>${invite}</span></div>`;
+    }
+
+    private getFriendPresenceStatus(profile: FriendProfileDto): "online" | "recent" | "offline" | "system" {
+        if (!profile.isRealPlayer) return "system";
+        if (profile.presenceStatus) return profile.presenceStatus;
+        if (!profile.lastActiveAt) return "offline";
+        const age = Date.now() - profile.lastActiveAt;
+        if (age <= 120000) return "online";
+        return age <= 1800000 ? "recent" : "offline";
     }
 
     private getFriendRoomRows(friend: FriendPanelRow): Array<{ floor: string; name: string; level: number; production: number; assignedCatCount: number; featuredCatName: string; decorScore: number; scene: string }> {
@@ -1479,6 +1499,22 @@ export class BottomNavUI extends Component {
             this.applyServerFriendSnapshot(friend, false);
         }
         this.renderDomPanel("friends");
+    }
+
+    private tickSocialPresence(): void {
+        if (!NetworkManager.canUseServer || !NetworkManager.playerId) return;
+        const now = Date.now();
+        if (!this._presenceHeartbeatInFlight && now >= this._presenceHeartbeatAt) {
+            this._presenceHeartbeatAt = now + 45000;
+            this._presenceHeartbeatInFlight = true;
+            void SyncManager.touchServerPresence().finally(() => {
+                this._presenceHeartbeatInFlight = false;
+            });
+        }
+        if (this.currentPanel === "friends" && now >= this._friendAutoRefreshAt) {
+            this._friendAutoRefreshAt = now + 30000;
+            void this.refreshServerFriendsForPanel();
+        }
     }
 
     private async refreshServerFriendProfile(friendId: string): Promise<FriendDto | null> {

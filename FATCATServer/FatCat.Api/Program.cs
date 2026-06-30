@@ -75,6 +75,17 @@ app.MapGet("/api/player/me", async (
         : Results.Ok(ApiEnvelope<PlayerDto>.Success(player));
 });
 
+app.MapPost("/api/social/presence", async (
+    Guid playerId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.TouchPresenceAsync(playerId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<PlayerPresenceDto>.Fail("player_not_found"))
+        : Results.Ok(ApiEnvelope<PlayerPresenceDto>.Success(result));
+});
+
 app.MapGet("/api/resources", async (
     Guid playerId,
     FatCatGameService service,

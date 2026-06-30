@@ -223,6 +223,9 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .friend-profile-meta span { padding:1px 6px; border-radius:999px; background:rgba(91,57,31,.12); color:#694226; font-size:68%; font-weight:900; white-space:nowrap; }
             #fatcat-dom-panel-overlay .friend-profile-meta.real-player span:first-child { background:#5f923b; color:#fff8dc; }
             #fatcat-dom-panel-overlay .friend-profile-meta.system-player span:first-child { background:#806347; color:#fff0cf; }
+            #fatcat-dom-panel-overlay .friend-profile-meta .presence-state.online { background:#4d913c; color:#fff; }
+            #fatcat-dom-panel-overlay .friend-profile-meta .presence-state.recent { background:#c88830; color:#fff7df; }
+            #fatcat-dom-panel-overlay .friend-profile-meta .presence-state.offline { background:#74695f; color:#f4eadf; }
             #fatcat-dom-panel-overlay .friend-income { height:10px; margin:1.4% 0; border-radius:999px; background:#d7bd8e; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(91,61,34,.2); }
             #fatcat-dom-panel-overlay .friend-income i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#79aa43,#f0c34e); }
             #fatcat-dom-panel-overlay .friend-states { display:flex; flex-wrap:wrap; gap:2%; }

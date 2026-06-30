@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -26,6 +26,10 @@ export class SyncManager {
         lastError: "",
         pendingFeatureChanges: 0,
     };
+    private static _presenceTouchInFlight: Promise<PlayerPresenceDto | null> | null = null;
+    private static _lastPresence: PlayerPresenceDto | null = null;
+    private static _lastPresenceAt = 0;
+    private static _lastPresencePlayerId = "";
 
     public static initialize(): SyncSnapshot {
         this.refreshPendingFeatureChanges();
@@ -78,7 +82,39 @@ export class SyncManager {
         void this.fetchServerSocialProfile();
         void this.fetchServerFriendActivities();
         void this.fetchServerLeaderboard();
+        void this.touchServerPresence();
         return true;
+    }
+
+    public static async touchServerPresence(): Promise<PlayerPresenceDto | null> {
+        if (this._presenceTouchInFlight) {
+            return this._presenceTouchInFlight;
+        }
+        if (this._lastPresence
+            && this._lastPresencePlayerId === NetworkManager.playerId
+            && Date.now() - this._lastPresenceAt < 30000) {
+            return this._lastPresence;
+        }
+        this._presenceTouchInFlight = this.performPresenceTouch();
+        try {
+            return await this._presenceTouchInFlight;
+        } finally {
+            this._presenceTouchInFlight = null;
+        }
+    }
+
+    private static async performPresenceTouch(): Promise<PlayerPresenceDto | null> {
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.touchPresence(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "presence_touch_failed");
+            return null;
+        }
+        this._lastPresence = response.data;
+        this._lastPresenceAt = Date.now();
+        this._lastPresencePlayerId = NetworkManager.playerId;
+        this.markReadyAfterServerCall();
+        return response.data;
     }
 
     public static async syncSave(): Promise<boolean> {

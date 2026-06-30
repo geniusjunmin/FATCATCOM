@@ -1,5 +1,5 @@
 import { GameConfig } from "../core/GameConfig";
-import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, CreateFriendRequestRequest, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendRequestDto, FriendSearchResultDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
+import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, CreateFriendRequestRequest, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendRequestDto, FriendSearchResultDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
 
 export class ApiClient {
     private static _baseUrl: string = GameConfig.apiBaseUrl;
@@ -24,6 +24,10 @@ export class ApiClient {
 
     public static authGuest(request: AuthGuestRequest): Promise<ApiEnvelope<AuthGuestResponse>> {
         return this.post("/api/auth/guest", request);
+    }
+
+    public static touchPresence(playerId: string): Promise<ApiEnvelope<PlayerPresenceDto>> {
+        return this.post(`/api/social/presence?playerId=${encodeURIComponent(playerId)}`, {});
     }
 
     public static getBootstrap(): Promise<ApiEnvelope<BootstrapDto>> {

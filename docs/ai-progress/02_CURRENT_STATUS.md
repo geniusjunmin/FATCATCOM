@@ -1,13 +1,13 @@
 # Current Status
 
-Updated: 2026-06-30
+Updated: 2026-07-01
 
 ## Control Panel
 
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Continue visual fidelity with final main/cat proportion tuning and richer generated/Cocos-managed art depth; social next move is automatic presence cadence or true decor inventory snapshots. |
+| Best Next Move | Continue visual fidelity with final main/cat proportion tuning and richer generated/Cocos-managed art depth; social next move is true decor inventory snapshots or live interaction transport. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -75,6 +75,8 @@ Updated: 2026-06-30
 - Latest social UI pass makes the friend panel feel more like a multiplayer game surface: compact three-column stats on phones, first-screen friend factory cards with cat-style avatars, income bars, visit/gift state chips, and dedicated action buttons. Friend factory snapshots show selected-friend reward/status metrics plus 3F/2F/1F production slices, clicking visit now opens a dedicated dark target-like `.friend-visit-scene` before the smaller report, with room rows, local room thumbnails, assigned-cat mini portraits, a visitor-cat card, reward/status strip, total income, room yield total, staffed room count, primary floor, decor score, and visit/gift/back actions. The factory-detail card still lists room stats, primary floor, assigned cat count, featured cat, decor score, and room rows from server `FriendDto.rooms` when online. The utility regression asserts friend cards, income bars, action buttons, snapshot stats/floors, visit scene floors/stats/actions/thumbs/cats/mascot/rewards, visit report stats/floors/actions, factory-detail stats/rows/meta, request/search/leaderboard/activity modules, and clean runtime state.
 - Latest real-friend profile pass extends `FriendDto` with `FriendProfileDto`: real-player flag, normalized player id, invite code, last-active timestamp, unlocked-cat count, and total building level. Friend cards, selected snapshots, and visit-scene headers render compact profile chips; offline seeded rows are explicitly marked as system friends.
 - Latest live-profile refresh pass adds `GET /api/friends/{friendId}` and a separate `同步资料` action in the friend visit scene. It refreshes only the selected real player's name, level, production, profile, cats, and room summary without claiming the daily visit reward. Service/API tests, online checks, contract guards, and 430/360/768 utility screenshots cover the path.
+- Latest presence pass adds `/api/social/presence`, server-derived `online`/`recent`/`offline` states, returning-login activity refresh, a globally deduplicated 45-second client heartbeat, and 30-second friend-panel refresh cadence. Friend profile chips render status-specific colors. A real browser/API regression proves one heartbeat, one online real-player badge, and clean client/server logs.
+- The presence regression exposed a concurrent first-load race in seeded friend creation. Default friends now use atomic SQLite `INSERT OR IGNORE` per key, so simultaneous friends/leaderboard requests cannot duplicate rows, and partial seed sets are repaired instead of treated as complete.
 - Building, shop, inventory, research, task, achievement, mail, friend, and settings panels are clickable.
 - Screenshot regression exists for 414x896, 430x932, 360x800, and 768x1024 on the main screen and cat page.
 - Latest feature-panel code-health pass extracts static settings, task milestone, shop tab/catalog, inventory tab/preview, and research-tree presentation data into `FeaturePanelPresentation.ts`. `BottomNavUI.ts` now delegates those values while keeping live state and action rendering local, guarded by `tools/check-feature-panel-presentation-contract.js`.

@@ -231,8 +231,14 @@ public sealed record FriendProfileDto(
     string? PlayerId,
     string? InviteCode,
     long? LastActiveAt,
+    string PresenceStatus,
     int UnlockedCatCount,
     int TotalBuildingLevel);
+
+public sealed record PlayerPresenceDto(
+    string Status,
+    long LastActiveAt,
+    long ServerTime);
 
 public sealed record FriendDto(
     string Id,

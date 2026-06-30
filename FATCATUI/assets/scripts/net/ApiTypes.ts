@@ -239,8 +239,15 @@ export type FriendProfileDto = {
     playerId?: string | null;
     inviteCode?: string | null;
     lastActiveAt?: number | null;
+    presenceStatus: "online" | "recent" | "offline" | "system";
     unlockedCatCount: number;
     totalBuildingLevel: number;
+};
+
+export type PlayerPresenceDto = {
+    status: "online" | "recent" | "offline";
+    lastActiveAt: number;
+    serverTime: number;
 };
 
 export type FriendRoomDto = {

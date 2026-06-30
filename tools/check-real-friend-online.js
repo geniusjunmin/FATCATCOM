@@ -76,6 +76,7 @@ async function get(path) {
         const duplicate = await post(`/api/friends/add?playerId=${encodeURIComponent(playerId)}`, {
             friendPlayerId: targetId,
         });
+        const presence = await post(`/api/social/presence?playerId=${encodeURIComponent(targetId)}`, {});
         const refreshed = await get(`/api/friends/${encodeURIComponent(targetKey)}?playerId=${encodeURIComponent(playerId)}`);
         const missingFriend = await get(`/api/friends/missing-friend?playerId=${encodeURIComponent(playerId)}`);
         const searchedAfter = await get(`/api/friends/search?playerId=${encodeURIComponent(playerId)}&query=${encodeURIComponent(inviteCode)}`);
@@ -116,6 +117,7 @@ async function get(path) {
             && searched.response.ok
             && added.response.ok
             && duplicate.response.ok
+            && presence.response.ok
             && refreshed.response.ok
             && missingFriend.response.status === 404
             && searchedAfter.response.ok
@@ -142,8 +144,11 @@ async function get(path) {
             && added.json.data?.profile?.lastActiveAt > 0
             && added.json.data?.profile?.unlockedCatCount > 0
             && added.json.data?.profile?.totalBuildingLevel > 0
+            && presence.json.data?.status === "online"
+            && presence.json.data?.lastActiveAt > 0
             && refreshed.json.data?.id === targetKey
             && refreshed.json.data?.profile?.isRealPlayer === true
+            && refreshed.json.data?.profile?.presenceStatus === "online"
             && inviteCode?.startsWith("FC")
             && receiverInviteCode?.startsWith("FC")
             && searched.json.data?.inviteCode === inviteCode
@@ -179,6 +184,7 @@ async function get(path) {
             searched: searched.json.data,
             added: added.json.data,
             realFriendProfile: added.json.data?.profile,
+            presence: presence.json.data,
             refreshedFriend: refreshed.json.data,
             missingFriendStatus: missingFriend.response.status,
             duplicate: duplicate.json.data,

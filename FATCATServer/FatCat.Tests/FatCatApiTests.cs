@@ -160,6 +160,9 @@ public sealed class FatCatApiTests
         });
         var addData = JsonDocument.Parse(await add.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
         var friendKey = $"player:{targetId:N}";
+        var presence = await client.PostAsJsonAsync($"/api/social/presence?playerId={targetId}", new {});
+        var presenceData = JsonDocument.Parse(await presence.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var missingPresence = await client.PostAsJsonAsync($"/api/social/presence?playerId={Guid.NewGuid()}", new {});
         var refreshed = await client.GetAsync($"/api/friends/{Uri.EscapeDataString(friendKey)}?playerId={playerId}");
         var refreshedData = JsonDocument.Parse(await refreshed.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
         var missing = await client.GetAsync($"/api/friends/missing-friend?playerId={playerId}");
@@ -177,12 +180,18 @@ public sealed class FatCatApiTests
         Assert.Equal(targetId.ToString("N"), profile.GetProperty("playerId").GetString());
         Assert.StartsWith("FC", profile.GetProperty("inviteCode").GetString());
         Assert.True(profile.GetProperty("lastActiveAt").GetInt64() > 0);
+        Assert.Equal("online", profile.GetProperty("presenceStatus").GetString());
         Assert.True(profile.GetProperty("unlockedCatCount").GetInt32() > 0);
         Assert.True(profile.GetProperty("totalBuildingLevel").GetInt32() > 0);
+        Assert.Equal(HttpStatusCode.OK, presence.StatusCode);
+        Assert.Equal("online", presenceData.GetProperty("status").GetString());
+        Assert.True(presenceData.GetProperty("lastActiveAt").GetInt64() > 0);
+        Assert.Equal(HttpStatusCode.NotFound, missingPresence.StatusCode);
         Assert.Equal(HttpStatusCode.OK, refreshed.StatusCode);
         Assert.Equal(friendKey, refreshedData.GetProperty("id").GetString());
         Assert.Equal("Beta Beans", refreshedData.GetProperty("name").GetString());
         Assert.True(refreshedData.GetProperty("profile").GetProperty("isRealPlayer").GetBoolean());
+        Assert.Equal("online", refreshedData.GetProperty("profile").GetProperty("presenceStatus").GetString());
         Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
         Assert.Equal(HttpStatusCode.OK, friends.StatusCode);
         Assert.Equal(4, friendData.GetArrayLength());
