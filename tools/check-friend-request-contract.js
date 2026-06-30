@@ -29,6 +29,7 @@ const apiTypes = read("FATCATUI/assets/scripts/net/ApiTypes.ts");
 const apiClient = read("FATCATUI/assets/scripts/net/ApiClient.ts");
 const syncManager = read("FATCATUI/assets/scripts/manager/SyncManager.ts");
 const bottomNav = read("FATCATUI/assets/scripts/ui/BottomNavUI.ts");
+const factoryOverlayPresentation = read("FATCATUI/assets/scripts/ui/FactoryOverlayPresentation.ts");
 const apiTests = read("FATCATServer/FatCat.Tests/FatCatApiTests.cs");
 const serviceTests = read("FATCATServer/FatCat.Tests/FatCatGameServiceTests.cs");
 
@@ -64,7 +65,8 @@ assertContains("friend panel accept action", bottomNav, "acceptFriendRequest");
 assertContains("friend panel reject action", bottomNav, "rejectFriendRequest");
 assertContains("friend request badge refresh", bottomNav, "refreshFriendRequestBadgeForFactory");
 assertContains("friend request pending count", bottomNav, "getPendingFriendRequestCount");
-assertContains("friend request entry badge", bottomNav, "data-badge");
+assertContains("friend request badge value", bottomNav, "friendButton.dataset.badge");
+assertContains("friend request badge style", factoryOverlayPresentation, "content:attr(data-badge)");
 assertContains("friend request mail notification", bottomNav, "openFriendRequests");
 assertContains("friend request mail unread", bottomNav, "unreadNew");
 assertContains("service coverage accept", serviceTests, "FriendRequests_CanBeAcceptedIntoBidirectionalRelations");

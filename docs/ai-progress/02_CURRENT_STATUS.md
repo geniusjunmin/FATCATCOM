@@ -22,7 +22,7 @@ Updated: 2026-06-30
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
 | Biggest Gap | Visual fidelity | Main factory and cat page are closer to target, but icon consistency, generated illustration depth, and final target-proportion tuning still need work. |
-| Biggest Risk | Frontend size | `BottomNavUI.ts` remains too large; the asset-resolver, formatter, main-panel config, UI/factory/feature/cat/HUD/nav/panel presentation extractions are done, and the remaining factory/cat overlay styles and render blocks should continue moving into owned modules. |
+| Biggest Risk | Frontend size | `BottomNavUI.ts` remains too large; shared presentation plus panel and factory-overlay styles are extracted, and the remaining cat overlay styles and cohesive render blocks should continue moving into owned modules. |
 
 ## Client UI
 
@@ -73,6 +73,7 @@ Updated: 2026-06-30
 - Building, shop, inventory, research, task, achievement, mail, friend, and settings panels are clickable.
 - Screenshot regression exists for 414x896, 430x932, 360x800, and 768x1024 on the main screen and cat page.
 - Latest feature-panel code-health pass extracts static settings, task milestone, shop tab/catalog, inventory tab/preview, and research-tree presentation data into `FeaturePanelPresentation.ts`. `BottomNavUI.ts` now delegates those values while keeping live state and action rendering local, guarded by `tools/check-feature-panel-presentation-contract.js`.
+- Latest factory-overlay code-health pass extracts roughly 77K characters of responsive main-factory CSS into parameterized `FactoryOverlayPresentation.ts`. `BottomNavUI.ts` still resolves the generated cutaway asset, builds live floor markup, and handles all actions; `tools/check-factory-overlay-presentation-contract.js` protects the split.
 - Latest HUD presentation code-health pass extracts top-HUD CSS, company/level/exp constants, and four resource item definitions into `HudPresentation.ts`. `BottomNavUI.ts` keeps live resource values and layout refresh local, guarded by `tools/check-hud-presentation-contract.js`.
 - Latest nav presentation code-health pass extracts bottom DOM navigation CSS into `NavPresentation.ts`. `BottomNavUI.ts` still renders shared nav items and click handling locally, guarded by `tools/check-nav-presentation-contract.js`.
 - Latest panel presentation pass extracts the shared building/shop/inventory/research/task/social/settings overlay CSS into `PanelPresentation.ts`, removing roughly 83K characters from `BottomNavUI.ts` without moving actions or live rendering. `tools/check-panel-presentation-contract.js` guards ownership boundaries, and `quick-verify.ps1` now fails on non-zero Node/.NET exit codes instead of printing a false green.
@@ -91,6 +92,7 @@ Latest verified UI commands:
 - `node .\tools\capture-feature-regression.js`
 - `node .\tools\capture-utility-regression.js`
 - `node .\tools\check-feature-panel-presentation-contract.js`
+- `node .\tools\check-factory-overlay-presentation-contract.js`
 - `node .\tools\verify-ui-clicks-playwright.js`
 - `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`
 

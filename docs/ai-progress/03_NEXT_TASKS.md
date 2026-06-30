@@ -22,7 +22,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Continue final main/cat proportion tuning and add richer illustration assets where CSS is still flat. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Friend panel now has richer first-screen cards; next deepen real friend visits/profile cards and interaction rewards. |
-| Code Health | P1 | Reduce frontend maintenance risk. | Asset-resolver, formatter, main-panel config, UI/factory/feature/cat/HUD/nav/panel presentation extractions are done; continue with the remaining factory/cat overlay styles and cohesive render blocks in `BottomNavUI.ts`. |
+| Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation, panel CSS, and factory-overlay CSS extractions are done; continue with the remaining cat-overlay styles and cohesive render blocks in `BottomNavUI.ts`. |
 
 ## P0 Now
 
@@ -189,6 +189,7 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest main-panel config batch: `MainPanelId`, Cocos nav button aliases, DOM bottom-nav items, selected-name aliases, and main-nav feature icon mapping moved to `FATCATUI/assets/scripts/ui/MainPanelConfig.ts`; `tools/check-main-panel-config-contract.js` guards the split and runs in `tools/quick-verify.ps1`.
 - Done in latest UI presentation batch: static labels, icon class choices, rarity stars, and cat skill/story/bubble presentation helpers moved to `FATCATUI/assets/scripts/ui/UiPresentation.ts`; `tools/check-ui-presentation-contract.js` guards the split and runs in `tools/quick-verify.ps1`.
 - Done in latest factory presentation batch: main factory floor definitions, building scene/name maps, room prop/decor/wall/cat snippets, and floor bonus icon classes moved to `FATCATUI/assets/scripts/ui/FactoryPresentation.ts`; `tools/check-factory-presentation-contract.js` guards the split and runs in `tools/quick-verify.ps1`.
+- Done in latest factory-overlay batch: the responsive main-factory CSS moved to `FATCATUI/assets/scripts/ui/FactoryOverlayPresentation.ts`, with the generated cutaway Data URI supplied as an explicit argument. The new contract guards style ownership and retained actions; four-size main screenshots, the 18-step click flow, and 63/63 server tests passed.
 - Done in latest cat presentation batch: cat side tabs, skin themes, equipment slot definitions, locked-slot presentation, default equipment fallback, and equipment-effect labels moved to `FATCATUI/assets/scripts/ui/CatPresentation.ts`; `tools/check-cat-presentation-contract.js` guards the split and runs in `tools/quick-verify.ps1`.
 - Done in latest HUD presentation batch: top-HUD CSS, company/level/exp constants, and resource item definitions moved to `FATCATUI/assets/scripts/ui/HudPresentation.ts`; `tools/check-hud-presentation-contract.js` guards the split and runs in `tools/quick-verify.ps1`.
 - Done in latest nav presentation batch: bottom DOM navigation CSS moved to `FATCATUI/assets/scripts/ui/NavPresentation.ts`; `tools/check-nav-presentation-contract.js` guards the split and runs in `tools/quick-verify.ps1`.
