@@ -22,7 +22,7 @@ Updated: 2026-06-30
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
 | Biggest Gap | Visual fidelity | Main factory and cat page are closer to target, but icon consistency, generated illustration depth, and final target-proportion tuning still need work. |
-| Biggest Risk | Frontend size | `BottomNavUI.ts` remains too large; the asset-resolver, formatter, main-panel config, UI presentation, and factory presentation extractions are done, and further HUD/nav/factory/cat/panel splits should continue. |
+| Biggest Risk | Frontend size | `BottomNavUI.ts` remains too large; the asset-resolver, formatter, main-panel config, UI presentation, factory presentation, and feature-panel presentation extractions are done, and further HUD/nav/cat/panel splits should continue. |
 
 ## Client UI
 
@@ -71,6 +71,7 @@ Updated: 2026-06-30
 - Latest social UI pass makes the friend panel feel more like a multiplayer game surface: compact three-column stats on phones, first-screen friend factory cards with cat-style avatars, income bars, visit/gift state chips, and dedicated action buttons. Friend factory snapshots show selected-friend reward/status metrics plus 3F/2F/1F production slices, clicking visit now opens a dedicated dark target-like `.friend-visit-scene` before the smaller report, with room rows, local room thumbnails, assigned-cat mini portraits, a visitor-cat card, reward/status strip, total income, room yield total, staffed room count, primary floor, decor score, and visit/gift/back actions. The factory-detail card still lists room stats, primary floor, assigned cat count, featured cat, decor score, and room rows from server `FriendDto.rooms` when online. The utility regression asserts friend cards, income bars, action buttons, snapshot stats/floors, visit scene floors/stats/actions/thumbs/cats/mascot/rewards, visit report stats/floors/actions, factory-detail stats/rows/meta, request/search/leaderboard/activity modules, and clean runtime state.
 - Building, shop, inventory, research, task, achievement, mail, friend, and settings panels are clickable.
 - Screenshot regression exists for 414x896, 430x932, 360x800, and 768x1024 on the main screen and cat page.
+- Latest feature-panel code-health pass extracts static settings, task milestone, shop tab/catalog, inventory tab/preview, and research-tree presentation data into `FeaturePanelPresentation.ts`. `BottomNavUI.ts` now delegates those values while keeping live state and action rendering local, guarded by `tools/check-feature-panel-presentation-contract.js`.
 - Remaining visual gap: generated art depth where CSS still looks flat, final main/cat target proportions, future true bitmap skin/outfit illustrations, and larger Cocos-managed illustration assets.
 
 Latest verified UI commands:
@@ -81,6 +82,7 @@ Latest verified UI commands:
 - `node .\tools\capture-cat-lineup.js`
 - `node .\tools\capture-feature-regression.js`
 - `node .\tools\capture-utility-regression.js`
+- `node .\tools\check-feature-panel-presentation-contract.js`
 - `node .\tools\verify-ui-clicks-playwright.js`
 - `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`
 

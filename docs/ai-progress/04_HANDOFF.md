@@ -42,6 +42,7 @@ Updated: 2026-06-30
 - Latest main-panel config pass: `FATCATUI/assets/scripts/ui/MainPanelConfig.ts` now owns `MainPanelId`, Cocos nav aliases, DOM bottom-nav item labels/icon classes, selected-name aliases, and main-nav feature icon mapping. `BottomNavUI.ts` delegates those configuration reads while keeping the runtime badge and asset lookup behavior local. `tools/check-main-panel-config-contract.js` guards the split in `tools/quick-verify.ps1`.
 - Latest UI presentation pass: `FATCATUI/assets/scripts/ui/UiPresentation.ts` now owns static label/icon-class helpers for friends, network/sync, tasks, shop, inventory, research, cat tabs, cat roles, weight stages, skill names/descriptions, speech bubbles, story text, and rarity stars. `BottomNavUI.ts` keeps wrapper methods so render call sites stay stable, and `tools/check-ui-presentation-contract.js` guards the split in `tools/quick-verify.ps1`.
 - Latest factory presentation pass: `FATCATUI/assets/scripts/ui/FactoryPresentation.ts` now owns main factory floor definitions, building scene/display-name maps, static room props, room decor, wall details, worker-cat snippets, and floor bonus icon classes. `BottomNavUI.ts` still calculates live building levels and floor output text, then delegates static presentation. `tools/check-factory-presentation-contract.js` guards the split in `tools/quick-verify.ps1`.
+- Latest feature-panel presentation pass: `FATCATUI/assets/scripts/ui/FeaturePanelPresentation.ts` now owns settings rows, default enabled toggles, task milestones, shop tabs/catalog previews, inventory tabs/preview cards, and research-tree node/placeholder positions. `BottomNavUI.ts` keeps live values/actions local, and `tools/check-feature-panel-presentation-contract.js` guards the split in `tools/quick-verify.ps1`.
 - Latest main-HUD micro pass in `BottomNavUI.ts` lightens the company badge toward the target wood/paper card, enlarges avatar/level treatment, repositions the experience readout, and nudges compact resource spacing. Verified at 360x800, 414x896, 430x932, and 768x1024 with `capture-main-regression.js`.
 - Main factory now uses `FATCATUI/assets/resources/textures/generated/factory_cutaway_bg_640.jpg` as the visible source of truth for roof and room art. Duplicate CSS floors, props, cats, pipes, and center KPI cards are intentionally hidden; keep the live left floor cards and combined right production/bonus cards.
 - The main building now spans roughly 16%-84% of the game viewport, and the compact bottom widgets use `19fr 11fr 35fr 34fr` proportions. The launch label is single-line at 360/414/430 widths.
@@ -122,6 +123,7 @@ node tools\check-dom-formatters-contract.js
 node tools\check-main-panel-config-contract.js
 node tools\check-ui-presentation-contract.js
 node tools\check-factory-presentation-contract.js
+node tools\check-feature-panel-presentation-contract.js
 node tools\check-shop-state-contract.js
 node tools\check-friend-sync-contract.js
 node tools\check-friend-visit-scene-contract.js

@@ -22,7 +22,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Continue final main/cat proportion tuning and add richer illustration assets where CSS is still flat. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Friend panel now has richer first-screen cards; next deepen real friend visits/profile cards and interaction rewards. |
-| Code Health | P1 | Reduce frontend maintenance risk. | Asset-resolver, formatter, main-panel config, UI presentation, and factory presentation extractions are done; continue splitting HUD, nav, cat, and panel rendering from `BottomNavUI.ts`. |
+| Code Health | P1 | Reduce frontend maintenance risk. | Asset-resolver, formatter, main-panel config, UI presentation, factory presentation, and feature-panel presentation extractions are done; continue splitting HUD, nav, cat, and remaining panel rendering from `BottomNavUI.ts`. |
 
 ## P0 Now
 
@@ -40,7 +40,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - `tools/check-friend-invite-contract.js` verifies `/api/social/profile`, `/api/friends/search`, persisted short invite codes, relation rows, invite-code add compatibility, client API/sync helpers, friend-panel search confirmation, and coverage.
 - `tools/check-friend-request-contract.js` verifies `/api/friends/requests`, bidirectional accept behavior, client API/sync helpers, friend-panel request UI hooks, inline invite search UI, factory friend-entry badge hooks, mail notification surfacing, and coverage.
 - `tools/check-leaderboard-contract.js` verifies `/api/leaderboard`, client leaderboard API/types/sync fetch, friend-panel rendering, and service/API coverage.
-- `tools/quick-verify.ps1` runs focused client TS, generated balance, drift, effect coverage, client catalog metadata, DOM asset resolver contract, DOM formatter contract, main panel config contract, UI presentation contract, factory presentation contract, shop-state contract, friend-sync contract, friend visit-scene contract, real-friend contract, friend-activity contract, friend-reward contract, friend-invite contract, friend-request contract, leaderboard contract, and server tests together.
+- `tools/quick-verify.ps1` runs focused client TS, generated balance, drift, effect coverage, client catalog metadata, DOM asset resolver contract, DOM formatter contract, main panel config contract, UI presentation contract, factory presentation contract, feature panel presentation contract, shop-state contract, friend-sync contract, friend visit-scene contract, real-friend contract, friend-activity contract, friend-reward contract, friend-invite contract, friend-request contract, leaderboard contract, and server tests together.
 - Next move: consider loading a true single config source directly at build/runtime, or wire `tools/quick-verify.ps1` into CI once CI exists.
 
 ### 2. Server-Side Production Model
@@ -90,6 +90,7 @@ Keep these scripts in the regular set when touching related flows:
 
 - Building, shop, inventory, and research panels have been moved from generic flat cards toward the root `其他页面.png` reference.
 - Done in latest feature-panel batch: building gets six floor chips, a generated factory-room hero, level-effect comparison rows, upgrade conditions, and the existing upgrade action; shop gets four tabs and six target-like rows; inventory gets a four-column by five-row grid with a bottom selected-detail card; research keeps a dark tree and cream detail panel side by side at compact widths.
+- Done in latest feature-panel code-health batch: static settings rows, task milestones, shop tabs/catalog previews, inventory tabs/preview cards, and research tree positions now live in `FeaturePanelPresentation.ts`, guarded by `tools/check-feature-panel-presentation-contract.js`.
 - `tools/capture-feature-regression.js` now covers these four panels at 430x932, 360x800, and 768x1024 with structural assertions and runtime error checks.
 - Next move: keep these structures stable, then replace remaining generic row icons and backgrounds with richer Cocos-managed/generated art when specific fidelity gaps are visible.
 

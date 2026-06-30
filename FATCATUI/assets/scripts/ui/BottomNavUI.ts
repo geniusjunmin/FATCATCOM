@@ -68,6 +68,20 @@ import {
     renderFactoryWallDetails as renderFactoryWallDetailsMarkup,
     renderFactoryWorkerCats as renderFactoryWorkerCatsMarkup,
 } from "./FactoryPresentation";
+import {
+    getDefaultSettingValue as getDefaultFeatureSettingValue,
+    INVENTORY_PREVIEW_CARDS,
+    INVENTORY_TABS,
+    RESEARCH_NODE_POSITIONS,
+    RESEARCH_PLACEHOLDER_LABELS,
+    RESEARCH_PLACEHOLDER_POSITIONS,
+    SETTINGS_PANEL_ITEMS,
+    SHOP_PREVIEW_CATALOGS,
+    SHOP_TABS,
+    TASK_PROGRESS_MILESTONES,
+    type InventoryTabId,
+    type ShopTabId,
+} from "./FeaturePanelPresentation";
 
 const { ccclass, property } = _decorator;
 
@@ -137,8 +151,8 @@ export class BottomNavUI extends Component {
     private _domCatMessage = "";
     private _selectedEquipSlot = "项圈";
     private _selectedDomBuildingId = "building_cafe_1f";
-    private _domShopTab: "resource" | "item" | "cat" | "deco" = "resource";
-    private _domInventoryTab: "all" | "resource" | "shard" | "other" = "all";
+    private _domShopTab: ShopTabId = "resource";
+    private _domInventoryTab: InventoryTabId = "all";
     private _selectedResearchId = "res_basic_prod";
     private _serverFriends: FriendDto[] = [];
     private _friendActivities: FriendActivityDto[] = [];
@@ -2912,12 +2926,7 @@ export class BottomNavUI extends Component {
         const playerId = network.playerId ? `${network.playerId.slice(0, 8)}...` : "未连接";
         const serverLabel = this.getNetworkModeLabel(network.serverMode);
         const syncLabel = this.getSyncModeLabel(sync.mode);
-        const settings = [
-            { id: "music", name: "音乐", desc: "咖啡工厂背景音乐。", on: this.getSettingValue("music") },
-            { id: "sfx", name: "音效", desc: "按钮、生产和奖励音效。", on: this.getSettingValue("sfx") },
-            { id: "push", name: "通知", desc: "邮件、好友和宝箱提示。", on: this.getSettingValue("push") },
-            { id: "sync", name: "同步预览", desc: "为后续服务器同步展示状态。", on: this.getSettingValue("sync") },
-        ];
+        const settings = SETTINGS_PANEL_ITEMS.map(item => ({ ...item, on: this.getSettingValue(item.id) }));
         const rows = settings.map(item => `<div class="feature-card setting-row"><div><b>${item.name}</b><br>${item.desc}</div><button class="toggle-pill ${item.on ? "" : "off"}" data-action="toggleSetting" data-id="${item.id}">${item.on ? "开启" : "关闭"}</button></div>`).join("");
         return `<div class="panel-shell utility-shell settings-shell"><h2>设置</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("settings")}')"></span><div><b>公司设置</b><br>当前支持本地离线和 .NET Core 服务端联调。URL 可用 ?api=http://localhost:5144 临时指定。</div><span class="feature-badge">存档<br>${created}</span></div><div class="feature-mini"><span>服务器<b>${serverLabel}</b></span><span>同步<b>${syncLabel}</b></span><span>待同步<b>${sync.pendingFeatureChanges}</b></span></div><div class="feature-list">${rows}<div class="feature-card"><b>账号状态</b><br>API：${apiBase}<br>玩家：${playerId}<br>最近错误：${sync.lastError || network.lastError || "无"}<br><button class="tag" data-action="connectServer">连接服务器</button> <button class="tag" data-action="syncSave">同步存档</button> <button class="tag warn" data-action="pushSettings">推送设置</button> <button class="tag" data-action="previewProduction">结算预览</button></div></div></div>`;
     }
@@ -2940,7 +2949,7 @@ export class BottomNavUI extends Component {
     }
 
     private getDefaultSettingValue(id: string): boolean {
-        return id === "music" || id === "sfx";
+        return getDefaultFeatureSettingValue(id);
     }
 
     private getFeatureTimestamp(bucket: "friendGifts" | "friendVisits", id: string): string {
@@ -3089,7 +3098,6 @@ export class BottomNavUI extends Component {
         const activeScore = Math.min(100, 40 + claimableCount * 20 + Math.floor(ResourceManager.get("coin") / 10000) * 5);
         const orderProgress = 56;
         const orderGoal = 60;
-        const activeMilestones = [20, 40, 60, 80, 100];
         const rows = tasks.length > 0
             ? tasks.map(({ config, data }) => this.renderTaskRow(
                 config.id,
@@ -3103,7 +3111,7 @@ export class BottomNavUI extends Component {
             )).join("")
             : `<div class="item">当前任务已完成<br><span class="tag">等待刷新</span></div>`;
 
-        return `<div class="panel-shell utility-shell task-shell"><h2>任务详情</h2><div class="task-board"><span class="task-board-icon"></span><div>今日订单<br><b>${orderProgress}/${orderGoal}</b><div class="progress-line"><i style="width:${Math.floor((orderProgress / orderGoal) * 100)}%"></i></div></div><span class="task-stamp">活跃 ${activeScore}</span></div><div class="task-daily"><div class="task-daily-card">${this.renderCssIcon("task")}<span>订单完成<br><b>${orderProgress}/${orderGoal}</b></span></div><div class="task-daily-card">${this.renderCssIcon("gift")}<span>可领取奖励<br><b>${claimableCount}</b></span></div><div class="task-daily-card">${this.renderCssIcon("coin")}<span>活跃度<br><b>${activeScore}</b></span></div></div><div class="task-reward-strip">${activeMilestones.map(value => `<span class="${activeScore >= value ? "ready" : ""}">${value}</span>`).join("")}</div><div class="list shop-list">${rows}</div><div class="wide">点击左侧任务板或底部今日订单会打开这里；主界面宝箱会优先领取已完成任务，没有可领任务时发放一份小额宝箱奖励。</div></div>`;
+        return `<div class="panel-shell utility-shell task-shell"><h2>任务详情</h2><div class="task-board"><span class="task-board-icon"></span><div>今日订单<br><b>${orderProgress}/${orderGoal}</b><div class="progress-line"><i style="width:${Math.floor((orderProgress / orderGoal) * 100)}%"></i></div></div><span class="task-stamp">活跃 ${activeScore}</span></div><div class="task-daily"><div class="task-daily-card">${this.renderCssIcon("task")}<span>订单完成<br><b>${orderProgress}/${orderGoal}</b></span></div><div class="task-daily-card">${this.renderCssIcon("gift")}<span>可领取奖励<br><b>${claimableCount}</b></span></div><div class="task-daily-card">${this.renderCssIcon("coin")}<span>活跃度<br><b>${activeScore}</b></span></div></div><div class="task-reward-strip">${TASK_PROGRESS_MILESTONES.map(value => `<span class="${activeScore >= value ? "ready" : ""}">${value}</span>`).join("")}</div><div class="list shop-list">${rows}</div><div class="wide">点击左侧任务板或底部今日订单会打开这里；主界面宝箱会优先领取已完成任务，没有可领任务时发放一份小额宝箱奖励。</div></div>`;
     }
 
     private renderTaskRow(id: string, name: string, description: string, type: string, currentValue: number, goalValue: number, rewardText: string, claimable: boolean): string {
@@ -3151,47 +3159,15 @@ export class BottomNavUI extends Component {
     }
 
     private renderShopPanel(): string {
-        const tabs: Array<{ id: "resource" | "item" | "cat" | "deco"; label: string }> = [
-            { id: "resource", label: "资源商店" },
-            { id: "item", label: "道具商店" },
-            { id: "cat", label: "猫咪商店" },
-            { id: "deco", label: "装饰商店" },
-        ];
         const items = ShopManager.getShopItems(this._domShopTab);
         const rows = items.length > 0
             ? items.map(item => this.renderShopRow(item.id)).join("") + this.renderShopPreviewRows(this._domShopTab, Math.max(0, 6 - items.length))
             : this.renderEmptyShopRows(this._domShopTab);
-        return `<div class="panel-shell shop-shell"><h2>商店详情</h2><div class="tabs">${tabs.map(tab => `<button class="tab ${this._domShopTab === tab.id ? "active" : ""}" data-action="shopTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list shop-list">${rows}</div></div>`;
+        return `<div class="panel-shell shop-shell"><h2>商店详情</h2><div class="tabs">${SHOP_TABS.map(tab => `<button class="tab ${this._domShopTab === tab.id ? "active" : ""}" data-action="shopTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list shop-list">${rows}</div></div>`;
     }
 
     private renderShopPreviewRows(category: string, count: number): string {
-        const catalogs: Record<string, Array<[string, string, string, string, string]>> = {
-            resource: [
-                ["精品咖啡豆", "咖啡豆 +5000", "bean", "450", "金币"],
-                ["猫粮小包", "猫粮 +200", "food", "80", "钻石"],
-                ["猫粮大袋", "猫粮 +1000", "food", "300", "钻石"],
-                ["钻石礼包", "钻石 +300", "diamond", "30", "天"],
-            ],
-            item: [
-                ["加速券", "生产加速 5分钟", "gift", "120", "金币"],
-                ["高级加速券", "生产加速 30分钟", "gift", "60", "钻石"],
-                ["订单刷新券", "立即刷新订单", "shard", "80", "钻石"],
-                ["保护罩", "收益保护 1小时", "equip", "100", "钻石"],
-            ],
-            cat: [
-                ["大橘碎片", "猫咪碎片 x10", "shard", "180", "钻石"],
-                ["黑猫碎片", "猫咪碎片 x10", "cat", "180", "钻石"],
-                ["雪球碎片", "猫咪碎片 x10", "cat", "180", "钻石"],
-                ["招募券", "进行一次猫咪招募", "gift", "300", "钻石"],
-            ],
-            deco: [
-                ["咖啡招牌", "工厂外观装饰", "deco", "800", "金币"],
-                ["绿植套装", "楼层外观装饰", "deco", "1200", "金币"],
-                ["复古时钟", "工厂外观装饰", "deco", "90", "钻石"],
-                ["猫爪旗帜", "屋顶外观装饰", "deco", "120", "钻石"],
-            ],
-        };
-        return (catalogs[category] ?? catalogs.resource).slice(0, count).map(([name, desc, icon, price, currency]) => `<div class="item shop-row preview"><div class="shop-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')"></div><div><b>${name}</b><br>${desc}<div class="limit">每日限购：3/3</div></div><div class="buy-zone"><span class="tag preview-price">${price} ${currency}</span></div></div>`).join("");
+        return (SHOP_PREVIEW_CATALOGS[category] ?? SHOP_PREVIEW_CATALOGS.resource).slice(0, count).map(([name, desc, icon, price, currency]) => `<div class="item shop-row preview"><div class="shop-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')"></div><div><b>${name}</b><br>${desc}<div class="limit">每日限购：3/3</div></div><div class="buy-zone"><span class="tag preview-price">${price} ${currency}</span></div></div>`).join("");
     }
 
     private getShopTabLabel(): string {
@@ -3267,17 +3243,11 @@ export class BottomNavUI extends Component {
     }
 
     private renderInventoryPanel(): string {
-        const tabs: Array<{ id: "all" | "resource" | "shard" | "other"; label: string }> = [
-            { id: "all", label: "全部" },
-            { id: "resource", label: "资源" },
-            { id: "shard", label: "碎片" },
-            { id: "other", label: "其他" },
-        ];
         const ownedCount = InventoryManager.getOwnedItems().reduce((sum, item) => sum + item.count, 0);
         const ownedTypes = InventoryManager.getOwnedItems().filter(item => this.inventoryItemMatchesTab(item.itemId)).length;
         const resourceTypes = this._domInventoryTab === "all" || this._domInventoryTab === "resource" ? 4 : 0;
         const previewCount = this._domInventoryTab === "all" ? Math.max(0, 20 - resourceTypes - ownedTypes) : 0;
-        return `<div class="panel-shell inventory-shell"><h2>背包详情</h2><div class="tabs">${tabs.map(tab => `<button class="tab ${this._domInventoryTab === tab.id ? "active" : ""}" data-action="inventoryTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list bag-grid">${this.renderInventoryItems()}${this.renderInventoryPreviewCards(previewCount)}</div><div class="bag-detail-target"><span class="bag-detail-icon asset" style="background-image:url('${this.getGeneratedIconAsset("bean")}')"></span><div><b>${this.getInventoryTabLabel()}</b><strong>拥有：${ownedCount}</strong><p>${this.getInventoryTabDesc()}</p><small>主要获取途径：商店购买、订单奖励、好友赠礼</small></div></div></div>`;
+        return `<div class="panel-shell inventory-shell"><h2>背包详情</h2><div class="tabs">${INVENTORY_TABS.map(tab => `<button class="tab ${this._domInventoryTab === tab.id ? "active" : ""}" data-action="inventoryTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list bag-grid">${this.renderInventoryItems()}${this.renderInventoryPreviewCards(previewCount)}</div><div class="bag-detail-target"><span class="bag-detail-icon asset" style="background-image:url('${this.getGeneratedIconAsset("bean")}')"></span><div><b>${this.getInventoryTabLabel()}</b><strong>拥有：${ownedCount}</strong><p>${this.getInventoryTabDesc()}</p><small>主要获取途径：商店购买、订单奖励、好友赠礼</small></div></div></div>`;
     }
 
     private getInventoryTabLabel(): string {
@@ -3322,22 +3292,7 @@ export class BottomNavUI extends Component {
 
     private renderInventoryPreviewCards(count: number): string {
         if (this._domInventoryTab !== "all" || count <= 0) return "";
-        const previews: Array<[string, string, number]> = [
-            ["加速5分", "gift", 12],
-            ["加速30分", "gift", 8],
-            ["订单券", "shard", 7],
-            ["保护罩", "equipCollar", 5],
-            ["大橘碎片", "shard", 32],
-            ["黑猫碎片", "shard", 18],
-            ["布丁碎片", "shard", 22],
-            ["灰皮碎片", "shard", 15],
-            ["装饰币", "coin", 80],
-            ["研究石", "diamond", 120],
-            ["幸运杯", "equipCup", 43],
-            ["小鱼干", "food", 67],
-            ["舒适垫", "equipCushion", 9],
-        ];
-        return previews.slice(0, count).map(([name, icon, itemCount]) => `<div class="item bag-card preview"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')"></div><b>${name}</b><span class="bag-count">${itemCount}</span></div>`).join("");
+        return INVENTORY_PREVIEW_CARDS.slice(0, count).map(([name, icon, itemCount]) => `<div class="item bag-card preview"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')"></div><b>${name}</b><span class="bag-count">${itemCount}</span></div>`).join("");
     }
 
     private getItemIconClass(itemId: string): string {
@@ -3377,15 +3332,7 @@ export class BottomNavUI extends Component {
     private renderResearchNode(id: string, index: number): string {
         const config = ResearchManager.getAllConfigs().find(item => item.id === id);
         if (!config) return "";
-        const positions = [
-            { left: 35, top: 6 },
-            { left: 13, top: 32 },
-            { left: 58, top: 32 },
-            { left: 13, top: 58 },
-            { left: 58, top: 58 },
-            { left: 35, top: 80 },
-        ];
-        const pos = positions[index] ?? positions[positions.length - 1];
+        const pos = RESEARCH_NODE_POSITIONS[index] ?? RESEARCH_NODE_POSITIONS[RESEARCH_NODE_POSITIONS.length - 1];
         const done = ResearchManager.isUnlocked(id);
         const canUnlock = ResearchManager.canUnlock(id);
         const selected = id === this._selectedResearchId;
@@ -3395,14 +3342,8 @@ export class BottomNavUI extends Component {
     }
 
     private renderResearchPlaceholderNodes(startIndex: number): string {
-        const labels = ["咖啡萃取 II", "烘焙技术 II", "浓缩咖啡"];
-        return labels.map((label, offset) => {
-            const positions = [
-                { left: 13, top: 58 },
-                { left: 58, top: 58 },
-                { left: 35, top: 80 },
-            ];
-            const pos = positions[offset];
+        return RESEARCH_PLACEHOLDER_LABELS.map((label, offset) => {
+            const pos = RESEARCH_PLACEHOLDER_POSITIONS[offset];
             const index = startIndex + offset;
             if (index < 3) return "";
             return `<div class="node locked" style="left:${pos.left}%;top:${pos.top}%"><span class="node-icon"></span><span>${label}<br>未开放</span></div>`;
