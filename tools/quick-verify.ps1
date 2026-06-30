@@ -49,6 +49,10 @@ Invoke-Step "Main panel config contract check" {
     node .\tools\check-main-panel-config-contract.js
 }
 
+Invoke-Step "UI presentation contract check" {
+    node .\tools\check-ui-presentation-contract.js
+}
+
 Invoke-Step "Shop state contract check" {
     node .\tools\check-shop-state-contract.js
 }
