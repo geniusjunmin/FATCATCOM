@@ -73,6 +73,10 @@ Invoke-Step "Cat presentation contract check" {
     node .\tools\check-cat-presentation-contract.js
 }
 
+Invoke-Step "Cat overlay presentation contract check" {
+    node .\tools\check-cat-overlay-presentation-contract.js
+}
+
 Invoke-Step "HUD presentation contract check" {
     node .\tools\check-hud-presentation-contract.js
 }
