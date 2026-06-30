@@ -37,6 +37,7 @@ Updated: 2026-06-30
 - Latest friend visit-scene pass: `BottomNavUI.ts` now tracks `_friendVisitSceneId`. `visitFriend`, `sendFriendGift`, and the factory-detail `openFriendVisitScene` action open `.friend-visit-scene` ahead of the compact visit report. The scene reuses `getFriendRoomRows()` and `GeneratedBackgroundAssets.factoryCutaway` for a dark target-like friend factory view with floor rows, total income, room-yield total, primary floor, staffed room count, decor score, and visit/gift/back actions. `capture-utility-regression.js` asserts `.friend-scene-floor`, `.friend-scene-side`, and `.friend-scene-actions` across 430x932, 360x800, and 768x1024.
 - Latest friend visit-scene visual pass: room rows now include `.room-thumb` local factory prop art selected by building id/floor/name, `.room-cats` assigned-cat mini portraits from the generated cat lineup, a `.friend-scene-mascot` visitor-cat card, and `.friend-scene-reward` chips for visit reward/last visit/gift state. Compact CSS was retuned so the scene action buttons remain visible at 360x800. `capture-utility-regression.js` now asserts these selectors in addition to the previous scene structure.
 - Latest friend visit-scene guard pass: `tools/check-friend-visit-scene-contract.js` now protects the visit-scene state/actions, render order before the compact report, shared room-row data path, room thumbnails, assigned-cat mini portraits, visitor mascot, reward strip, compact CSS guards, utility-regression selectors, and this handoff note. It is part of `tools/quick-verify.ps1`.
+- Latest code-health pass: DOM asset lookup helpers now live in `FATCATUI/assets/scripts/ui/DomAssetResolver.ts`. `BottomNavUI.ts` still exposes the same private wrapper methods, but no longer imports `DomAssetDataUris`, `FactoryPropDataUris`, or the generated item/cat/skill registries directly. `tools/check-dom-asset-resolver-contract.js` guards this split and runs in `tools/quick-verify.ps1`.
 - Latest main-HUD micro pass in `BottomNavUI.ts` lightens the company badge toward the target wood/paper card, enlarges avatar/level treatment, repositions the experience readout, and nudges compact resource spacing. Verified at 360x800, 414x896, 430x932, and 768x1024 with `capture-main-regression.js`.
 - Main factory now uses `FATCATUI/assets/resources/textures/generated/factory_cutaway_bg_640.jpg` as the visible source of truth for roof and room art. Duplicate CSS floors, props, cats, pipes, and center KPI cards are intentionally hidden; keep the live left floor cards and combined right production/bonus cards.
 - The main building now spans roughly 16%-84% of the game viewport, and the compact bottom widgets use `19fr 11fr 35fr 34fr` proportions. The launch label is single-line at 360/414/430 widths.
@@ -112,6 +113,7 @@ node tools\generate-server-balance.js --check
 node tools\check-balance-config-drift.js
 node tools\check-balance-effect-coverage.js
 node tools\check-client-catalog-metadata-consumption.js
+node tools\check-dom-asset-resolver-contract.js
 node tools\check-shop-state-contract.js
 node tools\check-friend-sync-contract.js
 node tools\check-friend-visit-scene-contract.js
@@ -165,8 +167,10 @@ Server:
 - `tools/generate-server-balance.js`
 - `tools/check-balance-effect-coverage.js`
 - `tools/check-client-catalog-metadata-consumption.js`
+- `tools/check-dom-asset-resolver-contract.js`
 - `tools/check-shop-state-contract.js`
 - `tools/check-friend-sync-contract.js`
+- `tools/check-friend-visit-scene-contract.js`
 - `tools/check-real-friend-contract.js`
 - `tools/check-friend-activity-contract.js`
 - `tools/check-friend-reward-contract.js`
@@ -179,6 +183,7 @@ Server:
 Client:
 
 - `FATCATUI/assets/scripts/ui/BottomNavUI.ts`
+- `FATCATUI/assets/scripts/ui/DomAssetResolver.ts`
 - `FATCATUI/assets/scripts/manager/SyncManager.ts`
 - `FATCATUI/assets/scripts/manager/NetworkManager.ts`
 - `FATCATUI/assets/scripts/manager/CatManager.ts`

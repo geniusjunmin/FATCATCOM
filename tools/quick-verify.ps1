@@ -37,6 +37,10 @@ Invoke-Step "Client catalog metadata consumption check" {
     node .\tools\check-client-catalog-metadata-consumption.js
 }
 
+Invoke-Step "DOM asset resolver contract check" {
+    node .\tools\check-dom-asset-resolver-contract.js
+}
+
 Invoke-Step "Shop state contract check" {
     node .\tools\check-shop-state-contract.js
 }

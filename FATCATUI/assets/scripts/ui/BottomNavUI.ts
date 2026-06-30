@@ -16,9 +16,16 @@ import { SyncManager } from "../manager/SyncManager";
 import { FriendActivityDto, FriendDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
-import { DomAssetDataUris } from "./DomAssetDataUris";
-import { FactoryPropDataUris } from "./FactoryPropDataUris";
-import { GeneratedBackgroundAssets, GeneratedCatFullArtAssets, GeneratedFeatureIconAssets, GeneratedItemIconAssets, GeneratedSkillIconAssets } from "./UiAssetRegistry";
+import { GeneratedBackgroundAssets } from "./UiAssetRegistry";
+import {
+    getCatFullArtAsset,
+    getDomAssetDataUri,
+    getEquipIconAsset,
+    getFactoryPropDataUri,
+    getFeatureIconAsset,
+    getGeneratedIconAsset,
+    getSkillIconAsset,
+} from "./DomAssetResolver";
 
 const { ccclass, property } = _decorator;
 
@@ -1279,15 +1286,15 @@ export class BottomNavUI extends Component {
     }
 
     private getFeatureIconAsset(kind: string): string {
-        return this.getDomAssetDataUri(GeneratedFeatureIconAssets[kind] ?? GeneratedFeatureIconAssets.settings);
+        return getFeatureIconAsset(kind);
     }
 
     private getFactoryPropDataUri(scene: string): string {
-        return FactoryPropDataUris[scene] ?? FactoryPropDataUris.storage;
+        return getFactoryPropDataUri(scene);
     }
 
     private getDomAssetDataUri(assetPath: string): string {
-        return DomAssetDataUris[assetPath] ?? assetPath;
+        return getDomAssetDataUri(assetPath);
     }
 
     private renderFactoryProps(scene: string): string {
@@ -3287,13 +3294,7 @@ export class BottomNavUI extends Component {
     }
 
     private getGeneratedIconAsset(iconClass: string): string {
-        const aliases: Record<string, string> = {
-            cat: "shard",
-            deco: "gift",
-            equip: "equipCollar",
-        };
-        const key = aliases[iconClass] ?? iconClass;
-        return this.getDomAssetDataUri(GeneratedItemIconAssets[key] ?? GeneratedItemIconAssets.gift);
+        return getGeneratedIconAsset(iconClass);
     }
 
     private getResourceIconClass(resource: string): string {
@@ -5505,21 +5506,15 @@ export class BottomNavUI extends Component {
     }
 
     private getCatFullArtAsset(catId: string, portrait?: string): string {
-        if (GeneratedCatFullArtAssets[catId]) return this.getDomAssetDataUri(GeneratedCatFullArtAssets[catId]);
-        if (portrait?.includes("black")) return this.getDomAssetDataUri(GeneratedCatFullArtAssets.black);
-        if (portrait?.includes("white")) return this.getDomAssetDataUri(GeneratedCatFullArtAssets.white);
-        return this.getDomAssetDataUri(GeneratedCatFullArtAssets.orange);
+        return getCatFullArtAsset(catId, portrait);
     }
 
     private getEquipIconAsset(kind: string): string {
-        if (kind === "collar") return this.getDomAssetDataUri(GeneratedItemIconAssets.equipCollar);
-        if (kind === "cup") return this.getDomAssetDataUri(GeneratedItemIconAssets.equipCup);
-        if (kind === "cushion") return this.getDomAssetDataUri(GeneratedItemIconAssets.equipCushion);
-        return this.getDomAssetDataUri(GeneratedItemIconAssets.equipLocked);
+        return getEquipIconAsset(kind);
     }
 
     private getSkillIconAsset(role: string): string {
-        return this.getDomAssetDataUri(GeneratedSkillIconAssets[role] ?? GeneratedSkillIconAssets.support);
+        return getSkillIconAsset(role);
     }
 
     private getCatTabTitle(): string {
