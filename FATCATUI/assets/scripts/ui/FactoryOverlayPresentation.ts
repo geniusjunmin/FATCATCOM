@@ -257,14 +257,14 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
             #fatcat-dom-factory .order b { display:block; font-size: 150%; color:#6e3e20; }
             #fatcat-dom-factory .order .bar { width:100%; height:78%; align-self:center; border-radius:999px; background:#a77e49; overflow:hidden; box-shadow:inset 0 0 0 2px rgba(82,53,30,.22), 0 1px 0 rgba(255,250,220,.22); }
             #fatcat-dom-factory .order .bar i { display:block; width:93%; height:100%; border-radius:inherit; background:linear-gradient(90deg,#eeb335,#ffdf73); box-shadow:inset 0 2px 0 rgba(255,255,255,.28); }
-            #fatcat-dom-factory .chest { font-size: 2.05%; flex-direction: column; padding-top:1%; background:radial-gradient(circle at 50% 0, rgba(255,255,255,.28), transparent 31%), linear-gradient(#ffe29a,#bc7324); color:#fff6dc; text-shadow:0 2px #724117; }
+            #fatcat-dom-factory .chest { font-size: 1.85%; flex-direction: column; padding-top:1%; background:radial-gradient(circle at 50% 0, rgba(255,255,255,.28), transparent 31%), linear-gradient(#ffe29a,#bc7324); color:#fff6dc; text-shadow:0 2px #724117; white-space:nowrap; }
             #fatcat-dom-factory .chest::before { display:none; }
             #fatcat-dom-factory .chest-art {
-                width:86%;
+                width:72%;
                 aspect-ratio:1;
                 margin-bottom:-2%;
                 background-position:center;
-                background-size:165%;
+                background-size:155%;
                 background-repeat:no-repeat;
                 filter:drop-shadow(0 3px 0 rgba(75,39,16,.28));
             }
@@ -512,7 +512,7 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
                 right:3%;
                 bottom:8.7%;
                 height:8.0%;
-                grid-template-columns:18fr 10fr 39fr 32fr;
+                grid-template-columns:18fr 11.5fr 38.5fr 32fr;
                 gap:1.3%;
             }
             #fatcat-dom-factory.wide .bottom-widgets { left:9%; right:9%; }

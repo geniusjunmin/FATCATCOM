@@ -128,6 +128,8 @@ Keep these scripts in the regular set when touching related flows:
 - Watch the 360x800 case first; if it fits there, the wider phone sizes usually follow.
 - Latest pass retuned player badge depth, avatar/level medallion, resource pill height, icon plaque scale, centered values, plus-button depth, and compact/wide spacing.
 - Done in latest HUD micro pass: company badge now uses a lighter target-like wood/paper face, the avatar and level medallion are larger, the experience bar/text is repositioned, and compact/tall resource offsets are guarded against 360x800 value clipping.
+- Done in latest target-fit pass: 414/430 compact-tall HUD uses a narrower company card, larger company label, and a left-shifted resource strip with positive measured spacing. The claim chest gets a wider operation track, smaller art crop, and single-line label while the <=390px layout remains dedicated.
+- `capture-main-regression.js` now guards HUD player/resource overlap and claim-card text overflow in addition to structural counts and browser errors.
 - Next pass should compare against the target HUD for final micro-alignment after richer art assets are integrated.
 
 ### 2a. Bottom Controls Polish
