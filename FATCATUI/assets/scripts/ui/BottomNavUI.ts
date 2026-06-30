@@ -2412,7 +2412,7 @@ export class BottomNavUI extends Component {
                 <div class="cat-modal-title">猫咪图鉴</div>
                 <button class="close-x" data-action="back">×</button>
                 <div class="cat-side">
-                    <button class="back" data-action="back">‹</button>
+                    <button class="back" data-action="back" aria-label="返回">←</button>
                     ${CAT_SIDE_TABS.map(tab => this.renderCatSideTab(tab.id, tab.label)).join("")}
                 </div>
                 <div class="cat-overview-head">

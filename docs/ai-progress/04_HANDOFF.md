@@ -73,6 +73,7 @@ Updated: 2026-06-30
 - Latest full gate: four-size main screenshots, four-size cat information/equipment screenshots, five-cat lineup capture, 18-step UI click regression, focused TypeScript diagnostics, all config/social contract checks, and 63/63 server tests passed.
 - Cat page fullscreen polish is in progress: it now lays out against the visible viewport, adds a small top bleed to cover the underlying main HUD, and renders its own top HUD.
 - Latest compact cat-page pass widened the info column, restored the single-line cat name badge below the HUD, trimmed portrait height for lower-panel space, and reduced compact resource-pill text/buttons so `M`/`K` suffixes remain visible.
+- Latest cat-side target pass uses `←` with `aria-label="返回"`, widens the compact side rail to 9.8%, raises compact tab height to 55px, and scales generated side-tab icons to 68%. `capture-cat-regression.js` now records side rail, hero, roster, and overlay geometry and enforces positive spacing/containment.
 - The DOM UI uses the overlay root font-size as a design-height unit. For new normal-sized UI text inside that system, set a local percentage font-size on the container first, then use `em` or fixed pixel accents inside it.
 - Verified after the latest cat-page pass: `check-client-ts.ps1`, `capture-cat-regression.js`, and `verify-ui-clicks-playwright.js`.
 

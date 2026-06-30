@@ -239,9 +239,11 @@ export function getDomCatStyles(catWorkshopDataUri: string): string {
             #fatcat-dom-cat-overlay.compact .cat-page-hud .plus { width:min(22px,20%); font-size:.9em; }
             #fatcat-dom-cat-overlay.compact .cat-modal-title { left:31%; right:31%; min-height:42px; font-size:2.42%; }
             #fatcat-dom-cat-overlay.compact .close-x { width:6.9%; min-width:38px; font-size:3.0%; }
-            #fatcat-dom-cat-overlay.compact .cat-side { left: 1.8%; top:10.0%; width: 9.4%; }
+            #fatcat-dom-cat-overlay.compact .cat-side { left: 1.8%; top:10.0%; width: 9.8%; }
             #fatcat-dom-cat-overlay.compact .cat-overview-head div { min-height:48px; font-size:1.48%; }
-            #fatcat-dom-cat-overlay.compact .back, #fatcat-dom-cat-overlay.compact .side-tab { min-height: 52px; font-size: 1.65%; border-radius: 12px; }
+            #fatcat-dom-cat-overlay.compact .back, #fatcat-dom-cat-overlay.compact .side-tab { min-height: 55px; font-size: 1.65%; border-radius: 12px; }
+            #fatcat-dom-cat-overlay.compact .back { font-size:5.4%; }
+            #fatcat-dom-cat-overlay.compact .side-tab i.asset { width:68%; }
             #fatcat-dom-cat-overlay.compact .cat-hero { grid-template-columns: 27% 1fr 18%; gap: 1.1%; }
             #fatcat-dom-cat-overlay.compact .cat-card { font-size: 2.08%; padding: 5.5%; }
             #fatcat-dom-cat-overlay.compact .cat-card.info { padding:4.6%; line-height:1.34; }

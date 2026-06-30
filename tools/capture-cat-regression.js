@@ -56,19 +56,47 @@ async function isVisible(page, selector) {
         const file = path.join(outDir, `cat-${width}x${height}-edge.png`);
         await page.screenshot({ path: file, fullPage: false });
 
-        const state = await page.evaluate(() => ({
-            overlayVisible: !!document.querySelector("#fatcat-dom-cat-overlay"),
-            sideTabs: document.querySelectorAll("#fatcat-dom-cat-overlay .side-tab").length,
-            statCards: document.querySelectorAll("#fatcat-dom-cat-overlay .cat-stats > div").length,
-            rosterCards: document.querySelectorAll("#fatcat-dom-cat-overlay .cat-list button").length,
-            hasPortrait: !!document.querySelector("#fatcat-dom-cat-overlay .portrait-cat.img"),
-            hasEquipCards: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-slot").length,
-            equipRarityBadges: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-rarity").length,
-            equipSlotTags: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-slot-tag").length,
-            equipBonusPills: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-bonus-pill").length,
-            hasStoryPhoto: !!document.querySelector("#fatcat-dom-cat-overlay .story-photo"),
-            storyTags: document.querySelectorAll("#fatcat-dom-cat-overlay .story-tags span").length,
-        }));
+        const state = await page.evaluate(() => {
+            const rect = (selector) => {
+                const element = document.querySelector(selector);
+                if (!element) return null;
+                const bounds = element.getBoundingClientRect();
+                return {
+                    left: Math.round(bounds.left * 10) / 10,
+                    right: Math.round(bounds.right * 10) / 10,
+                    top: Math.round(bounds.top * 10) / 10,
+                    bottom: Math.round(bounds.bottom * 10) / 10,
+                    width: Math.round(bounds.width * 10) / 10,
+                    height: Math.round(bounds.height * 10) / 10,
+                };
+            };
+            const overlay = rect("#fatcat-dom-cat-overlay");
+            const sideRail = rect("#fatcat-dom-cat-overlay .cat-side");
+            const hero = rect("#fatcat-dom-cat-overlay .cat-hero");
+            const roster = rect("#fatcat-dom-cat-overlay .cat-list");
+
+            return {
+                overlayVisible: !!document.querySelector("#fatcat-dom-cat-overlay"),
+                sideTabs: document.querySelectorAll("#fatcat-dom-cat-overlay .side-tab").length,
+                statCards: document.querySelectorAll("#fatcat-dom-cat-overlay .cat-stats > div").length,
+                rosterCards: document.querySelectorAll("#fatcat-dom-cat-overlay .cat-list button").length,
+                hasPortrait: !!document.querySelector("#fatcat-dom-cat-overlay .portrait-cat.img"),
+                hasEquipCards: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-slot").length,
+                equipRarityBadges: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-rarity").length,
+                equipSlotTags: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-slot-tag").length,
+                equipBonusPills: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-bonus-pill").length,
+                hasStoryPhoto: !!document.querySelector("#fatcat-dom-cat-overlay .story-photo"),
+                storyTags: document.querySelectorAll("#fatcat-dom-cat-overlay .story-tags span").length,
+                backText: document.querySelector("#fatcat-dom-cat-overlay .back")?.textContent?.trim() || "",
+                overlay,
+                sideRail,
+                hero,
+                roster,
+                sideHeroGap: sideRail && hero ? Math.round((hero.left - sideRail.right) * 10) / 10 : null,
+                rosterBottomGap: overlay && roster ? Math.round((overlay.bottom - roster.bottom) * 10) / 10 : null,
+                sideRailClearsRoster: !!(sideRail && roster && sideRail.bottom < roster.top),
+            };
+        });
 
         state.overlayVisible = await isVisible(page, "#fatcat-dom-cat-overlay");
         state.storyVisible = await isVisible(page, "#fatcat-dom-cat-overlay .cat-story");
@@ -104,7 +132,35 @@ async function isVisible(page, selector) {
 
     await browser.close();
     console.log(JSON.stringify(results, null, 2));
-    if (results.some((entry) => entry.messages.length || entry.failedRequests.length || !entry.state.overlayVisible || !entry.state.hasPortrait || !entry.state.hasStoryPhoto || !entry.state.storyVisible || !entry.state.storyButtonVisible || entry.state.storyTags < 3 || entry.state.equipRarityBadges < 4 || entry.state.equipSlotTags < 4 || entry.state.equipBonusPills < 4 || !entry.equipState.bagVisible || !entry.equipState.upgradeVisible || entry.equipState.packRarityBadges < 2 || entry.equipState.packBonusPills < 2 || !entry.skinState.wardrobeVisible || entry.skinState.skinCards < 4 || entry.skinState.selectedCards < 1 || entry.skinState.styleBadges < 4 || entry.skinState.swatches < 12 || entry.skinState.themedCards < 3)) {
+    if (results.some((entry) =>
+        entry.messages.length
+        || entry.failedRequests.length
+        || !entry.state.overlayVisible
+        || !entry.state.hasPortrait
+        || !entry.state.hasStoryPhoto
+        || !entry.state.storyVisible
+        || !entry.state.storyButtonVisible
+        || entry.state.storyTags < 3
+        || entry.state.backText !== "←"
+        || entry.state.sideHeroGap === null
+        || entry.state.sideHeroGap < 0
+        || entry.state.rosterBottomGap === null
+        || entry.state.rosterBottomGap < -1
+        || !entry.state.sideRailClearsRoster
+        || entry.state.equipRarityBadges < 4
+        || entry.state.equipSlotTags < 4
+        || entry.state.equipBonusPills < 4
+        || !entry.equipState.bagVisible
+        || !entry.equipState.upgradeVisible
+        || entry.equipState.packRarityBadges < 2
+        || entry.equipState.packBonusPills < 2
+        || !entry.skinState.wardrobeVisible
+        || entry.skinState.skinCards < 4
+        || entry.skinState.selectedCards < 1
+        || entry.skinState.styleBadges < 4
+        || entry.skinState.swatches < 12
+        || entry.skinState.themedCards < 3
+    )) {
         process.exit(1);
     }
 })().catch((error) => {

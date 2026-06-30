@@ -73,6 +73,9 @@ assertContains(
 assertNotContains("BottomNavUI no inline cat CSS", bottomNav, "#fatcat-dom-cat-overlay { position: fixed;");
 assertContains("BottomNavUI retains cat pointer actions", bottomNav, "private onDomCatPointerDown");
 assertContains("BottomNavUI retains cat rendering", bottomNav, "private renderDomCatOverlay");
+assertContains("BottomNavUI renders accessible back arrow", bottomNav, "aria-label=\"返回\">←</button>");
+assertContains("compact side rail target width", presentation, "width: 9.8%");
+assertContains("compact side icon target scale", presentation, ".compact .side-tab i.asset { width:68%; }");
 assertContains("quick verify includes contract", quickVerify, "check-cat-overlay-presentation-contract.js");
 
 console.log(JSON.stringify({
