@@ -58,6 +58,16 @@ import {
     getWeightStageLabel as getWeightStageLabelText,
     renderStars as renderRarityStars,
 } from "./UiPresentation";
+import {
+    getBuildingDisplayName as getFactoryBuildingDisplayName,
+    getBuildingScene,
+    getFloorBonusIconClass as getFactoryFloorBonusIconClass,
+    MAIN_FACTORY_FLOORS,
+    renderFactoryProps as renderFactoryPropsMarkup,
+    renderFactoryRoomDecor as renderFactoryRoomDecorMarkup,
+    renderFactoryWallDetails as renderFactoryWallDetailsMarkup,
+    renderFactoryWorkerCats as renderFactoryWorkerCatsMarkup,
+} from "./FactoryPresentation";
 
 const { ccclass, property } = _decorator;
 
@@ -1223,14 +1233,10 @@ export class BottomNavUI extends Component {
         const snapshot = ProductionManager.calculateSnapshot();
         void this.refreshFriendRequestBadgeForFactory();
         const pendingFriendRequests = this.getPendingFriendRequestCount();
-        const floors = [
-            { no: "5F", name: "管理室", lv: BuildingManager.getLevel("building_office_5f"), bonus: "全局收益", value: "+15%", scene: "office" },
-            { no: "4F", name: "烘焙车间", lv: BuildingManager.getLevel("building_roast_4f"), bonus: "原料产量", value: "+40%", scene: "roast" },
-            { no: "3F", name: "发酵车间", lv: BuildingManager.getLevel("building_ferment_3f"), bonus: "咖啡豆消耗", value: "-20%", scene: "tank" },
-            { no: "2F", name: "原料车间", lv: BuildingManager.getLevel("building_material_2f"), bonus: "咖啡价值", value: "+30%", scene: "mill" },
-            { no: "1F", name: "咖啡厅", lv: BuildingManager.getLevel("building_cafe_1f"), bonus: "订单金币", value: "+25%", scene: "cafe" },
-            { no: "B1", name: "原料仓库", lv: BuildingManager.getLevel("building_storage_b1"), bonus: "仓库容量", value: "+20%", scene: "storage" },
-        ];
+        const floors = MAIN_FACTORY_FLOORS.map(floor => ({
+            ...floor,
+            lv: BuildingManager.getLevel(floor.buildingId),
+        }));
         overlay.innerHTML = `
             <div class="art-bg"></div><div class="sky"></div><div class="town"></div><div class="factory-illustration"></div><div class="roof-crates"></div><div class="roof-deck"></div>
             <div class="sign">肥猫咖啡<span class="paw-mark"></span></div><div class="sign-posts"></div><div class="chimney"></div><div class="roof-cat"><div class="cat-sprite"><i class="cat-face"></i></div></div><div class="flag">爪</div>
@@ -1317,68 +1323,19 @@ export class BottomNavUI extends Component {
     }
 
     private renderFactoryProps(scene: string): string {
-        if (scene === "office") {
-            return `<div class="shelf">▦</div><div class="machine">图</div><div class="shelf">▤</div>`;
-        }
-        if (scene === "roast") {
-            return `<div class="bags">COFFEE</div><div class="machine"></div><div class="shelf">杯</div>`;
-        }
-        if (scene === "tank") {
-            return `<div class="machine">◎</div><div class="machine">◎</div><div class="shelf">轮</div>`;
-        }
-        if (scene === "mill") {
-            return `<div class="shelf">▤</div><div class="machine">轮</div><div class="bags">BEANS</div>`;
-        }
-        if (scene === "cafe") {
-            return `<div class="shelf">杯</div><div class="machine">杯</div><div class="shelf">▦</div>`;
-        }
-        return `<div class="bags">COFFEE<br>BEANS</div><div class="shelf">▤</div><div class="machine">▣</div>`;
+        return renderFactoryPropsMarkup(scene);
     }
 
     private renderFactoryRoomDecor(scene: string): string {
-        const shared = `<i class="decor-part decor-shelf"></i><i class="decor-part decor-board"></i><i class="decor-part decor-crates"></i>`;
-        if (scene === "office") {
-            return `<i class="decor-part decor-lamp"></i><i class="decor-part decor-table"></i><i class="decor-part decor-board"></i><i class="decor-part decor-window"></i><i class="decor-part decor-notes"></i><i class="decor-part decor-plant"></i>`;
-        }
-        if (scene === "roast") {
-            return `<i class="decor-part decor-lamp"></i><i class="decor-part decor-bags">COFFEE</i><i class="decor-part decor-pipe"></i><i class="decor-part decor-gauge"></i><i class="decor-part decor-steam"></i><i class="decor-part decor-conveyor"></i><i class="decor-part decor-beans"></i>`;
-        }
-        if (scene === "tank") {
-            return `<i class="decor-part decor-lamp"></i><i class="decor-part decor-pipe"></i><i class="decor-part decor-gauge"></i><i class="decor-part decor-steam"></i><i class="decor-part decor-crates"></i><i class="decor-part decor-conveyor"></i>`;
-        }
-        if (scene === "mill") {
-            return `<i class="decor-part decor-lamp"></i><i class="decor-part decor-shelf"></i><i class="decor-part decor-bags">BEANS</i><i class="decor-part decor-pipe"></i><i class="decor-part decor-conveyor"></i><i class="decor-part decor-beans"></i>`;
-        }
-        if (scene === "cafe") {
-            return `<i class="decor-part decor-lamp"></i><i class="decor-part decor-table"></i><i class="decor-part decor-window"></i><i class="decor-part decor-shelf"></i><i class="decor-part decor-clock"></i><i class="decor-part decor-plant"></i>`;
-        }
-        return `<i class="decor-part decor-lamp"></i><i class="decor-part decor-bags">COFFEE<br>BEANS</i>${shared}<i class="decor-part decor-beans"></i>`;
+        return renderFactoryRoomDecorMarkup(scene);
     }
 
     private renderFactoryWallDetails(scene: string): string {
-        if (scene === "storage") {
-            return `<i class="jar a"></i><i class="jar b"></i><i class="paper c"></i>`;
-        }
-        if (scene === "office") {
-            return `<i class="paper a"></i><i class="paper b"></i><i class="paper c"></i><i class="jar b"></i>`;
-        }
-        if (scene === "cafe") {
-            return `<i class="jar a"></i><i class="paper b"></i><i class="jar b"></i>`;
-        }
-        return `<i class="paper a"></i><i class="jar a"></i><i class="paper c"></i><i class="jar b"></i>`;
+        return renderFactoryWallDetailsMarkup(scene);
     }
 
     private renderFactoryWorkerCats(scene: string): string {
-        if (scene === "storage") {
-            return `<i class="mini-cat black a"></i><i class="mini-cat gray b"></i>`;
-        }
-        if (scene === "office") {
-            return `<i class="mini-cat a"></i><i class="mini-cat gray b"></i>`;
-        }
-        if (scene === "cafe" || scene === "tank") {
-            return `<i class="mini-cat a"></i><i class="mini-cat gray b"></i><i class="mini-cat black c"></i>`;
-        }
-        return `<i class="mini-cat a"></i><i class="mini-cat gray b"></i>`;
+        return renderFactoryWorkerCatsMarkup(scene);
     }
 
     private getFloorOutputText(scene: string): string {
@@ -1392,12 +1349,7 @@ export class BottomNavUI extends Component {
     }
 
     private getFloorBonusIconClass(scene: string): string {
-        if (scene === "office") return "bonus-office";
-        if (scene === "roast") return "bonus-roast";
-        if (scene === "tank") return "bonus-tank";
-        if (scene === "mill") return "bonus-mill";
-        if (scene === "storage") return "bonus-storage";
-        return "bonus-cafe";
+        return getFactoryFloorBonusIconClass(scene);
     }
 
     private layoutDomFactoryOverlay(): void {
@@ -3048,14 +3000,6 @@ export class BottomNavUI extends Component {
             this._selectedDomBuildingId = buildings[buildings.length - 1]?.id ?? "building_cafe_1f";
         }
         const selected = BuildingManager.getById(this._selectedDomBuildingId) ?? buildings[0];
-        const sceneMap: Record<string, string> = {
-            building_office_5f: "office",
-            building_roast_4f: "roast",
-            building_ferment_3f: "tank",
-            building_material_2f: "mill",
-            building_cafe_1f: "cafe",
-            building_storage_b1: "storage",
-        };
         const scenePosition: Record<string, number> = {
             office: 12,
             roast: 30,
@@ -3064,7 +3008,7 @@ export class BottomNavUI extends Component {
             cafe: 78,
             storage: 92,
         };
-        const scene = sceneMap[selected.id] ?? "cafe";
+        const scene = getBuildingScene(selected.id);
         const nextEffect = BuildingManager.getNextEffectValue(selected.id);
         const nextCapacity = Math.min(12, selected.scheduleCapacity + 1);
         const levelRequirement = Math.min(30, Math.max(8, selected.level * 3 + 6));
@@ -5503,15 +5447,7 @@ export class BottomNavUI extends Component {
     }
 
     private getBuildingDisplayName(id: string): string {
-        const names: Record<string, string> = {
-            building_storage_b1: "原料仓库",
-            building_cafe_1f: "咖啡厅",
-            building_material_2f: "原料车间",
-            building_ferment_3f: "发酵车间",
-            building_roast_4f: "烘焙车间",
-            building_office_5f: "管理室",
-        };
-        return names[id] ?? "待分配";
+        return getFactoryBuildingDisplayName(id);
     }
 
     private layoutDomCatOverlay(): void {

@@ -53,6 +53,10 @@ Invoke-Step "UI presentation contract check" {
     node .\tools\check-ui-presentation-contract.js
 }
 
+Invoke-Step "Factory presentation contract check" {
+    node .\tools\check-factory-presentation-contract.js
+}
+
 Invoke-Step "Shop state contract check" {
     node .\tools\check-shop-state-contract.js
 }
