@@ -7,7 +7,7 @@ Updated: 2026-07-01
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Continue visual fidelity with final main/cat proportion tuning and richer generated/Cocos-managed art depth; social next move is cooperative goal tiers/history or decor collection bonuses. |
+| Best Next Move | Continue visual fidelity with generated friend-room backdrops or final main/cat proportion tuning; the planned cooperative tiers and decor collection systems are now complete. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -85,6 +85,7 @@ Updated: 2026-07-01
 - Latest cooperative-help pass adds one daily production assist per real friend. The server persists a 30-minute `+10%` boost (stacking to `+30%`), applies it to authoritative previews and launch settlement, publishes it over SSE, and restores it through `/api/social/boost`. The client applies the same multiplier locally, exposes help actions throughout the friend surface, and renders a contained factory boost banner.
 - Latest boost-history pass persists every successful helper contribution with source player, name, percent, creation time, and shared stack expiry. `/api/social/boost/history` returns active and recent entries; login and SSE refresh the client history with server-clock normalization. The factory banner shows the latest helper plus the remaining active sources, while the friend panel renders active/expired contribution rows. Three-player 360x800 and 430/360/768 utility regressions verify the presentation.
 - Latest cooperative-goal pass adds a server-authoritative daily `3`-assist target with a one-time `30` diamond reward. SQLite uses atomic UPSERT progress and a conditional claim update, SSE advances the target instantly, login restores `/api/social/coop-goal`, and the friend panel exposes a responsive progress/reward card. A three-helper browser run verifies `0/3 -> 3/3`, UI claim, `2580 -> 2610` diamonds, and duplicate-claim rejection.
+- Latest cooperative-tier pass upgrades that target to three independent daily milestones: 1 assist grants 5K coin, 2 grant 20 research points, and 3 grant 30 diamonds. `ClaimedTierMask` is migrated onto existing SQLite saves while legacy `IsClaimed` remains compatible with the final tier and old endpoint. Each tier uses an atomic conditional claim and authoritative resource transaction. The responsive friend card, three-player browser flow, concurrent API claim test, and claimed-state screenshot cover the full path.
 - Building, shop, inventory, research, task, achievement, mail, friend, and settings panels are clickable.
 - Screenshot regression exists for 414x896, 430x932, 360x800, and 768x1024 on the main screen and cat page.
 - Latest feature-panel code-health pass extracts static settings, task milestone, shop tab/catalog, inventory tab/preview, and research-tree presentation data into `FeaturePanelPresentation.ts`. `BottomNavUI.ts` now delegates those values while keeping live state and action rendering local, guarded by `tools/check-feature-panel-presentation-contract.js`.
@@ -222,7 +223,7 @@ Latest verified checks:
 - Cocos asset-db refreshed for `db://assets/scripts` after shop-state, friend-sync, leaderboard, real-friend, friend-activity, friend-reward, and friend-invite client TypeScript edits.
 
 - `dotnet test FATCATServer\FATCATServer.sln --no-restore`: 76/76 passed at the latest checkpoint.
-- `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`: passed; includes client TS, balance/config checks, presentation contracts, realtime/help/cooperative-goal contracts, and 74 server tests.
+- `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`: passed; includes client TS, balance/config checks, presentation contracts, realtime/help/boost-history/cooperative-tier contracts, and 84 server tests.
 - `node tools\check-shop-state-contract.js`: passed; verifies server route/DTO/service, client API/types, sync fetch, manager snapshot consumption, and online purchase `remainingDaily` use.
 - `node tools\check-friend-sync-contract.js`: passed; verifies friend API methods, login/save friend refresh, DOM server snapshot rendering, visit/gift routing, and API coverage.
 - `node tools\check-friend-visit-scene-contract.js`: passed; verifies friend visit-scene state/actions, render order, room reuse, room thumbnails, assigned-cat mini portraits, visitor mascot, reward strip, compact guards, screenshot assertions, and handoff docs.

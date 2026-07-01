@@ -1,4 +1,5 @@
 using FatCat.Application;
+using FatCat.Domain;
 using FatCat.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -1039,6 +1040,87 @@ public sealed class FatCatGameServiceTests
         var transaction = Assert.Single(dbContext.ResourceTransactions.Where(item =>
             item.PlayerId == target.PlayerId && item.SourceType == "friend_coop_goal"));
         Assert.Equal(30, transaction.DiamondDelta);
+    }
+
+    [Fact]
+    public async Task FriendCoopTiers_UnlockAndGrantThreeResourceRewardsOnce()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var target = await service.AuthGuestAsync(new AuthGuestRequest("coop-tier-target", "Tier Cafe"), CancellationToken.None);
+        var helpers = new[]
+        {
+            await service.AuthGuestAsync(new AuthGuestRequest("coop-tier-a", "Tier Helper A"), CancellationToken.None),
+            await service.AuthGuestAsync(new AuthGuestRequest("coop-tier-b", "Tier Helper B"), CancellationToken.None),
+            await service.AuthGuestAsync(new AuthGuestRequest("coop-tier-c", "Tier Helper C"), CancellationToken.None),
+        };
+
+        FriendCoopTierClaimResponse? first = null;
+        FriendCoopTierClaimResponse? second = null;
+        FriendCoopTierClaimResponse? third = null;
+        for (var index = 0; index < helpers.Length; index++)
+        {
+            var helper = helpers[index];
+            var friend = await service.AddFriendAsync(
+                helper.PlayerId,
+                new AddFriendRequest(target.PlayerId.ToString("N")),
+                CancellationToken.None);
+            Assert.True((await service.HelpFriendAsync(helper.PlayerId, friend!.Id, CancellationToken.None))!.Applied);
+            var tierId = $"assist_{index + 1}";
+            var claim = await service.ClaimFriendCoopTierAsync(target.PlayerId, tierId, CancellationToken.None);
+            Assert.True(claim!.Claimed);
+            if (index == 0) first = claim;
+            if (index == 1) second = claim;
+            if (index == 2) third = claim;
+            Assert.False((await service.ClaimFriendCoopTierAsync(target.PlayerId, tierId, CancellationToken.None))!.Claimed);
+        }
+
+        Assert.Equal("coin", first!.RewardType);
+        Assert.Equal(5_000, first.RewardAmount);
+        Assert.Equal(12_455_000, first.CoinBalance);
+        Assert.Equal("researchPoint", second!.RewardType);
+        Assert.Equal(20, second.RewardAmount);
+        Assert.Equal(220, second.ResearchPointBalance);
+        Assert.Equal("diamond", third!.RewardType);
+        Assert.Equal(30, third.RewardAmount);
+        Assert.Equal(2610, third.DiamondBalance);
+        Assert.All(third.Goal.Tiers, tier => Assert.True(tier.Claimed));
+
+        var state = await dbContext.CoopGoalStates.FindAsync([target.PlayerId], CancellationToken.None);
+        Assert.Equal(7, state!.ClaimedTierMask);
+        Assert.True(state.IsClaimed);
+        var transactions = dbContext.ResourceTransactions
+            .Where(item => item.PlayerId == target.PlayerId && item.SourceType == "friend_coop_tier")
+            .ToArray();
+        Assert.Equal(3, transactions.Length);
+        Assert.Equal(5_000, Assert.Single(transactions, item => item.SourceKey.EndsWith("assist_1")).CoinDelta);
+        Assert.Equal(20, Assert.Single(transactions, item => item.SourceKey.EndsWith("assist_2")).ResearchPointDelta);
+        Assert.Equal(30, Assert.Single(transactions, item => item.SourceKey.EndsWith("assist_3")).DiamondDelta);
+    }
+
+    [Fact]
+    public async Task FriendCoopTiers_RecognizeLegacyFinalClaim()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var target = await service.AuthGuestAsync(new AuthGuestRequest("coop-tier-legacy", "Legacy Cafe"), CancellationToken.None);
+        dbContext.CoopGoalStates.Add(new PlayerCoopGoalState
+        {
+            PlayerId = target.PlayerId,
+            GoalDate = int.Parse(DateTime.UtcNow.ToString("yyyyMMdd")),
+            Progress = 3,
+            IsClaimed = true,
+            ClaimedTierMask = 0,
+        });
+        await dbContext.SaveChangesAsync();
+
+        var goal = await service.GetFriendCoopGoalAsync(target.PlayerId, CancellationToken.None);
+
+        Assert.False(goal!.Claimable);
+        Assert.True(goal.Claimed);
+        Assert.False(goal.Tiers[0].Claimed);
+        Assert.False(goal.Tiers[1].Claimed);
+        Assert.True(goal.Tiers[2].Claimed);
     }
 
     [Fact]

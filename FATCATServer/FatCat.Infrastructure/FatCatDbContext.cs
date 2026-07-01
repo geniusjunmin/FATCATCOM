@@ -244,10 +244,16 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
                 "GoalDate" INTEGER NOT NULL,
                 "Progress" INTEGER NOT NULL,
                 "IsClaimed" INTEGER NOT NULL,
+                "ClaimedTierMask" INTEGER NOT NULL DEFAULT 0,
                 "UpdatedAt" TEXT NOT NULL,
                 CONSTRAINT "FK_CoopGoalStates_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
             );
             """, cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "CoopGoalStates",
+            "ClaimedTierMask",
+            """ALTER TABLE "CoopGoalStates" ADD COLUMN "ClaimedTierMask" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS "FriendBoostContributions" (
                 "Id" TEXT NOT NULL CONSTRAINT "PK_FriendBoostContributions" PRIMARY KEY,

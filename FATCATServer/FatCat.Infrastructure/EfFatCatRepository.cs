@@ -233,8 +233,8 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         if (dbContext.Database.IsSqlite())
         {
             await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
-                INSERT INTO "CoopGoalStates" ("PlayerId", "GoalDate", "Progress", "IsClaimed", "UpdatedAt")
-                VALUES ({playerId}, {goalDate}, 1, 0, {now})
+                INSERT INTO "CoopGoalStates" ("PlayerId", "GoalDate", "Progress", "IsClaimed", "ClaimedTierMask", "UpdatedAt")
+                VALUES ({playerId}, {goalDate}, 1, 0, 0, {now})
                 ON CONFLICT ("PlayerId") DO UPDATE SET
                     "GoalDate" = {goalDate},
                     "Progress" = CASE
@@ -242,6 +242,7 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
                         ELSE 1
                     END,
                     "IsClaimed" = CASE WHEN "GoalDate" = {goalDate} THEN "IsClaimed" ELSE 0 END,
+                    "ClaimedTierMask" = CASE WHEN "GoalDate" = {goalDate} THEN "ClaimedTierMask" ELSE 0 END,
                     "UpdatedAt" = {now};
                 """, cancellationToken);
             return await dbContext.CoopGoalStates
@@ -268,6 +269,7 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
                 state.GoalDate = goalDate;
                 state.Progress = 0;
                 state.IsClaimed = false;
+                state.ClaimedTierMask = 0;
             }
             state.Progress = Math.Min(goalTarget, state.Progress + 1);
             state.UpdatedAt = now;
@@ -283,31 +285,76 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
+        return await ClaimCoopGoalTierAsync(
+            playerId,
+            goalDate,
+            goalTarget,
+            1 << 2,
+            true,
+            now,
+            cancellationToken);
+    }
+
+    public async Task<bool> ClaimCoopGoalTierAsync(
+        Guid playerId,
+        int goalDate,
+        int tierTarget,
+        int tierBit,
+        bool markLegacyClaimed,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
         if (!dbContext.Database.IsRelational())
         {
             var state = await GetCoopGoalStateAsync(playerId, cancellationToken);
             if (state is null
                 || state.GoalDate != goalDate
-                || state.Progress < goalTarget
-                || state.IsClaimed)
+                || state.Progress < tierTarget
+                || (state.ClaimedTierMask & tierBit) != 0
+                || (markLegacyClaimed && state.IsClaimed))
             {
                 return false;
             }
-            state.IsClaimed = true;
+            state.ClaimedTierMask |= tierBit;
+            if (markLegacyClaimed)
+            {
+                state.IsClaimed = true;
+            }
             state.UpdatedAt = now;
             await dbContext.SaveChangesAsync(cancellationToken);
             return true;
         }
 
-        var updated = await dbContext.CoopGoalStates
-            .Where(state => state.PlayerId == playerId
-                && state.GoalDate == goalDate
-                && state.Progress >= goalTarget
-                && !state.IsClaimed)
-            .ExecuteUpdateAsync(setters => setters
-                .SetProperty(state => state.IsClaimed, true)
-                .SetProperty(state => state.UpdatedAt, now), cancellationToken);
-        return updated == 1;
+        if (dbContext.Database.IsSqlite())
+        {
+            var updated = await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE "CoopGoalStates"
+                SET "ClaimedTierMask" = "ClaimedTierMask" | {tierBit},
+                    "IsClaimed" = CASE WHEN {markLegacyClaimed} THEN 1 ELSE "IsClaimed" END,
+                    "UpdatedAt" = {now}
+                WHERE "PlayerId" = {playerId}
+                    AND "GoalDate" = {goalDate}
+                    AND "Progress" >= {tierTarget}
+                    AND ("ClaimedTierMask" & {tierBit}) = 0
+                    AND ({!markLegacyClaimed} OR "IsClaimed" = 0)
+                """, cancellationToken);
+            return updated == 1;
+        }
+
+        var stateToClaim = await GetCoopGoalStateAsync(playerId, cancellationToken);
+        if (stateToClaim is null
+            || stateToClaim.GoalDate != goalDate
+            || stateToClaim.Progress < tierTarget
+            || (stateToClaim.ClaimedTierMask & tierBit) != 0
+            || (markLegacyClaimed && stateToClaim.IsClaimed))
+        {
+            return false;
+        }
+        stateToClaim.ClaimedTierMask |= tierBit;
+        stateToClaim.IsClaimed |= markLegacyClaimed;
+        stateToClaim.UpdatedAt = now;
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
     }
 
     public Task<PlayerSettings?> GetSettingsAsync(Guid playerId, CancellationToken cancellationToken)

@@ -406,11 +406,35 @@ export type FriendCoopGoalDto = {
     rewardDiamond: number;
     updatedAt: number;
     serverTime: number;
+    tiers: FriendCoopTierDto[];
+};
+
+export type FriendCoopTierDto = {
+    tierId: string;
+    target: number;
+    rewardType: string;
+    rewardAmount: number;
+    claimable: boolean;
+    claimed: boolean;
 };
 
 export type FriendCoopClaimResponse = {
     claimed: boolean;
     rewardDiamond: number;
+    goal: FriendCoopGoalDto;
+    coinBalance: number;
+    beanBalance: number;
+    catFoodBalance: number;
+    diamondBalance: number;
+    researchPointBalance: number;
+    limitedReason?: string | null;
+};
+
+export type FriendCoopTierClaimResponse = {
+    claimed: boolean;
+    tierId: string;
+    rewardType: string;
+    rewardAmount: number;
     goal: FriendCoopGoalDto;
     coinBalance: number;
     beanBalance: number;

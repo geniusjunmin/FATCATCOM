@@ -132,6 +132,18 @@ app.MapPost("/api/social/coop-goal/claim", async (
         : Results.Ok(ApiEnvelope<FriendCoopClaimResponse>.Success(result));
 });
 
+app.MapPost("/api/social/coop-goal/{tierId}/claim", async (
+    Guid playerId,
+    string tierId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.ClaimFriendCoopTierAsync(playerId, tierId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<FriendCoopTierClaimResponse>.Fail("player_or_tier_not_found"))
+        : Results.Ok(ApiEnvelope<FriendCoopTierClaimResponse>.Success(result));
+});
+
 app.MapGet("/api/social/events", async (
     Guid playerId,
     HttpContext context,

@@ -233,7 +233,7 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .friend-actions { display:flex; flex-direction:column; gap:8px; align-items:stretch; }
             #fatcat-dom-panel-overlay .friend-actions .tag { width:100%; margin:0; min-height:28px; }
             #fatcat-dom-panel-overlay .tag.boost { background:linear-gradient(#86c951,#4e8f2f); color:#fffbe6; border-color:#365f25; }
-            #fatcat-dom-panel-overlay .friend-coop-card { display:grid; grid-template-columns:11% 1fr 25%; align-items:center; gap:2%; margin:2.2% 0; padding:2.2%; min-height:68px; max-height:112px; overflow:hidden; box-sizing:border-box; border-radius:12px; border:2px solid #8b653c; background:linear-gradient(135deg,#fff1cf,#d9b783); color:#4b3020; font-size:2.05%; line-height:1.3; box-shadow:0 4px 0 rgba(52,34,22,.25); }
+            #fatcat-dom-panel-overlay .friend-coop-card { display:grid; grid-template-columns:11% 1fr; align-items:center; gap:2%; margin:2.2% 0; padding:2.2%; min-height:112px; max-height:158px; overflow:hidden; box-sizing:border-box; border-radius:12px; border:2px solid #8b653c; background:linear-gradient(135deg,#fff1cf,#d9b783); color:#4b3020; font-size:2.05%; line-height:1.3; box-shadow:0 4px 0 rgba(52,34,22,.25); }
             #fatcat-dom-panel-overlay .friend-coop-card.ready { border-color:#6b9a36; box-shadow:0 4px 0 rgba(52,34,22,.25),inset 0 0 18px rgba(128,190,68,.2); }
             #fatcat-dom-panel-overlay .coop-icon { width:36px; height:36px; justify-self:center; flex:none; overflow:hidden; box-sizing:border-box; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(#8ac858,#4e8d31); color:#fff9df; font-size:16px; line-height:1; font-weight:900; border:2px solid #385f25; }
             #fatcat-dom-panel-overlay .coop-copy { min-width:0; }
@@ -245,6 +245,42 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .coop-reward { display:flex; flex-direction:column; align-items:stretch; gap:6px; text-align:center; }
             #fatcat-dom-panel-overlay .coop-reward > b { color:#6e3da5; font-size:120%; }
             #fatcat-dom-panel-overlay .coop-reward .tag { margin:0; }
+            #fatcat-dom-panel-overlay .coop-tiers {
+                grid-column:1 / 3;
+                display:grid;
+                grid-template-columns:repeat(3,minmax(0,1fr));
+                gap:5px;
+                width:100%;
+            }
+            #fatcat-dom-panel-overlay .coop-tier {
+                display:grid;
+                grid-template-columns:1fr auto;
+                align-items:center;
+                gap:2px 5px;
+                min-width:0;
+                padding:6px 7px;
+                border-radius:7px;
+                background:rgba(255,248,218,.64);
+                box-shadow:inset 0 0 0 1px rgba(91,60,34,.18);
+            }
+            #fatcat-dom-panel-overlay .coop-tier span,
+            #fatcat-dom-panel-overlay .coop-tier b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .coop-tier span { font-size:78%; opacity:.76; }
+            #fatcat-dom-panel-overlay .coop-tier b { color:#5d3b23; }
+            #fatcat-dom-panel-overlay .coop-tier button {
+                grid-column:2;
+                grid-row:1 / 3;
+                min-width:48px;
+                min-height:28px;
+                border:1px solid #785737;
+                border-radius:6px;
+                background:#7a5c3f;
+                color:#fff2d0;
+                font:inherit;
+                font-weight:900;
+            }
+            #fatcat-dom-panel-overlay .coop-tier button.ready { background:#5d9636; border-color:#386520; cursor:pointer; }
+            #fatcat-dom-panel-overlay .coop-tier.claimed { opacity:.64; }
             #fatcat-dom-panel-overlay .friend-boost-history {
                 margin:0 0 2.2%;
                 padding:2.2%;
@@ -404,7 +440,10 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay.compact .friends-shell .feature-mini span { min-height:46px; font-size:1.58%; }
             #fatcat-dom-panel-overlay.compact .friend-card { min-height:86px; grid-template-columns:15% 1fr 25%; padding:2%; }
             #fatcat-dom-panel-overlay.compact .friend-actions { gap:5px; }
-            #fatcat-dom-panel-overlay.compact .friend-coop-card { grid-template-columns:12% 1fr 27%; padding:1.8%; margin:1.6% 0; }
+            #fatcat-dom-panel-overlay.compact .friend-coop-card { grid-template-columns:12% 1fr; padding:1.8%; margin:1.6% 0; min-height:106px; max-height:150px; }
+            #fatcat-dom-panel-overlay.compact .coop-tiers { gap:3px; }
+            #fatcat-dom-panel-overlay.compact .coop-tier { grid-template-columns:1fr; padding:4px; text-align:center; }
+            #fatcat-dom-panel-overlay.compact .coop-tier button { grid-column:1; grid-row:auto; width:100%; min-width:0; min-height:24px; }
             #fatcat-dom-panel-overlay.compact .friend-boost-history { padding:1.8%; margin-bottom:1.6%; font-size:1.72%; }
             #fatcat-dom-panel-overlay.compact .boost-history-list { grid-template-columns:1fr; gap:4px; }
             #fatcat-dom-panel-overlay.compact .boost-history-row { min-height:34px; padding:4px 6px; grid-template-columns:28px 1fr auto; }

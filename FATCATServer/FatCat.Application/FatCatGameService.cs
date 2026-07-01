@@ -53,6 +53,12 @@ public sealed class FatCatGameService(
         new("collector_3", 3, "diamond", 30, 1 << 1),
         new("collector_6", 6, "researchPoint", 100, 1 << 2),
     ];
+    private static readonly FriendCoopTierDefinition[] FriendCoopTiers =
+    [
+        new("assist_1", 1, "coin", 5_000, 1 << 0),
+        new("assist_2", 2, "researchPoint", 20, 1 << 1),
+        new("assist_3", 3, "diamond", FriendCoopGoalRewardDiamond, 1 << 2),
+    ];
 
     public async Task<AuthGuestResponse> AuthGuestAsync(AuthGuestRequest request, CancellationToken cancellationToken)
     {
@@ -113,7 +119,7 @@ public sealed class FatCatGameService(
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "friend-coop-tiers", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -1587,6 +1593,81 @@ public sealed class FatCatGameService(
             claimed ? null : goal.Claimed ? "already_claimed" : "goal_not_complete");
     }
 
+    public async Task<FriendCoopTierClaimResponse?> ClaimFriendCoopTierAsync(
+        Guid playerId,
+        string tierId,
+        CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        var tier = FriendCoopTiers.FirstOrDefault(item => string.Equals(item.TierId, tierId, StringComparison.Ordinal));
+        if (tier is null)
+        {
+            return null;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var goalDate = ToUtcDate(now);
+        var claimed = await repository.ClaimCoopGoalTierAsync(
+            playerId,
+            goalDate,
+            tier.Target,
+            tier.TierBit,
+            tier.Target == FriendCoopGoalTarget,
+            now,
+            cancellationToken);
+        var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
+        if (claimed)
+        {
+            switch (tier.RewardType)
+            {
+                case "coin":
+                    resources.Coin += tier.RewardAmount;
+                    break;
+                case "diamond":
+                    resources.Diamond += tier.RewardAmount;
+                    break;
+                case "researchPoint":
+                    resources.ResearchPoint += tier.RewardAmount;
+                    break;
+            }
+            resources.UpdatedAt = now;
+            await AddResourceTransactionAsync(
+                playerId,
+                "friend_coop_tier",
+                $"{goalDate}:{tier.TierId}",
+                null,
+                tier.RewardType == "coin" ? tier.RewardAmount : 0,
+                0,
+                0,
+                tier.RewardType == "diamond" ? tier.RewardAmount : 0,
+                tier.RewardType == "researchPoint" ? tier.RewardAmount : 0,
+                resources,
+                cancellationToken);
+            await repository.SaveChangesAsync(cancellationToken);
+        }
+
+        var state = await repository.GetCoopGoalStateAsync(playerId, cancellationToken)
+            ?? await EnsureCoopGoalStateAsync(playerId, now, cancellationToken);
+        var goal = ToFriendCoopGoalDto(state, now);
+        var tierState = goal.Tiers.First(item => item.TierId == tier.TierId);
+        return new FriendCoopTierClaimResponse(
+            claimed,
+            tier.TierId,
+            tier.RewardType,
+            claimed ? tier.RewardAmount : 0,
+            goal,
+            resources.Coin,
+            resources.Bean,
+            resources.CatFood,
+            resources.Diamond,
+            resources.ResearchPoint,
+            claimed ? null : tierState.Claimed ? "already_claimed" : "tier_not_complete");
+    }
+
     public async Task<FriendHelpResponse?> HelpFriendAsync(Guid playerId, string friendId, CancellationToken cancellationToken)
     {
         await EnsureDefaultFriendsAsync(playerId, cancellationToken);
@@ -2649,6 +2730,7 @@ public sealed class FatCatGameService(
             state.GoalDate = goalDate;
             state.Progress = 0;
             state.IsClaimed = false;
+            state.ClaimedTierMask = 0;
             state.UpdatedAt = now;
             await repository.SaveChangesAsync(cancellationToken);
         }
@@ -2658,15 +2740,27 @@ public sealed class FatCatGameService(
     private static FriendCoopGoalDto ToFriendCoopGoalDto(PlayerCoopGoalState state, DateTimeOffset now)
     {
         var progress = Math.Clamp(state.Progress, 0, FriendCoopGoalTarget);
+        var claimedTierMask = state.ClaimedTierMask | (state.IsClaimed ? 1 << 2 : 0);
+        var tiers = FriendCoopTiers
+            .Select(tier => new FriendCoopTierDto(
+                tier.TierId,
+                tier.Target,
+                tier.RewardType,
+                tier.RewardAmount,
+                progress >= tier.Target && (claimedTierMask & tier.TierBit) == 0,
+                (claimedTierMask & tier.TierBit) != 0))
+            .ToArray();
+        var finalTier = tiers[^1];
         return new FriendCoopGoalDto(
             state.GoalDate,
             progress,
             FriendCoopGoalTarget,
-            progress >= FriendCoopGoalTarget && !state.IsClaimed,
-            state.IsClaimed,
+            finalTier.Claimable,
+            finalTier.Claimed,
             FriendCoopGoalRewardDiamond,
             state.UpdatedAt.ToUnixTimeMilliseconds(),
-            now.ToUnixTimeMilliseconds());
+            now.ToUnixTimeMilliseconds(),
+            tiers);
     }
 
     private async Task<FriendProfileDto> BuildFriendProfileAsync(FriendSnapshot friend, CancellationToken cancellationToken)
@@ -3151,6 +3245,12 @@ public sealed class FatCatGameService(
     private sealed record DecorCollectionTierDefinition(
         string TierId,
         int TargetCount,
+        string RewardType,
+        int RewardAmount,
+        int TierBit);
+    private sealed record FriendCoopTierDefinition(
+        string TierId,
+        int Target,
         string RewardType,
         int RewardAmount,
         int TierBit);

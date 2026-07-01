@@ -10,6 +10,11 @@ export class FriendCoopManager {
         rewardDiamond: 30,
         updatedAt: 0,
         serverTime: 0,
+        tiers: [
+            { tierId: "assist_1", target: 1, rewardType: "coin", rewardAmount: 5000, claimable: false, claimed: false },
+            { tierId: "assist_2", target: 2, rewardType: "researchPoint", rewardAmount: 20, claimable: false, claimed: false },
+            { tierId: "assist_3", target: 3, rewardType: "diamond", rewardAmount: 30, claimable: false, claimed: false },
+        ],
     };
 
     public static apply(state: FriendCoopGoalDto): void {
@@ -23,6 +28,10 @@ export class FriendCoopManager {
             target,
             progress,
             claimable: progress >= target && !state.claimed,
+            tiers: (state.tiers ?? this.state.tiers).map(tier => ({
+                ...tier,
+                claimable: progress >= tier.target && !tier.claimed,
+            })),
         };
     }
 
@@ -32,13 +41,17 @@ export class FriendCoopManager {
             progress,
             target,
             claimable,
-            claimed: false,
+            claimed: this.state.claimed,
+            tiers: this.state.tiers.map(tier => ({
+                ...tier,
+                claimable: progress >= tier.target && !tier.claimed,
+            })),
             updatedAt,
             serverTime: updatedAt,
         });
     }
 
     public static getState(): FriendCoopGoalDto {
-        return { ...this.state };
+        return { ...this.state, tiers: this.state.tiers.map(tier => ({ ...tier })) };
     }
 }

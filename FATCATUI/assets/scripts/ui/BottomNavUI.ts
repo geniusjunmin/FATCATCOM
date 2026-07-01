@@ -1145,6 +1145,12 @@ export class BottomNavUI extends Component {
             actionMessageOverride = success
                 ? `协作奖励已领取：+${response?.rewardDiamond ?? 0} 钻石。`
                 : response?.limitedReason === "already_claimed" ? "今日协作奖励已经领取。" : "再获得好友助力即可领取奖励。";
+        } else if (action === "claimFriendCoopTier") {
+            const response = await SyncManager.claimServerFriendCoopTier(id);
+            success = response?.claimed === true;
+            actionMessageOverride = success
+                ? `协作档位奖励已领取：${this.getFriendCoopRewardLabel(response?.rewardType ?? "", response?.rewardAmount ?? 0)}。`
+                : response?.limitedReason === "already_claimed" ? "这个协作档位今天已经领取。" : "当前助力次数尚未达到该档位。";
         } else if (action === "addFriend") {
             const friendPlayerId = typeof window !== "undefined"
                 ? window.prompt("输入对方玩家 ID")
@@ -1449,11 +1455,23 @@ export class BottomNavUI extends Component {
 
     private renderFriendCoopGoalCard(goal: ReturnType<typeof FriendCoopManager.getState>): string {
         const percent = Math.max(0, Math.min(100, Math.floor(goal.progress / Math.max(1, goal.target) * 100)));
-        const state = goal.claimed ? "今日已领取" : goal.claimable ? "奖励可领取" : `还需 ${Math.max(0, goal.target - goal.progress)} 次助力`;
-        const action = goal.claimable
-            ? `<button class="tag boost" data-action="claimFriendCoopGoal">领取 ${goal.rewardDiamond} 钻石</button>`
-            : `<span class="tag ${goal.claimed ? "" : "warn"}">${state}</span>`;
-        return `<div class="friend-coop-card ${goal.claimable ? "ready" : ""}"><div class="coop-icon">协</div><div class="coop-copy"><b>每日好友协作</b><em>真实好友助力可推进目标，进度每日重置。</em><div class="coop-meter"><i style="width:${percent}%"></i></div><span>${goal.progress}/${goal.target} · ${state}</span></div><div class="coop-reward"><b>◆ ${goal.rewardDiamond}</b>${action}</div></div>`;
+        const claimedCount = goal.tiers.filter(tier => tier.claimed).length;
+        const claimableCount = goal.tiers.filter(tier => tier.claimable).length;
+        const state = claimableCount > 0 ? `${claimableCount} 档可领取` : claimedCount === goal.tiers.length ? "今日全部完成" : `还需 ${Math.max(0, goal.target - goal.progress)} 次助力`;
+        const tiers = goal.tiers.map(tier => {
+            const action = tier.claimed
+                ? `<button disabled>已领取</button>`
+                : tier.claimable
+                    ? `<button class="ready" data-action="${tier.tierId === "assist_3" ? "claimFriendCoopGoal" : "claimFriendCoopTier"}" data-id="${tier.tierId}">领取</button>`
+                    : `<button disabled>${goal.progress}/${tier.target}</button>`;
+            return `<div class="coop-tier ${tier.claimed ? "claimed" : tier.claimable ? "claimable" : "locked"}"><span>${tier.target} 次助力</span><b>${this.getFriendCoopRewardLabel(tier.rewardType, tier.rewardAmount)}</b>${action}</div>`;
+        }).join("");
+        return `<div class="friend-coop-card ${claimableCount > 0 ? "ready" : ""}"><div class="coop-icon">协</div><div class="coop-copy"><b>每日好友协作</b><em>真实好友助力逐档解锁，进度每日重置。</em><div class="coop-meter"><i style="width:${percent}%"></i></div><span>${goal.progress}/${goal.target} · ${state}</span></div><div class="coop-tiers">${tiers}</div></div>`;
+    }
+
+    private getFriendCoopRewardLabel(rewardType: string, rewardAmount: number): string {
+        const label = rewardType === "diamond" ? "钻石" : rewardType === "researchPoint" ? "研究点" : "金币";
+        return `${label} +${this.formatNumber(rewardAmount)}`;
     }
 
     private renderFriendBoostHistoryCard(history: ReturnType<typeof FriendBoostManager.getHistory>): string {

@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 const { chromium } = require("playwright-core");
 const { startApiProcess } = require("./start-api-process");
 
@@ -5,6 +7,7 @@ const edgePath = "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
 const apiUrl = "http://localhost:5144";
 const url = `http://localhost:7456/?api=${encodeURIComponent(apiUrl)}&coopgoal=${Date.now()}`;
 const saveKey = "fatcat_company_save_v1";
+const screenshotPath = path.resolve("docs/verification/screenshots/2026-07-01-coop-tiers/coop-tiers-claimed-360x800.png");
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function waitForApi() {
@@ -99,15 +102,26 @@ async function request(path, method = "GET", body = undefined) {
             visible: !!document.querySelector("#fatcat-dom-panel-overlay .friend-coop-card.ready"),
             text: document.querySelector("#fatcat-dom-panel-overlay .friend-coop-card")?.textContent || "",
             hasClaim: !!document.querySelector('#fatcat-dom-panel-overlay [data-action="claimFriendCoopGoal"]'),
+            tiers: document.querySelectorAll("#fatcat-dom-panel-overlay .coop-tier").length,
+            claimButtons: document.querySelectorAll('#fatcat-dom-panel-overlay .coop-tier button:not([disabled])').length,
         }));
+        await page.click('#fatcat-dom-panel-overlay [data-action="claimFriendCoopTier"][data-id="assist_1"]');
+        await page.waitForTimeout(350);
+        await page.click('#fatcat-dom-panel-overlay [data-action="claimFriendCoopTier"][data-id="assist_2"]');
+        await page.waitForTimeout(350);
         await page.click('#fatcat-dom-panel-overlay [data-action="claimFriendCoopGoal"]');
         await page.waitForTimeout(500);
         const claimedCard = await page.evaluate(() => ({
             text: document.querySelector("#fatcat-dom-panel-overlay .friend-coop-card")?.textContent || "",
             hasClaim: !!document.querySelector('#fatcat-dom-panel-overlay [data-action="claimFriendCoopGoal"]'),
+            claimedTiers: document.querySelectorAll("#fatcat-dom-panel-overlay .coop-tier.claimed").length,
+            claimButtons: document.querySelectorAll('#fatcat-dom-panel-overlay .coop-tier button:not([disabled])').length,
         }));
+        fs.mkdirSync(path.dirname(screenshotPath), { recursive: true });
+        await page.screenshot({ path: screenshotPath, fullPage: false });
         const resources = await request(`/api/resources?playerId=${encodeURIComponent(targetId)}`);
         const repeated = await request(`/api/social/coop-goal/claim?playerId=${encodeURIComponent(targetId)}`, "POST", {});
+        const repeatedFirst = await request(`/api/social/coop-goal/assist_1/claim?playerId=${encodeURIComponent(targetId)}`, "POST", {});
         const activities = await request(`/api/friends/activity?playerId=${encodeURIComponent(targetId)}&limit=5`);
         const activityTypes = (activities.json.data ?? []).map((item) => item.activityType);
 
@@ -117,12 +131,19 @@ async function request(path, method = "GET", body = undefined) {
             && factoryState.text.includes("协作 3/3")
             && readyCard.visible
             && readyCard.hasClaim
+            && readyCard.tiers === 3
+            && readyCard.claimButtons === 3
             && readyCard.text.includes("3/3")
-            && claimedCard.text.includes("今日已领取")
+            && claimedCard.claimedTiers === 3
+            && claimedCard.claimButtons === 0
             && !claimedCard.hasClaim
+            && resources.json.data?.coin === 12455000
+            && resources.json.data?.researchPoint === 220
             && resources.json.data?.diamond === 2610
             && repeated.json.data?.claimed === false
             && repeated.json.data?.limitedReason === "already_claimed"
+            && repeatedFirst.json.data?.claimed === false
+            && repeatedFirst.json.data?.limitedReason === "already_claimed"
             && activityTypes.filter((type) => type === "friend_help_received").length === 3
             && messages.length === 0
             && failedRequests.length === 0
@@ -136,6 +157,8 @@ async function request(path, method = "GET", body = undefined) {
             claimedCard,
             resources: resources.json.data,
             repeated: repeated.json.data,
+            repeatedFirst: repeatedFirst.json.data,
+            screenshotPath,
             activityTypes,
             messages,
             failedRequests,

@@ -380,11 +380,33 @@ public sealed record FriendCoopGoalDto(
     bool Claimed,
     int RewardDiamond,
     long UpdatedAt,
-    long ServerTime);
+    long ServerTime,
+    IReadOnlyList<FriendCoopTierDto> Tiers);
+
+public sealed record FriendCoopTierDto(
+    string TierId,
+    int Target,
+    string RewardType,
+    int RewardAmount,
+    bool Claimable,
+    bool Claimed);
 
 public sealed record FriendCoopClaimResponse(
     bool Claimed,
     int RewardDiamond,
+    FriendCoopGoalDto Goal,
+    double CoinBalance,
+    double BeanBalance,
+    double CatFoodBalance,
+    double DiamondBalance,
+    double ResearchPointBalance,
+    string? LimitedReason = null);
+
+public sealed record FriendCoopTierClaimResponse(
+    bool Claimed,
+    string TierId,
+    string RewardType,
+    int RewardAmount,
     FriendCoopGoalDto Goal,
     double CoinBalance,
     double BeanBalance,
