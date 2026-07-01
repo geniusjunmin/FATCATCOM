@@ -287,6 +287,64 @@ public sealed class FatCatApiTests
     }
 
     [Fact]
+    public async Task DecorCollection_ExposesProgressAndOneTimeClaimContract()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var auth = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-decor-collection-owner",
+            companyName = "Collection Cafe",
+        });
+        var playerId = JsonDocument.Parse(await auth.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+
+        var initialResponse = await client.GetAsync($"/api/decor/collection?playerId={playerId}");
+        var initial = JsonDocument.Parse(await initialResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var locked = await client.PostAsJsonAsync($"/api/decor/collection/collector_1/claim?playerId={playerId}", new { });
+        await client.PostAsJsonAsync($"/api/decor/decor_shop_neon_paw/purchase?playerId={playerId}", new { });
+        var claimResponse = await client.PostAsJsonAsync($"/api/decor/collection/collector_1/claim?playerId={playerId}", new { });
+        var claim = JsonDocument.Parse(await claimResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var duplicate = await client.PostAsJsonAsync($"/api/decor/collection/collector_1/claim?playerId={playerId}", new { });
+
+        Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
+        Assert.Equal(0, initial.GetProperty("ownedCount").GetInt32());
+        Assert.Equal(6, initial.GetProperty("totalCount").GetInt32());
+        Assert.Equal(3, initial.GetProperty("tiers").GetArrayLength());
+        Assert.Equal(HttpStatusCode.BadRequest, locked.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, claimResponse.StatusCode);
+        Assert.Equal("coin", claim.GetProperty("rewardType").GetString());
+        Assert.Equal(10_000, claim.GetProperty("rewardAmount").GetInt32());
+        Assert.Equal(12_432_000, claim.GetProperty("coinBalance").GetDouble());
+        Assert.Equal(1, claim.GetProperty("collection").GetProperty("ownedCount").GetInt32());
+        Assert.True(claim.GetProperty("collection").GetProperty("tiers")[0].GetProperty("claimed").GetBoolean());
+        Assert.Equal(HttpStatusCode.BadRequest, duplicate.StatusCode);
+    }
+
+    [Fact]
+    public async Task DecorCollection_ConcurrentClaims_GrantExactlyOneReward()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var auth = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-decor-collection-race",
+            companyName = "Concurrent Collector",
+        });
+        var playerId = JsonDocument.Parse(await auth.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+        await client.PostAsJsonAsync($"/api/decor/decor_shop_neon_paw/purchase?playerId={playerId}", new { });
+
+        var claims = await Task.WhenAll(
+            client.PostAsJsonAsync($"/api/decor/collection/collector_1/claim?playerId={playerId}", new { }),
+            client.PostAsJsonAsync($"/api/decor/collection/collector_1/claim?playerId={playerId}", new { }));
+        var resourcesResponse = await client.GetAsync($"/api/resources?playerId={playerId}");
+        var resources = JsonDocument.Parse(await resourcesResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+
+        Assert.Single(claims, response => response.StatusCode == HttpStatusCode.OK);
+        Assert.Single(claims, response => response.StatusCode == HttpStatusCode.BadRequest);
+        Assert.Equal(12_432_000, resources.GetProperty("coin").GetDouble());
+    }
+
+    [Fact]
     public async Task SocialProfileAndFriendSearch_ReturnInviteCodeContract()
     {
         await using var factory = new FatCatApiFactory();

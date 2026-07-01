@@ -457,6 +457,29 @@ app.MapPost("/api/decor/{decorId}/purchase", async (
         : Results.Ok(ApiEnvelope<DecorPurchaseResponse>.Success(result));
 });
 
+app.MapGet("/api/decor/collection", async (
+    Guid playerId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.GetDecorCollectionAsync(playerId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<DecorCollectionDto>.Fail("player_not_found"))
+        : Results.Ok(ApiEnvelope<DecorCollectionDto>.Success(result));
+});
+
+app.MapPost("/api/decor/collection/{tierId}/claim", async (
+    Guid playerId,
+    string tierId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.ClaimDecorCollectionTierAsync(playerId, tierId, cancellationToken);
+    return result is null
+        ? Results.BadRequest(ApiEnvelope<DecorCollectionClaimResponse>.Fail("decor_collection_claim_failed"))
+        : Results.Ok(ApiEnvelope<DecorCollectionClaimResponse>.Success(result));
+});
+
 app.MapPost("/api/decor/{decorId}/placement", async (
     Guid playerId,
     string decorId,

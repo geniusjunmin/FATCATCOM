@@ -76,6 +76,8 @@ async function waitForApi() {
                 const tabs = Array.from(overlay?.querySelectorAll(".tabs .tab") || []);
                 const rows = Array.from(overlay?.querySelectorAll(".decor-catalog-row") || []);
                 const summary = overlay?.querySelector(".decor-shop-summary");
+                const collection = overlay?.querySelector(".decor-collection");
+                const collectionTiers = Array.from(overlay?.querySelectorAll(".decor-collection-tier") || []);
                 const viewport = { width: window.innerWidth, height: window.innerHeight };
                 const contained = (element) => {
                     const rect = element.getBoundingClientRect();
@@ -86,6 +88,10 @@ async function waitForApi() {
                     rows: rows.length,
                     tabs: tabs.length,
                     summaryVisible: !!summary && summary.getBoundingClientRect().height > 0,
+                    collectionVisible: !!collection && collection.getBoundingClientRect().height > 0,
+                    collectionTiers: collectionTiers.length,
+                    collectionContained: !!collection && contained(collection),
+                    collectionTextFits: collectionTiers.every(textFits),
                     shellContained: !!shell && contained(shell),
                     rowsContained: rows.every(contained),
                     tabTextFits: tabs.every(textFits),
@@ -105,6 +111,10 @@ async function waitForApi() {
             result.state.rows === 6
             && result.state.tabs === 4
             && result.state.summaryVisible
+            && result.state.collectionVisible
+            && result.state.collectionTiers === 3
+            && result.state.collectionContained
+            && result.state.collectionTextFits
             && result.state.shellContained
             && result.state.rowsContained
             && result.state.tabTextFits

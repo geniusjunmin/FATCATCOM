@@ -47,6 +47,13 @@ public sealed class FatCatGameService(
         new("decor_shop_storage_cart", "复古运豆车", "仓库专用的黄铜推车", "building_storage_b1", 68, "coin", 36_000),
     ];
 
+    private static readonly DecorCollectionTierDefinition[] DecorCollectionTiers =
+    [
+        new("collector_1", 1, "coin", 10_000, 1 << 0),
+        new("collector_3", 3, "diamond", 30, 1 << 1),
+        new("collector_6", 6, "researchPoint", 100, 1 << 2),
+    ];
+
     public async Task<AuthGuestResponse> AuthGuestAsync(AuthGuestRequest request, CancellationToken cancellationToken)
     {
         var deviceId = NormalizeDeviceId(request.DeviceId);
@@ -106,7 +113,7 @@ public sealed class FatCatGameService(
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "friend-realtime-events", "friend-production-boost", "friend-coop-goal", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-coop-goal", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -1128,6 +1135,93 @@ public sealed class FatCatGameService(
             ToDecorStateDto(decor),
             definition.PriceType,
             definition.PriceAmount,
+            resources.Coin,
+            resources.Bean,
+            resources.CatFood,
+            resources.Diamond,
+            resources.ResearchPoint,
+            now.ToUnixTimeMilliseconds());
+    }
+
+    public async Task<DecorCollectionDto?> GetDecorCollectionAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        await EnsureDefaultDecorStatesAsync(playerId, cancellationToken);
+        var decorations = await repository.GetDecorStatesAsync(playerId, cancellationToken);
+        var state = await repository.GetDecorCollectionStateAsync(playerId, cancellationToken);
+        return ToDecorCollectionDto(decorations, state?.ClaimedTierMask ?? 0, DateTimeOffset.UtcNow);
+    }
+
+    public async Task<DecorCollectionClaimResponse?> ClaimDecorCollectionTierAsync(
+        Guid playerId,
+        string tierId,
+        CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        var tier = DecorCollectionTiers.FirstOrDefault(item => string.Equals(item.TierId, tierId, StringComparison.Ordinal));
+        if (tier is null)
+        {
+            return null;
+        }
+
+        await EnsureDefaultDecorStatesAsync(playerId, cancellationToken);
+        var decorations = await repository.GetDecorStatesAsync(playerId, cancellationToken);
+        var ownedCount = decorations.Count(item => item.DecorKey.StartsWith("decor_shop_", StringComparison.Ordinal));
+        if (ownedCount < tier.TargetCount)
+        {
+            return null;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        if (!await repository.ClaimDecorCollectionTierAsync(playerId, tier.TierBit, now, cancellationToken))
+        {
+            return null;
+        }
+
+        var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
+        switch (tier.RewardType)
+        {
+            case "coin":
+                resources.Coin += tier.RewardAmount;
+                break;
+            case "diamond":
+                resources.Diamond += tier.RewardAmount;
+                break;
+            case "researchPoint":
+                resources.ResearchPoint += tier.RewardAmount;
+                break;
+            default:
+                return null;
+        }
+        resources.UpdatedAt = now;
+        await AddResourceTransactionAsync(
+            playerId,
+            "decor_collection_claim",
+            tier.TierId,
+            null,
+            tier.RewardType == "coin" ? tier.RewardAmount : 0,
+            0,
+            0,
+            tier.RewardType == "diamond" ? tier.RewardAmount : 0,
+            tier.RewardType == "researchPoint" ? tier.RewardAmount : 0,
+            resources,
+            cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
+
+        var state = await repository.GetDecorCollectionStateAsync(playerId, cancellationToken);
+        var collection = ToDecorCollectionDto(decorations, state?.ClaimedTierMask ?? tier.TierBit, now);
+        return new DecorCollectionClaimResponse(
+            collection,
+            tier.RewardType,
+            tier.RewardAmount,
             resources.Coin,
             resources.Bean,
             resources.CatFood,
@@ -2593,6 +2687,31 @@ public sealed class FatCatGameService(
             decor.UpdatedAt.ToUnixTimeMilliseconds());
     }
 
+    private static DecorCollectionDto ToDecorCollectionDto(
+        IReadOnlyCollection<PlayerDecorState> decorations,
+        int claimedTierMask,
+        DateTimeOffset now)
+    {
+        var premiumDecorations = decorations
+            .Where(item => item.DecorKey.StartsWith("decor_shop_", StringComparison.Ordinal))
+            .ToArray();
+        var ownedCount = premiumDecorations.Length;
+        return new DecorCollectionDto(
+            ownedCount,
+            DecorCatalog.Length,
+            premiumDecorations.Sum(item => item.Score),
+            DecorCollectionTiers
+                .Select(tier => new DecorCollectionTierDto(
+                    tier.TierId,
+                    tier.TargetCount,
+                    tier.RewardType,
+                    tier.RewardAmount,
+                    (claimedTierMask & tier.TierBit) != 0,
+                    ownedCount >= tier.TargetCount && (claimedTierMask & tier.TierBit) == 0))
+                .ToArray(),
+            now.ToUnixTimeMilliseconds());
+    }
+
     private async Task<IReadOnlyList<FriendRoomDto>> BuildFriendRoomsAsync(FriendSnapshot friend, CancellationToken cancellationToken)
     {
         var realPlayerId = TryGetRealFriendPlayerId(friend.FriendKey, out var parsedRealPlayerId)
@@ -2993,6 +3112,12 @@ public sealed class FatCatGameService(
         int Score,
         string PriceType,
         int PriceAmount);
+    private sealed record DecorCollectionTierDefinition(
+        string TierId,
+        int TargetCount,
+        string RewardType,
+        int RewardAmount,
+        int TierBit);
     private sealed record ProductionModifiers(
         int GrossCoinPercent,
         int GrossCoinAdd,

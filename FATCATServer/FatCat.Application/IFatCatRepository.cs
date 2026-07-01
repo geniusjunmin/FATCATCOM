@@ -49,6 +49,8 @@ public interface IFatCatRepository
     Task<List<PlayerDecorState>> GetDecorStatesAsync(Guid playerId, CancellationToken cancellationToken);
     Task<PlayerDecorState?> GetDecorStateAsync(Guid playerId, string decorKey, CancellationToken cancellationToken);
     Task<bool> AddDecorIfMissingAsync(PlayerDecorState decor, CancellationToken cancellationToken);
+    Task<PlayerDecorCollectionState?> GetDecorCollectionStateAsync(Guid playerId, CancellationToken cancellationToken);
+    Task<bool> ClaimDecorCollectionTierAsync(Guid playerId, int tierBit, DateTimeOffset now, CancellationToken cancellationToken);
     Task<PlayerResearchState?> GetResearchStateAsync(Guid playerId, string researchKey, CancellationToken cancellationToken);
     Task<List<PlayerResearchState>> GetResearchStatesAsync(Guid playerId, CancellationToken cancellationToken);
     Task AddResearchStateAsync(PlayerResearchState research, CancellationToken cancellationToken);

@@ -117,6 +117,10 @@ Invoke-Step "Decor shop contract check" {
     node .\tools\check-decor-shop-contract.js
 }
 
+Invoke-Step "Decor collection contract check" {
+    node .\tools\check-decor-collection-contract.js
+}
+
 Invoke-Step "Social realtime contract check" {
     node .\tools\check-social-realtime-contract.js
 }

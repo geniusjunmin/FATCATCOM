@@ -22,6 +22,7 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
     public DbSet<PlayerCatState> CatStates => Set<PlayerCatState>();
     public DbSet<PlayerBuildingState> BuildingStates => Set<PlayerBuildingState>();
     public DbSet<PlayerDecorState> DecorStates => Set<PlayerDecorState>();
+    public DbSet<PlayerDecorCollectionState> DecorCollectionStates => Set<PlayerDecorCollectionState>();
     public DbSet<PlayerResearchState> ResearchStates => Set<PlayerResearchState>();
     public DbSet<PlayerLaunchRecord> LaunchRecords => Set<PlayerLaunchRecord>();
 
@@ -194,6 +195,14 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
         await Database.ExecuteSqlRawAsync("""
             CREATE INDEX IF NOT EXISTS "IX_DecorStates_PlayerId_BuildingKey"
             ON "DecorStates" ("PlayerId", "BuildingKey");
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "DecorCollectionStates" (
+                "PlayerId" TEXT NOT NULL CONSTRAINT "PK_DecorCollectionStates" PRIMARY KEY,
+                "ClaimedTierMask" INTEGER NOT NULL,
+                "UpdatedAt" TEXT NOT NULL,
+                CONSTRAINT "FK_DecorCollectionStates_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
+            );
             """, cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS "ResearchStates" (
@@ -495,6 +504,15 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.HasOne(decor => decor.Player)
                 .WithMany()
                 .HasForeignKey(decor => decor.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlayerDecorCollectionState>(entity =>
+        {
+            entity.HasKey(state => state.PlayerId);
+            entity.HasOne(state => state.Player)
+                .WithOne()
+                .HasForeignKey<PlayerDecorCollectionState>(state => state.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

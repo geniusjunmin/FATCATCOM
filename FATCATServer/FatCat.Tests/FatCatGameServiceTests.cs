@@ -153,6 +153,80 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task DecorCollection_UnlocksClaimsAndPersistsEachRewardOnce()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("decor-collection-device", "Collector Cafe"), CancellationToken.None);
+
+        var initial = await service.GetDecorCollectionAsync(auth.PlayerId, CancellationToken.None);
+        var lockedClaim = await service.ClaimDecorCollectionTierAsync(auth.PlayerId, "collector_1", CancellationToken.None);
+        await service.PurchaseDecorationAsync(auth.PlayerId, "decor_shop_neon_paw", CancellationToken.None);
+        var unlocked = await service.GetDecorCollectionAsync(auth.PlayerId, CancellationToken.None);
+        var claim = await service.ClaimDecorCollectionTierAsync(auth.PlayerId, "collector_1", CancellationToken.None);
+        var duplicate = await service.ClaimDecorCollectionTierAsync(auth.PlayerId, "collector_1", CancellationToken.None);
+
+        Assert.NotNull(initial);
+        Assert.Equal(0, initial!.OwnedCount);
+        Assert.Equal(6, initial.TotalCount);
+        Assert.All(initial.Tiers, tier => Assert.False(tier.Claimable));
+        Assert.Null(lockedClaim);
+        Assert.NotNull(unlocked);
+        Assert.Equal(1, unlocked!.OwnedCount);
+        Assert.Equal(58, unlocked.OwnedScore);
+        Assert.True(Assert.Single(unlocked.Tiers, tier => tier.TierId == "collector_1").Claimable);
+        Assert.NotNull(claim);
+        Assert.Equal("coin", claim!.RewardType);
+        Assert.Equal(10_000, claim.RewardAmount);
+        Assert.Equal(12_432_000, claim.CoinBalance);
+        Assert.True(Assert.Single(claim.Collection.Tiers, tier => tier.TierId == "collector_1").Claimed);
+        Assert.Null(duplicate);
+
+        var state = await dbContext.DecorCollectionStates.FindAsync([auth.PlayerId], CancellationToken.None);
+        Assert.NotNull(state);
+        Assert.Equal(1, state!.ClaimedTierMask);
+        var rewardTransaction = Assert.Single(dbContext.ResourceTransactions.Where(item => item.SourceType == "decor_collection_claim"));
+        Assert.Equal("collector_1", rewardTransaction.SourceKey);
+        Assert.Equal(10_000, rewardTransaction.CoinDelta);
+    }
+
+    [Fact]
+    public async Task DecorCollection_TracksAllPremiumDecorAndThreeRewardTiers()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("decor-collection-complete", "Grand Collector"), CancellationToken.None);
+        var decorIds = new[]
+        {
+            "decor_shop_neon_paw",
+            "decor_shop_bean_globe",
+            "decor_shop_ferment_chime",
+            "decor_shop_roast_phonograph",
+            "decor_shop_office_trophy",
+            "decor_shop_storage_cart",
+        };
+        foreach (var decorId in decorIds)
+        {
+            Assert.NotNull(await service.PurchaseDecorationAsync(auth.PlayerId, decorId, CancellationToken.None));
+        }
+
+        Assert.NotNull(await service.ClaimDecorCollectionTierAsync(auth.PlayerId, "collector_1", CancellationToken.None));
+        var middle = await service.ClaimDecorCollectionTierAsync(auth.PlayerId, "collector_3", CancellationToken.None);
+        var final = await service.ClaimDecorCollectionTierAsync(auth.PlayerId, "collector_6", CancellationToken.None);
+
+        Assert.NotNull(middle);
+        Assert.Equal("diamond", middle!.RewardType);
+        Assert.Equal(30, middle.RewardAmount);
+        Assert.NotNull(final);
+        Assert.Equal("researchPoint", final!.RewardType);
+        Assert.Equal(100, final.RewardAmount);
+        Assert.Equal(6, final.Collection.OwnedCount);
+        Assert.Equal(434, final.Collection.OwnedScore);
+        Assert.All(final.Collection.Tiers, tier => Assert.True(tier.Claimed));
+        Assert.Equal(7, (await dbContext.DecorCollectionStates.FindAsync([auth.PlayerId], CancellationToken.None))!.ClaimedTierMask);
+    }
+
+    [Fact]
     public async Task UpgradeCatAsync_DeductsCoinAndWritesTransaction()
     {
         await using var dbContext = CreateDbContext();

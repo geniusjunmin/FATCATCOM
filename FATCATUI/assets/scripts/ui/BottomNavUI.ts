@@ -15,7 +15,7 @@ import { NetworkManager } from "../manager/NetworkManager";
 import { SyncManager } from "../manager/SyncManager";
 import { FriendBoostManager } from "../manager/FriendBoostManager";
 import { FriendCoopManager } from "../manager/FriendCoopManager";
-import { DecorCatalogItemDto, DecorStateDto, FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { DecorCatalogItemDto, DecorCollectionDto, DecorCollectionTierDto, DecorStateDto, FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
 import { GeneratedBackgroundAssets } from "./UiAssetRegistry";
@@ -185,6 +185,7 @@ export class BottomNavUI extends Component {
     private _serverFriends: FriendDto[] = [];
     private _serverDecorations: DecorStateDto[] = [];
     private _serverDecorCatalog: DecorCatalogItemDto[] = [];
+    private _serverDecorCollection: DecorCollectionDto | null = null;
     private _decorRefreshInFlight = false;
     private _decorCatalogRefreshInFlight = false;
     private _friendActivities: FriendActivityDto[] = [];
@@ -942,10 +943,20 @@ export class BottomNavUI extends Component {
                 this.applyServerDecorState(purchase.decor);
                 const catalogItem = this._serverDecorCatalog.find(item => item.decorId === id);
                 if (catalogItem) catalogItem.owned = true;
+                this._serverDecorCollection = await SyncManager.fetchServerDecorCollection();
                 success = true;
                 actionMessageOverride = `${purchase.decor.name} 已收入装饰仓库，可前往建筑页面摆放。`;
             } else {
                 actionMessageOverride = "购买失败：余额不足、商品已拥有或服务器未连接。";
+            }
+        } else if (action === "claimDecorCollection") {
+            const claim = await SyncManager.claimServerDecorCollectionTier(id);
+            if (claim) {
+                this._serverDecorCollection = claim.collection;
+                success = true;
+                actionMessageOverride = `收藏奖励已领取：${this.getDecorCollectionRewardLabel(claim.rewardType, claim.rewardAmount)}。`;
+            } else {
+                actionMessageOverride = "领取失败：收藏数量不足、奖励已领取或服务器未连接。";
             }
         } else if (action === "use") {
             success = InventoryManager.useItem(id);
@@ -1644,9 +1655,13 @@ export class BottomNavUI extends Component {
         if (!NetworkManager.canUseServer || this._decorCatalogRefreshInFlight) return;
         this._decorCatalogRefreshInFlight = true;
         try {
-            const catalog = await SyncManager.fetchServerDecorCatalog();
+            const [catalog, collection] = await Promise.all([
+                SyncManager.fetchServerDecorCatalog(),
+                SyncManager.fetchServerDecorCollection(),
+            ]);
             if (catalog.length <= 0 || this.currentPanel !== "shop") return;
             this._serverDecorCatalog = catalog;
+            this._serverDecorCollection = collection;
             this.renderDomPanel("shop");
         } finally {
             this._decorCatalogRefreshInFlight = false;
@@ -2079,7 +2094,7 @@ export class BottomNavUI extends Component {
             const rows = this._serverDecorCatalog.length > 0
                 ? this._serverDecorCatalog.map(item => this.renderDecorCatalogRow(item)).join("")
                 : this.renderShopPreviewRows("deco", 4);
-            return `<div class="panel-shell shop-shell"><h2>商店详情</h2><div class="tabs">${SHOP_TABS.map(tab => `<button class="tab ${this._domShopTab === tab.id ? "active" : ""}" data-action="shopTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="decor-shop-summary"><b>工厂装饰馆</b><span>${NetworkManager.canUseServer ? "永久收藏 · 购买后进入对应楼层仓库" : "连接服务器后可购买永久装饰"}</span></div><div class="list shop-list decor-catalog-list">${rows}</div></div>`;
+            return `<div class="panel-shell shop-shell"><h2>商店详情</h2><div class="tabs">${SHOP_TABS.map(tab => `<button class="tab ${this._domShopTab === tab.id ? "active" : ""}" data-action="shopTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="decor-shop-summary"><b>工厂装饰馆</b><span>${NetworkManager.canUseServer ? "永久收藏 · 购买后进入对应楼层仓库" : "连接服务器后可购买永久装饰"}</span></div>${this.renderDecorCollection()}<div class="list shop-list decor-catalog-list">${rows}</div></div>`;
         }
         const items = ShopManager.getShopItems(this._domShopTab);
         const rows = items.length > 0
@@ -2103,6 +2118,33 @@ export class BottomNavUI extends Component {
             ? `<button class="tag owned" disabled>已拥有</button>`
             : `<button class="tag ${canAfford ? "" : "warn"}" data-action="buyDecor" data-id="${item.decorId}" ${canAfford ? "" : "disabled"}><span class="price">${this.renderCssIcon(icon)}${this.formatNumber(item.priceAmount)} ${currencyName}</span></button>`;
         return `<div class="item shop-row decor-catalog-row ${stateClass}"><div class="shop-icon decor-glyph" style="background-image:url('${sceneArt}')"></div><div><b>${item.name}</b><br>${item.description}<div class="decor-meta"><span>${floor}仓库</span><strong>装饰评分 +${item.score}</strong></div></div><div class="buy-zone">${button}</div></div>`;
+    }
+
+    private renderDecorCollection(): string {
+        const collection = this._serverDecorCollection;
+        if (!collection) {
+            return `<section class="decor-collection pending"><div><b>精品收藏册</b><span>连接服务器同步收藏里程碑</span></div></section>`;
+        }
+
+        const progress = collection.totalCount > 0
+            ? Math.min(100, Math.round(collection.ownedCount / collection.totalCount * 100))
+            : 0;
+        const tiers = collection.tiers.map(tier => this.renderDecorCollectionTier(tier)).join("");
+        return `<section class="decor-collection"><div class="decor-collection-head"><div><b>精品收藏册</b><span>已收藏 ${collection.ownedCount}/${collection.totalCount} · 总评分 ${collection.ownedScore}</span></div><strong>${progress}%</strong></div><div class="decor-collection-progress"><i style="width:${progress}%"></i></div><div class="decor-collection-tiers">${tiers}</div></section>`;
+    }
+
+    private renderDecorCollectionTier(tier: DecorCollectionTierDto): string {
+        const stateClass = tier.claimed ? "claimed" : tier.claimable ? "claimable" : "locked";
+        const stateText = tier.claimed ? "已领取" : tier.claimable ? "领取" : `${this._serverDecorCollection?.ownedCount ?? 0}/${tier.targetCount}`;
+        const button = tier.claimable
+            ? `<button data-action="claimDecorCollection" data-id="${tier.tierId}">${stateText}</button>`
+            : `<button disabled>${stateText}</button>`;
+        return `<div class="decor-collection-tier ${stateClass}"><span>收藏 ${tier.targetCount} 件</span><b>${this.getDecorCollectionRewardLabel(tier.rewardType, tier.rewardAmount)}</b>${button}</div>`;
+    }
+
+    private getDecorCollectionRewardLabel(rewardType: string, rewardAmount: number): string {
+        const label = rewardType === "diamond" ? "钻石" : rewardType === "researchPoint" ? "研究点" : "金币";
+        return `${label} +${this.formatNumber(rewardAmount)}`;
     }
 
     private renderShopPreviewRows(category: string, count: number): string {

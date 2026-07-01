@@ -21,7 +21,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Continue final main/cat proportion tuning and add richer illustration assets where CSS is still flat. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
-| Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement, visits/gifts, persisted incoming history, SSE events, requests, activity, and leaderboard are wired; next consider cooperative tiers/history or decor collection bonuses. |
+| Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming history, SSE events, requests, activity, and leaderboard are wired; next consider cooperative tiers/history or boost-source history. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
 
 ## P0 Now
@@ -72,6 +72,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - `PlayerDecorState` persists twelve default decorations, grouped by building and guarded by atomic insert-if-missing. `FriendRoomDto.decorations` exposes only placed items and derives `decorScore` from their scores. Keep `check-friend-decor-contract.js`, `check-real-friend-online.js`, and utility screenshots green.
 - `/api/decor` lists owner inventory and `/api/decor/{decorId}/placement` moves or toggles placement after validating the target building. The building detail panel consumes both routes. Keep `check-decor-placement-online-ui.js` and feature screenshots green.
 - `/api/decor/catalog` lists six permanent premium decorations and `/api/decor/{decorId}/purchase` atomically creates ownership before deducting resources. The dynamic shop tab feeds purchased items into the matching building warehouse. Keep `check-decor-shop-contract.js`, `check-decor-shop-online-ui.js`, and `capture-decor-shop-regression.js` green.
+- `/api/decor/collection` derives premium ownership progress and `/api/decor/collection/{tierId}/claim` grants the 1/3/6-item milestone rewards exactly once. Keep `check-decor-collection-contract.js`, `check-decor-collection-online-ui.js`, and the collection assertions in `capture-decor-shop-regression.js` green.
 - `/api/social/events` streams visit/gift events through a singleton fan-out broker. `SyncManager` owns the `EventSource`, the factory shows incoming notices, and incoming interactions are persisted for replay. Keep `check-social-realtime-contract.js` and `check-social-realtime-online-ui.js` green.
 - `/api/friends/{friendId}/help` gives real friends one daily production assist. Boost state lives on the target player, lasts 30 minutes, stacks from 10% to 30%, and is restored through `/api/social/boost`. Keep `check-friend-help-contract.js` and `check-friend-help-online-ui.js` green.
 - `/api/social/coop-goal` tracks a daily three-assist target; `/claim` awards 30 diamonds once. Progress increments atomically, travels with help SSE events, and is rendered in the factory boost strip plus friend goal card. Keep `check-friend-coop-goal-contract.js` and `check-friend-coop-goal-online-ui.js` green.
@@ -125,7 +126,8 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest cooperative-help batch: real-player friends can send a daily 10% production boost, the server applies it to production and launch settlement, the target receives it live, and the factory shows source plus remaining minutes.
 - Done in latest cooperative-goal batch: three distinct daily assists complete a server-persisted goal, the target claims 30 diamonds exactly once, and the responsive friend card/factory strip update through SSE.
 - Done in latest decor-shop batch: six permanent decorations now have authoritative catalog/ownership/price state, one-time purchase, resource transactions, live shop rows, local floor artwork, building-warehouse handoff, a real purchase/place browser test, and four-size screenshots.
-- Next move: add cooperative goal tiers/history, decor collection bonuses, boost-stack source history, or generated bitmap friend-room backdrops.
+- Done in latest decor-collection batch: the shop has a three-tier collection book, total score/progress, authoritative one-time rewards, atomic concurrent-claim protection, live resource snapshots, a real purchase/claim browser test, and four-size layout coverage.
+- Next move: add cooperative goal tiers/history, boost-stack source history, or generated bitmap friend-room backdrops.
 
 ### 1. Main Factory Richness
 

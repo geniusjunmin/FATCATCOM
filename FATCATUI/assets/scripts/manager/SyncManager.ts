@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DecorCatalogItemDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -544,6 +544,35 @@ export class SyncManager {
             diamond: response.data.diamondBalance,
             researchPoint: response.data.researchPointBalance,
         }, `server_decor_${decorId}`);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerDecorCollection(): Promise<DecorCollectionDto | null> {
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.getDecorCollection(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "decor_collection_fetch_failed");
+            return null;
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async claimServerDecorCollectionTier(tierId: string): Promise<DecorCollectionClaimResponse | null> {
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.claimDecorCollectionTier(NetworkManager.playerId, tierId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "decor_collection_claim_failed");
+            return null;
+        }
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, `server_decor_collection_${tierId}`);
         this.markReadyAfterServerCall();
         return response.data;
     }

@@ -406,6 +406,59 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         return false;
     }
 
+    public Task<PlayerDecorCollectionState?> GetDecorCollectionStateAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        return dbContext.DecorCollectionStates.FirstOrDefaultAsync(
+            state => state.PlayerId == playerId,
+            cancellationToken);
+    }
+
+    public async Task<bool> ClaimDecorCollectionTierAsync(
+        Guid playerId,
+        int tierBit,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        if (dbContext.Database.IsSqlite())
+        {
+            await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT OR IGNORE INTO "DecorCollectionStates"
+                    ("PlayerId", "ClaimedTierMask", "UpdatedAt")
+                VALUES ({playerId}, {0}, {now})
+                """, cancellationToken);
+            var updated = await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE "DecorCollectionStates"
+                SET "ClaimedTierMask" = "ClaimedTierMask" | {tierBit}, "UpdatedAt" = {now}
+                WHERE "PlayerId" = {playerId} AND ("ClaimedTierMask" & {tierBit}) = 0
+                """, cancellationToken);
+            return updated > 0;
+        }
+
+        var state = await GetDecorCollectionStateAsync(playerId, cancellationToken);
+        if (state is null)
+        {
+            state = new PlayerDecorCollectionState
+            {
+                PlayerId = playerId,
+                ClaimedTierMask = tierBit,
+                UpdatedAt = now,
+            };
+            await dbContext.DecorCollectionStates.AddAsync(state, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
+        if ((state.ClaimedTierMask & tierBit) != 0)
+        {
+            return false;
+        }
+
+        state.ClaimedTierMask |= tierBit;
+        state.UpdatedAt = now;
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     public Task<PlayerResearchState?> GetResearchStateAsync(Guid playerId, string researchKey, CancellationToken cancellationToken)
     {
         return dbContext.ResearchStates

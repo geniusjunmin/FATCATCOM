@@ -1,5 +1,5 @@
 import { GameConfig } from "../core/GameConfig";
-import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, CreateFriendRequestRequest, DecorCatalogItemDto, DecorPlacementRequest, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
+import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, CreateFriendRequestRequest, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPlacementRequest, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
 
 export class ApiClient {
     private static _baseUrl: string = GameConfig.apiBaseUrl;
@@ -116,6 +116,14 @@ export class ApiClient {
 
     public static purchaseDecoration(playerId: string, decorId: string): Promise<ApiEnvelope<DecorPurchaseResponse>> {
         return this.post(`/api/decor/${encodeURIComponent(decorId)}/purchase?playerId=${encodeURIComponent(playerId)}`, {});
+    }
+
+    public static getDecorCollection(playerId: string): Promise<ApiEnvelope<DecorCollectionDto>> {
+        return this.get(`/api/decor/collection?playerId=${encodeURIComponent(playerId)}`);
+    }
+
+    public static claimDecorCollectionTier(playerId: string, tierId: string): Promise<ApiEnvelope<DecorCollectionClaimResponse>> {
+        return this.post(`/api/decor/collection/${encodeURIComponent(tierId)}/claim?playerId=${encodeURIComponent(playerId)}`, {});
     }
 
     public static updateDecorPlacement(playerId: string, decorId: string, request: DecorPlacementRequest): Promise<ApiEnvelope<DecorStateDto>> {

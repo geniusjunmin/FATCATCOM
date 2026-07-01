@@ -321,6 +321,35 @@ export type DecorPurchaseResponse = {
     serverTime: number;
 };
 
+export type DecorCollectionTierDto = {
+    tierId: string;
+    targetCount: number;
+    rewardType: string;
+    rewardAmount: number;
+    claimed: boolean;
+    claimable: boolean;
+};
+
+export type DecorCollectionDto = {
+    ownedCount: number;
+    totalCount: number;
+    ownedScore: number;
+    tiers: DecorCollectionTierDto[];
+    serverTime: number;
+};
+
+export type DecorCollectionClaimResponse = {
+    collection: DecorCollectionDto;
+    rewardType: string;
+    rewardAmount: number;
+    coinBalance: number;
+    beanBalance: number;
+    catFoodBalance: number;
+    diamondBalance: number;
+    researchPointBalance: number;
+    serverTime: number;
+};
+
 export type FriendActionResponse = {
     friend: FriendDto;
     rewarded: boolean;

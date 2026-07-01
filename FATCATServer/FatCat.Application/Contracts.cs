@@ -266,6 +266,32 @@ public sealed record DecorPurchaseResponse(
     double ResearchPointBalance,
     long ServerTime);
 
+public sealed record DecorCollectionTierDto(
+    string TierId,
+    int TargetCount,
+    string RewardType,
+    int RewardAmount,
+    bool Claimed,
+    bool Claimable);
+
+public sealed record DecorCollectionDto(
+    int OwnedCount,
+    int TotalCount,
+    int OwnedScore,
+    IReadOnlyList<DecorCollectionTierDto> Tiers,
+    long ServerTime);
+
+public sealed record DecorCollectionClaimResponse(
+    DecorCollectionDto Collection,
+    string RewardType,
+    int RewardAmount,
+    double CoinBalance,
+    double BeanBalance,
+    double CatFoodBalance,
+    double DiamondBalance,
+    double ResearchPointBalance,
+    long ServerTime);
+
 public sealed record FriendProfileDto(
     bool IsRealPlayer,
     string? PlayerId,

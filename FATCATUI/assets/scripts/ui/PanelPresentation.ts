@@ -672,6 +672,93 @@ export const DOM_PANEL_STYLES = `
             }
             #fatcat-dom-panel-overlay .decor-shop-summary b { font-size:120%; color:#fff4d4; }
             #fatcat-dom-panel-overlay .decor-shop-summary span { text-align:right; }
+            #fatcat-dom-panel-overlay .decor-collection {
+                margin-bottom:1.4%;
+                padding:1.8% 2.4%;
+                border:2px solid #c79a55;
+                border-radius:8px;
+                background:#f0d8ad;
+                color:#4b2f20;
+                box-shadow:inset 0 0 0 2px rgba(255,248,222,.55),0 2px 0 rgba(58,33,20,.25);
+                font-size:1.8%;
+            }
+            #fatcat-dom-panel-overlay .decor-collection.pending {
+                min-height:48px;
+                display:flex;
+                align-items:center;
+            }
+            #fatcat-dom-panel-overlay .decor-collection.pending div,
+            #fatcat-dom-panel-overlay .decor-collection-head {
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+                width:100%;
+                gap:2%;
+            }
+            #fatcat-dom-panel-overlay .decor-collection-head > div,
+            #fatcat-dom-panel-overlay .decor-collection.pending div {
+                display:flex;
+                flex-direction:column;
+            }
+            #fatcat-dom-panel-overlay .decor-collection-head b,
+            #fatcat-dom-panel-overlay .decor-collection.pending b { font-size:118%; color:#6b3d20; }
+            #fatcat-dom-panel-overlay .decor-collection-head strong { font-size:125%; color:#8a511f; }
+            #fatcat-dom-panel-overlay .decor-collection-progress {
+                height:8px;
+                margin:1.2% 0 1.5%;
+                overflow:hidden;
+                border:1px solid #9b7546;
+                border-radius:4px;
+                background:#bda77f;
+            }
+            #fatcat-dom-panel-overlay .decor-collection-progress i {
+                display:block;
+                height:100%;
+                border-radius:3px;
+                background:#6e9d35;
+                transition:width .2s ease;
+            }
+            #fatcat-dom-panel-overlay .decor-collection-tiers {
+                display:grid;
+                grid-template-columns:repeat(3,minmax(0,1fr));
+                border-top:1px solid rgba(105,68,35,.28);
+            }
+            #fatcat-dom-panel-overlay .decor-collection-tier {
+                display:grid;
+                grid-template-columns:1fr auto;
+                align-items:center;
+                gap:2px 6px;
+                min-width:0;
+                padding:8px 9px 2px;
+                border-right:1px solid rgba(105,68,35,.28);
+            }
+            #fatcat-dom-panel-overlay .decor-collection-tier:last-child { border-right:0; }
+            #fatcat-dom-panel-overlay .decor-collection-tier span { opacity:.78; }
+            #fatcat-dom-panel-overlay .decor-collection-tier b {
+                overflow:hidden;
+                text-overflow:ellipsis;
+                white-space:nowrap;
+                color:#5d371e;
+            }
+            #fatcat-dom-panel-overlay .decor-collection-tier button {
+                grid-column:2;
+                grid-row:1 / 3;
+                min-width:50px;
+                min-height:30px;
+                border:1px solid #72502f;
+                border-radius:6px;
+                background:#73563b;
+                color:#fff1d0;
+                font:inherit;
+                font-weight:700;
+            }
+            #fatcat-dom-panel-overlay .decor-collection-tier.claimable button {
+                background:#5d932f;
+                border-color:#3d671d;
+                box-shadow:0 2px 0 #315319;
+            }
+            #fatcat-dom-panel-overlay .decor-collection-tier.claimed { opacity:.68; }
+            #fatcat-dom-panel-overlay .decor-collection-tier button:disabled { cursor:default; }
             #fatcat-dom-panel-overlay .shop-shell .shop-row {
                 min-height:91px;
                 padding:2.2% 3%;
@@ -876,6 +963,20 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay.compact .shop-shell .shop-row { min-height:86px; }
             #fatcat-dom-panel-overlay.compact .decor-shop-summary { align-items:flex-start; flex-direction:column; font-size:1.8%; }
             #fatcat-dom-panel-overlay.compact .decor-shop-summary span { text-align:left; }
+            #fatcat-dom-panel-overlay.compact .decor-collection { font-size:1.72%; padding:2.2%; }
+            #fatcat-dom-panel-overlay.compact .decor-collection-tier {
+                grid-template-columns:1fr;
+                padding:7px 5px 2px;
+                text-align:center;
+            }
+            #fatcat-dom-panel-overlay.compact .decor-collection-tier button {
+                grid-column:1;
+                grid-row:auto;
+                width:100%;
+                min-width:0;
+                min-height:28px;
+                margin-top:4px;
+            }
             #fatcat-dom-panel-overlay.compact .decor-catalog-row { grid-template-columns:15% 1fr 27%; }
             #fatcat-dom-panel-overlay.compact .decor-meta { gap:2%; }
             #fatcat-dom-panel-overlay.compact .inventory-shell .bag-card { min-height:82px; }
