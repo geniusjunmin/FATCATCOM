@@ -26,6 +26,9 @@ Updated: 2026-07-01
 
 ## Client UI
 
+- Latest friend-visit visual pass adds a dedicated generated six-floor coffee-workshop backdrop instead of reusing the main factory cutaway. The scene keeps live room, cat, decor, reward, and action DOM above the art, adds a compact workshop sign, and uses lighter overlays so the original office/roaster/tank/grinder/cafe/storage rooms remain visible.
+- Source and runtime assets live at `FATCATUI/assets/resources/textures/generated/backgrounds/friend_factory_visit_bg_v1.png` and `friend_factory_visit_bg_640_v1.jpg`. `UiAssetRegistry.ts` and the DOM Data URI bridge register the runtime JPEG; `tools/check-friend-factory-art.js` guards both files and their wiring.
+- Friend utility coverage now includes 360x800, 414x896, 430x932, and 768x1024. `tools/capture-friend-visit-regression.js` captures the complete visit component at all four sizes and verifies its backdrop, sign, floors, five actions, containment, requests, and console output.
 - Main screen has portrait factory layout, top HUD, right-side feature buttons, bottom navigation, launch button, order card, and gift card.
 - Main factory now uses generated `factory_cutaway_bg_640.jpg` as the primary room/roof artwork instead of dimming it under duplicate CSS rooms. Floor backgrounds, duplicate machines/cats/pipes, and the extra center KPI cards are hidden; the generated rooms remain crisp while responsive DOM cards preserve interaction and live values.
 - Main floor information now matches the target hierarchy more closely: narrow left floor/level cards, one combined right-side production/bonus card per floor, a taller six-floor building span, and a lower compact bottom action strip with a single-line launch label.

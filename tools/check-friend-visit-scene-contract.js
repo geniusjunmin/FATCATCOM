@@ -31,7 +31,8 @@ assertContains("visit opens scene", bottomNav, "this._friendVisitSceneId = id");
 assertContains("scene render method", bottomNav, "renderFriendVisitScene");
 assertContains("scene before report", bottomNav, "this.renderFriendVisitScene(friends)}${this.renderFriendVisitReport(friends)");
 assertContains("server/offline room reuse", bottomNav, "this.getFriendRoomRows(friend)");
-assertContains("generated factory backdrop", bottomNav, "GeneratedBackgroundAssets.factoryCutaway");
+assertContains("dedicated friend factory backdrop", bottomNav, "GeneratedBackgroundAssets.friendFactoryVisit");
+assertContains("friend factory sign", bottomNav, "friend-scene-sign");
 assertContains("room prop thumbnails", bottomNav, "room-thumb");
 assertContains("room scene resolver", bottomNav, "getFriendRoomScene");
 assertContains("assigned cat mini portraits", bottomNav, "renderFriendRoomCats");
@@ -39,6 +40,7 @@ assertContains("visitor cat card", bottomNav, "friend-scene-mascot");
 assertContains("reward status strip", bottomNav, "friend-scene-reward");
 assertContains("panel presentation import", bottomNav, "from \"./PanelPresentation\"");
 assertContains("compact scene guard", panelPresentation, "compact .friend-scene-stage");
+assertContains("compact sign guard", panelPresentation, "compact .friend-scene-sign");
 assertContains("compact action visibility", panelPresentation, "compact .friend-scene-actions .tag");
 
 assertContains("utility scene assertion", utilityRegression, "friendVisitScene");
@@ -49,6 +51,9 @@ assertContains("utility thumb assertion", utilityRegression, "friendVisitSceneTh
 assertContains("utility cat assertion", utilityRegression, "friendVisitSceneCats");
 assertContains("utility mascot assertion", utilityRegression, "friendVisitSceneMascot");
 assertContains("utility rewards assertion", utilityRegression, "friendVisitSceneRewards");
+assertContains("utility backdrop assertion", utilityRegression, "friendVisitSceneBackdrop");
+assertContains("utility sign assertion", utilityRegression, "friendVisitSceneSign");
+assertContains("four-size utility regression", utilityRegression, "[414, 896]");
 
 assertContains("plan records visit scene visuals", nextTasks, "visit-scene visual batch");
 assertContains("handoff records visit scene selectors", handoff, ".friend-scene-reward");

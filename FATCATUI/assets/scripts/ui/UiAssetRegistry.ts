@@ -3,6 +3,7 @@ const GENERATED_ROOT = "assets/resources/textures/generated";
 export const GeneratedBackgroundAssets = {
     factoryCutaway: `${GENERATED_ROOT}/factory_cutaway_bg_640.jpg`,
     catDetailWorkshop: `${GENERATED_ROOT}/cat_detail_workshop_bg_640.jpg`,
+    friendFactoryVisit: `${GENERATED_ROOT}/backgrounds/friend_factory_visit_bg_640_v1.jpg`,
 };
 
 export const GeneratedCatAssets = {

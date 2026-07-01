@@ -385,8 +385,9 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .visit-report-floors em { color:#7c5432; font-style:normal; font-size:86%; }
             #fatcat-dom-panel-overlay .visit-report-actions { margin-top:2%; display:grid; grid-template-columns:1fr 1fr; gap:2%; }
             #fatcat-dom-panel-overlay .visit-report-actions .tag { margin:0; min-height:30px; }
-            #fatcat-dom-panel-overlay .friend-visit-scene { margin-bottom:2%; padding:2.4%; border-radius:18px; background:linear-gradient(180deg,#2f241d,#5a3b27 56%,#2d2119); border:2px solid #c59b62; color:#fff2cf; box-shadow:inset 0 0 0 2px rgba(255,236,190,.13), 0 5px 0 rgba(42,28,18,.28); font-size:2.0%; overflow:hidden; position:relative; }
-            #fatcat-dom-panel-overlay .friend-visit-scene:before { content:""; position:absolute; inset:2.4%; border-radius:14px; background:linear-gradient(rgba(34,22,15,.18),rgba(34,22,15,.52)), var(--friend-factory-art) center 38%/cover no-repeat; opacity:.42; pointer-events:none; }
+            #fatcat-dom-panel-overlay .friend-visit-scene { margin-bottom:2%; padding:2.4%; border-radius:18px; background:linear-gradient(180deg,#443024,#6b472e 58%,#2d2119); border:2px solid #c59b62; color:#fff2cf; box-shadow:inset 0 0 0 2px rgba(255,236,190,.13), 0 5px 0 rgba(42,28,18,.28); font-size:2.0%; overflow:hidden; position:relative; isolation:isolate; }
+            #fatcat-dom-panel-overlay .friend-visit-scene:before { content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(35,24,18,.14),rgba(35,24,18,.08) 72%,rgba(35,24,18,.72)), var(--friend-factory-art) center top/cover no-repeat; opacity:.78; pointer-events:none; z-index:-2; }
+            #fatcat-dom-panel-overlay .friend-visit-scene:after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,rgba(29,20,15,.5),transparent 13%,transparent 84%,rgba(29,20,15,.48)); pointer-events:none; z-index:-1; }
             #fatcat-dom-panel-overlay .friend-scene-head,
             #fatcat-dom-panel-overlay .friend-scene-stage,
             #fatcat-dom-panel-overlay .friend-scene-actions { position:relative; z-index:1; }
@@ -397,9 +398,12 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .friend-scene-head .friend-profile-meta span { background:rgba(255,235,189,.14); color:#ffe2a5; }
             #fatcat-dom-panel-overlay .friend-scene-head .friend-profile-meta.real-player span:first-child { background:#64993e; color:#fff; }
             #fatcat-dom-panel-overlay .friend-scene-close { min-width:34px; aspect-ratio:1; border-radius:50%; border:2px solid rgba(255,236,184,.36); background:#765137; color:#fff4d8; font-weight:1000; cursor:pointer; }
-            #fatcat-dom-panel-overlay .friend-scene-stage { min-height:246px; display:grid; grid-template-columns:1fr 27%; gap:2%; align-items:stretch; }
-            #fatcat-dom-panel-overlay .friend-scene-building { display:grid; gap:5px; padding:2%; border-radius:14px; background:rgba(28,20,16,.52); box-shadow:inset 0 0 0 2px rgba(255,226,170,.12); }
-            #fatcat-dom-panel-overlay .friend-scene-floor { display:grid; grid-template-columns:12% 18% 1fr 23%; gap:1.5%; align-items:center; min-height:42px; padding:1% 1.6%; border-radius:9px; background:linear-gradient(90deg,rgba(255,242,204,.94),rgba(210,156,88,.78)); color:#4a2f1f; box-shadow:inset 0 0 0 1px rgba(91,57,31,.2); font-weight:900; }
+            #fatcat-dom-panel-overlay .friend-scene-sign { position:relative; z-index:1; width:47%; margin:-.5% auto 1.5%; min-height:34px; border:2px solid #8b603a; border-radius:10px 10px 4px 4px; background:linear-gradient(#d4a960,#9b6837); color:#fff5d6; display:flex; align-items:center; justify-content:center; flex-direction:column; box-shadow:inset 0 0 0 2px rgba(255,236,183,.2),0 3px 0 rgba(55,35,23,.4); text-align:center; }
+            #fatcat-dom-panel-overlay .friend-scene-sign span { font-size:114%; font-weight:1000; }
+            #fatcat-dom-panel-overlay .friend-scene-sign small { color:#4e321f; font-weight:1000; font-size:74%; }
+            #fatcat-dom-panel-overlay .friend-scene-stage { min-height:272px; display:grid; grid-template-columns:1fr 25%; gap:2%; align-items:stretch; }
+            #fatcat-dom-panel-overlay .friend-scene-building { display:grid; gap:4px; padding:1.5%; border-radius:12px; background:rgba(27,19,14,.28); box-shadow:inset 0 0 0 2px rgba(255,226,170,.16),0 3px 8px rgba(28,18,12,.24); }
+            #fatcat-dom-panel-overlay .friend-scene-floor { display:grid; grid-template-columns:12% 18% 1fr 23%; gap:1.5%; align-items:center; min-height:44px; padding:1% 1.6%; border-radius:7px; background:linear-gradient(90deg,rgba(255,246,215,.92),rgba(218,171,107,.87)); color:#4a2f1f; box-shadow:inset 0 0 0 1px rgba(91,57,31,.3),0 2px 0 rgba(56,35,22,.22); font-weight:900; backdrop-filter:blur(1px); }
             #fatcat-dom-panel-overlay .friend-scene-floor i { min-height:24px; border-radius:7px; background:#68452d; color:#ffe6b2; font-style:normal; display:flex; align-items:center; justify-content:center; }
             #fatcat-dom-panel-overlay .friend-scene-floor .room-thumb { width:100%; aspect-ratio:1.18; border-radius:8px; background:center/118% no-repeat #6d4a31; box-shadow:inset 0 0 0 2px rgba(255,238,190,.2), 0 2px 0 rgba(76,45,24,.18); }
             #fatcat-dom-panel-overlay .friend-scene-floor b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -414,11 +418,11 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .friend-scene-mascot i { position:absolute; left:6%; bottom:-10%; width:60%; height:110%; background:center bottom/contain no-repeat; filter:drop-shadow(0 4px 0 rgba(76,45,24,.18)); }
             #fatcat-dom-panel-overlay .friend-scene-mascot b { position:absolute; right:6%; top:16%; color:#6a3d1f; font-size:112%; }
             #fatcat-dom-panel-overlay .friend-scene-mascot small { position:absolute; right:6%; bottom:14%; color:#7a5435; font-weight:900; }
-            #fatcat-dom-panel-overlay .friend-scene-side span { min-height:50px; border-radius:11px; background:rgba(255,246,216,.9); color:#4a2f1f; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-weight:900; box-shadow:inset 0 0 0 1px rgba(93,59,33,.2); }
-            #fatcat-dom-panel-overlay .friend-scene-side b { color:#7a471e; }
+            #fatcat-dom-panel-overlay .friend-scene-side span { min-height:50px; border-radius:9px; background:rgba(48,37,29,.91); color:#ffe7b7; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; font-weight:900; box-shadow:inset 0 0 0 1px rgba(255,224,164,.26),0 2px 0 rgba(43,27,17,.25); }
+            #fatcat-dom-panel-overlay .friend-scene-side b { color:#ffd36f; }
             #fatcat-dom-panel-overlay .friend-scene-reward { position:relative; z-index:1; margin-top:1.5%; display:grid; grid-template-columns:repeat(3,1fr); gap:1.2%; }
-            #fatcat-dom-panel-overlay .friend-scene-reward span { min-height:32px; border-radius:10px; background:rgba(255,246,216,.9); color:#4a2f1f; display:flex; align-items:center; justify-content:center; flex-direction:column; text-align:center; font-weight:900; box-shadow:inset 0 0 0 1px rgba(93,59,33,.2); }
-            #fatcat-dom-panel-overlay .friend-scene-reward b { color:#7a471e; }
+            #fatcat-dom-panel-overlay .friend-scene-reward span { min-height:34px; border-radius:9px; background:rgba(255,246,216,.93); color:#4a2f1f; display:flex; align-items:center; justify-content:center; flex-direction:column; text-align:center; font-weight:900; box-shadow:inset 0 0 0 1px rgba(93,59,33,.25),0 2px 0 rgba(48,30,19,.2); }
+            #fatcat-dom-panel-overlay .friend-scene-reward b { color:#995119; }
             #fatcat-dom-panel-overlay .friend-scene-actions { margin-top:2%; display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:1.1%; }
             #fatcat-dom-panel-overlay .friend-scene-actions .tag { margin:0; min-height:30px; }
             #fatcat-dom-panel-overlay .friend-factory-detail { margin-bottom:2%; padding:2.4%; border-radius:16px; background:linear-gradient(#6a4930,#3f2a20); border:2px solid #9a6d42; color:#ffe9bd; box-shadow:inset 0 0 0 2px rgba(255,231,180,.12), 0 4px 0 rgba(48,32,22,.24); font-size:2.0%; }
@@ -458,6 +462,9 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay.compact .visit-report-grid span { min-height:34px; font-size:84%; }
             #fatcat-dom-panel-overlay.compact .visit-report-floors span { min-height:34px; font-size:82%; }
             #fatcat-dom-panel-overlay.compact .friend-scene-head { grid-template-columns:15% 1fr auto; }
+            #fatcat-dom-panel-overlay.compact .friend-scene-sign { width:54%; min-height:25px; margin-bottom:1.2%; }
+            #fatcat-dom-panel-overlay.compact .friend-scene-sign span { font-size:96%; }
+            #fatcat-dom-panel-overlay.compact .friend-scene-sign small { display:none; }
             #fatcat-dom-panel-overlay.compact .friend-scene-stage { min-height:164px; grid-template-columns:1fr 28%; }
             #fatcat-dom-panel-overlay.compact .friend-scene-building { gap:3px; padding:1.4%; }
             #fatcat-dom-panel-overlay.compact .friend-scene-floor { min-height:33px; grid-template-columns:13% 16% 1fr 25%; font-size:78%; padding:.6% 1.2%; }

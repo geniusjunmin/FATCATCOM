@@ -99,6 +99,7 @@ Invoke-Step "Friend sync contract check" {
 
 Invoke-Step "Friend visit-scene contract check" {
     node .\tools\check-friend-visit-scene-contract.js
+    node .\tools\check-friend-factory-art.js
 }
 
 Invoke-Step "Real friend contract check" {

@@ -3,9 +3,10 @@ const path = require("path");
 const { chromium } = require("playwright-core");
 
 const edgePath = "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
-const outDir = path.resolve("docs/verification/screenshots/2026-06-30-utility-regression");
+const outDir = path.resolve("docs/verification/screenshots/2026-07-01-utility-regression");
 const sizes = [
     [430, 932],
+    [414, 896],
     [360, 800],
     [768, 1024],
 ];
@@ -112,6 +113,11 @@ async function isVisible(page, selector) {
                     friendVisitSceneCats: document.querySelectorAll("#fatcat-dom-panel-overlay .friend-scene-floor .room-cats span").length,
                     friendVisitSceneMascot: !!document.querySelector("#fatcat-dom-panel-overlay .friend-scene-mascot i"),
                     friendVisitSceneRewards: document.querySelectorAll("#fatcat-dom-panel-overlay .friend-scene-reward span").length,
+                    friendVisitSceneBackdrop: (() => {
+                        const scene = document.querySelector("#fatcat-dom-panel-overlay .friend-visit-scene");
+                        return scene ? getComputedStyle(scene).getPropertyValue("--friend-factory-art") : "";
+                    })(),
+                    friendVisitSceneSign: !!document.querySelector("#fatcat-dom-panel-overlay .friend-scene-sign"),
                     friendFactoryDetail: !!document.querySelector("#fatcat-dom-panel-overlay .friend-factory-detail"),
                     friendFactoryDetailStats: document.querySelectorAll("#fatcat-dom-panel-overlay .factory-detail-stats span").length,
                     friendFactoryRoomRows: document.querySelectorAll("#fatcat-dom-panel-overlay .factory-room-row").length,
@@ -149,7 +155,7 @@ async function isVisible(page, selector) {
         }
         if (!entry.visible || entry.state.shellCount !== 1 || !entry.state.title || !entry.state.hasExpectedShell || !entry.state.hasUtilityShell) return true;
         if (entry.panel === "tasks") return !entry.state.taskBoard || entry.state.taskRows < 1;
-        if (entry.panel === "friends") return entry.state.heroCount !== 1 || entry.state.friendCards < 3 || entry.state.friendIncomeBars < 3 || entry.state.friendActionButtons < 9 || entry.state.friendHelpButtons < 6 || !entry.state.friendCoopCard || entry.state.friendCoopHeight < 95 || entry.state.friendCoopHeight > 165 || entry.state.friendCoopTiers !== 3 || !entry.state.friendBoostHistory || !entry.state.friendBoostHistoryContained || entry.state.friendProfileGroups < 5 || entry.state.friendProfileChips < 15 || entry.state.realFriendProfiles + entry.state.systemFriendProfiles < 5 || entry.state.friendPresenceStates < 5 || !entry.state.friendSnapshotCard || entry.state.friendSnapshotStats < 3 || entry.state.friendSnapshotActions < 3 || entry.state.friendSnapshotFloors < 3 || !entry.state.friendVisitReport || entry.state.friendVisitReportStats < 2 || entry.state.friendVisitReportFloors < 3 || entry.state.friendVisitReportActions < 3 || !entry.state.friendVisitScene || entry.state.friendVisitSceneFloors < 3 || entry.state.friendVisitSceneStats < 5 || entry.state.friendVisitSceneActions < 5 || entry.state.friendVisitSceneThumbs < 3 || entry.state.friendVisitSceneCats < 3 || !entry.state.friendVisitSceneMascot || entry.state.friendVisitSceneRewards < 3 || !entry.state.friendFactoryDetail || entry.state.friendFactoryDetailStats < 3 || entry.state.friendFactoryRoomRows < 3 || !entry.state.friendFactoryRoomMeta || entry.state.friendDecorGroups < 6 || entry.state.friendDecorItems < 12 || !entry.state.friendRequestCard || !entry.state.friendLeaderboardCard || !entry.state.friendActivityCard || !entry.state.friendSearchCard;
+        if (entry.panel === "friends") return entry.state.heroCount !== 1 || entry.state.friendCards < 3 || entry.state.friendIncomeBars < 3 || entry.state.friendActionButtons < 9 || entry.state.friendHelpButtons < 6 || !entry.state.friendCoopCard || entry.state.friendCoopHeight < 95 || entry.state.friendCoopHeight > 165 || entry.state.friendCoopTiers !== 3 || !entry.state.friendBoostHistory || !entry.state.friendBoostHistoryContained || entry.state.friendProfileGroups < 5 || entry.state.friendProfileChips < 15 || entry.state.realFriendProfiles + entry.state.systemFriendProfiles < 5 || entry.state.friendPresenceStates < 5 || !entry.state.friendSnapshotCard || entry.state.friendSnapshotStats < 3 || entry.state.friendSnapshotActions < 3 || entry.state.friendSnapshotFloors < 3 || !entry.state.friendVisitReport || entry.state.friendVisitReportStats < 2 || entry.state.friendVisitReportFloors < 3 || entry.state.friendVisitReportActions < 3 || !entry.state.friendVisitScene || entry.state.friendVisitSceneFloors < 3 || entry.state.friendVisitSceneStats < 5 || entry.state.friendVisitSceneActions < 5 || entry.state.friendVisitSceneThumbs < 3 || entry.state.friendVisitSceneCats < 3 || !entry.state.friendVisitSceneMascot || entry.state.friendVisitSceneRewards < 3 || !entry.state.friendVisitSceneSign || !entry.state.friendVisitSceneBackdrop.includes("data:image/jpeg") || !entry.state.friendFactoryDetail || entry.state.friendFactoryDetailStats < 3 || entry.state.friendFactoryRoomRows < 3 || !entry.state.friendFactoryRoomMeta || entry.state.friendDecorGroups < 6 || entry.state.friendDecorItems < 12 || !entry.state.friendRequestCard || !entry.state.friendLeaderboardCard || !entry.state.friendActivityCard || !entry.state.friendSearchCard;
         if (entry.panel === "settings") return entry.state.heroCount !== 1 || entry.state.miniCount < 3 || entry.state.cardCount < 4;
         return entry.state.heroCount !== 1 || entry.state.cardCount < 1;
     });
