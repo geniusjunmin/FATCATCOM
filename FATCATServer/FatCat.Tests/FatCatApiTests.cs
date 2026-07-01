@@ -514,6 +514,8 @@ public sealed class FatCatApiTests
         var repeatedData = JsonDocument.Parse(await repeatedResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
         var boostResponse = await client.GetAsync($"/api/social/boost?playerId={targetId}");
         var boostData = JsonDocument.Parse(await boostResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var historyResponse = await client.GetAsync($"/api/social/boost/history?playerId={targetId}");
+        var historyData = JsonDocument.Parse(await historyResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
 
         Assert.Equal(HttpStatusCode.OK, helpResponse.StatusCode);
         Assert.True(helpData.GetProperty("applied").GetBoolean());
@@ -525,6 +527,13 @@ public sealed class FatCatApiTests
         Assert.Equal(HttpStatusCode.OK, boostResponse.StatusCode);
         Assert.True(boostData.GetProperty("active").GetBoolean());
         Assert.Equal("Helper Roastery", boostData.GetProperty("boostedByName").GetString());
+        Assert.Equal(HttpStatusCode.OK, historyResponse.StatusCode);
+        Assert.Equal(10, historyData.GetProperty("activeBoostPercent").GetInt32());
+        Assert.Equal(1, historyData.GetProperty("activeContributionCount").GetInt32());
+        var contribution = Assert.Single(historyData.GetProperty("entries").EnumerateArray());
+        Assert.Equal("Helper Roastery", contribution.GetProperty("sourceName").GetString());
+        Assert.Equal(10, contribution.GetProperty("boostPercent").GetInt32());
+        Assert.True(contribution.GetProperty("active").GetBoolean());
     }
 
     [Fact]

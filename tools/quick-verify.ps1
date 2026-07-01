@@ -129,6 +129,10 @@ Invoke-Step "Friend help contract check" {
     node .\tools\check-friend-help-contract.js
 }
 
+Invoke-Step "Friend boost history contract check" {
+    node .\tools\check-friend-boost-history-contract.js
+}
+
 Invoke-Step "Friend cooperative goal contract check" {
     node .\tools\check-friend-coop-goal-contract.js
 }

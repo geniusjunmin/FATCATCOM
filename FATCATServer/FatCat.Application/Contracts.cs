@@ -350,6 +350,22 @@ public sealed record FriendBoostStateDto(
     string BoostedByName,
     long ServerTime);
 
+public sealed record FriendBoostContributionDto(
+    string ContributionId,
+    string SourcePlayerId,
+    string SourceName,
+    int BoostPercent,
+    long CreatedAt,
+    long ExpiresAt,
+    bool Active);
+
+public sealed record FriendBoostHistoryDto(
+    int ActiveBoostPercent,
+    int MaxBoostPercent,
+    int ActiveContributionCount,
+    IReadOnlyList<FriendBoostContributionDto> Entries,
+    long ServerTime);
+
 public sealed record FriendHelpResponse(
     FriendDto Friend,
     bool Applied,

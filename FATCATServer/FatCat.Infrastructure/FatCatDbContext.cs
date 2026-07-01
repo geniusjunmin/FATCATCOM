@@ -14,6 +14,7 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
     public DbSet<PlayerFriendRelation> FriendRelations => Set<PlayerFriendRelation>();
     public DbSet<PlayerFriendRequest> FriendRequests => Set<PlayerFriendRequest>();
     public DbSet<PlayerSocialActivity> SocialActivities => Set<PlayerSocialActivity>();
+    public DbSet<PlayerFriendBoostContribution> FriendBoostContributions => Set<PlayerFriendBoostContribution>();
     public DbSet<PlayerCoopGoalState> CoopGoalStates => Set<PlayerCoopGoalState>();
     public DbSet<PlayerSettings> PlayerSettings => Set<PlayerSettings>();
     public DbSet<PlayerResourceState> ResourceStates => Set<PlayerResourceState>();
@@ -248,6 +249,22 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             );
             """, cancellationToken);
         await Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "FriendBoostContributions" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_FriendBoostContributions" PRIMARY KEY,
+                "PlayerId" TEXT NOT NULL,
+                "SourcePlayerId" TEXT NOT NULL,
+                "SourceName" TEXT NOT NULL,
+                "BoostPercent" INTEGER NOT NULL,
+                "CreatedAt" TEXT NOT NULL,
+                "ExpiresAt" TEXT NOT NULL,
+                CONSTRAINT "FK_FriendBoostContributions_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
+            );
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE INDEX IF NOT EXISTS "IX_FriendBoostContributions_PlayerId_CreatedAt"
+            ON "FriendBoostContributions" ("PlayerId", "CreatedAt");
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
             CREATE INDEX IF NOT EXISTS "IX_SocialActivities_PlayerId_CreatedAt"
             ON "SocialActivities" ("PlayerId", "CreatedAt");
             """, cancellationToken);
@@ -363,6 +380,17 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.HasOne(activity => activity.Player)
                 .WithMany()
                 .HasForeignKey(activity => activity.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlayerFriendBoostContribution>(entity =>
+        {
+            entity.HasKey(contribution => contribution.Id);
+            entity.HasIndex(contribution => new { contribution.PlayerId, contribution.CreatedAt });
+            entity.Property(contribution => contribution.SourceName).HasMaxLength(80);
+            entity.HasOne(contribution => contribution.Player)
+                .WithMany()
+                .HasForeignKey(contribution => contribution.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

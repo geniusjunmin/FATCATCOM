@@ -245,6 +245,79 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .coop-reward { display:flex; flex-direction:column; align-items:stretch; gap:6px; text-align:center; }
             #fatcat-dom-panel-overlay .coop-reward > b { color:#6e3da5; font-size:120%; }
             #fatcat-dom-panel-overlay .coop-reward .tag { margin:0; }
+            #fatcat-dom-panel-overlay .friend-boost-history {
+                margin:0 0 2.2%;
+                padding:2.2%;
+                border:2px solid #55773a;
+                border-radius:12px;
+                background:linear-gradient(135deg,#e9f0c8,#c6d89e);
+                color:#334622;
+                box-shadow:0 4px 0 rgba(52,66,31,.22),inset 0 0 0 2px rgba(255,255,226,.42);
+                font-size:1.92%;
+            }
+            #fatcat-dom-panel-overlay .boost-history-head {
+                display:grid;
+                grid-template-columns:1fr auto;
+                gap:2%;
+                align-items:center;
+                padding-bottom:1.6%;
+                border-bottom:1px solid rgba(66,91,40,.25);
+            }
+            #fatcat-dom-panel-overlay .boost-history-head > div b,
+            #fatcat-dom-panel-overlay .boost-history-head > div span { display:block; }
+            #fatcat-dom-panel-overlay .boost-history-head > div b { font-size:116%; color:#3f5828; }
+            #fatcat-dom-panel-overlay .boost-history-head > div span { opacity:.75; margin-top:.4%; }
+            #fatcat-dom-panel-overlay .boost-history-head > strong {
+                min-width:76px;
+                padding:5px 10px;
+                border-radius:8px;
+                background:#527f35;
+                color:#fff9d9;
+                text-align:center;
+                font-size:128%;
+            }
+            #fatcat-dom-panel-overlay .boost-history-head small { display:block; font-size:58%; }
+            #fatcat-dom-panel-overlay .boost-history-list {
+                display:grid;
+                grid-template-columns:repeat(2,minmax(0,1fr));
+                gap:6px;
+                margin-top:1.6%;
+            }
+            #fatcat-dom-panel-overlay .boost-history-row {
+                display:grid;
+                grid-template-columns:32px 1fr auto;
+                gap:7px;
+                align-items:center;
+                min-width:0;
+                padding:7px;
+                border-radius:8px;
+                background:rgba(255,252,221,.72);
+                box-shadow:inset 0 0 0 1px rgba(72,98,44,.16);
+            }
+            #fatcat-dom-panel-overlay .boost-history-row.expired { filter:saturate(.5); opacity:.64; }
+            #fatcat-dom-panel-overlay .boost-source-avatar {
+                width:32px;
+                height:32px;
+                border-radius:50%;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                background:linear-gradient(#87bc55,#4e7d36);
+                color:#fff9dd;
+                font-weight:900;
+                box-shadow:inset 0 0 0 2px rgba(255,255,220,.24);
+            }
+            #fatcat-dom-panel-overlay .boost-history-row div { min-width:0; }
+            #fatcat-dom-panel-overlay .boost-history-row b,
+            #fatcat-dom-panel-overlay .boost-history-row em {
+                display:block;
+                overflow:hidden;
+                text-overflow:ellipsis;
+                white-space:nowrap;
+            }
+            #fatcat-dom-panel-overlay .boost-history-row em { font-style:normal; opacity:.7; font-size:80%; }
+            #fatcat-dom-panel-overlay .boost-history-row strong { color:#4e8231; font-size:112%; }
+            #fatcat-dom-panel-overlay .boost-history-empty { padding:10px 2px 4px; text-align:center; opacity:.72; font-weight:900; }
             #fatcat-dom-panel-overlay .friend-snapshot-card { margin-bottom:2%; padding:2.2%; border-radius:14px; background:linear-gradient(#fff3d3,#d9b17a); border:2px solid #7c5736; color:#4a2f1f; box-shadow:inset 0 0 0 2px rgba(255,250,224,.38), 0 3px 0 rgba(72,43,25,.22); font-size:2.0%; }
             #fatcat-dom-panel-overlay .friend-snapshot-card .snapshot-head { display:grid; grid-template-columns:16% 1fr 22%; gap:2%; align-items:center; }
             #fatcat-dom-panel-overlay .friend-snapshot-card .friend-avatar { width:100%; }
@@ -332,6 +405,10 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay.compact .friend-card { min-height:86px; grid-template-columns:15% 1fr 25%; padding:2%; }
             #fatcat-dom-panel-overlay.compact .friend-actions { gap:5px; }
             #fatcat-dom-panel-overlay.compact .friend-coop-card { grid-template-columns:12% 1fr 27%; padding:1.8%; margin:1.6% 0; }
+            #fatcat-dom-panel-overlay.compact .friend-boost-history { padding:1.8%; margin-bottom:1.6%; font-size:1.72%; }
+            #fatcat-dom-panel-overlay.compact .boost-history-list { grid-template-columns:1fr; gap:4px; }
+            #fatcat-dom-panel-overlay.compact .boost-history-row { min-height:34px; padding:4px 6px; grid-template-columns:28px 1fr auto; }
+            #fatcat-dom-panel-overlay.compact .boost-source-avatar { width:28px; height:28px; }
             #fatcat-dom-panel-overlay.compact .coop-copy em { font-size:74%; }
             #fatcat-dom-panel-overlay.compact .coop-icon { width:30px; height:30px; font-size:14px; }
             #fatcat-dom-panel-overlay.compact .friend-actions .tag { min-height:24px; font-size:82%; }

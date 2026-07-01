@@ -99,6 +99,17 @@ app.MapGet("/api/social/boost", async (
         : Results.Ok(ApiEnvelope<FriendBoostStateDto>.Success(result));
 });
 
+app.MapGet("/api/social/boost/history", async (
+    Guid playerId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.GetFriendBoostHistoryAsync(playerId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<FriendBoostHistoryDto>.Fail("player_not_found"))
+        : Results.Ok(ApiEnvelope<FriendBoostHistoryDto>.Success(result));
+});
+
 app.MapGet("/api/social/coop-goal", async (
     Guid playerId,
     FatCatGameService service,

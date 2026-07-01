@@ -948,6 +948,60 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task FriendBoostHistory_TracksSourcesExtendsStackAndPreservesExpiredEntries()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var target = await service.AuthGuestAsync(new AuthGuestRequest("boost-history-target", "History Cafe"), CancellationToken.None);
+        var helpers = new[]
+        {
+            await service.AuthGuestAsync(new AuthGuestRequest("boost-history-a", "Maple Beans"), CancellationToken.None),
+            await service.AuthGuestAsync(new AuthGuestRequest("boost-history-b", "Sunny Roast"), CancellationToken.None),
+            await service.AuthGuestAsync(new AuthGuestRequest("boost-history-c", "Moon Cafe"), CancellationToken.None),
+            await service.AuthGuestAsync(new AuthGuestRequest("boost-history-d", "Cloud Coffee"), CancellationToken.None),
+        };
+
+        foreach (var helper in helpers)
+        {
+            var friend = await service.AddFriendAsync(
+                helper.PlayerId,
+                new AddFriendRequest(target.PlayerId.ToString("N")),
+                CancellationToken.None);
+            Assert.True((await service.HelpFriendAsync(helper.PlayerId, friend!.Id, CancellationToken.None))!.Applied);
+        }
+        var active = await service.GetFriendBoostHistoryAsync(target.PlayerId, CancellationToken.None);
+
+        Assert.NotNull(active);
+        Assert.Equal(30, active!.ActiveBoostPercent);
+        Assert.Equal(30, active.MaxBoostPercent);
+        Assert.Equal(4, active.ActiveContributionCount);
+        Assert.Equal(4, active.Entries.Count);
+        Assert.All(active.Entries, entry =>
+        {
+            Assert.True(entry.Active);
+            Assert.Equal(10, entry.BoostPercent);
+            Assert.True(entry.ExpiresAt > entry.CreatedAt);
+        });
+        Assert.Single(active.Entries.Select(entry => entry.ExpiresAt).Distinct());
+        Assert.Equal(
+            ["Cloud Coffee", "Moon Cafe", "Sunny Roast", "Maple Beans"],
+            active.Entries.Select(entry => entry.SourceName).ToArray());
+
+        var player = await dbContext.Players.FindAsync([target.PlayerId], CancellationToken.None);
+        player!.FriendBoostUntil = DateTimeOffset.UtcNow.AddMinutes(-1);
+        foreach (var contribution in dbContext.FriendBoostContributions.Where(item => item.PlayerId == target.PlayerId))
+        {
+            contribution.ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+        }
+        await dbContext.SaveChangesAsync();
+        var expired = await service.GetFriendBoostHistoryAsync(target.PlayerId, CancellationToken.None);
+
+        Assert.Equal(0, expired!.ActiveBoostPercent);
+        Assert.Equal(0, expired.ActiveContributionCount);
+        Assert.All(expired.Entries, entry => Assert.False(entry.Active));
+    }
+
+    [Fact]
     public async Task FriendCoopGoal_AccumulatesUniqueHelpersAndClaimsOnce()
     {
         await using var dbContext = CreateDbContext();

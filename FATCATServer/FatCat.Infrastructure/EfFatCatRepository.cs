@@ -177,6 +177,42 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
             .ToList();
     }
 
+    public async Task AddFriendBoostContributionAsync(
+        PlayerFriendBoostContribution contribution,
+        CancellationToken cancellationToken)
+    {
+        await dbContext.FriendBoostContributions.AddAsync(contribution, cancellationToken);
+    }
+
+    public async Task<List<PlayerFriendBoostContribution>> GetFriendBoostContributionsAsync(
+        Guid playerId,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        var rows = await dbContext.FriendBoostContributions
+            .Where(contribution => contribution.PlayerId == playerId)
+            .ToListAsync(cancellationToken);
+        return rows
+            .OrderByDescending(contribution => contribution.CreatedAt)
+            .Take(Math.Clamp(limit, 1, 30))
+            .ToList();
+    }
+
+    public async Task ExtendActiveFriendBoostContributionsAsync(
+        Guid playerId,
+        DateTimeOffset now,
+        DateTimeOffset expiresAt,
+        CancellationToken cancellationToken)
+    {
+        var contributions = await dbContext.FriendBoostContributions
+            .Where(contribution => contribution.PlayerId == playerId)
+            .ToListAsync(cancellationToken);
+        foreach (var contribution in contributions.Where(item => item.ExpiresAt > now))
+        {
+            contribution.ExpiresAt = expiresAt;
+        }
+    }
+
     public Task<PlayerCoopGoalState?> GetCoopGoalStateAsync(Guid playerId, CancellationToken cancellationToken)
     {
         return dbContext.CoopGoalStates.FirstOrDefaultAsync(state => state.PlayerId == playerId, cancellationToken);

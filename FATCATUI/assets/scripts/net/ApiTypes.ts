@@ -372,6 +372,24 @@ export type FriendBoostStateDto = {
     serverTime: number;
 };
 
+export type FriendBoostContributionDto = {
+    contributionId: string;
+    sourcePlayerId: string;
+    sourceName: string;
+    boostPercent: number;
+    createdAt: number;
+    expiresAt: number;
+    active: boolean;
+};
+
+export type FriendBoostHistoryDto = {
+    activeBoostPercent: number;
+    maxBoostPercent: number;
+    activeContributionCount: number;
+    entries: FriendBoostContributionDto[];
+    serverTime: number;
+};
+
 export type FriendHelpResponse = {
     friend: FriendDto;
     applied: boolean;

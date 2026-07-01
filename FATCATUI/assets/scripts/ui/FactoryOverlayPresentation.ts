@@ -308,9 +308,11 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
             #fatcat-dom-factory .factory-msg { position: absolute; left: 21%; top: 79%; width: 58%; min-height: 3.8%; border-radius: 999px; background: rgba(52,35,24,.9); color: #ffe6b5; display: flex; align-items: center; justify-content: center; font-size: 2.4%; font-weight: 900; box-shadow: 0 2px 0 rgba(0,0,0,.3); }
             #fatcat-dom-factory .notice-card { position:absolute; right:10.8%; top:18.2%; width:26%; min-height:18%; border-radius:18px; background:linear-gradient(#fff2d3,#d8b17a); border:3px solid #6d4b31; color:#4a2f1f; box-shadow:0 7px 0 rgba(48,29,17,.38), inset 0 0 0 3px rgba(255,250,224,.34); padding:2.2%; box-sizing:border-box; font-size:2.0%; line-height:1.32; }
             #fatcat-dom-factory .notice-card:before { content:""; position:absolute; right:-6%; top:20%; width:0; height:0; border-top:12px solid transparent; border-bottom:12px solid transparent; border-left:18px solid #6d4b31; }
-            #fatcat-dom-factory .friend-boost-banner { position:absolute; z-index:8; left:50%; top:9.4%; transform:translateX(-50%); min-width:31%; min-height:4.2%; padding:.55% 2.2%; box-sizing:border-box; border-radius:999px; border:2px solid #e9c66f; background:linear-gradient(90deg,rgba(42,76,31,.96),rgba(79,133,48,.96)); color:#fff7d4; box-shadow:0 4px 0 rgba(32,42,22,.35),inset 0 0 0 2px rgba(255,245,188,.12); display:flex; justify-content:center; align-items:center; gap:5%; pointer-events:none; }
+            #fatcat-dom-factory .friend-boost-banner { position:absolute; z-index:8; left:50%; top:9.4%; transform:translateX(-50%); min-width:44%; max-width:72%; min-height:4.2%; padding:.55% 1.5%; box-sizing:border-box; border-radius:999px; border:2px solid #e9c66f; background:linear-gradient(90deg,rgba(42,76,31,.96),rgba(79,133,48,.96)); color:#fff7d4; box-shadow:0 4px 0 rgba(32,42,22,.35),inset 0 0 0 2px rgba(255,245,188,.12); display:flex; justify-content:center; align-items:center; gap:2.2%; pointer-events:none; }
             #fatcat-dom-factory .friend-boost-banner b { font-size:1.75%; white-space:nowrap; }
             #fatcat-dom-factory .friend-boost-banner span { font-size:1.35%; white-space:nowrap; color:#e8f6cf; }
+            #fatcat-dom-factory .friend-boost-banner .boost-sources { display:flex; gap:3px; max-width:42%; overflow:hidden; }
+            #fatcat-dom-factory .friend-boost-banner .boost-sources i { max-width:92px; padding:.18em .55em; border-radius:999px; background:rgba(255,248,207,.14); color:#fff8dc; font-style:normal; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-factory .friend-boost-banner em { font-style:normal; font-size:1.35%; font-weight:900; white-space:nowrap; padding:.2em .7em; border-radius:999px; background:rgba(25,48,19,.52); }
             #fatcat-dom-factory .friend-boost-banner em.ready { color:#fff3a3; box-shadow:inset 0 0 0 1px #f0cc59; }
             #fatcat-dom-factory .notice-head { display:grid; grid-template-columns:22% 1fr; gap:4%; align-items:center; margin-bottom:4%; font-weight:900; }
@@ -351,7 +353,10 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
             #fatcat-dom-factory.compact .gift { font-size:1.72%; padding-right:2%; }
             #fatcat-dom-factory.compact .gift:after { width:28%; right:-8%; }
             #fatcat-dom-factory.compact .notice-card { right:10%; width:30%; font-size:1.78%; }
-            #fatcat-dom-factory.compact .friend-boost-banner { top:9.2%; min-width:38%; }
+            #fatcat-dom-factory.compact .friend-boost-banner { top:9.2%; min-width:61%; max-width:82%; padding:.45% 1.2%; }
+            #fatcat-dom-factory.compact .friend-boost-banner .boost-latest { display:none; }
+            #fatcat-dom-factory.compact .friend-boost-banner .boost-sources { max-width:48%; }
+            #fatcat-dom-factory.compact .friend-boost-banner .boost-sources i:nth-child(n+3) { display:none; }
             #fatcat-dom-factory.tall .building { top: 12.6%; bottom: 24.8%; }
             #fatcat-dom-factory.tall .factory-illustration { top:6.5%; bottom:13.4%; }
             #fatcat-dom-factory.tall .bottom-widgets { bottom: 17.1%; }

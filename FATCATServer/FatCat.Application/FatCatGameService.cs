@@ -113,7 +113,7 @@ public sealed class FatCatGameService(
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-coop-goal", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -1504,6 +1504,31 @@ public sealed class FatCatGameService(
         return player is null ? null : ToFriendBoostStateDto(player, DateTimeOffset.UtcNow);
     }
 
+    public async Task<FriendBoostHistoryDto?> GetFriendBoostHistoryAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        var player = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
+        if (player is null)
+        {
+            return null;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var contributions = await repository.GetFriendBoostContributionsAsync(playerId, 12, cancellationToken);
+        return new FriendBoostHistoryDto(
+            GetActiveFriendBoostPercent(player, now),
+            MaxFriendBoostPercent,
+            contributions.Count(contribution => contribution.ExpiresAt > now),
+            contributions.Select(contribution => new FriendBoostContributionDto(
+                contribution.Id.ToString("N"),
+                contribution.SourcePlayerId.ToString("N"),
+                contribution.SourceName,
+                contribution.BoostPercent,
+                contribution.CreatedAt.ToUnixTimeMilliseconds(),
+                contribution.ExpiresAt.ToUnixTimeMilliseconds(),
+                contribution.ExpiresAt > now)).ToArray(),
+            now.ToUnixTimeMilliseconds());
+    }
+
     public async Task<FriendCoopGoalDto?> GetFriendCoopGoalAsync(Guid playerId, CancellationToken cancellationToken)
     {
         if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
@@ -1599,9 +1624,20 @@ public sealed class FatCatGameService(
 
         var currentBoost = GetActiveFriendBoostPercent(target, now);
         target.FriendBoostPercent = Math.Min(MaxFriendBoostPercent, currentBoost + FriendHelpBoostPercent);
-        target.FriendBoostUntil = now.Add(FriendHelpDuration);
+        var boostEndsAt = now.Add(FriendHelpDuration);
+        target.FriendBoostUntil = boostEndsAt;
         target.FriendBoostedBy = actor.CompanyName;
         friend.LastHelpAt = now;
+        await repository.ExtendActiveFriendBoostContributionsAsync(targetPlayerId, now, boostEndsAt, cancellationToken);
+        await repository.AddFriendBoostContributionAsync(new PlayerFriendBoostContribution
+        {
+            PlayerId = targetPlayerId,
+            SourcePlayerId = playerId,
+            SourceName = actor.CompanyName,
+            BoostPercent = FriendHelpBoostPercent,
+            CreatedAt = now,
+            ExpiresAt = boostEndsAt,
+        }, cancellationToken);
         await AddSocialActivityAsync(playerId, "friend_help", friend, cancellationToken);
         var coopGoal = await repository.IncrementCoopGoalProgressAsync(
             targetPlayerId,

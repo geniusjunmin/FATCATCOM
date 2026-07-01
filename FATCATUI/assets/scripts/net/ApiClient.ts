@@ -1,5 +1,5 @@
 import { GameConfig } from "../core/GameConfig";
-import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, CreateFriendRequestRequest, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPlacementRequest, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
+import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, CreateFriendRequestRequest, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPlacementRequest, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
 
 export class ApiClient {
     private static _baseUrl: string = GameConfig.apiBaseUrl;
@@ -140,6 +140,10 @@ export class ApiClient {
 
     public static getFriendBoost(playerId: string): Promise<ApiEnvelope<FriendBoostStateDto>> {
         return this.get(`/api/social/boost?playerId=${encodeURIComponent(playerId)}`);
+    }
+
+    public static getFriendBoostHistory(playerId: string): Promise<ApiEnvelope<FriendBoostHistoryDto>> {
+        return this.get(`/api/social/boost/history?playerId=${encodeURIComponent(playerId)}`);
     }
 
     public static getFriendCoopGoal(playerId: string): Promise<ApiEnvelope<FriendCoopGoalDto>> {

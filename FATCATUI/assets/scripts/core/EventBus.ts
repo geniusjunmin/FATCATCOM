@@ -53,4 +53,5 @@ export const GameEvents = {
     NETWORK_STATUS_CHANGED: "network:status-changed",
     SYNC_STATUS_CHANGED: "sync:status-changed",
     SOCIAL_REALTIME_EVENT: "social:realtime-event",
+    FRIEND_BOOST_HISTORY_CHANGED: "friend:boost-history-changed",
 } as const;

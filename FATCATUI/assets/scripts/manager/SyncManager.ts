@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -89,6 +89,7 @@ export class SyncManager {
         void this.fetchServerLeaderboard();
         void this.touchServerPresence();
         void this.fetchServerFriendBoost();
+        void this.fetchServerFriendBoostHistory();
         void this.fetchServerFriendCoopGoal();
         this.startSocialEventStream();
         return true;
@@ -117,6 +118,7 @@ export class SyncManager {
                         boostedByName: socialEvent.actorCompanyName,
                         serverTime: socialEvent.createdAt,
                     });
+                    void this.fetchServerFriendBoostHistory();
                     if (socialEvent.coopTarget > 0) {
                         FriendCoopManager.applyRealtimeProgress(
                             socialEvent.coopProgress,
@@ -678,6 +680,21 @@ export class SyncManager {
             return null;
         }
         FriendBoostManager.apply(response.data);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerFriendBoostHistory(): Promise<FriendBoostHistoryDto | null> {
+        if (!NetworkManager.canUseServer || !NetworkManager.playerId) {
+            return null;
+        }
+        const response = await ApiClient.getFriendBoostHistory(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "friend_boost_history_fetch_failed");
+            return null;
+        }
+        FriendBoostManager.applyHistory(response.data);
+        EventBus.emit(GameEvents.FRIEND_BOOST_HISTORY_CHANGED, response.data);
         this.markReadyAfterServerCall();
         return response.data;
     }

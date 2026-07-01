@@ -270,6 +270,8 @@ export class BottomNavUI extends Component {
         this.select(this.currentPanel);
         EventBus.off(GameEvents.SOCIAL_REALTIME_EVENT, this.onSocialRealtimeEvent);
         EventBus.on<SocialRealtimeEventDto>(GameEvents.SOCIAL_REALTIME_EVENT, this.onSocialRealtimeEvent);
+        EventBus.off(GameEvents.FRIEND_BOOST_HISTORY_CHANGED, this.onFriendBoostHistoryChanged);
+        EventBus.on(GameEvents.FRIEND_BOOST_HISTORY_CHANGED, this.onFriendBoostHistoryChanged);
 
         // Ensure navigation is on top of everything
         this.node.parent?.setSiblingIndex(999);
@@ -303,6 +305,7 @@ export class BottomNavUI extends Component {
 
     protected onDestroy(): void {
         EventBus.off(GameEvents.SOCIAL_REALTIME_EVENT, this.onSocialRealtimeEvent);
+        EventBus.off(GameEvents.FRIEND_BOOST_HISTORY_CHANGED, this.onFriendBoostHistoryChanged);
         if (this._waitingForAppReady) {
             EventBus.off(GameEvents.APP_READY, this.onAppReady);
             this._waitingForAppReady = false;
@@ -336,6 +339,14 @@ export class BottomNavUI extends Component {
         this.showFactoryNotice(message, "friend");
         if (this.currentPanel === "friends") {
             void this.refreshFriendActivitiesForPanel();
+        }
+    };
+
+    private onFriendBoostHistoryChanged = (): void => {
+        if (this.currentPanel === "factory") {
+            this.renderDomFactoryOverlay();
+        } else if (this.currentPanel === "friends") {
+            this.renderDomPanel("friends");
         }
     };
 
@@ -737,6 +748,10 @@ export class BottomNavUI extends Component {
         if (!overlay) return;
         const snapshot = ProductionManager.calculateSnapshot();
         const friendBoost = FriendBoostManager.getState();
+        const friendBoostHistory = FriendBoostManager.getHistory();
+        const activeBoostSources = friendBoostHistory.entries
+            .filter(entry => entry.active && entry.sourceName !== friendBoost.boostedByName)
+            .slice(0, 3);
         const coopGoal = FriendCoopManager.getState();
         void this.refreshFriendRequestBadgeForFactory();
         const pendingFriendRequests = this.getPendingFriendRequestCount();
@@ -770,7 +785,7 @@ export class BottomNavUI extends Component {
                 <button class="gift" data-action="gift"><span class="gift-cat asset" style="background-image:url('${this.getCatFullArtAsset("c_005")}')"></span><span><b>超级猫粮礼包</b><br><em>03:25:15</em></span></button>
             </div>
             <div class="launch-count">今日剩余次数：5/5</div>
-            ${friendBoost.active ? `<div class="friend-boost-banner"><b>好友助力 +${friendBoost.boostPercent}%</b><span>${friendBoost.boostedByName} · ${Math.max(1, Math.ceil(((friendBoost.boostEndsAt ?? Date.now()) - Date.now()) / 60000))}分钟</span><em class="${coopGoal.claimable ? "ready" : ""}">协作 ${coopGoal.progress}/${coopGoal.target}</em></div>` : ""}
+            ${friendBoost.active ? `<div class="friend-boost-banner"><b>好友助力 +${friendBoost.boostPercent}%</b><span class="boost-latest">${friendBoost.boostedByName} · ${Math.max(1, Math.ceil(((friendBoost.boostEndsAt ?? Date.now()) - Date.now()) / 60000))}分钟</span>${activeBoostSources.length > 0 ? `<span class="boost-sources">${activeBoostSources.map(source => `<i>${source.sourceName} +${source.boostPercent}%</i>`).join("")}</span>` : ""}<em class="${coopGoal.claimable ? "ready" : ""}">协作 ${coopGoal.progress}/${coopGoal.target}</em></div>` : ""}
             ${this._factoryMessage ? `<div class="factory-msg">${this._factoryMessage}</div>` : ""}
             ${this.renderFactoryNoticeCard()}
             ${!snapshot.canProduce ? `<div class="factory-msg" style="top:13%;left:31%;width:38%">咖啡豆不足，生产暂停</div>` : ""}
@@ -1412,6 +1427,7 @@ export class BottomNavUI extends Component {
         const pendingRequests = this._receivedFriendRequests.filter(request => request.status === "pending").length;
         const sentPending = this._sentFriendRequests.filter(request => request.status === "pending").length;
         const coopGoal = FriendCoopManager.getState();
+        const boostHistory = FriendBoostManager.getHistory();
         const sourceLabelNew = this._serverFriends.length > 0 ? "服务端快照" : "本地预览";
         const networkNew = NetworkManager.getStatus();
         const playerIdNew = networkNew.playerId ? networkNew.playerId.replace(/-/g, "") : "未连接";
@@ -1428,7 +1444,7 @@ export class BottomNavUI extends Component {
             const width = Math.max(8, Math.min(100, Math.floor(friend.income / maxIncome * 100)));
             return `<div class="feature-card friend-card"><span class="friend-avatar"><i class="friend-rank">#${index + 1}</i></span><div class="friend-copy"><b>${friend.name}</b><em>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒</em>${this.renderFriendProfileMeta(friend)}<div class="friend-income"><i style="width:${width}%"></i></div><div class="friend-states"><span>${friend.status}</span><span>${lastVisit ? `访问 ${lastVisit}` : "待访问"}</span><span>${lastGift ? `送礼 ${lastGift}` : "可送礼"}</span><span>${lastHelp ? `助力 ${lastHelp}` : friend.profile?.isRealPlayer ? "可助力" : "玩家好友限定"}</span></div></div><div class="friend-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问工厂</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再次送礼" : "赠送猫粮"}</button><button class="tag boost" data-action="helpFriend" data-id="${friend.id}" ${friend.profile?.isRealPlayer ? "" : "disabled"}>${lastHelp ? "今日已助力" : "生产助力"}</button></div></div>`;
         }).join("");
-        return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendCoopGoalCard(coopGoal)}${this.renderFriendVisitScene(friends)}${this.renderFriendVisitReport(friends)}${this.renderFriendFactoryDetail(friends)}${this.renderFriendSnapshotCard(friends, maxIncome)}<div class="feature-list">${rowsNew}</div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
+        return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendCoopGoalCard(coopGoal)}${this.renderFriendBoostHistoryCard(boostHistory)}${this.renderFriendVisitScene(friends)}${this.renderFriendVisitReport(friends)}${this.renderFriendFactoryDetail(friends)}${this.renderFriendSnapshotCard(friends, maxIncome)}<div class="feature-list">${rowsNew}</div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
     }
 
     private renderFriendCoopGoalCard(goal: ReturnType<typeof FriendCoopManager.getState>): string {
@@ -1438,6 +1454,18 @@ export class BottomNavUI extends Component {
             ? `<button class="tag boost" data-action="claimFriendCoopGoal">领取 ${goal.rewardDiamond} 钻石</button>`
             : `<span class="tag ${goal.claimed ? "" : "warn"}">${state}</span>`;
         return `<div class="friend-coop-card ${goal.claimable ? "ready" : ""}"><div class="coop-icon">协</div><div class="coop-copy"><b>每日好友协作</b><em>真实好友助力可推进目标，进度每日重置。</em><div class="coop-meter"><i style="width:${percent}%"></i></div><span>${goal.progress}/${goal.target} · ${state}</span></div><div class="coop-reward"><b>◆ ${goal.rewardDiamond}</b>${action}</div></div>`;
+    }
+
+    private renderFriendBoostHistoryCard(history: ReturnType<typeof FriendBoostManager.getHistory>): string {
+        const entries = history.entries.slice(0, 6);
+        const rows = entries.length > 0
+            ? entries.map(entry => {
+                const minutes = Math.max(0, Math.ceil((entry.expiresAt - Date.now()) / 60000));
+                const state = entry.active ? `剩余 ${minutes} 分钟` : "已结束";
+                return `<div class="boost-history-row ${entry.active ? "active" : "expired"}"><span class="boost-source-avatar">${entry.sourceName.slice(0, 1)}</span><div><b>${entry.sourceName}</b><em>${this.formatFriendReportTime(entry.createdAt)} · ${state}</em></div><strong>+${entry.boostPercent}%</strong></div>`;
+            }).join("")
+            : `<div class="boost-history-empty">尚无好友助力记录，邀请真实好友为工厂接力。</div>`;
+        return `<section class="friend-boost-history"><div class="boost-history-head"><div><b>助力接力记录</b><span>每次 +10%，当前最多叠加 ${history.maxBoostPercent}%</span></div><strong>${history.activeBoostPercent}%<small>${history.activeContributionCount} 人生效</small></strong></div><div class="boost-history-list">${rows}</div></section>`;
     }
 
     private renderFriendSnapshotCard(friends: FriendPanelRow[], maxIncome: number): string {
