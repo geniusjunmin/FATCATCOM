@@ -250,6 +250,15 @@ export type PlayerPresenceDto = {
     serverTime: number;
 };
 
+export type SocialRealtimeEventDto = {
+    eventId: string;
+    eventType: "friend_visit" | "friend_gift";
+    actorPlayerId: string;
+    actorCompanyName: string;
+    rewardValue: number;
+    createdAt: number;
+};
+
 export type FriendRoomDto = {
     buildingId: string;
     floor: string;

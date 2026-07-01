@@ -4,6 +4,8 @@ export function getFriendActivityLabel(type: string): string {
     if (type === "friend_add") return "添加";
     if (type === "friend_visit") return "访问";
     if (type === "friend_gift") return "送礼";
+    if (type === "friend_visited_by") return "来访";
+    if (type === "friend_gift_received") return "收礼";
     return "互动";
 }
 

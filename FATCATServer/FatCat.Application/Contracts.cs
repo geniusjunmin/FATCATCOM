@@ -259,6 +259,14 @@ public sealed record PlayerPresenceDto(
     long LastActiveAt,
     long ServerTime);
 
+public sealed record SocialRealtimeEventDto(
+    string EventId,
+    string EventType,
+    string ActorPlayerId,
+    string ActorCompanyName,
+    int RewardValue,
+    long CreatedAt);
+
 public sealed record FriendDto(
     string Id,
     string Name,

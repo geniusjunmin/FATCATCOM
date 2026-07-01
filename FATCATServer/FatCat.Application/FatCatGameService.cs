@@ -4,9 +4,13 @@ using FatCat.Domain;
 
 namespace FatCat.Application;
 
-public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfig? balanceConfig = null)
+public sealed class FatCatGameService(
+    IFatCatRepository repository,
+    BalanceConfig? balanceConfig = null,
+    SocialEventBroker? socialEventBroker = null)
 {
     private readonly BalanceConfig balance = balanceConfig ?? BalanceConfig.Default;
+    private readonly SocialEventBroker socialEvents = socialEventBroker ?? new SocialEventBroker();
     private const double InitialCoin = 12_450_000;
     private const double InitialBean = 8_240;
     private const double InitialCatFood = 3_510;
@@ -93,7 +97,7 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "friend-realtime-events", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -1263,6 +1267,10 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         }
         friend.LastVisitedAt = now;
         await repository.SaveChangesAsync(cancellationToken);
+        if (rewarded)
+        {
+            await PublishFriendEventAsync(playerId, friend, "friend_visit", rewardCoin, now, cancellationToken);
+        }
         return await ToFriendActionResponseAsync(friend, rewarded, rewardCoin, 0, resources, now, rewarded ? null : "daily_visit_claimed", cancellationToken);
     }
 
@@ -1288,7 +1296,46 @@ public sealed class FatCatGameService(IFatCatRepository repository, BalanceConfi
         }
         friend.LastGiftAt = now;
         await repository.SaveChangesAsync(cancellationToken);
+        if (rewarded)
+        {
+            await PublishFriendEventAsync(playerId, friend, "friend_gift", rewardCatFood, now, cancellationToken);
+        }
         return await ToFriendActionResponseAsync(friend, rewarded, 0, rewardCatFood, resources, now, rewarded ? null : "daily_gift_claimed", cancellationToken);
+    }
+
+    private async Task PublishFriendEventAsync(
+        Guid actorPlayerId,
+        FriendSnapshot friend,
+        string eventType,
+        int rewardValue,
+        DateTimeOffset createdAt,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetRealFriendPlayerId(friend.FriendKey, out var targetPlayerId))
+        {
+            return;
+        }
+        var actor = await repository.FindPlayerByIdAsync(actorPlayerId, cancellationToken);
+        if (actor is null)
+        {
+            return;
+        }
+        await repository.AddSocialActivityAsync(new PlayerSocialActivity
+        {
+            PlayerId = targetPlayerId,
+            ActivityType = eventType == "friend_gift" ? "friend_gift_received" : "friend_visited_by",
+            FriendKey = CreateRealFriendKey(actor.Id),
+            FriendName = actor.CompanyName,
+            CreatedAt = createdAt,
+        }, cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
+        socialEvents.Publish(targetPlayerId, new SocialRealtimeEventDto(
+            Guid.NewGuid().ToString("N"),
+            eventType,
+            actor.Id.ToString("N"),
+            actor.CompanyName,
+            rewardValue,
+            createdAt.ToUnixTimeMilliseconds()));
     }
 
     public async Task<IReadOnlyList<FriendActivityDto>?> GetFriendActivitiesAsync(Guid playerId, int limit, CancellationToken cancellationToken)

@@ -52,4 +52,5 @@ export const GameEvents = {
     PRODUCTION_PAUSED: "production:paused",
     NETWORK_STATUS_CHANGED: "network:status-changed",
     SYNC_STATUS_CHANGED: "sync:status-changed",
+    SOCIAL_REALTIME_EVENT: "social:realtime-event",
 } as const;

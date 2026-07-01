@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -30,6 +30,8 @@ export class SyncManager {
     private static _lastPresence: PlayerPresenceDto | null = null;
     private static _lastPresenceAt = 0;
     private static _lastPresencePlayerId = "";
+    private static _socialEventSource: EventSource | null = null;
+    private static _socialEventPlayerId = "";
 
     public static initialize(): SyncSnapshot {
         this.refreshPendingFeatureChanges();
@@ -39,6 +41,7 @@ export class SyncManager {
 
     public static destroy(): void {
         EventBus.off<GameSaveData>(GameEvents.SAVE_UPDATED, this.onSaveUpdated);
+        this.stopSocialEventStream();
     }
 
     public static getSnapshot(): SyncSnapshot {
@@ -83,7 +86,37 @@ export class SyncManager {
         void this.fetchServerFriendActivities();
         void this.fetchServerLeaderboard();
         void this.touchServerPresence();
+        this.startSocialEventStream();
         return true;
+    }
+
+    public static startSocialEventStream(): void {
+        if (typeof EventSource === "undefined" || !NetworkManager.canUseServer || !NetworkManager.playerId) {
+            return;
+        }
+        if (this._socialEventSource && this._socialEventPlayerId === NetworkManager.playerId) {
+            return;
+        }
+        this.stopSocialEventStream();
+        this._socialEventPlayerId = NetworkManager.playerId;
+        const source = new EventSource(
+            `${ApiClient.baseUrl}/api/social/events?playerId=${encodeURIComponent(NetworkManager.playerId)}`,
+        );
+        source.onmessage = (event) => {
+            try {
+                const socialEvent = JSON.parse(event.data) as SocialRealtimeEventDto;
+                EventBus.emit(GameEvents.SOCIAL_REALTIME_EVENT, socialEvent);
+            } catch (error) {
+                console.warn("[SyncManager] Invalid realtime social event.", error);
+            }
+        };
+        this._socialEventSource = source;
+    }
+
+    public static stopSocialEventStream(): void {
+        this._socialEventSource?.close();
+        this._socialEventSource = null;
+        this._socialEventPlayerId = "";
     }
 
     public static async touchServerPresence(): Promise<PlayerPresenceDto | null> {

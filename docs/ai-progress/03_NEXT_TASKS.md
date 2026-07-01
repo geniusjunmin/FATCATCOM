@@ -21,7 +21,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Continue final main/cat proportion tuning and add richer illustration assets where CSS is still flat. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
-| Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Real friend profiles, heartbeat presence, owner-managed decor, visits, rewards, requests, activity, and leaderboard are wired; next consider live interaction transport or decor acquisition. |
+| Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor, visits/gifts, persisted incoming history, SSE events, requests, activity, and leaderboard are wired; next consider cooperative actions or decor acquisition. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
 
 ## P0 Now
@@ -71,6 +71,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - Seeded friend creation uses atomic SQLite insert-if-missing semantics. Preserve this when changing friend initialization because friends and leaderboard requests run concurrently after login.
 - `PlayerDecorState` persists twelve default decorations, grouped by building and guarded by atomic insert-if-missing. `FriendRoomDto.decorations` exposes only placed items and derives `decorScore` from their scores. Keep `check-friend-decor-contract.js`, `check-real-friend-online.js`, and utility screenshots green.
 - `/api/decor` lists owner inventory and `/api/decor/{decorId}/placement` moves or toggles placement after validating the target building. The building detail panel consumes both routes. Keep `check-decor-placement-online-ui.js` and feature screenshots green.
+- `/api/social/events` streams visit/gift events through a singleton fan-out broker. `SyncManager` owns the `EventSource`, the factory shows incoming notices, and incoming interactions are persisted for replay. Keep `check-social-realtime-contract.js` and `check-social-realtime-online-ui.js` green.
 - `/api/friends/activity` records and returns add/visit/gift activity for the DOM friend panel. Keep it green with `node tools\check-friend-activity-contract.js`.
 - `/api/friends/{friendId}/visit` and `/api/friends/{friendId}/gift` now return reward metadata and authoritative balances with once-per-UTC-day reward limits. Keep it green with `node tools\check-friend-reward-contract.js`.
 - `/api/social/profile` and `/api/friends/search` now provide persisted short invite-code search before add, and `/api/friends/add` accepts invite codes as well as legacy player ids while writing `PlayerFriendRelation`. Keep it green with `node tools\check-friend-invite-contract.js`.
@@ -117,7 +118,8 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest presence batch: server heartbeat and three-state presence are live, the client sends one globally deduplicated heartbeat every 45 seconds, and an open friend panel refreshes every 30 seconds. Status badges remain visible at 430x932, 360x800, and 768x1024.
 - Done in latest decor-inventory batch: six real friend rooms now expose two persistent placed decorations each, factory/visit rows render item names and scores, and hiding one persisted item removes it from the snapshot and lowers the room score.
 - Done in latest owner-placement batch: building details show floor decor, placed count and score, with server-backed withdraw/place actions. Moving decor between floors is covered at service level and invalid building ids are rejected.
-- Next move: add live event transport, decor acquisition/shop integration, or generated bitmap friend-room backdrops.
+- Done in latest realtime batch: rewarded visit/gift actions publish to the target player, update the 360px factory notice card, and write incoming activity history. The stream closes cleanly on client destruction.
+- Next move: add cooperative friend actions, decor acquisition/shop integration, or generated bitmap friend-room backdrops.
 
 ### 1. Main Factory Richness
 

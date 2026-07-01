@@ -13,7 +13,7 @@ import { ShopManager } from "../manager/ShopManager";
 import { TaskManager } from "../manager/TaskManager";
 import { NetworkManager } from "../manager/NetworkManager";
 import { SyncManager } from "../manager/SyncManager";
-import { DecorStateDto, FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto } from "../net/ApiTypes";
+import { DecorStateDto, FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
 import { GeneratedBackgroundAssets } from "./UiAssetRegistry";
@@ -170,6 +170,7 @@ export class BottomNavUI extends Component {
     private _hudText = "";
     private _factoryMessage = "";
     private _factoryNoticeKind: "achievement" | "mail" | "friend" | "settings" | "" = "";
+    private _latestSocialEvent: SocialRealtimeEventDto | null = null;
     private _selectedDomCatId = "";
     private _domCatTab: CatTabId = "info";
     private _domCatMessage = "";
@@ -261,6 +262,8 @@ export class BottomNavUI extends Component {
         this.updateButtons();
         // Initialize state
         this.select(this.currentPanel);
+        EventBus.off(GameEvents.SOCIAL_REALTIME_EVENT, this.onSocialRealtimeEvent);
+        EventBus.on<SocialRealtimeEventDto>(GameEvents.SOCIAL_REALTIME_EVENT, this.onSocialRealtimeEvent);
 
         // Ensure navigation is on top of everything
         this.node.parent?.setSiblingIndex(999);
@@ -293,6 +296,7 @@ export class BottomNavUI extends Component {
     }
 
     protected onDestroy(): void {
+        EventBus.off(GameEvents.SOCIAL_REALTIME_EVENT, this.onSocialRealtimeEvent);
         if (this._waitingForAppReady) {
             EventBus.off(GameEvents.APP_READY, this.onAppReady);
             this._waitingForAppReady = false;
@@ -315,6 +319,17 @@ export class BottomNavUI extends Component {
             cancelAnimationFrame(this._domLayoutFrame);
         }
     }
+
+    private onSocialRealtimeEvent = (socialEvent: SocialRealtimeEventDto): void => {
+        this._latestSocialEvent = socialEvent;
+        const message = socialEvent.eventType === "friend_gift"
+            ? `${socialEvent.actorCompanyName} 给你送来一份猫粮礼物`
+            : `${socialEvent.actorCompanyName} 正在访问你的咖啡工厂`;
+        this.showFactoryNotice(message, "friend");
+        if (this.currentPanel === "friends") {
+            void this.refreshFriendActivitiesForPanel();
+        }
+    };
 
     private ensureReferences(): void {
         if (!this.factoryView) this.factoryView = find("FatCatMainGreyboxRoot/FactoryView");
@@ -784,7 +799,13 @@ export class BottomNavUI extends Component {
         }[this._factoryNoticeKind];
         if (this._factoryNoticeKind === "friend") {
             data.title = "好友";
-            data.rows = [["待处理申请", `${pendingFriendRequests}`], ["已发送申请", `${sentFriendRequests}`], ["好友互动", "访问/送礼"]];
+            data.rows = this._latestSocialEvent
+                ? [
+                    ["互动玩家", this._latestSocialEvent.actorCompanyName],
+                    ["互动类型", this._latestSocialEvent.eventType === "friend_gift" ? "送来礼物" : "访问工厂"],
+                    ["发生时间", this.formatFriendReportTime(this._latestSocialEvent.createdAt)],
+                ]
+                : [["待处理申请", `${pendingFriendRequests}`], ["已发送申请", `${sentFriendRequests}`], ["好友互动", "访问/送礼"]];
         }
         return `<div class="notice-card"><div class="notice-head"><i class="notice-icon asset ${data.icon}" style="background-image:url('${this.getFeatureIconAsset(data.icon)}')"></i><div><b>${data.title}</b><br>${this._factoryMessage}</div></div>${data.rows.map(row => `<div class="notice-row"><span>${row[0]}</span><span>${row[1]}</span></div>`).join("")}</div>`;
     }

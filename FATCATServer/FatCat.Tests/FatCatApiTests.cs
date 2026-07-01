@@ -389,6 +389,58 @@ public sealed class FatCatApiTests
     }
 
     [Fact]
+    public async Task SocialEventStream_PushesFriendVisitContract()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var actorAuth = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-stream-actor",
+            companyName = "Actor Roastery",
+        });
+        var targetAuth = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-stream-target",
+            companyName = "Target Cafe",
+        });
+        var actorId = JsonDocument.Parse(await actorAuth.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+        var targetId = JsonDocument.Parse(await targetAuth.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+        var targetKey = $"player:{targetId:N}";
+        await client.PostAsJsonAsync($"/api/friends/add?playerId={actorId}", new
+        {
+            friendPlayerId = targetId.ToString("N"),
+        });
+
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var streamResponse = await client.SendAsync(
+            new HttpRequestMessage(HttpMethod.Get, $"/api/social/events?playerId={targetId}"),
+            HttpCompletionOption.ResponseHeadersRead,
+            timeout.Token);
+        await client.PostAsJsonAsync($"/api/friends/{Uri.EscapeDataString(targetKey)}/visit?playerId={actorId}", new {});
+        await using var stream = await streamResponse.Content.ReadAsStreamAsync(timeout.Token);
+        using var reader = new StreamReader(stream);
+        string? dataLine = null;
+        while (!timeout.IsCancellationRequested)
+        {
+            var line = await reader.ReadLineAsync(timeout.Token);
+            if (line?.StartsWith("data: ", StringComparison.Ordinal) == true)
+            {
+                dataLine = line[6..];
+                break;
+            }
+        }
+
+        Assert.Equal(HttpStatusCode.OK, streamResponse.StatusCode);
+        Assert.Equal("text/event-stream", streamResponse.Content.Headers.ContentType?.MediaType);
+        Assert.NotNull(dataLine);
+        var socialEvent = JsonDocument.Parse(dataLine).RootElement;
+        Assert.Equal("friend_visit", socialEvent.GetProperty("eventType").GetString());
+        Assert.Equal(actorId.ToString("N"), socialEvent.GetProperty("actorPlayerId").GetString());
+        Assert.Equal("Actor Roastery", socialEvent.GetProperty("actorCompanyName").GetString());
+        Assert.True(socialEvent.GetProperty("rewardValue").GetInt32() > 0);
+    }
+
+    [Fact]
     public async Task ClaimMail_UpdatesAuthoritativeResources()
     {
         await using var factory = new FatCatApiFactory();

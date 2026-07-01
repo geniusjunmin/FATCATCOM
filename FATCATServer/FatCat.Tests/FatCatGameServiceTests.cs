@@ -770,6 +770,40 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task FriendActions_PublishRealtimeEventsToTargetPlayer()
+    {
+        await using var dbContext = CreateDbContext();
+        var broker = new SocialEventBroker();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext), null, broker);
+        var actor = await service.AuthGuestAsync(new AuthGuestRequest("realtime-actor", "Actor Roastery"), CancellationToken.None);
+        var target = await service.AuthGuestAsync(new AuthGuestRequest("realtime-target", "Target Cafe"), CancellationToken.None);
+        var friend = await service.AddFriendAsync(
+            actor.PlayerId,
+            new AddFriendRequest(target.PlayerId.ToString("N")),
+            CancellationToken.None);
+        using var subscription = broker.Subscribe(target.PlayerId);
+
+        await service.VisitFriendAsync(actor.PlayerId, friend!.Id, CancellationToken.None);
+        await service.SendFriendGiftAsync(actor.PlayerId, friend.Id, CancellationToken.None);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+        Assert.True(await subscription.Reader.WaitToReadAsync(timeout.Token));
+        Assert.True(subscription.Reader.TryRead(out var visitEvent));
+        Assert.True(subscription.Reader.TryRead(out var giftEvent));
+
+        Assert.Equal("friend_visit", visitEvent.EventType);
+        Assert.Equal("friend_gift", giftEvent.EventType);
+        Assert.Equal(actor.PlayerId.ToString("N"), visitEvent.ActorPlayerId);
+        Assert.Equal("Actor Roastery", visitEvent.ActorCompanyName);
+        Assert.True(visitEvent.RewardValue > 0);
+        Assert.Equal(12, giftEvent.RewardValue);
+        Assert.True(visitEvent.CreatedAt > 0);
+        var targetActivities = await service.GetFriendActivitiesAsync(target.PlayerId, 10, CancellationToken.None);
+        Assert.NotNull(targetActivities);
+        Assert.Equal(["friend_gift_received", "friend_visited_by"], targetActivities!.Select(item => item.ActivityType).ToArray());
+        Assert.All(targetActivities, item => Assert.Equal("Actor Roastery", item.FriendName));
+    }
+
+    [Fact]
     public void PreviewProduction_CalculatesNetIncomeAndBuildingBreakdown()
     {
         using var dbContext = CreateDbContext();

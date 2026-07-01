@@ -1,6 +1,7 @@
 using FatCat.Application;
 using FatCat.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 const string CorsPolicyName = "FatCatCors";
@@ -21,6 +22,7 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Services.AddScoped<FatCatGameService>();
+builder.Services.AddSingleton<SocialEventBroker>();
 builder.Services.AddFatCatInfrastructure(builder.Configuration);
 
 var app = builder.Build();
@@ -84,6 +86,55 @@ app.MapPost("/api/social/presence", async (
     return result is null
         ? Results.NotFound(ApiEnvelope<PlayerPresenceDto>.Fail("player_not_found"))
         : Results.Ok(ApiEnvelope<PlayerPresenceDto>.Success(result));
+});
+
+app.MapGet("/api/social/events", async (
+    Guid playerId,
+    HttpContext context,
+    FatCatGameService service,
+    SocialEventBroker eventBroker,
+    CancellationToken cancellationToken) =>
+{
+    if (await service.GetPlayerAsync(playerId, cancellationToken) is null)
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+
+    context.Response.Headers.ContentType = "text/event-stream";
+    context.Response.Headers.CacheControl = "no-cache";
+    context.Response.Headers.Connection = "keep-alive";
+    await context.Response.WriteAsync(": connected\n\n", cancellationToken);
+    await context.Response.Body.FlushAsync(cancellationToken);
+
+    using var subscription = eventBroker.Subscribe(playerId);
+    try
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            var waitForEvent = subscription.Reader.WaitToReadAsync(cancellationToken).AsTask();
+            var keepAlive = Task.Delay(TimeSpan.FromSeconds(15), cancellationToken);
+            var completed = await Task.WhenAny(waitForEvent, keepAlive);
+            if (completed == keepAlive)
+            {
+                await context.Response.WriteAsync(": keepalive\n\n", cancellationToken);
+                await context.Response.Body.FlushAsync(cancellationToken);
+                continue;
+            }
+            if (!await waitForEvent)
+            {
+                break;
+            }
+            while (subscription.Reader.TryRead(out var socialEvent))
+            {
+                await context.Response.WriteAsync($"data: {JsonSerializer.Serialize(socialEvent, JsonSerializerOptions.Web)}\n\n", cancellationToken);
+                await context.Response.Body.FlushAsync(cancellationToken);
+            }
+        }
+    }
+    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+    {
+    }
 });
 
 app.MapGet("/api/resources", async (

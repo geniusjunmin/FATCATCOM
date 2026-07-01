@@ -113,6 +113,10 @@ Invoke-Step "Friend decor contract check" {
     node .\tools\check-friend-decor-contract.js
 }
 
+Invoke-Step "Social realtime contract check" {
+    node .\tools\check-social-realtime-contract.js
+}
+
 Invoke-Step "Friend activity contract check" {
     node .\tools\check-friend-activity-contract.js
 }
