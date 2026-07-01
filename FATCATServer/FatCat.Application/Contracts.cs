@@ -245,6 +245,27 @@ public sealed record DecorPlacementRequest(
     string BuildingId,
     bool IsPlaced);
 
+public sealed record DecorCatalogItemDto(
+    string DecorId,
+    string Name,
+    string Description,
+    string DefaultBuildingId,
+    int Score,
+    string PriceType,
+    int PriceAmount,
+    bool Owned);
+
+public sealed record DecorPurchaseResponse(
+    DecorStateDto Decor,
+    string PriceType,
+    int PricePaid,
+    double CoinBalance,
+    double BeanBalance,
+    double CatFoodBalance,
+    double DiamondBalance,
+    double ResearchPointBalance,
+    long ServerTime);
+
 public sealed record FriendProfileDto(
     bool IsRealPlayer,
     string? PlayerId,

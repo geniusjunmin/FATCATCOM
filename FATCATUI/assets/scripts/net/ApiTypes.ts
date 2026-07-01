@@ -298,6 +298,29 @@ export type DecorPlacementRequest = {
     isPlaced: boolean;
 };
 
+export type DecorCatalogItemDto = {
+    decorId: string;
+    name: string;
+    description: string;
+    defaultBuildingId: string;
+    score: number;
+    priceType: string;
+    priceAmount: number;
+    owned: boolean;
+};
+
+export type DecorPurchaseResponse = {
+    decor: DecorStateDto;
+    priceType: string;
+    pricePaid: number;
+    coinBalance: number;
+    beanBalance: number;
+    catFoodBalance: number;
+    diamondBalance: number;
+    researchPointBalance: number;
+    serverTime: number;
+};
+
 export type FriendActionResponse = {
     friend: FriendDto;
     rewarded: boolean;

@@ -122,6 +122,37 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task PurchaseDecorationAsync_AddsPermanentOwnedDecorAndDeductsOnce()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("decor-shop-device", "Decor Shop"), CancellationToken.None);
+
+        var initialCatalog = await service.GetDecorCatalogAsync(auth.PlayerId, CancellationToken.None);
+        var purchase = await service.PurchaseDecorationAsync(auth.PlayerId, "decor_shop_neon_paw", CancellationToken.None);
+        var duplicate = await service.PurchaseDecorationAsync(auth.PlayerId, "decor_shop_neon_paw", CancellationToken.None);
+        var catalog = await service.GetDecorCatalogAsync(auth.PlayerId, CancellationToken.None);
+
+        Assert.NotNull(initialCatalog);
+        Assert.Equal(6, initialCatalog!.Count);
+        Assert.All(initialCatalog, item => Assert.False(item.Owned));
+        Assert.NotNull(purchase);
+        Assert.Equal("decor_shop_neon_paw", purchase!.Decor.DecorId);
+        Assert.Equal("building_cafe_1f", purchase.Decor.BuildingId);
+        Assert.False(purchase.Decor.IsPlaced);
+        Assert.Equal(58, purchase.Decor.Score);
+        Assert.Equal(28_000, purchase.PricePaid);
+        Assert.Equal(12_422_000, purchase.CoinBalance);
+        Assert.Null(duplicate);
+        Assert.Contains(catalog!, item => item.DecorId == "decor_shop_neon_paw" && item.Owned);
+        Assert.Equal(13, await dbContext.DecorStates.CountAsync(item => item.PlayerId == auth.PlayerId));
+        var transaction = Assert.Single(dbContext.ResourceTransactions.Where(item => item.PlayerId == auth.PlayerId));
+        Assert.Equal("decor_purchase", transaction.SourceType);
+        Assert.Equal("decor_shop_neon_paw", transaction.SourceKey);
+        Assert.Equal(-28_000, transaction.CoinDelta);
+    }
+
+    [Fact]
     public async Task UpgradeCatAsync_DeductsCoinAndWritesTransaction()
     {
         await using var dbContext = CreateDbContext();

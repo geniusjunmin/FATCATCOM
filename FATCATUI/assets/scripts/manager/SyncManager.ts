@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DecorCatalogItemDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -515,6 +515,35 @@ export class SyncManager {
             this.markFailed(response.error ?? "decor_fetch_failed");
             return [];
         }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerDecorCatalog(): Promise<DecorCatalogItemDto[]> {
+        if (!this.canCallServer()) return [];
+        const response = await ApiClient.getDecorCatalog(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "decor_catalog_fetch_failed");
+            return [];
+        }
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async purchaseServerDecoration(decorId: string): Promise<DecorPurchaseResponse | null> {
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.purchaseDecoration(NetworkManager.playerId, decorId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "decor_purchase_failed");
+            return null;
+        }
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, `server_decor_${decorId}`);
         this.markReadyAfterServerCall();
         return response.data;
     }

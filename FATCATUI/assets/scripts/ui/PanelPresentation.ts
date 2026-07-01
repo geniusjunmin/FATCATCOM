@@ -657,6 +657,21 @@ export const DOM_PANEL_STYLES = `
                 margin-top:1.3%;
             }
             #fatcat-dom-panel-overlay .shop-shell .shop-list { gap:1.2%; }
+            #fatcat-dom-panel-overlay .decor-shop-summary {
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+                gap:3%;
+                margin-bottom:1.4%;
+                padding:1.8% 2.8%;
+                border-radius:9px;
+                background:linear-gradient(90deg,#5c3c2a,#76543a);
+                color:#ffe5b1;
+                box-shadow:inset 0 0 0 2px rgba(255,226,169,.12);
+                font-size:2%;
+            }
+            #fatcat-dom-panel-overlay .decor-shop-summary b { font-size:120%; color:#fff4d4; }
+            #fatcat-dom-panel-overlay .decor-shop-summary span { text-align:right; }
             #fatcat-dom-panel-overlay .shop-shell .shop-row {
                 min-height:91px;
                 padding:2.2% 3%;
@@ -677,6 +692,24 @@ export const DOM_PANEL_STYLES = `
                 padding:5% 7%;
                 border-radius:9px;
             }
+            #fatcat-dom-panel-overlay .decor-catalog-row .decor-glyph {
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                aspect-ratio:1;
+                border-radius:9px;
+                background-color:#d7ad70;
+                background-position:center;
+                background-repeat:no-repeat;
+                background-size:145%;
+                box-shadow:inset 0 0 0 2px rgba(90,54,31,.22);
+            }
+            #fatcat-dom-panel-overlay .decor-meta { display:flex; align-items:center; gap:4%; margin-top:2%; }
+            #fatcat-dom-panel-overlay .decor-meta span,
+            #fatcat-dom-panel-overlay .decor-meta strong { padding:1% 3%; border-radius:999px; background:rgba(91,57,31,.10); font-size:83%; }
+            #fatcat-dom-panel-overlay .decor-meta strong { color:#6c8c34; }
+            #fatcat-dom-panel-overlay .decor-catalog-row.owned { opacity:.82; }
+            #fatcat-dom-panel-overlay .decor-catalog-row .tag.owned { background:#756352; color:#f8e3ba; }
             #fatcat-dom-panel-overlay .shop-row.preview { opacity:.94; }
             #fatcat-dom-panel-overlay .shop-row.preview .preview-price {
                 display:inline-flex;
@@ -841,6 +874,10 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay.compact .building-chip span { display:none; }
             #fatcat-dom-panel-overlay.compact .building-chip { min-height:42px; font-size:1.55%; }
             #fatcat-dom-panel-overlay.compact .shop-shell .shop-row { min-height:86px; }
+            #fatcat-dom-panel-overlay.compact .decor-shop-summary { align-items:flex-start; flex-direction:column; font-size:1.8%; }
+            #fatcat-dom-panel-overlay.compact .decor-shop-summary span { text-align:left; }
+            #fatcat-dom-panel-overlay.compact .decor-catalog-row { grid-template-columns:15% 1fr 27%; }
+            #fatcat-dom-panel-overlay.compact .decor-meta { gap:2%; }
             #fatcat-dom-panel-overlay.compact .inventory-shell .bag-card { min-height:82px; }
             #fatcat-dom-panel-overlay.tall .panel-shell { padding-top: 4.8%; padding-bottom: 18.5%; }
             #fatcat-dom-panel-overlay.wide .panel-shell { left: 8%; right: 8%; }

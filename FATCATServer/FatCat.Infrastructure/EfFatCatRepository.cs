@@ -381,17 +381,17 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
             cancellationToken);
     }
 
-    public async Task AddDecorIfMissingAsync(PlayerDecorState decor, CancellationToken cancellationToken)
+    public async Task<bool> AddDecorIfMissingAsync(PlayerDecorState decor, CancellationToken cancellationToken)
     {
         if (dbContext.Database.IsSqlite())
         {
-            await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+            var inserted = await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
                 INSERT OR IGNORE INTO "DecorStates"
                     ("Id", "PlayerId", "DecorKey", "BuildingKey", "Name", "Score", "IsPlaced", "UpdatedAt")
                 VALUES
                     ({decor.Id}, {decor.PlayerId}, {decor.DecorKey}, {decor.BuildingKey}, {decor.Name}, {decor.Score}, {decor.IsPlaced}, {decor.UpdatedAt})
                 """, cancellationToken);
-            return;
+            return inserted > 0;
         }
 
         var exists = await dbContext.DecorStates.AnyAsync(
@@ -401,7 +401,9 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         {
             await dbContext.DecorStates.AddAsync(decor, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
+            return true;
         }
+        return false;
     }
 
     public Task<PlayerResearchState?> GetResearchStateAsync(Guid playerId, string researchKey, CancellationToken cancellationToken)

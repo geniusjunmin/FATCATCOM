@@ -1,5 +1,5 @@
 import { GameConfig } from "../core/GameConfig";
-import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, CreateFriendRequestRequest, DecorPlacementRequest, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
+import { AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, CreateFriendRequestRequest, DecorCatalogItemDto, DecorPlacementRequest, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
 
 export class ApiClient {
     private static _baseUrl: string = GameConfig.apiBaseUrl;
@@ -108,6 +108,14 @@ export class ApiClient {
 
     public static getDecorations(playerId: string): Promise<ApiEnvelope<DecorStateDto[]>> {
         return this.get(`/api/decor?playerId=${encodeURIComponent(playerId)}`);
+    }
+
+    public static getDecorCatalog(playerId: string): Promise<ApiEnvelope<DecorCatalogItemDto[]>> {
+        return this.get(`/api/decor/catalog?playerId=${encodeURIComponent(playerId)}`);
+    }
+
+    public static purchaseDecoration(playerId: string, decorId: string): Promise<ApiEnvelope<DecorPurchaseResponse>> {
+        return this.post(`/api/decor/${encodeURIComponent(decorId)}/purchase?playerId=${encodeURIComponent(playerId)}`, {});
     }
 
     public static updateDecorPlacement(playerId: string, decorId: string, request: DecorPlacementRequest): Promise<ApiEnvelope<DecorStateDto>> {

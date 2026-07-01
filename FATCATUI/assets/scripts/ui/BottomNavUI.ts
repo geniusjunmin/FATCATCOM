@@ -15,7 +15,7 @@ import { NetworkManager } from "../manager/NetworkManager";
 import { SyncManager } from "../manager/SyncManager";
 import { FriendBoostManager } from "../manager/FriendBoostManager";
 import { FriendCoopManager } from "../manager/FriendCoopManager";
-import { DecorStateDto, FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { DecorCatalogItemDto, DecorStateDto, FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
 import { GeneratedBackgroundAssets } from "./UiAssetRegistry";
@@ -184,7 +184,9 @@ export class BottomNavUI extends Component {
     private _selectedResearchId = "res_basic_prod";
     private _serverFriends: FriendDto[] = [];
     private _serverDecorations: DecorStateDto[] = [];
+    private _serverDecorCatalog: DecorCatalogItemDto[] = [];
     private _decorRefreshInFlight = false;
+    private _decorCatalogRefreshInFlight = false;
     private _friendActivities: FriendActivityDto[] = [];
     private _receivedFriendRequests: FriendRequestDto[] = [];
     private _sentFriendRequests: FriendRequestDto[] = [];
@@ -659,6 +661,9 @@ export class BottomNavUI extends Component {
             if (panelId === "buildings") {
                 void this.refreshServerDecorationsForPanel();
             }
+            if (panelId === "shop") {
+                void this.refreshServerDecorCatalogForPanel();
+            }
             this.layoutDomPanelOverlay();
         }
     }
@@ -931,6 +936,17 @@ export class BottomNavUI extends Component {
                 ? await SyncManager.purchaseServerShopItem(id, 1)
                 : null;
             success = serverPurchase ? ShopManager.fulfillServerPurchase(id, serverPurchase.count, serverPurchase.remainingDaily) : ShopManager.buyItem(id);
+        } else if (action === "buyDecor") {
+            const purchase = await SyncManager.purchaseServerDecoration(id);
+            if (purchase) {
+                this.applyServerDecorState(purchase.decor);
+                const catalogItem = this._serverDecorCatalog.find(item => item.decorId === id);
+                if (catalogItem) catalogItem.owned = true;
+                success = true;
+                actionMessageOverride = `${purchase.decor.name} 已收入装饰仓库，可前往建筑页面摆放。`;
+            } else {
+                actionMessageOverride = "购买失败：余额不足、商品已拥有或服务器未连接。";
+            }
         } else if (action === "use") {
             success = InventoryManager.useItem(id);
         } else if (action === "research") {
@@ -1251,6 +1267,7 @@ export class BottomNavUI extends Component {
             if (tab) {
                 this._domShopTab = tab;
                 success = true;
+                if (tab === "deco") void this.refreshServerDecorCatalogForPanel();
             }
         } else if (action === "inventoryTab") {
             const tab = button.dataset.tab as "all" | "resource" | "shard" | "other" | undefined;
@@ -1620,6 +1637,19 @@ export class BottomNavUI extends Component {
             this.renderDomPanel("buildings");
         } finally {
             this._decorRefreshInFlight = false;
+        }
+    }
+
+    private async refreshServerDecorCatalogForPanel(): Promise<void> {
+        if (!NetworkManager.canUseServer || this._decorCatalogRefreshInFlight) return;
+        this._decorCatalogRefreshInFlight = true;
+        try {
+            const catalog = await SyncManager.fetchServerDecorCatalog();
+            if (catalog.length <= 0 || this.currentPanel !== "shop") return;
+            this._serverDecorCatalog = catalog;
+            this.renderDomPanel("shop");
+        } finally {
+            this._decorCatalogRefreshInFlight = false;
         }
     }
 
@@ -2045,11 +2075,34 @@ export class BottomNavUI extends Component {
     }
 
     private renderShopPanel(): string {
+        if (this._domShopTab === "deco") {
+            const rows = this._serverDecorCatalog.length > 0
+                ? this._serverDecorCatalog.map(item => this.renderDecorCatalogRow(item)).join("")
+                : this.renderShopPreviewRows("deco", 4);
+            return `<div class="panel-shell shop-shell"><h2>商店详情</h2><div class="tabs">${SHOP_TABS.map(tab => `<button class="tab ${this._domShopTab === tab.id ? "active" : ""}" data-action="shopTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="decor-shop-summary"><b>工厂装饰馆</b><span>${NetworkManager.canUseServer ? "永久收藏 · 购买后进入对应楼层仓库" : "连接服务器后可购买永久装饰"}</span></div><div class="list shop-list decor-catalog-list">${rows}</div></div>`;
+        }
         const items = ShopManager.getShopItems(this._domShopTab);
         const rows = items.length > 0
             ? items.map(item => this.renderShopRow(item.id)).join("") + this.renderShopPreviewRows(this._domShopTab, Math.max(0, 6 - items.length))
             : this.renderEmptyShopRows(this._domShopTab);
         return `<div class="panel-shell shop-shell"><h2>商店详情</h2><div class="tabs">${SHOP_TABS.map(tab => `<button class="tab ${this._domShopTab === tab.id ? "active" : ""}" data-action="shopTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list shop-list">${rows}</div></div>`;
+    }
+
+    private renderDecorCatalogRow(item: DecorCatalogItemDto): string {
+        const building = BuildingManager.getById(item.defaultBuildingId);
+        const floor = building?.floor ?? "工厂";
+        const sceneArt = this.getFactoryPropDataUri(getBuildingScene(item.defaultBuildingId));
+        const currencyName = item.priceType === "diamond" ? "钻石" : "金币";
+        const icon = item.priceType === "diamond" ? "diamond" : "coin";
+        const cost = item.priceType === "diamond"
+            ? { diamond: item.priceAmount }
+            : { coin: item.priceAmount };
+        const canAfford = ResourceManager.canSpend(cost);
+        const stateClass = item.owned ? "owned" : canAfford ? "" : "locked";
+        const button = item.owned
+            ? `<button class="tag owned" disabled>已拥有</button>`
+            : `<button class="tag ${canAfford ? "" : "warn"}" data-action="buyDecor" data-id="${item.decorId}" ${canAfford ? "" : "disabled"}><span class="price">${this.renderCssIcon(icon)}${this.formatNumber(item.priceAmount)} ${currencyName}</span></button>`;
+        return `<div class="item shop-row decor-catalog-row ${stateClass}"><div class="shop-icon decor-glyph" style="background-image:url('${sceneArt}')"></div><div><b>${item.name}</b><br>${item.description}<div class="decor-meta"><span>${floor}仓库</span><strong>装饰评分 +${item.score}</strong></div></div><div class="buy-zone">${button}</div></div>`;
     }
 
     private renderShopPreviewRows(category: string, count: number): string {

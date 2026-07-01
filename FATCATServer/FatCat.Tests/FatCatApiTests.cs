@@ -252,6 +252,41 @@ public sealed class FatCatApiTests
     }
 
     [Fact]
+    public async Task DecorShop_ExposesCatalogAndPermanentPurchaseContract()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var auth = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-decor-shop-owner",
+            companyName = "Decor Shop",
+        });
+        var playerId = JsonDocument.Parse(await auth.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+
+        var catalogResponse = await client.GetAsync($"/api/decor/catalog?playerId={playerId}");
+        var catalog = JsonDocument.Parse(await catalogResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var purchaseResponse = await client.PostAsJsonAsync($"/api/decor/decor_shop_office_trophy/purchase?playerId={playerId}", new { });
+        var purchase = JsonDocument.Parse(await purchaseResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var duplicate = await client.PostAsJsonAsync($"/api/decor/decor_shop_office_trophy/purchase?playerId={playerId}", new { });
+        var inventoryResponse = await client.GetAsync($"/api/decor?playerId={playerId}");
+        var inventory = JsonDocument.Parse(await inventoryResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+
+        Assert.Equal(HttpStatusCode.OK, catalogResponse.StatusCode);
+        Assert.Equal(6, catalog.GetArrayLength());
+        Assert.All(catalog.EnumerateArray(), item => Assert.False(item.GetProperty("owned").GetBoolean()));
+        Assert.Equal(HttpStatusCode.OK, purchaseResponse.StatusCode);
+        Assert.Equal("decor_shop_office_trophy", purchase.GetProperty("decor").GetProperty("decorId").GetString());
+        Assert.Equal("diamond", purchase.GetProperty("priceType").GetString());
+        Assert.Equal(60, purchase.GetProperty("pricePaid").GetInt32());
+        Assert.Equal(2520, purchase.GetProperty("diamondBalance").GetDouble());
+        Assert.Equal(HttpStatusCode.BadRequest, duplicate.StatusCode);
+        Assert.Equal(13, inventory.GetArrayLength());
+        Assert.Contains(inventory.EnumerateArray(), item =>
+            item.GetProperty("decorId").GetString() == "decor_shop_office_trophy"
+            && !item.GetProperty("isPlaced").GetBoolean());
+    }
+
+    [Fact]
     public async Task SocialProfileAndFriendSearch_ReturnInviteCodeContract()
     {
         await using var factory = new FatCatApiFactory();

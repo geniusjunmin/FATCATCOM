@@ -434,6 +434,29 @@ app.MapGet("/api/decor", async (
         : Results.Ok(ApiEnvelope<IReadOnlyList<DecorStateDto>>.Success(result));
 });
 
+app.MapGet("/api/decor/catalog", async (
+    Guid playerId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.GetDecorCatalogAsync(playerId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<IReadOnlyList<DecorCatalogItemDto>>.Fail("player_not_found"))
+        : Results.Ok(ApiEnvelope<IReadOnlyList<DecorCatalogItemDto>>.Success(result));
+});
+
+app.MapPost("/api/decor/{decorId}/purchase", async (
+    Guid playerId,
+    string decorId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.PurchaseDecorationAsync(playerId, decorId, cancellationToken);
+    return result is null
+        ? Results.BadRequest(ApiEnvelope<DecorPurchaseResponse>.Fail("decor_purchase_failed"))
+        : Results.Ok(ApiEnvelope<DecorPurchaseResponse>.Success(result));
+});
+
 app.MapPost("/api/decor/{decorId}/placement", async (
     Guid playerId,
     string decorId,
