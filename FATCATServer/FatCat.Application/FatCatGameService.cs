@@ -97,7 +97,7 @@ public sealed class FatCatGameService(
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "friend-realtime-events", "friend-production-boost", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "friend-realtime-events", "friend-production-boost", "friend-coop-goal", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -1311,6 +1311,64 @@ public sealed class FatCatGameService(
         return player is null ? null : ToFriendBoostStateDto(player, DateTimeOffset.UtcNow);
     }
 
+    public async Task<FriendCoopGoalDto?> GetFriendCoopGoalAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+        var now = DateTimeOffset.UtcNow;
+        var state = await EnsureCoopGoalStateAsync(playerId, now, cancellationToken);
+        return ToFriendCoopGoalDto(state, now);
+    }
+
+    public async Task<FriendCoopClaimResponse?> ClaimFriendCoopGoalAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var goalDate = ToUtcDate(now);
+        var claimed = await repository.ClaimCoopGoalAsync(playerId, goalDate, FriendCoopGoalTarget, now, cancellationToken);
+        var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
+        if (claimed)
+        {
+            resources.Diamond += FriendCoopGoalRewardDiamond;
+            resources.UpdatedAt = now;
+            await AddResourceTransactionAsync(
+                playerId,
+                "friend_coop_goal",
+                goalDate.ToString(),
+                null,
+                0,
+                0,
+                0,
+                FriendCoopGoalRewardDiamond,
+                0,
+                resources,
+                cancellationToken);
+            await repository.SaveChangesAsync(cancellationToken);
+        }
+
+        var state = await repository.GetCoopGoalStateAsync(playerId, cancellationToken)
+            ?? await EnsureCoopGoalStateAsync(playerId, now, cancellationToken);
+        var goal = claimed
+            ? ToFriendCoopGoalDto(state, now) with { Claimed = true, Claimable = false }
+            : ToFriendCoopGoalDto(state, now);
+        return new FriendCoopClaimResponse(
+            claimed,
+            claimed ? FriendCoopGoalRewardDiamond : 0,
+            goal,
+            resources.Coin,
+            resources.Bean,
+            resources.CatFood,
+            resources.Diamond,
+            resources.ResearchPoint,
+            claimed ? null : goal.Claimed ? "already_claimed" : "goal_not_complete");
+    }
+
     public async Task<FriendHelpResponse?> HelpFriendAsync(Guid playerId, string friendId, CancellationToken cancellationToken)
     {
         await EnsureDefaultFriendsAsync(playerId, cancellationToken);
@@ -1352,6 +1410,12 @@ public sealed class FatCatGameService(
         target.FriendBoostedBy = actor.CompanyName;
         friend.LastHelpAt = now;
         await AddSocialActivityAsync(playerId, "friend_help", friend, cancellationToken);
+        var coopGoal = await repository.IncrementCoopGoalProgressAsync(
+            targetPlayerId,
+            ToUtcDate(now),
+            FriendCoopGoalTarget,
+            now,
+            cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
         await PublishFriendEventAsync(
             playerId,
@@ -1361,7 +1425,10 @@ public sealed class FatCatGameService(
             now,
             cancellationToken,
             target.FriendBoostPercent,
-            target.FriendBoostUntil);
+            target.FriendBoostUntil,
+            coopGoal.Progress,
+            FriendCoopGoalTarget,
+            coopGoal.Progress >= FriendCoopGoalTarget && !coopGoal.IsClaimed);
         return new FriendHelpResponse(
             await ToFriendDtoAsync(friend, cancellationToken),
             true,
@@ -1376,7 +1443,10 @@ public sealed class FatCatGameService(
         DateTimeOffset createdAt,
         CancellationToken cancellationToken,
         int boostPercent = 0,
-        DateTimeOffset? boostEndsAt = null)
+        DateTimeOffset? boostEndsAt = null,
+        int coopProgress = 0,
+        int coopTarget = 0,
+        bool coopClaimable = false)
     {
         if (!TryGetRealFriendPlayerId(friend.FriendKey, out var targetPlayerId))
         {
@@ -1409,7 +1479,10 @@ public sealed class FatCatGameService(
             rewardValue,
             createdAt.ToUnixTimeMilliseconds(),
             boostPercent,
-            boostEndsAt?.ToUnixTimeMilliseconds()));
+            boostEndsAt?.ToUnixTimeMilliseconds(),
+            coopProgress,
+            coopTarget,
+            coopClaimable));
     }
 
     public async Task<IReadOnlyList<FriendActivityDto>?> GetFriendActivitiesAsync(Guid playerId, int limit, CancellationToken cancellationToken)
@@ -2324,6 +2397,49 @@ public sealed class FatCatGameService(
             now.ToUnixTimeMilliseconds());
     }
 
+    private async Task<PlayerCoopGoalState> EnsureCoopGoalStateAsync(
+        Guid playerId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var goalDate = ToUtcDate(now);
+        var state = await repository.GetCoopGoalStateAsync(playerId, cancellationToken);
+        if (state is null)
+        {
+            state = new PlayerCoopGoalState
+            {
+                PlayerId = playerId,
+                GoalDate = goalDate,
+                UpdatedAt = now,
+            };
+            await repository.AddCoopGoalStateAsync(state, cancellationToken);
+            await repository.SaveChangesAsync(cancellationToken);
+        }
+        else if (state.GoalDate != goalDate)
+        {
+            state.GoalDate = goalDate;
+            state.Progress = 0;
+            state.IsClaimed = false;
+            state.UpdatedAt = now;
+            await repository.SaveChangesAsync(cancellationToken);
+        }
+        return state;
+    }
+
+    private static FriendCoopGoalDto ToFriendCoopGoalDto(PlayerCoopGoalState state, DateTimeOffset now)
+    {
+        var progress = Math.Clamp(state.Progress, 0, FriendCoopGoalTarget);
+        return new FriendCoopGoalDto(
+            state.GoalDate,
+            progress,
+            FriendCoopGoalTarget,
+            progress >= FriendCoopGoalTarget && !state.IsClaimed,
+            state.IsClaimed,
+            FriendCoopGoalRewardDiamond,
+            state.UpdatedAt.ToUnixTimeMilliseconds(),
+            now.ToUnixTimeMilliseconds());
+    }
+
     private async Task<FriendProfileDto> BuildFriendProfileAsync(FriendSnapshot friend, CancellationToken cancellationToken)
     {
         if (!TryGetRealFriendPlayerId(friend.FriendKey, out var realPlayerId))
@@ -2766,6 +2882,8 @@ public sealed class FatCatGameService(
     private const int FriendGiftCatFoodReward = 12;
     private const int FriendHelpBoostPercent = 10;
     private const int MaxFriendBoostPercent = 30;
+    private const int FriendCoopGoalTarget = 3;
+    private const int FriendCoopGoalRewardDiamond = 30;
     private static readonly TimeSpan FriendHelpDuration = TimeSpan.FromMinutes(30);
     private sealed record ShopItemDefinition(string ShopItemId, string ItemId, string PriceType, int PriceAmount, int LimitDaily);
     private sealed record ProductionModifiers(

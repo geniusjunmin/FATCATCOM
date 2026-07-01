@@ -843,6 +843,46 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task FriendCoopGoal_AccumulatesUniqueHelpersAndClaimsOnce()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var target = await service.AuthGuestAsync(new AuthGuestRequest("coop-target", "Coop Cafe"), CancellationToken.None);
+        var helpers = new[]
+        {
+            await service.AuthGuestAsync(new AuthGuestRequest("coop-helper-a", "Helper A"), CancellationToken.None),
+            await service.AuthGuestAsync(new AuthGuestRequest("coop-helper-b", "Helper B"), CancellationToken.None),
+            await service.AuthGuestAsync(new AuthGuestRequest("coop-helper-c", "Helper C"), CancellationToken.None),
+        };
+
+        foreach (var helper in helpers)
+        {
+            var friend = await service.AddFriendAsync(
+                helper.PlayerId,
+                new AddFriendRequest(target.PlayerId.ToString("N")),
+                CancellationToken.None);
+            var result = await service.HelpFriendAsync(helper.PlayerId, friend!.Id, CancellationToken.None);
+            Assert.True(result!.Applied);
+        }
+
+        var ready = await service.GetFriendCoopGoalAsync(target.PlayerId, CancellationToken.None);
+        var claimed = await service.ClaimFriendCoopGoalAsync(target.PlayerId, CancellationToken.None);
+        var repeated = await service.ClaimFriendCoopGoalAsync(target.PlayerId, CancellationToken.None);
+
+        Assert.Equal(3, ready!.Progress);
+        Assert.True(ready.Claimable);
+        Assert.True(claimed!.Claimed);
+        Assert.Equal(30, claimed.RewardDiamond);
+        Assert.Equal(2610, claimed.DiamondBalance);
+        Assert.True(claimed.Goal.Claimed);
+        Assert.False(repeated!.Claimed);
+        Assert.Equal("already_claimed", repeated.LimitedReason);
+        var transaction = Assert.Single(dbContext.ResourceTransactions.Where(item =>
+            item.PlayerId == target.PlayerId && item.SourceType == "friend_coop_goal"));
+        Assert.Equal(30, transaction.DiamondDelta);
+    }
+
+    [Fact]
     public void PreviewProduction_CalculatesNetIncomeAndBuildingBreakdown()
     {
         using var dbContext = CreateDbContext();

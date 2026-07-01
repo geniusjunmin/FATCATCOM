@@ -1,13 +1,14 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostStateDto, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
 import { BuildingManager } from "./BuildingManager";
 import { ProductionManager } from "./ProductionManager";
 import { FriendBoostManager } from "./FriendBoostManager";
+import { FriendCoopManager } from "./FriendCoopManager";
 import { ResourceManager } from "./ResourceManager";
 import { CatManager } from "./CatManager";
 import { ResearchManager } from "./ResearchManager";
@@ -88,6 +89,7 @@ export class SyncManager {
         void this.fetchServerLeaderboard();
         void this.touchServerPresence();
         void this.fetchServerFriendBoost();
+        void this.fetchServerFriendCoopGoal();
         this.startSocialEventStream();
         return true;
     }
@@ -115,6 +117,14 @@ export class SyncManager {
                         boostedByName: socialEvent.actorCompanyName,
                         serverTime: socialEvent.createdAt,
                     });
+                    if (socialEvent.coopTarget > 0) {
+                        FriendCoopManager.applyRealtimeProgress(
+                            socialEvent.coopProgress,
+                            socialEvent.coopTarget,
+                            socialEvent.coopClaimable,
+                            socialEvent.createdAt,
+                        );
+                    }
                 }
                 EventBus.emit(GameEvents.SOCIAL_REALTIME_EVENT, socialEvent);
             } catch (error) {
@@ -610,6 +620,42 @@ export class SyncManager {
             return null;
         }
         FriendBoostManager.apply(response.data);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerFriendCoopGoal(): Promise<FriendCoopGoalDto | null> {
+        if (!NetworkManager.canUseServer || !NetworkManager.playerId) {
+            return null;
+        }
+        const response = await ApiClient.getFriendCoopGoal(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "friend_coop_goal_fetch_failed");
+            return null;
+        }
+        FriendCoopManager.apply(response.data);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async claimServerFriendCoopGoal(): Promise<FriendCoopClaimResponse | null> {
+        if (!NetworkManager.canUseServer || !NetworkManager.playerId) {
+            this.setOffline();
+            return null;
+        }
+        const response = await ApiClient.claimFriendCoopGoal(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "friend_coop_goal_claim_failed");
+            return null;
+        }
+        FriendCoopManager.apply(response.data.goal);
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, "server_friend_coop_goal");
         this.markReadyAfterServerCall();
         return response.data;
     }

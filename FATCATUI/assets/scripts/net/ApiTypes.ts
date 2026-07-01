@@ -260,6 +260,9 @@ export type SocialRealtimeEventDto = {
     createdAt: number;
     boostPercent: number;
     boostEndsAt?: number | null;
+    coopProgress: number;
+    coopTarget: number;
+    coopClaimable: boolean;
 };
 
 export type FriendRoomDto = {
@@ -321,6 +324,29 @@ export type FriendHelpResponse = {
     friend: FriendDto;
     applied: boolean;
     boost: FriendBoostStateDto;
+    limitedReason?: string | null;
+};
+
+export type FriendCoopGoalDto = {
+    goalDate: number;
+    progress: number;
+    target: number;
+    claimable: boolean;
+    claimed: boolean;
+    rewardDiamond: number;
+    updatedAt: number;
+    serverTime: number;
+};
+
+export type FriendCoopClaimResponse = {
+    claimed: boolean;
+    rewardDiamond: number;
+    goal: FriendCoopGoalDto;
+    coinBalance: number;
+    beanBalance: number;
+    catFoodBalance: number;
+    diamondBalance: number;
+    researchPointBalance: number;
     limitedReason?: string | null;
 };
 

@@ -267,7 +267,10 @@ public sealed record SocialRealtimeEventDto(
     int RewardValue,
     long CreatedAt,
     int BoostPercent = 0,
-    long? BoostEndsAt = null);
+    long? BoostEndsAt = null,
+    int CoopProgress = 0,
+    int CoopTarget = 0,
+    bool CoopClaimable = false);
 
 public sealed record FriendDto(
     string Id,
@@ -304,6 +307,27 @@ public sealed record FriendHelpResponse(
     FriendDto Friend,
     bool Applied,
     FriendBoostStateDto Boost,
+    string? LimitedReason = null);
+
+public sealed record FriendCoopGoalDto(
+    int GoalDate,
+    int Progress,
+    int Target,
+    bool Claimable,
+    bool Claimed,
+    int RewardDiamond,
+    long UpdatedAt,
+    long ServerTime);
+
+public sealed record FriendCoopClaimResponse(
+    bool Claimed,
+    int RewardDiamond,
+    FriendCoopGoalDto Goal,
+    double CoinBalance,
+    double BeanBalance,
+    double CatFoodBalance,
+    double DiamondBalance,
+    double ResearchPointBalance,
     string? LimitedReason = null);
 
 public sealed record PlayerSocialProfileDto(

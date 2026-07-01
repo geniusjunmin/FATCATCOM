@@ -14,6 +14,7 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
     public DbSet<PlayerFriendRelation> FriendRelations => Set<PlayerFriendRelation>();
     public DbSet<PlayerFriendRequest> FriendRequests => Set<PlayerFriendRequest>();
     public DbSet<PlayerSocialActivity> SocialActivities => Set<PlayerSocialActivity>();
+    public DbSet<PlayerCoopGoalState> CoopGoalStates => Set<PlayerCoopGoalState>();
     public DbSet<PlayerSettings> PlayerSettings => Set<PlayerSettings>();
     public DbSet<PlayerResourceState> ResourceStates => Set<PlayerResourceState>();
     public DbSet<PlayerResourceTransaction> ResourceTransactions => Set<PlayerResourceTransaction>();
@@ -228,6 +229,16 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             );
             """, cancellationToken);
         await Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "CoopGoalStates" (
+                "PlayerId" TEXT NOT NULL CONSTRAINT "PK_CoopGoalStates" PRIMARY KEY,
+                "GoalDate" INTEGER NOT NULL,
+                "Progress" INTEGER NOT NULL,
+                "IsClaimed" INTEGER NOT NULL,
+                "UpdatedAt" TEXT NOT NULL,
+                CONSTRAINT "FK_CoopGoalStates_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
+            );
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
             CREATE INDEX IF NOT EXISTS "IX_SocialActivities_PlayerId_CreatedAt"
             ON "SocialActivities" ("PlayerId", "CreatedAt");
             """, cancellationToken);
@@ -343,6 +354,15 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.HasOne(activity => activity.Player)
                 .WithMany()
                 .HasForeignKey(activity => activity.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlayerCoopGoalState>(entity =>
+        {
+            entity.HasKey(state => state.PlayerId);
+            entity.HasOne(state => state.Player)
+                .WithOne()
+                .HasForeignKey<PlayerCoopGoalState>(state => state.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

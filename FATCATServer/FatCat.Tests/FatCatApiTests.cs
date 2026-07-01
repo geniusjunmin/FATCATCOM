@@ -435,6 +435,53 @@ public sealed class FatCatApiTests
     }
 
     [Fact]
+    public async Task FriendCoopGoal_ClaimsDiamondRewardContract()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var targetAuth = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-coop-target",
+            companyName = "Coop Cafe",
+        });
+        var targetId = JsonDocument.Parse(await targetAuth.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+        var targetKey = $"player:{targetId:N}";
+        for (var index = 0; index < 3; index++)
+        {
+            var helperAuth = await client.PostAsJsonAsync("/api/auth/guest", new
+            {
+                deviceId = $"api-coop-helper-{index}",
+                companyName = $"Helper {index}",
+            });
+            var helperId = JsonDocument.Parse(await helperAuth.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+            await client.PostAsJsonAsync($"/api/friends/add?playerId={helperId}", new
+            {
+                friendPlayerId = targetId.ToString("N"),
+            });
+            await client.PostAsJsonAsync(
+                $"/api/friends/{Uri.EscapeDataString(targetKey)}/help?playerId={helperId}",
+                new {});
+        }
+
+        var goalResponse = await client.GetAsync($"/api/social/coop-goal?playerId={targetId}");
+        var goal = JsonDocument.Parse(await goalResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var claimResponse = await client.PostAsJsonAsync($"/api/social/coop-goal/claim?playerId={targetId}", new {});
+        var claim = JsonDocument.Parse(await claimResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var repeatedResponse = await client.PostAsJsonAsync($"/api/social/coop-goal/claim?playerId={targetId}", new {});
+        var repeated = JsonDocument.Parse(await repeatedResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+
+        Assert.Equal(HttpStatusCode.OK, goalResponse.StatusCode);
+        Assert.Equal(3, goal.GetProperty("progress").GetInt32());
+        Assert.True(goal.GetProperty("claimable").GetBoolean());
+        Assert.Equal(HttpStatusCode.OK, claimResponse.StatusCode);
+        Assert.True(claim.GetProperty("claimed").GetBoolean());
+        Assert.Equal(30, claim.GetProperty("rewardDiamond").GetInt32());
+        Assert.Equal(2610, claim.GetProperty("diamondBalance").GetDouble());
+        Assert.False(repeated.GetProperty("claimed").GetBoolean());
+        Assert.Equal("already_claimed", repeated.GetProperty("limitedReason").GetString());
+    }
+
+    [Fact]
     public async Task SocialEventStream_PushesFriendVisitContract()
     {
         await using var factory = new FatCatApiFactory();

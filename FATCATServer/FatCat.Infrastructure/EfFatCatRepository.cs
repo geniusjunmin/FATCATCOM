@@ -177,6 +177,103 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
             .ToList();
     }
 
+    public Task<PlayerCoopGoalState?> GetCoopGoalStateAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        return dbContext.CoopGoalStates.FirstOrDefaultAsync(state => state.PlayerId == playerId, cancellationToken);
+    }
+
+    public async Task AddCoopGoalStateAsync(PlayerCoopGoalState state, CancellationToken cancellationToken)
+    {
+        await dbContext.CoopGoalStates.AddAsync(state, cancellationToken);
+    }
+
+    public async Task<PlayerCoopGoalState> IncrementCoopGoalProgressAsync(
+        Guid playerId,
+        int goalDate,
+        int goalTarget,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        if (dbContext.Database.IsSqlite())
+        {
+            await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO "CoopGoalStates" ("PlayerId", "GoalDate", "Progress", "IsClaimed", "UpdatedAt")
+                VALUES ({playerId}, {goalDate}, 1, 0, {now})
+                ON CONFLICT ("PlayerId") DO UPDATE SET
+                    "GoalDate" = {goalDate},
+                    "Progress" = CASE
+                        WHEN "GoalDate" = {goalDate} THEN MIN("Progress" + 1, {goalTarget})
+                        ELSE 1
+                    END,
+                    "IsClaimed" = CASE WHEN "GoalDate" = {goalDate} THEN "IsClaimed" ELSE 0 END,
+                    "UpdatedAt" = {now};
+                """, cancellationToken);
+            return await dbContext.CoopGoalStates
+                .AsNoTracking()
+                .SingleAsync(state => state.PlayerId == playerId, cancellationToken);
+        }
+
+        var state = await GetCoopGoalStateAsync(playerId, cancellationToken);
+        if (state is null)
+        {
+            state = new PlayerCoopGoalState
+            {
+                PlayerId = playerId,
+                GoalDate = goalDate,
+                Progress = 1,
+                UpdatedAt = now,
+            };
+            await AddCoopGoalStateAsync(state, cancellationToken);
+        }
+        else
+        {
+            if (state.GoalDate != goalDate)
+            {
+                state.GoalDate = goalDate;
+                state.Progress = 0;
+                state.IsClaimed = false;
+            }
+            state.Progress = Math.Min(goalTarget, state.Progress + 1);
+            state.UpdatedAt = now;
+        }
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return state;
+    }
+
+    public async Task<bool> ClaimCoopGoalAsync(
+        Guid playerId,
+        int goalDate,
+        int goalTarget,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        if (!dbContext.Database.IsRelational())
+        {
+            var state = await GetCoopGoalStateAsync(playerId, cancellationToken);
+            if (state is null
+                || state.GoalDate != goalDate
+                || state.Progress < goalTarget
+                || state.IsClaimed)
+            {
+                return false;
+            }
+            state.IsClaimed = true;
+            state.UpdatedAt = now;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
+        var updated = await dbContext.CoopGoalStates
+            .Where(state => state.PlayerId == playerId
+                && state.GoalDate == goalDate
+                && state.Progress >= goalTarget
+                && !state.IsClaimed)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(state => state.IsClaimed, true)
+                .SetProperty(state => state.UpdatedAt, now), cancellationToken);
+        return updated == 1;
+    }
+
     public Task<PlayerSettings?> GetSettingsAsync(Guid playerId, CancellationToken cancellationToken)
     {
         return dbContext.PlayerSettings.FirstOrDefaultAsync(settings => settings.PlayerId == playerId, cancellationToken);

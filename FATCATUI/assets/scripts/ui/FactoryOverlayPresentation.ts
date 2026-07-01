@@ -311,6 +311,8 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
             #fatcat-dom-factory .friend-boost-banner { position:absolute; z-index:8; left:50%; top:9.4%; transform:translateX(-50%); min-width:31%; min-height:4.2%; padding:.55% 2.2%; box-sizing:border-box; border-radius:999px; border:2px solid #e9c66f; background:linear-gradient(90deg,rgba(42,76,31,.96),rgba(79,133,48,.96)); color:#fff7d4; box-shadow:0 4px 0 rgba(32,42,22,.35),inset 0 0 0 2px rgba(255,245,188,.12); display:flex; justify-content:center; align-items:center; gap:5%; pointer-events:none; }
             #fatcat-dom-factory .friend-boost-banner b { font-size:1.75%; white-space:nowrap; }
             #fatcat-dom-factory .friend-boost-banner span { font-size:1.35%; white-space:nowrap; color:#e8f6cf; }
+            #fatcat-dom-factory .friend-boost-banner em { font-style:normal; font-size:1.35%; font-weight:900; white-space:nowrap; padding:.2em .7em; border-radius:999px; background:rgba(25,48,19,.52); }
+            #fatcat-dom-factory .friend-boost-banner em.ready { color:#fff3a3; box-shadow:inset 0 0 0 1px #f0cc59; }
             #fatcat-dom-factory .notice-head { display:grid; grid-template-columns:22% 1fr; gap:4%; align-items:center; margin-bottom:4%; font-weight:900; }
             #fatcat-dom-factory .notice-icon { position:relative; width:100%; aspect-ratio:1; border-radius:14px; background:linear-gradient(#fff8dc,#d8a65a); box-shadow:inset 0 0 0 2px rgba(95,60,30,.2), 0 3px 0 rgba(85,52,26,.22); }
             #fatcat-dom-factory .notice-icon.asset { background:center/cover no-repeat; }

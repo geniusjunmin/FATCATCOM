@@ -28,6 +28,10 @@ public interface IFatCatRepository
     Task AddFriendRequestAsync(PlayerFriendRequest request, CancellationToken cancellationToken);
     Task AddSocialActivityAsync(PlayerSocialActivity activity, CancellationToken cancellationToken);
     Task<List<PlayerSocialActivity>> GetSocialActivitiesAsync(Guid playerId, int limit, CancellationToken cancellationToken);
+    Task<PlayerCoopGoalState?> GetCoopGoalStateAsync(Guid playerId, CancellationToken cancellationToken);
+    Task AddCoopGoalStateAsync(PlayerCoopGoalState state, CancellationToken cancellationToken);
+    Task<PlayerCoopGoalState> IncrementCoopGoalProgressAsync(Guid playerId, int goalDate, int goalTarget, DateTimeOffset now, CancellationToken cancellationToken);
+    Task<bool> ClaimCoopGoalAsync(Guid playerId, int goalDate, int goalTarget, DateTimeOffset now, CancellationToken cancellationToken);
     Task<PlayerSettings?> GetSettingsAsync(Guid playerId, CancellationToken cancellationToken);
     Task SetSettingsAsync(PlayerSettings settings, CancellationToken cancellationToken);
     Task<PlayerResourceState?> GetResourceStateAsync(Guid playerId, CancellationToken cancellationToken);
