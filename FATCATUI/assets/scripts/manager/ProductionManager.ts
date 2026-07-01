@@ -5,6 +5,7 @@ import { ResourceManager } from "./ResourceManager";
 import { ResearchManager } from "./ResearchManager";
 import { ResearchEffectType } from "../model/ResearchModel";
 import { SaveManager } from "./SaveManager";
+import { FriendBoostManager } from "./FriendBoostManager";
 
 export interface ProductionSnapshot {
     coinPerSecond: number;
@@ -46,7 +47,7 @@ export class ProductionManager {
         const beanReduceBuilding = Math.max(0, -BuildingManager.getEffectValue("ferment_efficiency"));
         const beanReduceResearch = ResearchManager.getBonus(ResearchEffectType.BEAN_CONSUMPTION_REDUCE);
         
-        const coinMultiplier = productionBonus * priceBonus * orderBonus * globalBonus;
+        const coinMultiplier = productionBonus * priceBonus * orderBonus * globalBonus * FriendBoostManager.getProductionMultiplier();
         const beanMultiplier = Math.max(0.1, 1 - (beanReduceBuilding + beanReduceResearch) / 100);
         const buildingCoinPerSecond: Record<string, number> = {};
         const buildingGrossCoinPerSecond: Record<string, number> = {};

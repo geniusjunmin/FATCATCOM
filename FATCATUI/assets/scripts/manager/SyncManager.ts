@@ -1,12 +1,13 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendDto, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostStateDto, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
 import { BuildingManager } from "./BuildingManager";
 import { ProductionManager } from "./ProductionManager";
+import { FriendBoostManager } from "./FriendBoostManager";
 import { ResourceManager } from "./ResourceManager";
 import { CatManager } from "./CatManager";
 import { ResearchManager } from "./ResearchManager";
@@ -86,6 +87,7 @@ export class SyncManager {
         void this.fetchServerFriendActivities();
         void this.fetchServerLeaderboard();
         void this.touchServerPresence();
+        void this.fetchServerFriendBoost();
         this.startSocialEventStream();
         return true;
     }
@@ -105,6 +107,15 @@ export class SyncManager {
         source.onmessage = (event) => {
             try {
                 const socialEvent = JSON.parse(event.data) as SocialRealtimeEventDto;
+                if (socialEvent.eventType === "friend_help" && socialEvent.boostEndsAt) {
+                    FriendBoostManager.apply({
+                        active: true,
+                        boostPercent: socialEvent.boostPercent,
+                        boostEndsAt: socialEvent.boostEndsAt,
+                        boostedByName: socialEvent.actorCompanyName,
+                        serverTime: socialEvent.createdAt,
+                    });
+                }
                 EventBus.emit(GameEvents.SOCIAL_REALTIME_EVENT, socialEvent);
             } catch (error) {
                 console.warn("[SyncManager] Invalid realtime social event.", error);
@@ -589,6 +600,20 @@ export class SyncManager {
         return response.data;
     }
 
+    public static async fetchServerFriendBoost(): Promise<FriendBoostStateDto | null> {
+        if (!NetworkManager.canUseServer || !NetworkManager.playerId) {
+            return null;
+        }
+        const response = await ApiClient.getFriendBoost(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "friend_boost_fetch_failed");
+            return null;
+        }
+        FriendBoostManager.apply(response.data);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
     public static async addServerFriend(friendQuery: string): Promise<FriendDto | null> {
         if (!NetworkManager.canUseServer) {
             this.setOffline();
@@ -714,6 +739,24 @@ export class SyncManager {
             return null;
         }
         this.applyFriendActionResources(response.data, `server_friend_gift_${friendId}`);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async helpServerFriend(friendId: string): Promise<FriendHelpResponse | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.helpFriend(NetworkManager.playerId, friendId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "friend_help_failed");
+            return null;
+        }
         this.markReadyAfterServerCall();
         return response.data;
     }

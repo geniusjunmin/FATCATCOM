@@ -8,6 +8,9 @@ public sealed class PlayerProfile
     public int Level { get; set; } = 1;
     public int Exp { get; set; }
     public int ExpToNext { get; set; } = 3200;
+    public int FriendBoostPercent { get; set; }
+    public DateTimeOffset? FriendBoostUntil { get; set; }
+    public string FriendBoostedBy { get; set; } = "";
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

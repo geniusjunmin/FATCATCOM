@@ -83,9 +83,9 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         {
             await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
                 INSERT OR IGNORE INTO "FriendSnapshots"
-                    ("Id", "PlayerId", "FriendKey", "Name", "Level", "IncomePerSecond")
+                    ("Id", "PlayerId", "FriendKey", "Name", "Level", "IncomePerSecond", "LastHelpAt")
                 VALUES
-                    ({friend.Id}, {friend.PlayerId}, {friend.FriendKey}, {friend.Name}, {friend.Level}, {friend.IncomePerSecond})
+                    ({friend.Id}, {friend.PlayerId}, {friend.FriendKey}, {friend.Name}, {friend.Level}, {friend.IncomePerSecond}, {friend.LastHelpAt})
                 """, cancellationToken);
             return;
         }

@@ -13,6 +13,7 @@ import { ShopManager } from "../manager/ShopManager";
 import { TaskManager } from "../manager/TaskManager";
 import { NetworkManager } from "../manager/NetworkManager";
 import { SyncManager } from "../manager/SyncManager";
+import { FriendBoostManager } from "../manager/FriendBoostManager";
 import { DecorStateDto, FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
@@ -116,6 +117,7 @@ type FriendPanelRow = {
     status: string;
     profile?: FriendProfileDto;
     rooms?: FriendRoomDto[];
+    lastHelpAt?: number;
 };
 
 export const MainPanelEvents = {
@@ -191,7 +193,7 @@ export class BottomNavUI extends Component {
     private _serverLeaderboard: LeaderboardDto | null = null;
     private _selectedFriendSnapshotId = "";
     private _friendVisitSceneId = "";
-    private _friendVisitReport: { friendId: string; kind: "visit" | "gift"; rewardText: string; statusText: string; updatedAt: number } | null = null;
+    private _friendVisitReport: { friendId: string; kind: "visit" | "gift" | "help"; rewardText: string; statusText: string; updatedAt: number } | null = null;
     private _friendRefreshInFlight = false;
     private _friendProfileRefreshInFlight = false;
     private _friendActivityRefreshInFlight = false;
@@ -322,9 +324,11 @@ export class BottomNavUI extends Component {
 
     private onSocialRealtimeEvent = (socialEvent: SocialRealtimeEventDto): void => {
         this._latestSocialEvent = socialEvent;
-        const message = socialEvent.eventType === "friend_gift"
-            ? `${socialEvent.actorCompanyName} 给你送来一份猫粮礼物`
-            : `${socialEvent.actorCompanyName} 正在访问你的咖啡工厂`;
+        const message = socialEvent.eventType === "friend_help"
+            ? `${socialEvent.actorCompanyName} 为工厂助力，生产效率 +${socialEvent.boostPercent}%`
+            : socialEvent.eventType === "friend_gift"
+                ? `${socialEvent.actorCompanyName} 给你送来一份猫粮礼物`
+                : `${socialEvent.actorCompanyName} 正在访问你的咖啡工厂`;
         this.showFactoryNotice(message, "friend");
         if (this.currentPanel === "friends") {
             void this.refreshFriendActivitiesForPanel();
@@ -725,6 +729,7 @@ export class BottomNavUI extends Component {
         const overlay = this.ensureDomFactoryOverlay();
         if (!overlay) return;
         const snapshot = ProductionManager.calculateSnapshot();
+        const friendBoost = FriendBoostManager.getState();
         void this.refreshFriendRequestBadgeForFactory();
         const pendingFriendRequests = this.getPendingFriendRequestCount();
         const floors = MAIN_FACTORY_FLOORS.map(floor => ({
@@ -757,6 +762,7 @@ export class BottomNavUI extends Component {
                 <button class="gift" data-action="gift"><span class="gift-cat asset" style="background-image:url('${this.getCatFullArtAsset("c_005")}')"></span><span><b>超级猫粮礼包</b><br><em>03:25:15</em></span></button>
             </div>
             <div class="launch-count">今日剩余次数：5/5</div>
+            ${friendBoost.active ? `<div class="friend-boost-banner"><b>好友助力 +${friendBoost.boostPercent}%</b><span>${friendBoost.boostedByName} · 剩余 ${Math.max(1, Math.ceil(((friendBoost.boostEndsAt ?? Date.now()) - Date.now()) / 60000))} 分钟</span></div>` : ""}
             ${this._factoryMessage ? `<div class="factory-msg">${this._factoryMessage}</div>` : ""}
             ${this.renderFactoryNoticeCard()}
             ${!snapshot.canProduce ? `<div class="factory-msg" style="top:13%;left:31%;width:38%">咖啡豆不足，生产暂停</div>` : ""}
@@ -802,7 +808,7 @@ export class BottomNavUI extends Component {
             data.rows = this._latestSocialEvent
                 ? [
                     ["互动玩家", this._latestSocialEvent.actorCompanyName],
-                    ["互动类型", this._latestSocialEvent.eventType === "friend_gift" ? "送来礼物" : "访问工厂"],
+                    ["互动类型", this._latestSocialEvent.eventType === "friend_help" ? `生产助力 +${this._latestSocialEvent.boostPercent}%` : this._latestSocialEvent.eventType === "friend_gift" ? "送来礼物" : "访问工厂"],
                     ["发生时间", this.formatFriendReportTime(this._latestSocialEvent.createdAt)],
                 ]
                 : [["待处理申请", `${pendingFriendRequests}`], ["已发送申请", `${sentFriendRequests}`], ["好友互动", "访问/送礼"]];
@@ -1061,6 +1067,33 @@ export class BottomNavUI extends Component {
                     updatedAt: Date.now(),
                 };
                 success = true;
+            }
+        } else if (action === "helpFriend") {
+            this._selectedFriendSnapshotId = id;
+            this._friendVisitSceneId = id;
+            const response = NetworkManager.canUseServer
+                ? await SyncManager.helpServerFriend(id)
+                : null;
+            if (response) {
+                this.applyServerFriendSnapshot(response.friend);
+                this._friendVisitReport = {
+                    friendId: id,
+                    kind: "help",
+                    rewardText: response.applied ? `生产 +${response.boost.boostPercent}%` : "今日已助力",
+                    statusText: response.applied
+                        ? `助力生效 30 分钟`
+                        : response.limitedReason === "real_friend_required" ? "仅真实玩家好友可助力" : "今日助力次数已使用",
+                    updatedAt: Date.now(),
+                };
+                this._domPanelMessage = response.applied
+                    ? `好友助力成功：对方生产效率 +${response.boost.boostPercent}%。`
+                    : "好友助力未生效：今日已助力或目标不是玩家好友。";
+                void this.refreshFriendActivitiesForPanel();
+                success = true;
+            } else {
+                this._domPanelMessage = NetworkManager.canUseServer
+                    ? "好友助力失败，请检查网络连接。"
+                    : "好友助力需要连接服务器。";
             }
         } else if (action === "addFriend") {
             const friendPlayerId = typeof window !== "undefined"
@@ -1354,8 +1387,9 @@ export class BottomNavUI extends Component {
         const rowsNew = friends.map((friend, index) => {
             const lastVisit = this.getFeatureTimestamp("friendVisits", friend.id);
             const lastGift = this.getFeatureTimestamp("friendGifts", friend.id);
+            const lastHelp = friend.lastHelpAt ? this.formatFriendReportTime(friend.lastHelpAt) : "";
             const width = Math.max(8, Math.min(100, Math.floor(friend.income / maxIncome * 100)));
-            return `<div class="feature-card friend-card"><span class="friend-avatar"><i class="friend-rank">#${index + 1}</i></span><div class="friend-copy"><b>${friend.name}</b><em>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒</em>${this.renderFriendProfileMeta(friend)}<div class="friend-income"><i style="width:${width}%"></i></div><div class="friend-states"><span>${friend.status}</span><span>${lastVisit ? `访问 ${lastVisit}` : "待访问"}</span><span>${lastGift ? `送礼 ${lastGift}` : "可送礼"}</span></div></div><div class="friend-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问工厂</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再次送礼" : "赠送猫粮"}</button></div></div>`;
+            return `<div class="feature-card friend-card"><span class="friend-avatar"><i class="friend-rank">#${index + 1}</i></span><div class="friend-copy"><b>${friend.name}</b><em>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒</em>${this.renderFriendProfileMeta(friend)}<div class="friend-income"><i style="width:${width}%"></i></div><div class="friend-states"><span>${friend.status}</span><span>${lastVisit ? `访问 ${lastVisit}` : "待访问"}</span><span>${lastGift ? `送礼 ${lastGift}` : "可送礼"}</span><span>${lastHelp ? `助力 ${lastHelp}` : friend.profile?.isRealPlayer ? "可助力" : "玩家好友限定"}</span></div></div><div class="friend-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问工厂</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再次送礼" : "赠送猫粮"}</button><button class="tag boost" data-action="helpFriend" data-id="${friend.id}" ${friend.profile?.isRealPlayer ? "" : "disabled"}>${lastHelp ? "今日已助力" : "生产助力"}</button></div></div>`;
         }).join("");
         return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendVisitScene(friends)}${this.renderFriendVisitReport(friends)}${this.renderFriendFactoryDetail(friends)}${this.renderFriendSnapshotCard(friends, maxIncome)}<div class="feature-list">${rowsNew}</div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
     }
@@ -1370,7 +1404,7 @@ export class BottomNavUI extends Component {
         const floors = this.getFriendRoomRows(selected).slice(0, 3)
             .map(room => `<div class="snapshot-floor"><i>${room.floor}</i><b>${room.name}</b><em>${this.formatNumber(room.production)}/秒</em></div>`)
             .join("");
-        return `<div class="friend-snapshot-card"><div class="snapshot-head"><span class="friend-avatar"><i class="friend-rank">工厂</i></span><div class="snapshot-copy"><b>${selected.name} 工厂快照</b><em>Lv.${selected.level} · 收益 ${this.formatNumber(selected.income)}/秒 · ${selected.status}</em>${this.renderFriendProfileMeta(selected)}<div class="snapshot-meter"><i style="width:${width}%"></i></div></div><div class="snapshot-action"><button class="tag" data-action="visitFriend" data-id="${selected.id}">访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${selected.id}">送礼</button></div></div><div class="snapshot-stats"><span>访问奖励<b>+${this.formatNumber(rewardPreview)}金币</b></span><span>最近访问<b>${lastVisit}</b></span><span>礼物状态<b>${lastGift}</b></span></div><div class="snapshot-floors">${floors}</div></div>`;
+        return `<div class="friend-snapshot-card"><div class="snapshot-head"><span class="friend-avatar"><i class="friend-rank">工厂</i></span><div class="snapshot-copy"><b>${selected.name} 工厂快照</b><em>Lv.${selected.level} · 收益 ${this.formatNumber(selected.income)}/秒 · ${selected.status}</em>${this.renderFriendProfileMeta(selected)}<div class="snapshot-meter"><i style="width:${width}%"></i></div></div><div class="snapshot-action"><button class="tag" data-action="visitFriend" data-id="${selected.id}">访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${selected.id}">送礼</button><button class="tag boost" data-action="helpFriend" data-id="${selected.id}" ${selected.profile?.isRealPlayer ? "" : "disabled"}>助力</button></div></div><div class="snapshot-stats"><span>访问奖励<b>+${this.formatNumber(rewardPreview)}金币</b></span><span>最近访问<b>${lastVisit}</b></span><span>礼物状态<b>${lastGift}</b></span></div><div class="snapshot-floors">${floors}</div></div>`;
     }
 
     private renderFriendVisitReport(friends: FriendPanelRow[]): string {
@@ -1378,11 +1412,11 @@ export class BottomNavUI extends Component {
         if (!report) return "";
         const friend = friends.find(item => item.id === report.friendId);
         if (!friend) return "";
-        const actionLabel = report.kind === "gift" ? "送礼报告" : "访问报告";
+        const actionLabel = report.kind === "help" ? "助力报告" : report.kind === "gift" ? "送礼报告" : "访问报告";
         const floorRows = this.getFriendRoomRows(friend).slice(0, 3)
             .map(room => `<span>${room.floor}<em>${this.formatNumber(room.production)}/秒</em></span>`)
             .join("");
-        return `<div class="friend-visit-report"><div class="visit-report-head"><span class="visit-report-badge">${report.kind === "gift" ? "礼" : "访"}</span><div class="visit-report-copy"><b>${friend.name} ${actionLabel}</b><em>${report.statusText} · ${this.formatFriendReportTime(report.updatedAt)}</em></div><button class="visit-report-close" data-action="closeFriendVisitReport">×</button></div><div class="visit-report-grid"><span>互动奖励<b>${report.rewardText}</b></span><span>好友收益<b>${this.formatNumber(friend.income)}/秒</b></span></div><div class="visit-report-floors">${floorRows}</div><div class="visit-report-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">再次访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button></div></div>`;
+        return `<div class="friend-visit-report"><div class="visit-report-head"><span class="visit-report-badge">${report.kind === "help" ? "助" : report.kind === "gift" ? "礼" : "访"}</span><div class="visit-report-copy"><b>${friend.name} ${actionLabel}</b><em>${report.statusText} · ${this.formatFriendReportTime(report.updatedAt)}</em></div><button class="visit-report-close" data-action="closeFriendVisitReport">×</button></div><div class="visit-report-grid"><span>互动奖励<b>${report.rewardText}</b></span><span>好友收益<b>${this.formatNumber(friend.income)}/秒</b></span></div><div class="visit-report-floors">${floorRows}</div><div class="visit-report-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">再次访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button><button class="tag boost" data-action="helpFriend" data-id="${friend.id}" ${friend.profile?.isRealPlayer ? "" : "disabled"}>生产助力</button></div></div>`;
     }
 
     private renderFriendFactoryDetail(friends: FriendPanelRow[]): string {
@@ -1416,7 +1450,7 @@ export class BottomNavUI extends Component {
         const floorRows = rooms.slice(0, 6)
             .map((room, index) => `<div class="friend-scene-floor"><i>${room.floor}</i><span class="room-thumb asset" style="background-image:url('${this.getFactoryPropDataUri(room.scene)}')"></span><b>${room.name}<small>Lv.${room.level} · ${room.featuredCatName} · 猫 ${room.assignedCatCount}</small><span class="room-cats">${this.renderFriendRoomCats(room.assignedCatCount, index)}</span>${this.renderFriendDecorTags(room.decorations)}</b><em>${this.formatNumber(room.production)}/秒</em></div>`)
             .join("");
-        return `<div class="friend-visit-scene" style="--friend-factory-art:url('${this.getDomAssetDataUri(GeneratedBackgroundAssets.factoryCutaway)}')"><div class="friend-scene-head"><span class="friend-avatar"><i class="friend-rank">VISIT</i></span><div><b>${friend.name} 访问中</b><em>公司 Lv.${friend.level} · ${friend.status} · ${rooms.length} 个楼层</em>${this.renderFriendProfileMeta(friend)}</div><button class="friend-scene-close" data-action="closeFriendVisitScene">×</button></div><div class="friend-scene-stage"><div class="friend-scene-building">${floorRows}</div><div class="friend-scene-side"><div class="friend-scene-mascot"><i style="background-image:url('${this.getCatFullArtAsset("c_001")}')"></i><b>访客猫</b><small>正在巡楼</small></div><span>总收益<b>${this.formatNumber(friend.income)}/秒</b></span><span>房间合计<b>${this.formatNumber(roomTotal)}/秒</b></span><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>值班房间<b>${staffedRooms}/${rooms.length}</b></span><span>装饰评分<b>${this.formatNumber(decorTotal)}</b></span></div></div><div class="friend-scene-reward"><span>访问奖励<b>+${this.formatNumber(rewardPreview)} 金币</b></span><span>上次访问<b>${lastVisit}</b></span><span>礼物状态<b>${lastGift}</b></span></div><div class="friend-scene-actions"><button class="tag" data-action="refreshFriendProfile" data-id="${friend.id}">同步资料</button><button class="tag" data-action="visitFriend" data-id="${friend.id}">领取访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button><button class="tag" data-action="closeFriendVisitScene">返回列表</button></div></div>`;
+        return `<div class="friend-visit-scene" style="--friend-factory-art:url('${this.getDomAssetDataUri(GeneratedBackgroundAssets.factoryCutaway)}')"><div class="friend-scene-head"><span class="friend-avatar"><i class="friend-rank">VISIT</i></span><div><b>${friend.name} 访问中</b><em>公司 Lv.${friend.level} · ${friend.status} · ${rooms.length} 个楼层</em>${this.renderFriendProfileMeta(friend)}</div><button class="friend-scene-close" data-action="closeFriendVisitScene">×</button></div><div class="friend-scene-stage"><div class="friend-scene-building">${floorRows}</div><div class="friend-scene-side"><div class="friend-scene-mascot"><i style="background-image:url('${this.getCatFullArtAsset("c_001")}')"></i><b>访客猫</b><small>正在巡楼</small></div><span>总收益<b>${this.formatNumber(friend.income)}/秒</b></span><span>房间合计<b>${this.formatNumber(roomTotal)}/秒</b></span><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>值班房间<b>${staffedRooms}/${rooms.length}</b></span><span>装饰评分<b>${this.formatNumber(decorTotal)}</b></span></div></div><div class="friend-scene-reward"><span>访问奖励<b>+${this.formatNumber(rewardPreview)} 金币</b></span><span>上次访问<b>${lastVisit}</b></span><span>礼物状态<b>${lastGift}</b></span></div><div class="friend-scene-actions"><button class="tag" data-action="refreshFriendProfile" data-id="${friend.id}">同步资料</button><button class="tag" data-action="visitFriend" data-id="${friend.id}">领取访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button><button class="tag boost" data-action="helpFriend" data-id="${friend.id}" ${friend.profile?.isRealPlayer ? "" : "disabled"}>生产助力</button><button class="tag" data-action="closeFriendVisitScene">返回列表</button></div></div>`;
     }
 
     private renderFriendProfileMeta(friend: FriendPanelRow): string {
@@ -1535,6 +1569,7 @@ export class BottomNavUI extends Component {
                 status: "在线数据",
                 profile: friend.profile,
                 rooms: friend.rooms,
+                lastHelpAt: friend.lastHelpAt,
             }));
         }
         return [

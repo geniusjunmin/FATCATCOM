@@ -7,7 +7,7 @@ Updated: 2026-07-01
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Continue visual fidelity with final main/cat proportion tuning and richer generated/Cocos-managed art depth; social next move is richer cooperative interactions or expanded decor acquisition. |
+| Best Next Move | Continue visual fidelity with final main/cat proportion tuning and richer generated/Cocos-managed art depth; social next move is boost stacking feedback, cooperative goals, or expanded decor acquisition. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -80,6 +80,7 @@ Updated: 2026-07-01
 - Latest friend-decor pass adds persistent `PlayerDecorState` inventory, runtime SQLite schema/indexes, and twelve atomic default decoration records across six floors. `FriendRoomDto.decorations` now carries actual placed items; room decor scores are the sum of those items instead of a building-level estimate. Factory detail and visit scenes render compact item/score tags, with online and 430/360/768 regressions covering the full path.
 - Latest owner-decor pass adds `/api/decor` plus `/api/decor/{decorId}/placement`, client sync helpers, and a responsive building-detail decor manager. Players can withdraw and replace each floor's items; server validation rejects unknown buildings, and friend snapshots immediately reflect moved/hidden decor. A real 414x896 browser run verifies two successful state transitions with clean client/server logs.
 - Latest realtime-social pass adds a fan-out `SocialEventBroker`, `/api/social/events` SSE stream with keepalive, and client `EventSource` lifecycle management. Rewarded visits and gifts push instantly to the target player's factory notification card at 360x800. Incoming events are also persisted as `friend_visited_by` and `friend_gift_received`, so reconnecting players retain history.
+- Latest cooperative-help pass adds one daily production assist per real friend. The server persists a 30-minute `+10%` boost (stacking to `+30%`), applies it to authoritative previews and launch settlement, publishes it over SSE, and restores it through `/api/social/boost`. The client applies the same multiplier locally, exposes help actions throughout the friend surface, and renders a contained factory boost banner.
 - Building, shop, inventory, research, task, achievement, mail, friend, and settings panels are clickable.
 - Screenshot regression exists for 414x896, 430x932, 360x800, and 768x1024 on the main screen and cat page.
 - Latest feature-panel code-health pass extracts static settings, task milestone, shop tab/catalog, inventory tab/preview, and research-tree presentation data into `FeaturePanelPresentation.ts`. `BottomNavUI.ts` now delegates those values while keeping live state and action rendering local, guarded by `tools/check-feature-panel-presentation-contract.js`.
@@ -216,8 +217,8 @@ Latest verified checks:
 - 2026-06-21 friend-request contract/UI pass: added `PlayerFriendRequest`, `/api/friends/requests` create/list/accept/reject, bidirectional relation/snapshot creation on accept, client API/sync helpers, friend-panel inbox/outbox UI hooks, inline invite search UI, factory friend-entry red badge, mail-panel friend-request notification surfacing, `tools/check-friend-request-contract.js`, and service/API/online smoke coverage.
 - Cocos asset-db refreshed for `db://assets/scripts` after shop-state, friend-sync, leaderboard, real-friend, friend-activity, friend-reward, and friend-invite client TypeScript edits.
 
-- `dotnet test FATCATServer\FATCATServer.sln --no-restore`: 63/63 passed.
-- `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`: passed; includes client TS, generated server balance, config drift, effect coverage, client catalog metadata consumption, shop-state contract, friend-sync contract, real-friend contract, friend-activity contract, friend-reward contract, friend-invite contract, friend-request contract, leaderboard contract, and 63 server tests.
+- `dotnet test FATCATServer\FATCATServer.sln --no-restore`: 72/72 passed at the latest checkpoint.
+- `powershell -ExecutionPolicy Bypass -File .\tools\quick-verify.ps1`: passed; includes client TS, balance/config checks, presentation contracts, social realtime and cooperative-help contracts, and 72 server tests.
 - `node tools\check-shop-state-contract.js`: passed; verifies server route/DTO/service, client API/types, sync fetch, manager snapshot consumption, and online purchase `remainingDaily` use.
 - `node tools\check-friend-sync-contract.js`: passed; verifies friend API methods, login/save friend refresh, DOM server snapshot rendering, visit/gift routing, and API coverage.
 - `node tools\check-friend-visit-scene-contract.js`: passed; verifies friend visit-scene state/actions, render order, room reuse, room thumbnails, assigned-cat mini portraits, visitor mascot, reward strip, compact guards, screenshot assertions, and handoff docs.
@@ -230,6 +231,7 @@ Latest verified checks:
 - The same online smoke now verifies real-friend profile identity, last-active time, invite code, unlocked cats, and total building level.
 - `node tools\check-leaderboard-contract.js`: passed; verifies leaderboard route/DTO/service, client API/types/sync fetch, friend-panel rendering, and service/API coverage.
 - `node tools\verify-ui-clicks-playwright.js`: passed after friend-panel server sync changes.
+- `node tools\check-friend-help-online-ui.js`: passed at 360x800; verified SSE notification, contained boost banner, persisted 10% boost, exact 1.1 production ratio, same-day limit, incoming activity, and clean browser/API logs.
 - `powershell -ExecutionPolicy Bypass -File .\tools\check-client-ts.ps1`: passed.
 - `node tools\check-client-catalog-metadata-consumption.js`: passed; verifies `CatManager`, `ResearchManager`, and `ResearchPanel` route through server metadata-aware config access.
 - `node tools\check-dom-asset-resolver-contract.js`: passed; verifies `DomAssetResolver.ts` owns DOM Data URI, factory prop, generated item, cat, equipment, and skill asset helper logic, and `BottomNavUI.ts` delegates to it instead of importing the large Data URI/registry bridges directly.

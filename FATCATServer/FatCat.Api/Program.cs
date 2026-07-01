@@ -88,6 +88,17 @@ app.MapPost("/api/social/presence", async (
         : Results.Ok(ApiEnvelope<PlayerPresenceDto>.Success(result));
 });
 
+app.MapGet("/api/social/boost", async (
+    Guid playerId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.GetFriendBoostAsync(playerId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<FriendBoostStateDto>.Fail("player_not_found"))
+        : Results.Ok(ApiEnvelope<FriendBoostStateDto>.Success(result));
+});
+
 app.MapGet("/api/social/events", async (
     Guid playerId,
     HttpContext context,
@@ -471,6 +482,18 @@ app.MapPost("/api/friends/{friendId}/gift", async (
     return result is null
         ? Results.NotFound(ApiEnvelope<FriendActionResponse>.Fail("friend_not_found"))
         : Results.Ok(ApiEnvelope<FriendActionResponse>.Success(result));
+});
+
+app.MapPost("/api/friends/{friendId}/help", async (
+    Guid playerId,
+    string friendId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.HelpFriendAsync(playerId, friendId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<FriendHelpResponse>.Fail("friend_not_found"))
+        : Results.Ok(ApiEnvelope<FriendHelpResponse>.Success(result));
 });
 
 app.MapPost("/api/friends/add", async (

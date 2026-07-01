@@ -97,7 +97,7 @@ public sealed class FatCatGameService(
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "friend-realtime-events", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "friend-realtime-events", "friend-production-boost", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -142,7 +142,8 @@ public sealed class FatCatGameService(
 
     public async Task<ProductionPreviewResponse?> PreviewServerProductionAsync(Guid playerId, CancellationToken cancellationToken)
     {
-        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        var player = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
+        if (player is null)
         {
             return null;
         }
@@ -163,7 +164,8 @@ public sealed class FatCatGameService(
         var orderBonus = PercentToMultiplier(GetBuildingEffectValue(buildings, "order_coin"));
         var globalBonus = PercentToMultiplier(GetBuildingEffectValue(buildings, "salary_reduce"));
         var beanReduceBuilding = Math.Max(0, -GetBuildingEffectValue(buildings, "ferment_efficiency"));
-        var coinMultiplier = productionBonus * priceBonus * orderBonus * globalBonus;
+        var friendBoostMultiplier = PercentToMultiplier(GetActiveFriendBoostPercent(player, DateTimeOffset.UtcNow));
+        var coinMultiplier = productionBonus * priceBonus * orderBonus * globalBonus * friendBoostMultiplier;
         var beanMultiplier = Math.Max(0.1, 1 - (beanReduceBuilding + beanReduceResearch) / 100.0);
 
         var buildingPreviews = new List<ProductionBuildingPreviewDto>();
@@ -1303,13 +1305,78 @@ public sealed class FatCatGameService(
         return await ToFriendActionResponseAsync(friend, rewarded, 0, rewardCatFood, resources, now, rewarded ? null : "daily_gift_claimed", cancellationToken);
     }
 
+    public async Task<FriendBoostStateDto?> GetFriendBoostAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        var player = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
+        return player is null ? null : ToFriendBoostStateDto(player, DateTimeOffset.UtcNow);
+    }
+
+    public async Task<FriendHelpResponse?> HelpFriendAsync(Guid playerId, string friendId, CancellationToken cancellationToken)
+    {
+        await EnsureDefaultFriendsAsync(playerId, cancellationToken);
+        var friend = await repository.GetFriendAsync(playerId, friendId, cancellationToken);
+        if (friend is null)
+        {
+            return null;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        if (!TryGetRealFriendPlayerId(friend.FriendKey, out var targetPlayerId))
+        {
+            return new FriendHelpResponse(
+                await ToFriendDtoAsync(friend, cancellationToken),
+                false,
+                new FriendBoostStateDto(false, 0, null, "", now.ToUnixTimeMilliseconds()),
+                "real_friend_required");
+        }
+
+        var target = await repository.FindPlayerByIdAsync(targetPlayerId, cancellationToken);
+        var actor = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
+        if (target is null || actor is null)
+        {
+            return null;
+        }
+
+        if (IsSameUtcDate(friend.LastHelpAt, now))
+        {
+            return new FriendHelpResponse(
+                await ToFriendDtoAsync(friend, cancellationToken),
+                false,
+                ToFriendBoostStateDto(target, now),
+                "daily_help_claimed");
+        }
+
+        var currentBoost = GetActiveFriendBoostPercent(target, now);
+        target.FriendBoostPercent = Math.Min(MaxFriendBoostPercent, currentBoost + FriendHelpBoostPercent);
+        target.FriendBoostUntil = now.Add(FriendHelpDuration);
+        target.FriendBoostedBy = actor.CompanyName;
+        friend.LastHelpAt = now;
+        await AddSocialActivityAsync(playerId, "friend_help", friend, cancellationToken);
+        await repository.SaveChangesAsync(cancellationToken);
+        await PublishFriendEventAsync(
+            playerId,
+            friend,
+            "friend_help",
+            FriendHelpBoostPercent,
+            now,
+            cancellationToken,
+            target.FriendBoostPercent,
+            target.FriendBoostUntil);
+        return new FriendHelpResponse(
+            await ToFriendDtoAsync(friend, cancellationToken),
+            true,
+            ToFriendBoostStateDto(target, now));
+    }
+
     private async Task PublishFriendEventAsync(
         Guid actorPlayerId,
         FriendSnapshot friend,
         string eventType,
         int rewardValue,
         DateTimeOffset createdAt,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int boostPercent = 0,
+        DateTimeOffset? boostEndsAt = null)
     {
         if (!TryGetRealFriendPlayerId(friend.FriendKey, out var targetPlayerId))
         {
@@ -1323,7 +1390,12 @@ public sealed class FatCatGameService(
         await repository.AddSocialActivityAsync(new PlayerSocialActivity
         {
             PlayerId = targetPlayerId,
-            ActivityType = eventType == "friend_gift" ? "friend_gift_received" : "friend_visited_by",
+            ActivityType = eventType switch
+            {
+                "friend_gift" => "friend_gift_received",
+                "friend_help" => "friend_help_received",
+                _ => "friend_visited_by",
+            },
             FriendKey = CreateRealFriendKey(actor.Id),
             FriendName = actor.CompanyName,
             CreatedAt = createdAt,
@@ -1335,7 +1407,9 @@ public sealed class FatCatGameService(
             actor.Id.ToString("N"),
             actor.CompanyName,
             rewardValue,
-            createdAt.ToUnixTimeMilliseconds()));
+            createdAt.ToUnixTimeMilliseconds(),
+            boostPercent,
+            boostEndsAt?.ToUnixTimeMilliseconds()));
     }
 
     public async Task<IReadOnlyList<FriendActivityDto>?> GetFriendActivitiesAsync(Guid playerId, int limit, CancellationToken cancellationToken)
@@ -1926,13 +2000,14 @@ public sealed class FatCatGameService(
     private async Task<ProductionModifiers> GetProductionModifiersAsync(Guid playerId, CancellationToken cancellationToken)
     {
         await EnsureDefaultCatStateAsync(playerId, cancellationToken);
+        var player = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
         var productionPercent = await GetResearchBonusAsync(playerId, "coin_production_mult", cancellationToken);
         var productionAdd = await GetResearchBonusAsync(playerId, "coin_production_add", cancellationToken);
         var beanReduce = await GetResearchBonusAsync(playerId, "bean_reduce", cancellationToken);
         var equipmentProductionPercent = await GetPlayerEquipmentEffectTotalAsync(playerId, "materialOutput", cancellationToken);
         var equipmentWagePercent = await GetPlayerEquipmentEffectTotalAsync(playerId, "wageCost", cancellationToken);
         return new ProductionModifiers(
-            productionPercent + equipmentProductionPercent,
+            productionPercent + equipmentProductionPercent + (player is null ? 0 : GetActiveFriendBoostPercent(player, DateTimeOffset.UtcNow)),
             productionAdd,
             Math.Clamp(equipmentWagePercent, -90, 200),
             Math.Clamp(beanReduce, 0, 90));
@@ -2226,8 +2301,27 @@ public sealed class FatCatGameService(
             friend.IncomePerSecond,
             friend.LastVisitedAt?.ToUnixTimeMilliseconds(),
             friend.LastGiftAt?.ToUnixTimeMilliseconds(),
+            friend.LastHelpAt?.ToUnixTimeMilliseconds(),
             await BuildFriendProfileAsync(friend, cancellationToken),
             await BuildFriendRoomsAsync(friend, cancellationToken));
+    }
+
+    private static int GetActiveFriendBoostPercent(PlayerProfile player, DateTimeOffset now)
+    {
+        return player.FriendBoostUntil > now
+            ? Math.Clamp(player.FriendBoostPercent, 0, MaxFriendBoostPercent)
+            : 0;
+    }
+
+    private static FriendBoostStateDto ToFriendBoostStateDto(PlayerProfile player, DateTimeOffset now)
+    {
+        var percent = GetActiveFriendBoostPercent(player, now);
+        return new FriendBoostStateDto(
+            percent > 0,
+            percent,
+            percent > 0 ? player.FriendBoostUntil?.ToUnixTimeMilliseconds() : null,
+            percent > 0 ? player.FriendBoostedBy : "",
+            now.ToUnixTimeMilliseconds());
     }
 
     private async Task<FriendProfileDto> BuildFriendProfileAsync(FriendSnapshot friend, CancellationToken cancellationToken)
@@ -2670,6 +2764,9 @@ public sealed class FatCatGameService(
     private const string DefaultBuildingId = "building_cafe_1f";
     private const int MaxCatWeight = 100;
     private const int FriendGiftCatFoodReward = 12;
+    private const int FriendHelpBoostPercent = 10;
+    private const int MaxFriendBoostPercent = 30;
+    private static readonly TimeSpan FriendHelpDuration = TimeSpan.FromMinutes(30);
     private sealed record ShopItemDefinition(string ShopItemId, string ItemId, string PriceType, int PriceAmount, int LimitDaily);
     private sealed record ProductionModifiers(
         int GrossCoinPercent,

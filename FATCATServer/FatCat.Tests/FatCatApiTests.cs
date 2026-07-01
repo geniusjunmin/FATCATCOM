@@ -389,6 +389,52 @@ public sealed class FatCatApiTests
     }
 
     [Fact]
+    public async Task FriendHelp_AppliesAndRestoresBoostContract()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var actorAuth = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-help-actor",
+            companyName = "Helper Roastery",
+        });
+        var targetAuth = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-help-target",
+            companyName = "Boosted Cafe",
+        });
+        var actorId = JsonDocument.Parse(await actorAuth.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+        var targetId = JsonDocument.Parse(await targetAuth.Content.ReadAsStringAsync()).RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+        var targetKey = $"player:{targetId:N}";
+        await client.PostAsJsonAsync($"/api/friends/add?playerId={actorId}", new
+        {
+            friendPlayerId = targetId.ToString("N"),
+        });
+
+        var helpResponse = await client.PostAsJsonAsync(
+            $"/api/friends/{Uri.EscapeDataString(targetKey)}/help?playerId={actorId}",
+            new {});
+        var helpData = JsonDocument.Parse(await helpResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var repeatedResponse = await client.PostAsJsonAsync(
+            $"/api/friends/{Uri.EscapeDataString(targetKey)}/help?playerId={actorId}",
+            new {});
+        var repeatedData = JsonDocument.Parse(await repeatedResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var boostResponse = await client.GetAsync($"/api/social/boost?playerId={targetId}");
+        var boostData = JsonDocument.Parse(await boostResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+
+        Assert.Equal(HttpStatusCode.OK, helpResponse.StatusCode);
+        Assert.True(helpData.GetProperty("applied").GetBoolean());
+        Assert.Equal(10, helpData.GetProperty("boost").GetProperty("boostPercent").GetInt32());
+        Assert.True(helpData.GetProperty("boost").GetProperty("boostEndsAt").GetInt64() > 0);
+        Assert.True(helpData.GetProperty("friend").GetProperty("lastHelpAt").GetInt64() > 0);
+        Assert.False(repeatedData.GetProperty("applied").GetBoolean());
+        Assert.Equal("daily_help_claimed", repeatedData.GetProperty("limitedReason").GetString());
+        Assert.Equal(HttpStatusCode.OK, boostResponse.StatusCode);
+        Assert.True(boostData.GetProperty("active").GetBoolean());
+        Assert.Equal("Helper Roastery", boostData.GetProperty("boostedByName").GetString());
+    }
+
+    [Fact]
     public async Task SocialEventStream_PushesFriendVisitContract()
     {
         await using var factory = new FatCatApiFactory();

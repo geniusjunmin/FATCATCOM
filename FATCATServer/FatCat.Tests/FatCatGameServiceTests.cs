@@ -804,6 +804,45 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task FriendHelp_AppliesPersistentProductionBoostOncePerDay()
+    {
+        await using var dbContext = CreateDbContext();
+        var broker = new SocialEventBroker();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext), null, broker);
+        var actor = await service.AuthGuestAsync(new AuthGuestRequest("help-actor", "Helper Roastery"), CancellationToken.None);
+        var target = await service.AuthGuestAsync(new AuthGuestRequest("help-target", "Boosted Cafe"), CancellationToken.None);
+        var friend = await service.AddFriendAsync(
+            actor.PlayerId,
+            new AddFriendRequest(target.PlayerId.ToString("N")),
+            CancellationToken.None);
+        var before = await service.PreviewServerProductionAsync(target.PlayerId, CancellationToken.None);
+        using var subscription = broker.Subscribe(target.PlayerId);
+
+        var helped = await service.HelpFriendAsync(actor.PlayerId, friend!.Id, CancellationToken.None);
+        var repeated = await service.HelpFriendAsync(actor.PlayerId, friend.Id, CancellationToken.None);
+        var boost = await service.GetFriendBoostAsync(target.PlayerId, CancellationToken.None);
+        var after = await service.PreviewServerProductionAsync(target.PlayerId, CancellationToken.None);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+        Assert.True(await subscription.Reader.WaitToReadAsync(timeout.Token));
+        Assert.True(subscription.Reader.TryRead(out var realtimeEvent));
+
+        Assert.True(helped!.Applied);
+        Assert.Equal(10, helped.Boost.BoostPercent);
+        Assert.True(helped.Boost.BoostEndsAt > helped.Boost.ServerTime);
+        Assert.NotNull(helped.Friend.LastHelpAt);
+        Assert.False(repeated!.Applied);
+        Assert.Equal("daily_help_claimed", repeated.LimitedReason);
+        Assert.True(boost!.Active);
+        Assert.Equal("Helper Roastery", boost.BoostedByName);
+        Assert.Equal(before!.GrossCoinPerSecond * 1.1, after!.GrossCoinPerSecond, 6);
+        Assert.Equal("friend_help", realtimeEvent.EventType);
+        Assert.Equal(10, realtimeEvent.BoostPercent);
+        Assert.Equal(helped.Boost.BoostEndsAt, realtimeEvent.BoostEndsAt);
+        var targetActivities = await service.GetFriendActivitiesAsync(target.PlayerId, 10, CancellationToken.None);
+        Assert.Equal("friend_help_received", targetActivities![0].ActivityType);
+    }
+
+    [Fact]
     public void PreviewProduction_CalculatesNetIncomeAndBuildingBreakdown()
     {
         using var dbContext = CreateDbContext();

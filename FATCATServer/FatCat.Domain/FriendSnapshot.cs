@@ -10,5 +10,6 @@ public sealed class FriendSnapshot
     public int IncomePerSecond { get; set; }
     public DateTimeOffset? LastVisitedAt { get; set; }
     public DateTimeOffset? LastGiftAt { get; set; }
+    public DateTimeOffset? LastHelpAt { get; set; }
     public PlayerProfile? Player { get; set; }
 }

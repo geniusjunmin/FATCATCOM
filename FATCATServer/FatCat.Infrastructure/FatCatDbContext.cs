@@ -43,6 +43,26 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
                 CONSTRAINT "FK_ResourceStates_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
             );
             """, cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "Players",
+            "FriendBoostPercent",
+            """ALTER TABLE "Players" ADD COLUMN "FriendBoostPercent" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "Players",
+            "FriendBoostUntil",
+            """ALTER TABLE "Players" ADD COLUMN "FriendBoostUntil" TEXT NULL;""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "Players",
+            "FriendBoostedBy",
+            """ALTER TABLE "Players" ADD COLUMN "FriendBoostedBy" TEXT NOT NULL DEFAULT '';""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "FriendSnapshots",
+            "LastHelpAt",
+            """ALTER TABLE "FriendSnapshots" ADD COLUMN "LastHelpAt" TEXT NULL;""",
+            cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS "LaunchRecords" (
                 "Id" TEXT NOT NULL CONSTRAINT "PK_LaunchRecords" PRIMARY KEY,
@@ -274,6 +294,7 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.HasIndex(player => player.DeviceId).IsUnique();
             entity.Property(player => player.DeviceId).HasMaxLength(160);
             entity.Property(player => player.CompanyName).HasMaxLength(80);
+            entity.Property(player => player.FriendBoostedBy).HasMaxLength(80);
         });
 
         modelBuilder.Entity<PlayerSaveSnapshot>(entity =>

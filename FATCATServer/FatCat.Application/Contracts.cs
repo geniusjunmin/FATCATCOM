@@ -265,7 +265,9 @@ public sealed record SocialRealtimeEventDto(
     string ActorPlayerId,
     string ActorCompanyName,
     int RewardValue,
-    long CreatedAt);
+    long CreatedAt,
+    int BoostPercent = 0,
+    long? BoostEndsAt = null);
 
 public sealed record FriendDto(
     string Id,
@@ -274,6 +276,7 @@ public sealed record FriendDto(
     int IncomePerSecond,
     long? LastVisitedAt,
     long? LastGiftAt,
+    long? LastHelpAt,
     FriendProfileDto Profile,
     IReadOnlyList<FriendRoomDto> Rooms);
 
@@ -288,6 +291,19 @@ public sealed record FriendActionResponse(
     double DiamondBalance,
     double ResearchPointBalance,
     long ServerTime,
+    string? LimitedReason = null);
+
+public sealed record FriendBoostStateDto(
+    bool Active,
+    int BoostPercent,
+    long? BoostEndsAt,
+    string BoostedByName,
+    long ServerTime);
+
+public sealed record FriendHelpResponse(
+    FriendDto Friend,
+    bool Applied,
+    FriendBoostStateDto Boost,
     string? LimitedReason = null);
 
 public sealed record PlayerSocialProfileDto(

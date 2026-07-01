@@ -230,6 +230,7 @@ export type FriendDto = {
     incomePerSecond: number;
     lastVisitedAt?: number;
     lastGiftAt?: number;
+    lastHelpAt?: number;
     profile: FriendProfileDto;
     rooms: FriendRoomDto[];
 };
@@ -252,11 +253,13 @@ export type PlayerPresenceDto = {
 
 export type SocialRealtimeEventDto = {
     eventId: string;
-    eventType: "friend_visit" | "friend_gift";
+    eventType: "friend_visit" | "friend_gift" | "friend_help";
     actorPlayerId: string;
     actorCompanyName: string;
     rewardValue: number;
     createdAt: number;
+    boostPercent: number;
+    boostEndsAt?: number | null;
 };
 
 export type FriendRoomDto = {
@@ -303,6 +306,21 @@ export type FriendActionResponse = {
     diamondBalance: number;
     researchPointBalance: number;
     serverTime: number;
+    limitedReason?: string | null;
+};
+
+export type FriendBoostStateDto = {
+    active: boolean;
+    boostPercent: number;
+    boostEndsAt?: number | null;
+    boostedByName: string;
+    serverTime: number;
+};
+
+export type FriendHelpResponse = {
+    friend: FriendDto;
+    applied: boolean;
+    boost: FriendBoostStateDto;
     limitedReason?: string | null;
 };
 
