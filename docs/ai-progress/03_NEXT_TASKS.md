@@ -19,7 +19,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Preserve the measured main/cat proportions and target the remaining flat feature-panel hero art. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Keep main/shop geometry stable; next target the repeated inventory icons and research-node art. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
@@ -100,11 +100,14 @@ Keep these scripts in the regular set when touching related flows:
 
 ### 0. Feature Panels From `其他页面.png`
 
+- Done in latest shop-art batch: four built-in-generated 384px transparent props now represent cat food, coffee beans, coins, and diamonds. Resource-shop rows map real and preview items to those props, use small/large food-package variants, and keep all six rows above navigation at 360x800.
+- `tools/check-shop-product-art.js` guards PNG dimensions, file size, registry/resolver/generator wiring, dedicated CSS, four-size embedded rendering, and navigation clearance. `capture-feature-regression.js` now includes 414x896.
+- Done in latest DOM-mode cleanup: Web preview hides the native Cocos canvas while DOM overlays are active, removing leaked native text around compact panels; native builds still activate Cocos feature panels. `check-dom-canvas-mode-contract.js` plus main/cat/feature/utility screenshots guard this boundary.
 - Building, shop, inventory, and research panels have been moved from generic flat cards toward the root `其他页面.png` reference.
 - Done in latest feature-panel batch: building gets six floor chips, a generated factory-room hero, level-effect comparison rows, upgrade conditions, and the existing upgrade action; shop gets four tabs and six target-like rows; inventory gets a four-column by five-row grid with a bottom selected-detail card; research keeps a dark tree and cream detail panel side by side at compact widths.
 - Done in latest feature-panel code-health batch: static settings rows, task milestones, shop tabs/catalog previews, inventory tabs/preview cards, and research tree positions now live in `FeaturePanelPresentation.ts`, guarded by `tools/check-feature-panel-presentation-contract.js`.
 - `tools/capture-feature-regression.js` now covers these four panels at 430x932, 360x800, and 768x1024 with structural assertions and runtime error checks.
-- Next move: keep these structures stable, then replace remaining generic row icons and backgrounds with richer Cocos-managed/generated art when specific fidelity gaps are visible.
+- Next move: keep shop geometry stable, then create a compact dedicated inventory prop set and ornate research-node symbols without changing the verified four-column/split layouts.
 
 ### 0a. Utility Panels
 

@@ -7,7 +7,7 @@ Updated: 2026-07-02
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Keep the newly measured main-screen geometry stable, then add dedicated art only to feature-panel hero surfaces that still look flat beside the target references. |
+| Best Next Move | Preserve the stable main/shop geometry, then replace the inventory grid's repeated generic icons and the research tree's flat locked-node symbols with dedicated art. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -26,6 +26,9 @@ Updated: 2026-07-02
 
 ## Client UI
 
+- Latest shop-art pass replaces six repeated circular resource placeholders with four generated transparent product props: a cat-food pouch, coffee-bean sack, coin pouch, and diamond chest. The 384px PNGs live under `FATCATUI/assets/resources/textures/generated/shop/`, are registered through `GeneratedShopProductAssets`, and are embedded through the DOM asset bridge.
+- Resource shop rows select product art by item/category and reuse the food pouch at deliberate small/large scales. At 360x800 the six rows are compressed just enough to clear the bottom navigation; 414x896 is now included in feature regression alongside 360x800, 430x932, and 768x1024.
+- Web preview now hides the underlying Cocos canvas after the complete DOM UI is ready, preventing native panel labels and resource zeros from leaking around DOM overlays. Non-browser builds keep the native Cocos shop/inventory/research/task panels. Main, cat, feature, and utility screenshots all assert this mode boundary.
 - Latest main-screen target pass fixes the top-right diamond display to the reference value style (`2580`, never `2.58K`) in the DOM HUD, cat HUD, and Cocos top bar. It extends the six-floor factory to 86% of the canvas, reduces the operation band to about 7.2% and compact navigation to about 6.1%, thins floor/bonus cards, and removes the duplicate gift-card mascot that crowded the 360px countdown.
 - `tools/capture-main-regression.js` now treats those proportions as contracts at 360x800, 414x896, 430x932, and 768x1024. It also checks exact diamond text and chest/launch/gift text containment. `capture-cat-regression.js` checks the exact diamond value in all four cat-page sizes.
 - Latest friend-visit visual pass adds a dedicated generated six-floor coffee-workshop backdrop instead of reusing the main factory cutaway. The scene keeps live room, cat, decor, reward, and action DOM above the art, adds a compact workshop sign, and uses lighter overlays so the original office/roaster/tank/grinder/cafe/storage rooms remain visible.

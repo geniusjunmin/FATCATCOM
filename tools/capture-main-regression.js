@@ -79,6 +79,7 @@ const sizes = [
 
             return {
                 resourceCount: document.querySelectorAll("#fatcat-dom-hud .res").length,
+                domCanvasHidden: document.querySelector("canvas")?.style.opacity === "0",
                 floorCount: document.querySelectorAll("#fatcat-dom-factory .floor").length,
                 roomDecorCount: document.querySelectorAll("#fatcat-dom-factory .room-decor").length,
                 hasLaunch: document.body.innerText.includes("发射猫咪"),
@@ -120,6 +121,7 @@ const sizes = [
         entry.messages.length
         || entry.failedRequests.length
         || entry.state.resourceCount < 4
+        || !entry.state.domCanvasHidden
         || entry.state.floorCount < 6
         || !entry.state.hasLaunch
         || !entry.state.hasCats

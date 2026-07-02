@@ -6,6 +6,7 @@ const edgePath = "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
 const outDir = path.resolve("docs/verification/screenshots/2026-06-29-feature-regression");
 const sizes = [
     [430, 932],
+    [414, 896],
     [360, 800],
     [768, 1024],
 ];
@@ -54,11 +55,21 @@ async function isVisible(page, selector) {
             await page.screenshot({ path: file, fullPage: false });
             const state = await page.evaluate(() => ({
                 title: document.querySelector("#fatcat-dom-panel-overlay h2")?.textContent?.trim() || "",
+                domCanvasHidden: document.querySelector("canvas")?.style.opacity === "0",
                 shellCount: document.querySelectorAll("#fatcat-dom-panel-overlay .panel-shell").length,
                 buildingChips: document.querySelectorAll("#fatcat-dom-panel-overlay .building-chip").length,
                 buildingHero: !!document.querySelector("#fatcat-dom-panel-overlay .building-detail-hero"),
                 buildingDecorManager: !!document.querySelector("#fatcat-dom-panel-overlay .building-decor-manager"),
                 shopRows: document.querySelectorAll("#fatcat-dom-panel-overlay .shop-row").length,
+                shopProductArt: document.querySelectorAll("#fatcat-dom-panel-overlay .shop-icon.product-art").length,
+                embeddedShopProductArt: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay .shop-icon.product-art"))
+                    .filter(element => getComputedStyle(element).backgroundImage.startsWith('url("data:image/png;base64,')).length,
+                shopRowsClearNav: (() => {
+                    const rows = Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay .shop-row"));
+                    const nav = document.querySelector("#fatcat-dom-nav .nav-bar");
+                    if (rows.length === 0 || !nav) return false;
+                    return rows[rows.length - 1].getBoundingClientRect().bottom <= nav.getBoundingClientRect().top - 2;
+                })(),
                 bagCards: document.querySelectorAll("#fatcat-dom-panel-overlay .bag-card").length,
                 bagDetailVisible: (() => {
                     const detail = document.querySelector("#fatcat-dom-panel-overlay .bag-detail-target");
@@ -99,9 +110,12 @@ async function isVisible(page, selector) {
         if (entry.panel === "runtime") {
             return entry.messages.length > 0 || entry.failedRequests.length > 0;
         }
-        if (!entry.visible || entry.state.shellCount !== 1 || !entry.state.title) return true;
+        if (!entry.visible || entry.state.shellCount !== 1 || !entry.state.title || !entry.state.domCanvasHidden) return true;
         if (entry.panel === "buildings") return entry.state.buildingChips !== 6 || !entry.state.buildingHero || !entry.state.buildingDecorManager;
-        if (entry.panel === "shop") return entry.state.shopRows < 6;
+        if (entry.panel === "shop") return entry.state.shopRows < 6
+            || entry.state.shopProductArt < 6
+            || entry.state.embeddedShopProductArt < 6
+            || !entry.state.shopRowsClearNav;
         if (entry.panel === "inventory") return entry.state.bagCards !== 20 || !entry.state.bagDetailVisible;
         if (entry.panel === "research") return !entry.state.researchSideBySide;
         return false;

@@ -82,6 +82,7 @@ async function isVisible(page, selector) {
 
             return {
                 overlayVisible: !!document.querySelector("#fatcat-dom-cat-overlay"),
+                domCanvasHidden: document.querySelector("canvas")?.style.opacity === "0",
                 sideTabs: document.querySelectorAll("#fatcat-dom-cat-overlay .side-tab").length,
                 statCards: document.querySelectorAll("#fatcat-dom-cat-overlay .cat-stats > div").length,
                 rosterCards: document.querySelectorAll("#fatcat-dom-cat-overlay .cat-list button").length,
@@ -142,6 +143,7 @@ async function isVisible(page, selector) {
         entry.messages.length
         || entry.failedRequests.length
         || !entry.state.overlayVisible
+        || !entry.state.domCanvasHidden
         || !entry.state.hasPortrait
         || !entry.state.hasStoryPhoto
         || entry.state.diamondValue !== "2580"

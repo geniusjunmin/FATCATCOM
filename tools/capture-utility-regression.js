@@ -67,6 +67,7 @@ async function isVisible(page, selector) {
                 const shell = document.querySelector("#fatcat-dom-panel-overlay .panel-shell");
                 return {
                     title: document.querySelector("#fatcat-dom-panel-overlay h2")?.textContent?.trim() || "",
+                    domCanvasHidden: document.querySelector("canvas")?.style.opacity === "0",
                     shellCount: document.querySelectorAll("#fatcat-dom-panel-overlay .panel-shell").length,
                     hasExpectedShell: !!shell?.classList.contains(expectedShell),
                     hasUtilityShell: !!shell?.classList.contains("utility-shell"),
@@ -153,7 +154,7 @@ async function isVisible(page, selector) {
         if (entry.panel === "runtime") {
             return entry.messages.length > 0 || entry.failedRequests.length > 0;
         }
-        if (!entry.visible || entry.state.shellCount !== 1 || !entry.state.title || !entry.state.hasExpectedShell || !entry.state.hasUtilityShell) return true;
+        if (!entry.visible || !entry.state.domCanvasHidden || entry.state.shellCount !== 1 || !entry.state.title || !entry.state.hasExpectedShell || !entry.state.hasUtilityShell) return true;
         if (entry.panel === "tasks") return !entry.state.taskBoard || entry.state.taskRows < 1;
         if (entry.panel === "friends") return entry.state.heroCount !== 1 || entry.state.friendCards < 3 || entry.state.friendIncomeBars < 3 || entry.state.friendActionButtons < 9 || entry.state.friendHelpButtons < 6 || !entry.state.friendCoopCard || entry.state.friendCoopHeight < 95 || entry.state.friendCoopHeight > 165 || entry.state.friendCoopTiers !== 3 || !entry.state.friendBoostHistory || !entry.state.friendBoostHistoryContained || entry.state.friendProfileGroups < 5 || entry.state.friendProfileChips < 15 || entry.state.realFriendProfiles + entry.state.systemFriendProfiles < 5 || entry.state.friendPresenceStates < 5 || !entry.state.friendSnapshotCard || entry.state.friendSnapshotStats < 3 || entry.state.friendSnapshotActions < 3 || entry.state.friendSnapshotFloors < 3 || !entry.state.friendVisitReport || entry.state.friendVisitReportStats < 2 || entry.state.friendVisitReportFloors < 3 || entry.state.friendVisitReportActions < 3 || !entry.state.friendVisitScene || entry.state.friendVisitSceneFloors < 3 || entry.state.friendVisitSceneStats < 5 || entry.state.friendVisitSceneActions < 5 || entry.state.friendVisitSceneThumbs < 3 || entry.state.friendVisitSceneCats < 3 || !entry.state.friendVisitSceneMascot || entry.state.friendVisitSceneRewards < 3 || !entry.state.friendVisitSceneSign || !entry.state.friendVisitSceneBackdrop.includes("data:image/jpeg") || !entry.state.friendFactoryDetail || entry.state.friendFactoryDetailStats < 3 || entry.state.friendFactoryRoomRows < 3 || !entry.state.friendFactoryRoomMeta || entry.state.friendDecorGroups < 6 || entry.state.friendDecorItems < 12 || !entry.state.friendRequestCard || !entry.state.friendLeaderboardCard || !entry.state.friendActivityCard || !entry.state.friendSearchCard;
         if (entry.panel === "settings") return entry.state.heroCount !== 1 || entry.state.miniCount < 3 || entry.state.cardCount < 4;

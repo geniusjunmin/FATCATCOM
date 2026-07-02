@@ -26,6 +26,7 @@ import {
     getFactoryPropDataUri,
     getFeatureIconAsset,
     getGeneratedIconAsset,
+    getShopProductAsset,
     getSkillIconAsset,
 } from "./DomAssetResolver";
 import { formatClockTime, formatDisplayNumber, formatExactInteger, formatFriendReportRelativeTime, formatRateValue } from "./Formatters";
@@ -209,6 +210,7 @@ export class BottomNavUI extends Component {
     private _leaderboardRefreshInFlight = false;
     private _waitingForAppReady = false;
     private _launchInProgress = false;
+    private _cocosCanvasOpacity = "";
 
     public selectFactory(): void {
         this.select("factory");
@@ -262,6 +264,7 @@ export class BottomNavUI extends Component {
 
     private startReadyUi(): void {
         this.ensureReferences();
+        this.hideCocosCanvasForDomUi();
         this.prepareCatViewForRendering();
         this.bindNavButtons();
         this.bindDomHotspots();
@@ -297,6 +300,7 @@ export class BottomNavUI extends Component {
         this.layoutDomFactoryOverlay();
         this.layoutDomCatOverlay();
         this.layoutDomPanelOverlay();
+        this.hideCocosCanvasForDomUi();
         this.hideCocosTopBar();
         this.renderDomHudOverlay();
         this.renderDomNavOverlay();
@@ -324,6 +328,10 @@ export class BottomNavUI extends Component {
         this._domFactoryOverlay = null;
         this._domNavOverlay?.remove();
         this._domNavOverlay = null;
+        if (typeof document !== "undefined") {
+            const canvas = document.querySelector<HTMLCanvasElement>("canvas");
+            if (canvas) canvas.style.opacity = this._cocosCanvasOpacity;
+        }
         if (this._domLayoutFrame && typeof cancelAnimationFrame !== "undefined") {
             cancelAnimationFrame(this._domLayoutFrame);
         }
@@ -603,10 +611,11 @@ export class BottomNavUI extends Component {
         this.setDomCatOverlayVisible(panelId === "cats");
         this.setDomFactoryOverlayVisible(panelId === "factory");
         this.setDomPanelOverlay(panelId);
-        if (this.shopPanel) this.shopPanel.active = (panelId === "shop");
-        if (this.inventoryPanel) this.inventoryPanel.active = (panelId === "inventory");
-        if (this.researchPanel) this.researchPanel.active = (panelId === "research");
-        if (this.taskPanel) this.taskPanel.active = (panelId === "tasks");
+        const useDomPanels = typeof document !== "undefined";
+        if (this.shopPanel) this.shopPanel.active = !useDomPanels && panelId === "shop";
+        if (this.inventoryPanel) this.inventoryPanel.active = !useDomPanels && panelId === "inventory";
+        if (this.researchPanel) this.researchPanel.active = !useDomPanels && panelId === "research";
+        if (this.taskPanel) this.taskPanel.active = !useDomPanels && panelId === "tasks";
         this.syncPanelLayer(panelId);
 
         // Close any detail panels when switching main tabs
@@ -706,6 +715,17 @@ export class BottomNavUI extends Component {
         document.body.appendChild(overlay);
         this._domFactoryOverlay = overlay;
         return overlay;
+    }
+
+    private hideCocosCanvasForDomUi(): void {
+        if (typeof document === "undefined") return;
+        const canvas = document.querySelector<HTMLCanvasElement>("canvas");
+        if (!canvas) return;
+        if (!canvas.dataset.fatcatDomHidden) {
+            this._cocosCanvasOpacity = canvas.style.opacity;
+            canvas.dataset.fatcatDomHidden = "true";
+        }
+        canvas.style.opacity = "0";
     }
 
     private onDomFactoryPointerDown = (event: PointerEvent): void => {
@@ -2194,7 +2214,13 @@ export class BottomNavUI extends Component {
     }
 
     private renderShopPreviewRows(category: string, count: number): string {
-        return (SHOP_PREVIEW_CATALOGS[category] ?? SHOP_PREVIEW_CATALOGS.resource).slice(0, count).map(([name, desc, icon, price, currency]) => `<div class="item shop-row preview"><div class="shop-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')"></div><div><b>${name}</b><br>${desc}<div class="limit">每日限购：3/3</div></div><div class="buy-zone"><span class="tag preview-price">${price} ${currency}</span></div></div>`).join("");
+        return (SHOP_PREVIEW_CATALOGS[category] ?? SHOP_PREVIEW_CATALOGS.resource).slice(0, count).map(([name, desc, icon, price, currency], index) => {
+            const productKind = category === "resource" ? (["bean", "food", "food", "diamond"][index] ?? icon) : icon;
+            const sizeClass = category === "resource" && icon === "food"
+                ? (index === 1 ? "product-small" : "product-large")
+                : "";
+            return `<div class="item shop-row preview"><div class="shop-icon product-art product-${productKind} ${sizeClass}" style="background-image:url('${getShopProductAsset(productKind)}')"></div><div><b>${name}</b><br>${desc}<div class="limit">每日限购：3/3</div></div><div class="buy-zone"><span class="tag preview-price">${price} ${currency}</span></div></div>`;
+        }).join("");
     }
 
     private getShopTabLabel(): string {
@@ -2208,10 +2234,15 @@ export class BottomNavUI extends Component {
         const title = item?.name ?? shop.itemId;
         const desc = item?.description ?? "商品配置缺失";
         const icon = this.getItemIconClass(shop.itemId);
+        const productKind = shop.itemId === "item_cat_food_pack"
+            ? "food"
+            : shop.itemId === "item_coin_pack_small"
+                ? "coin"
+                : icon;
         const remaining = ShopManager.getRemainingLimit(id);
         const cost = { [shop.priceType]: shop.priceAmount } as { coin?: number; diamond?: number; catFood?: number };
         const stateClass = remaining <= 0 ? "soldout" : ResourceManager.canSpend(cost) ? "" : "locked";
-        return `<div class="item shop-row ${stateClass}"><div class="shop-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')">${this.renderCssIcon(icon)}</div><div><b>${title}</b><br>${desc}<div class="limit">每日限购：${remaining >= 999 ? "不限" : remaining}</div></div><div class="buy-zone">${this.renderShopButton(id, shop.priceType, shop.priceAmount)}</div></div>`;
+        return `<div class="item shop-row ${stateClass}"><div class="shop-icon product-art product-${productKind}" style="background-image:url('${getShopProductAsset(productKind)}')"></div><div><b>${title}</b><br>${desc}<div class="limit">每日限购：${remaining >= 999 ? "不限" : remaining}</div></div><div class="buy-zone">${this.renderShopButton(id, shop.priceType, shop.priceAmount)}</div></div>`;
     }
 
     private renderEmptyShopRows(category: string): string {

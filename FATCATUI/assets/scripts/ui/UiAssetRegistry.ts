@@ -43,6 +43,13 @@ export const GeneratedItemIconAssets: Record<string, string> = {
     shard: `${GENERATED_ROOT}/items/icon_diamond.png`,
 };
 
+export const GeneratedShopProductAssets: Record<string, string> = {
+    bean: `${GENERATED_ROOT}/shop/shop_bean_sack_v1.png`,
+    coin: `${GENERATED_ROOT}/shop/shop_coin_pouch_v1.png`,
+    diamond: `${GENERATED_ROOT}/shop/shop_diamond_chest_v1.png`,
+    food: `${GENERATED_ROOT}/shop/shop_cat_food_pouch_v1.png`,
+};
+
 export const GeneratedFeatureIconAssets: Record<string, string> = {
     achievement: `${GENERATED_ROOT}/ui/icon_achievement.png`,
     buildings: `${GENERATED_ROOT}/ui/nav_buildings.png`,

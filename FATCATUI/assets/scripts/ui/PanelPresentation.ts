@@ -897,6 +897,26 @@ export const DOM_PANEL_STYLES = `
                 background-size:128%;
                 box-shadow:none;
             }
+            #fatcat-dom-panel-overlay .shop-shell .shop-icon.product-art {
+                width:96%;
+                aspect-ratio:1;
+                border-radius:0;
+                background-color:transparent;
+                background-position:center;
+                background-repeat:no-repeat;
+                background-size:contain;
+                filter:drop-shadow(0 3px 0 rgba(75,43,22,.25));
+                overflow:visible;
+            }
+            #fatcat-dom-panel-overlay .shop-shell .shop-icon.product-food.product-small {
+                width:82%;
+            }
+            #fatcat-dom-panel-overlay .shop-shell .shop-icon.product-food.product-large {
+                width:104%;
+            }
+            #fatcat-dom-panel-overlay .shop-shell .shop-icon.product-diamond {
+                width:104%;
+            }
             #fatcat-dom-panel-overlay .shop-shell .tag {
                 margin:0;
                 padding:5% 7%;
@@ -1105,4 +1125,16 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay.compact .inventory-shell .bag-card { min-height:82px; }
             #fatcat-dom-panel-overlay.tall .panel-shell { padding-top: 4.8%; padding-bottom: 18.5%; }
             #fatcat-dom-panel-overlay.wide .panel-shell { left: 8%; right: 8%; }
+            @media (max-width:390px) {
+                #fatcat-dom-panel-overlay.compact .shop-shell .shop-row {
+                    min-height:78px;
+                    padding:1.4% 2.4%;
+                    font-size:1.9%;
+                }
+                #fatcat-dom-panel-overlay.compact .shop-shell .shop-list { gap:.8%; }
+                #fatcat-dom-panel-overlay.compact .shop-shell .shop-icon.product-art { width:90%; }
+                #fatcat-dom-panel-overlay.compact .shop-shell .shop-icon.product-food.product-small { width:76%; }
+                #fatcat-dom-panel-overlay.compact .shop-shell .shop-icon.product-food.product-large,
+                #fatcat-dom-panel-overlay.compact .shop-shell .shop-icon.product-diamond { width:98%; }
+            }
         `;

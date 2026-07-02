@@ -1,6 +1,6 @@
 import { DomAssetDataUris } from "./DomAssetDataUris";
 import { FactoryPropDataUris } from "./FactoryPropDataUris";
-import { GeneratedCatFullArtAssets, GeneratedFeatureIconAssets, GeneratedItemIconAssets, GeneratedSkillIconAssets } from "./UiAssetRegistry";
+import { GeneratedCatFullArtAssets, GeneratedFeatureIconAssets, GeneratedItemIconAssets, GeneratedShopProductAssets, GeneratedSkillIconAssets } from "./UiAssetRegistry";
 
 export function getDomAssetDataUri(assetPath: string): string {
     return DomAssetDataUris[assetPath] ?? assetPath;
@@ -22,6 +22,11 @@ export function getGeneratedIconAsset(iconClass: string): string {
     };
     const key = aliases[iconClass] ?? iconClass;
     return getDomAssetDataUri(GeneratedItemIconAssets[key] ?? GeneratedItemIconAssets.gift);
+}
+
+export function getShopProductAsset(kind: string): string {
+    const asset = GeneratedShopProductAssets[kind];
+    return asset ? getDomAssetDataUri(asset) : getGeneratedIconAsset(kind);
 }
 
 export function getCatFullArtAsset(catId: string, portrait?: string): string {

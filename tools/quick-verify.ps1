@@ -45,6 +45,10 @@ Invoke-Step "DOM asset resolver contract check" {
     node .\tools\check-dom-asset-resolver-contract.js
 }
 
+Invoke-Step "DOM canvas mode contract check" {
+    node .\tools\check-dom-canvas-mode-contract.js
+}
+
 Invoke-Step "DOM formatter contract check" {
     node .\tools\check-dom-formatters-contract.js
 }
@@ -67,6 +71,10 @@ Invoke-Step "Factory overlay presentation contract check" {
 
 Invoke-Step "Feature panel presentation contract check" {
     node .\tools\check-feature-panel-presentation-contract.js
+}
+
+Invoke-Step "Shop product art contract check" {
+    node .\tools\check-shop-product-art.js
 }
 
 Invoke-Step "Cat presentation contract check" {
