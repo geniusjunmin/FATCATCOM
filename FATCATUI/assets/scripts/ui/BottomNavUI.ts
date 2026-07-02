@@ -135,6 +135,20 @@ type InventoryDetailView = {
     usableItemId?: string;
 };
 
+type ShopProductDetailView = {
+    key: string;
+    category: ShopTabId;
+    name: string;
+    description: string;
+    source: string;
+    art: string;
+    artKind: string;
+    priceLabel: string;
+    limitLabel: string;
+    realShopId?: string;
+    decorId?: string;
+};
+
 export const MainPanelEvents = {
     NAV_CHANGED: "main-nav:changed",
 } as const;
@@ -194,6 +208,7 @@ export class BottomNavUI extends Component {
     private _selectedEquipSlot: CatEquipmentSlotName = "项圈";
     private _selectedDomBuildingId = "building_cafe_1f";
     private _domShopTab: ShopTabId = "resource";
+    private _selectedShopProductKey = "shop:shop_cat_food_1";
     private _domInventoryTab: InventoryTabId = "all";
     private _selectedInventoryKey = "resource:bean";
     private _selectedResearchId = "res_basic_prod";
@@ -986,12 +1001,14 @@ export class BottomNavUI extends Component {
                 ? await SyncManager.purchaseServerShopItem(id, 1)
                 : null;
             success = serverPurchase ? ShopManager.fulfillServerPurchase(id, serverPurchase.count, serverPurchase.remainingDaily) : ShopManager.buyItem(id);
+            if (success) this._selectedShopProductKey = `shop:${id}`;
         } else if (action === "buyDecor") {
             const purchase = await SyncManager.purchaseServerDecoration(id);
             if (purchase) {
                 this.applyServerDecorState(purchase.decor);
                 const catalogItem = this._serverDecorCatalog.find(item => item.decorId === id);
                 if (catalogItem) catalogItem.owned = true;
+                this._selectedShopProductKey = `decor:${id}`;
                 this._serverDecorCollection = await SyncManager.fetchServerDecorCollection();
                 success = true;
                 actionMessageOverride = `${purchase.decor.name} 已收入装饰仓库，可前往建筑页面摆放。`;
@@ -1332,8 +1349,15 @@ export class BottomNavUI extends Component {
             const tab = button.dataset.tab as "resource" | "item" | "cat" | "deco" | undefined;
             if (tab) {
                 this._domShopTab = tab;
+                this._selectedShopProductKey = this.getDefaultShopProductSelection(tab);
                 success = true;
                 if (tab === "deco") void this.refreshServerDecorCatalogForPanel();
+            }
+        } else if (action === "selectShopProduct") {
+            const detail = this.getShopProductDetail(id);
+            if (detail && detail.category === this._domShopTab) {
+                this._selectedShopProductKey = id;
+                success = true;
             }
         } else if (action === "inventoryTab") {
             const tab = button.dataset.tab as "all" | "resource" | "shard" | "other" | undefined;
@@ -1403,6 +1427,7 @@ export class BottomNavUI extends Component {
             if (action === "assignCat") return "猫咪已派遣到当前楼层。";
             if (action === "unassignCat") return "猫咪已撤下，等待重新排班。";
             if (action === "shopTab") return "商店分类已切换。";
+            if (action === "selectShopProduct") return "商品详情已切换。";
             if (action === "inventoryTab") return "背包分类已切换。";
             if (action === "selectInventory") return "背包物品详情已切换。";
             if (action === "selectResearch") return "研究详情已切换。";
@@ -1421,6 +1446,7 @@ export class BottomNavUI extends Component {
         if (action === "assignCat") return "派遣失败：猫咪未招募或楼层容量不足。";
         if (action === "unassignCat") return "撤下失败：猫咪未招募。";
         if (action === "selectInventory") return "背包物品不存在。";
+        if (action === "selectShopProduct") return "商品不存在或不属于当前分类。";
         if (action === "selectResearch") return "研究节点不存在。";
         return "操作未完成。";
     }
@@ -1748,6 +1774,9 @@ export class BottomNavUI extends Component {
             if (catalog.length <= 0 || this.currentPanel !== "shop") return;
             this._serverDecorCatalog = catalog;
             this._serverDecorCollection = collection;
+            if (this._domShopTab === "deco" && !catalog.some(item => `decor:${item.decorId}` === this._selectedShopProductKey)) {
+                this._selectedShopProductKey = `decor:${catalog[0].decorId}`;
+            }
             this.renderDomPanel("shop");
         } finally {
             this._decorCatalogRefreshInFlight = false;
@@ -2168,34 +2197,49 @@ export class BottomNavUI extends Component {
     }
 
     private renderShopPanel(): string {
+        let detail = this.getShopProductDetail(this._selectedShopProductKey);
+        if (!detail || detail.category !== this._domShopTab) {
+            this._selectedShopProductKey = this.getDefaultShopProductSelection(this._domShopTab);
+            detail = this.getShopProductDetail(this._selectedShopProductKey);
+        }
+        const tabs = `<div class="tabs shop-tabs">${SHOP_TABS.map(tab => `<button class="tab ${this._domShopTab === tab.id ? "active" : ""}" data-action="shopTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div>`;
+        const detailMarkup = detail ? this.renderShopProductDetail(detail) : "";
         if (this._domShopTab === "deco") {
             const rows = this._serverDecorCatalog.length > 0
                 ? this._serverDecorCatalog.map(item => this.renderDecorCatalogRow(item)).join("")
                 : this.renderShopPreviewRows("deco", 4);
-            return `<div class="panel-shell shop-shell"><h2>商店详情</h2><div class="tabs">${SHOP_TABS.map(tab => `<button class="tab ${this._domShopTab === tab.id ? "active" : ""}" data-action="shopTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="decor-shop-summary"><b>工厂装饰馆</b><span>${NetworkManager.canUseServer ? "永久收藏 · 购买后进入对应楼层仓库" : "连接服务器后可购买永久装饰"}</span></div>${this.renderDecorCollection()}<div class="list shop-list decor-catalog-list">${rows}</div></div>`;
+            return `<div class="panel-shell shop-shell" data-shop-category="${this._domShopTab}"><h2>商店详情</h2>${tabs}${detailMarkup}<div class="decor-shop-summary"><b>工厂装饰馆</b><span>${NetworkManager.canUseServer ? "永久收藏 · 购买后进入对应楼层仓库" : "连接服务器后可购买永久装饰"}</span></div>${this.renderDecorCollection()}<div class="shop-catalog-viewport"><div class="list shop-list decor-catalog-list">${rows}</div></div></div>`;
         }
         const items = ShopManager.getShopItems(this._domShopTab);
         const rows = items.length > 0
             ? items.map(item => this.renderShopRow(item.id)).join("") + this.renderShopPreviewRows(this._domShopTab, Math.max(0, 6 - items.length))
-            : this.renderEmptyShopRows(this._domShopTab);
-        return `<div class="panel-shell shop-shell"><h2>商店详情</h2><div class="tabs">${SHOP_TABS.map(tab => `<button class="tab ${this._domShopTab === tab.id ? "active" : ""}" data-action="shopTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list shop-list">${rows}</div></div>`;
+            : this.renderShopPreviewRows(this._domShopTab, 4);
+        return `<div class="panel-shell shop-shell" data-shop-category="${this._domShopTab}"><h2>商店详情</h2>${tabs}${detailMarkup}<div class="shop-catalog-viewport"><div class="list shop-list">${rows}</div></div></div>`;
     }
 
     private renderDecorCatalogRow(item: DecorCatalogItemDto): string {
         const building = BuildingManager.getById(item.defaultBuildingId);
         const floor = building?.floor ?? "工厂";
         const sceneArt = this.getFactoryPropDataUri(getBuildingScene(item.defaultBuildingId));
+        const cost = item.priceType === "diamond"
+            ? { diamond: item.priceAmount }
+            : { coin: item.priceAmount };
+        const canAfford = ResourceManager.canSpend(cost);
+        const stateClass = item.owned ? "owned" : canAfford ? "" : "locked";
+        const key = `decor:${item.decorId}`;
+        const selected = this._selectedShopProductKey === key ? "selected" : "";
+        return `<div class="item shop-row decor-catalog-row ${stateClass} ${selected}" data-shop-key="${key}"><button class="shop-product-select" data-action="selectShopProduct" data-id="${key}"><span class="shop-icon decor-glyph" style="background-image:url('${sceneArt}')"></span><span class="shop-row-copy"><b>${item.name}</b><span>${item.description}</span><span class="decor-meta"><i>${floor}仓库</i><strong>装饰评分 +${item.score}</strong></span></span></button><div class="buy-zone">${this.renderDecorPurchaseButton(item)}</div></div>`;
+    }
+
+    private renderDecorPurchaseButton(item: DecorCatalogItemDto): string {
         const currencyName = item.priceType === "diamond" ? "钻石" : "金币";
         const icon = item.priceType === "diamond" ? "diamond" : "coin";
         const cost = item.priceType === "diamond"
             ? { diamond: item.priceAmount }
             : { coin: item.priceAmount };
         const canAfford = ResourceManager.canSpend(cost);
-        const stateClass = item.owned ? "owned" : canAfford ? "" : "locked";
-        const button = item.owned
-            ? `<button class="tag owned" disabled>已拥有</button>`
-            : `<button class="tag ${canAfford ? "" : "warn"}" data-action="buyDecor" data-id="${item.decorId}" ${canAfford ? "" : "disabled"}><span class="price">${this.renderCssIcon(icon)}${this.formatNumber(item.priceAmount)} ${currencyName}</span></button>`;
-        return `<div class="item shop-row decor-catalog-row ${stateClass}"><div class="shop-icon decor-glyph" style="background-image:url('${sceneArt}')"></div><div><b>${item.name}</b><br>${item.description}<div class="decor-meta"><span>${floor}仓库</span><strong>装饰评分 +${item.score}</strong></div></div><div class="buy-zone">${button}</div></div>`;
+        if (item.owned) return `<button class="tag owned" disabled>已拥有</button>`;
+        return `<button class="tag ${canAfford ? "" : "warn"}" data-action="buyDecor" data-id="${item.decorId}" ${canAfford ? "" : "disabled"}><span class="price">${this.renderCssIcon(icon)}${this.formatNumber(item.priceAmount)} ${currencyName}</span></button>`;
     }
 
     private renderDecorCollection(): string {
@@ -2227,12 +2271,119 @@ export class BottomNavUI extends Component {
 
     private renderShopPreviewRows(category: string, count: number): string {
         return (SHOP_PREVIEW_CATALOGS[category] ?? SHOP_PREVIEW_CATALOGS.resource).slice(0, count).map(([name, desc, icon, price, currency], index) => {
-            const productKind = category === "resource" ? (["bean", "food", "food", "diamond"][index] ?? icon) : icon;
+            const key = `preview:${category}:${index}`;
+            const art = this.getShopPreviewArt(category, index, icon);
+            const productKind = this.getShopPreviewArtKind(category, index, icon);
             const sizeClass = category === "resource" && icon === "food"
                 ? (index === 1 ? "product-small" : "product-large")
                 : "";
-            return `<div class="item shop-row preview"><div class="shop-icon product-art product-${productKind} ${sizeClass}" style="background-image:url('${getShopProductAsset(productKind)}')"></div><div><b>${name}</b><br>${desc}<div class="limit">每日限购：3/3</div></div><div class="buy-zone"><span class="tag preview-price">${price} ${currency}</span></div></div>`;
+            const selected = this._selectedShopProductKey === key ? "selected" : "";
+            return `<div class="item shop-row preview ${selected}" data-shop-key="${key}"><button class="shop-product-select" data-action="selectShopProduct" data-id="${key}"><span class="shop-icon product-art product-${productKind} ${sizeClass}" data-shop-art="${productKind}" style="background-image:url('${art}')"></span><span class="shop-row-copy"><b>${name}</b><span>${desc}</span><span class="limit">每日限购：3/3</span></span></button><div class="buy-zone"><span class="tag preview-price">${price} ${currency}</span></div></div>`;
         }).join("");
+    }
+
+    private getDefaultShopProductSelection(category: ShopTabId): string {
+        if (category === "deco") {
+            return this._serverDecorCatalog[0] ? `decor:${this._serverDecorCatalog[0].decorId}` : "preview:deco:0";
+        }
+        const realItem = ShopManager.getShopItems(category)[0];
+        return realItem ? `shop:${realItem.id}` : `preview:${category}:0`;
+    }
+
+    private getShopProductDetail(key: string): ShopProductDetailView | null {
+        if (key.startsWith("shop:")) {
+            const shopId = key.slice("shop:".length);
+            const shop = ConfigManager.shops.find(item => item.id === shopId);
+            if (!shop) return null;
+            const item = ConfigManager.items.find(entry => entry.id === shop.itemId);
+            const icon = this.getItemIconClass(shop.itemId);
+            const artKind = shop.itemId === "item_cat_food_pack"
+                ? "food"
+                : shop.itemId === "item_coin_pack_small"
+                    ? "coin"
+                    : icon;
+            const currencyName = shop.priceType === "coin" ? "金币" : shop.priceType === "diamond" ? "钻石" : "猫粮";
+            const remaining = ShopManager.getRemainingLimit(shop.id);
+            return {
+                key,
+                category: shop.category as ShopTabId,
+                name: item?.name ?? shop.itemId,
+                description: item?.description ?? "商品配置缺失",
+                source: "正式商品 · 购买后立即进入背包",
+                art: getShopProductAsset(artKind),
+                artKind,
+                priceLabel: `${this.formatNumber(shop.priceAmount)} ${currencyName}`,
+                limitLabel: remaining >= 999 ? "不限购" : `今日剩余 ${remaining}/${shop.limitDaily}`,
+                realShopId: shop.id,
+            };
+        }
+        if (key.startsWith("decor:")) {
+            const decorId = key.slice("decor:".length);
+            const item = this._serverDecorCatalog.find(entry => entry.decorId === decorId);
+            if (!item) return null;
+            const building = BuildingManager.getById(item.defaultBuildingId);
+            return {
+                key,
+                category: "deco",
+                name: item.name,
+                description: item.description,
+                source: `${building?.floor ?? "工厂"}仓库 · 装饰评分 +${item.score}`,
+                art: this.getFactoryPropDataUri(getBuildingScene(item.defaultBuildingId)),
+                artKind: "deco",
+                priceLabel: `${this.formatNumber(item.priceAmount)} ${item.priceType === "diamond" ? "钻石" : "金币"}`,
+                limitLabel: item.owned ? "永久收藏 · 已拥有" : "永久收藏 · 仅需购买一次",
+                decorId: item.decorId,
+            };
+        }
+        if (!key.startsWith("preview:")) return null;
+        const [, categoryValue, indexValue] = key.split(":");
+        const category = categoryValue as ShopTabId;
+        const index = Number(indexValue);
+        const row = SHOP_PREVIEW_CATALOGS[category]?.[index];
+        if (!row || !SHOP_TABS.some(tab => tab.id === category)) return null;
+        const [name, description, icon, price, currency] = row;
+        return {
+            key,
+            category,
+            name,
+            description,
+            source: category === "cat" ? "猫咪招募 · 活动轮换" : category === "deco" ? "装饰收藏 · 联网后开放" : "玩法预览 · 后续版本开放",
+            art: this.getShopPreviewArt(category, index, icon),
+            artKind: this.getShopPreviewArtKind(category, index, icon),
+            priceLabel: `${price} ${currency}`,
+            limitLabel: "每日剩余 3/3",
+        };
+    }
+
+    private renderShopProductDetail(detail: ShopProductDetailView): string {
+        let action = `<button class="tag preview-price" disabled>预览商品</button>`;
+        if (detail.realShopId) {
+            const shop = ConfigManager.shops.find(item => item.id === detail.realShopId);
+            if (shop) action = this.renderShopButton(shop.id, shop.priceType, shop.priceAmount);
+        } else if (detail.decorId) {
+            const decor = this._serverDecorCatalog.find(item => item.decorId === detail.decorId);
+            if (decor) action = this.renderDecorPurchaseButton(decor);
+        }
+        return `<section class="shop-detail-target" data-selected-key="${detail.key}" data-shop-category="${detail.category}"><span class="shop-detail-art product-${detail.artKind}" data-shop-art="${detail.artKind}" style="background-image:url('${detail.art}')"></span><span class="shop-detail-copy"><small>${this.getShopTabLabel()}</small><b>${detail.name}</b><span>${detail.description}</span><em>${detail.source}</em></span><span class="shop-detail-meta"><b>${detail.priceLabel}</b><small>${detail.limitLabel}</small><span class="shop-detail-action">${action}</span></span></section>`;
+    }
+
+    private getShopPreviewArt(category: string, index: number, icon: string): string {
+        if (category === "resource") {
+            return getShopProductAsset(["bean", "food", "food", "diamond"][index] ?? icon);
+        }
+        if (category === "item") {
+            return getInventoryPreviewAsset(["speedTicket", "speedTicket", "orderVoucher", "guardCharm"][index] ?? icon);
+        }
+        if (category === "cat") {
+            return getCatFullArtAsset(["c_001", "c_002", "c_003", "c_004"][index] ?? "c_001");
+        }
+        return this.getFactoryPropDataUri(["cafe", "office", "roast", "storage"][index] ?? "storage");
+    }
+
+    private getShopPreviewArtKind(category: string, index: number, icon: string): string {
+        if (category === "resource") return ["bean", "food", "food", "diamond"][index] ?? icon;
+        if (category === "item") return ["speed", "speed", "voucher", "guard"][index] ?? "item";
+        return category === "cat" ? "cat" : "deco";
     }
 
     private getShopTabLabel(): string {
@@ -2254,12 +2405,9 @@ export class BottomNavUI extends Component {
         const remaining = ShopManager.getRemainingLimit(id);
         const cost = { [shop.priceType]: shop.priceAmount } as { coin?: number; diamond?: number; catFood?: number };
         const stateClass = remaining <= 0 ? "soldout" : ResourceManager.canSpend(cost) ? "" : "locked";
-        return `<div class="item shop-row ${stateClass}"><div class="shop-icon product-art product-${productKind}" style="background-image:url('${getShopProductAsset(productKind)}')"></div><div><b>${title}</b><br>${desc}<div class="limit">每日限购：${remaining >= 999 ? "不限" : remaining}</div></div><div class="buy-zone">${this.renderShopButton(id, shop.priceType, shop.priceAmount)}</div></div>`;
-    }
-
-    private renderEmptyShopRows(category: string): string {
-        const label = category === "cat" ? "猫咪" : category === "deco" ? "装饰" : "道具";
-        return `<div class="item shop-row locked"><div class="shop-icon asset" style="background-image:url('${this.getGeneratedIconAsset("gift")}')">${this.renderCssIcon("gift")}</div><div><b>${label}货架整理中</b><br>该分类商品会跟随玩法进度开放。<div class="limit">请先体验已有商品和主线任务</div></div><div><span class="tag warn">开发中</span></div></div>`;
+        const key = `shop:${id}`;
+        const selected = this._selectedShopProductKey === key ? "selected" : "";
+        return `<div class="item shop-row ${stateClass} ${selected}" data-shop-key="${key}"><button class="shop-product-select" data-action="selectShopProduct" data-id="${key}"><span class="shop-icon product-art product-${productKind}" data-shop-art="${productKind}" style="background-image:url('${getShopProductAsset(productKind)}')"></span><span class="shop-row-copy"><b>${title}</b><span>${desc}</span><span class="limit">每日限购：${remaining >= 999 ? "不限" : remaining}</span></span></button><div class="buy-zone">${this.renderShopButton(id, shop.priceType, shop.priceAmount)}</div></div>`;
     }
 
     private getShopIcon(type: string): string {

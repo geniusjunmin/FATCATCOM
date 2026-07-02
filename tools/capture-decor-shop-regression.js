@@ -96,6 +96,8 @@ async function waitForApi() {
                     rowsContained: rows.every(contained),
                     tabTextFits: tabs.every(textFits),
                     buyButtons: rows.filter((row) => !!row.querySelector('[data-action="buyDecor"]')).length,
+                    selectedRows: rows.filter((row) => row.classList.contains("selected")).length,
+                    selectedDetail: overlay?.querySelector(".shop-detail-target")?.getAttribute("data-selected-key") || "",
                     firstRowHeight: rows[0]?.getBoundingClientRect().height || 0,
                     overlayHeight: overlay?.getBoundingClientRect().height || 0,
                 };
@@ -119,6 +121,8 @@ async function waitForApi() {
             && result.state.rowsContained
             && result.state.tabTextFits
             && result.state.buyButtons === 6
+            && result.state.selectedRows === 1
+            && result.state.selectedDetail.startsWith("decor:")
             && result.state.firstRowHeight >= 70
             && result.messages.length === 0
             && result.failedRequests.length === 0)

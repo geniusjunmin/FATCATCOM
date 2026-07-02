@@ -19,7 +19,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory/research and six building-room heroes are done; next deepen shop category switching and selected-product detail. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Core feature panels and shop interaction are done; next add the missing factory-appearance preview/selection surface from `其他页面.png`. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
@@ -28,11 +28,11 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 ### 0. Next Visual Batch
 
-- Preserve the completed inventory detail interaction, three research medals, eleven branch lines, and six floor-specific building rooms.
-- Compare the shop panel against `其他页面.png` and make all four category tabs expose meaningful filtered content instead of a mostly static catalog.
-- Add a selected-product detail or confirmation state with clear art, quantity/value, price, remaining limit, and real purchase action while keeping authoritative online behavior.
-- Reuse the existing four generated product props; generate only genuinely missing category art and keep live values/buttons in DOM.
-- Extend four-size feature interaction checks for category switching, single selection, purchase-action visibility, and bottom-nav clearance.
+- Preserve the completed shop category/detail interaction, authoritative purchase actions, inventory selection, research tree, and six building-room heroes.
+- Build the missing factory-appearance preview view shown at the bottom-right of `其他页面.png`, reachable from the building/factory flow without replacing the existing building upgrade panel.
+- Add four appearance cards (default active plus locked themes), a large factory preview, active bonus summary, and stable selected/active states.
+- Reuse the main factory cutaway for the default preview and generate only the genuinely missing themed factory art; keep names, unlock state, bonuses, and actions in DOM.
+- Add four-size appearance switching, active-state, embedded-art, containment, and return-navigation regression before widening into another feature.
 
 ### 1. Shared Config And Economy Coverage
 

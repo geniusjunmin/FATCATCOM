@@ -7,7 +7,7 @@ Updated: 2026-07-02
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Preserve the completed feature interactions and six floor-specific building rooms, then deepen shop category switching and selected-product detail without disturbing narrow-screen clearance. |
+| Best Next Move | Preserve the completed feature interactions, then add the missing factory-appearance preview/selection surface shown at the bottom-right of `其他页面.png`. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -26,6 +26,11 @@ Updated: 2026-07-02
 
 ## Client UI
 
+- Latest shop interaction pass turns all four category tabs into meaningful selectable catalogs. Resource and item categories prefer real configured products, cat and unavailable entries use preview products, and decoration entries preserve the authoritative server catalog. Every tab resets to a valid default selection and every row has a stable `shop:`, `preview:`, or `decor:` key.
+- A new `.shop-detail-target` keeps selected art, description, source, price, limit, and action visible above the scrollable shelf. Real products still route through `buy`/`SyncManager.purchaseServerShopItem`, decorations through `buyDecor`, and preview-only products expose a disabled preview action.
+- Product selection and purchase are separate buttons. The selected row has an orange target-like outline; resource previews use dedicated shop props, item previews reuse ticket/voucher/guard art, cat previews use the generated lineup, and decor previews use matching room props.
+- Four-size feature regression now switches resource/item/cat/deco, selects products, requires one active tab/row, validates embedded detail art, confirms real purchase action visibility, and checks detail/shelf navigation clearance. `check-shop-interaction.js` protects the state/action/markup boundary.
+- Verification for this pass: four-size feature/main/cat/utility/decor-shop screenshots, complete click regression, real online decoration purchase/storage/placement, Cocos refresh, and `quick-verify.ps1` all pass; server tests remain 84/84.
 - Latest building-detail art pass replaces the shared factory-cutaway crop with six dedicated 768x432 room illustrations for office, roasting, fermentation, milling, cafe, and storage. They live under `FATCATUI/assets/resources/textures/generated/building_rooms/`, contain no baked UI text, and keep all live floor, level, effect, cost, decor, and staffing data in DOM.
 - `GeneratedBuildingRoomAssets` and `getBuildingRoomAsset(scene)` own the floor mapping. The room hero now exposes stable `data-building-id` and `data-building-scene` markers, uses a 16:9 cover layout, and switches embedded JPEG art whenever a floor chip is selected.
 - `check-building-room-art.js` guards dimensions, JPEG signatures, registry/resolver/renderer wiring, and Data URI generation. The four-size feature regression clicks all six floors at 360x800, 414x896, 430x932, and 768x1024 and requires six unique scenes, ids, backgrounds, embedded images, and exactly one active chip.

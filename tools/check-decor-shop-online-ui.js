@@ -73,6 +73,8 @@ async function waitForApi() {
                 rows: rows.length,
                 owned: rows.filter((row) => row.classList.contains("owned")).length,
                 targetVisible: !!target,
+                selectedRows: rows.filter((row) => row.classList.contains("selected")).length,
+                selectedDetail: document.querySelector("#fatcat-dom-panel-overlay .shop-detail-target")?.getAttribute("data-selected-key") || "",
                 summary: document.querySelector("#fatcat-dom-panel-overlay .decor-shop-summary")?.textContent || "",
                 contained: rows.every((row) => {
                     const rect = row.getBoundingClientRect();
@@ -87,7 +89,7 @@ async function waitForApi() {
                 .find((item) => item.textContent?.includes("霓虹猫爪灯"));
             return {
                 owned: !!row?.classList.contains("owned"),
-                ownedButton: row?.querySelector("button")?.textContent?.trim() || "",
+                ownedButton: row?.querySelector(".buy-zone button")?.textContent?.trim() || "",
                 message: document.querySelector("#fatcat-dom-panel-overlay .message")?.textContent || "",
             };
         });
@@ -121,6 +123,8 @@ async function waitForApi() {
         const ok = before.rows === 6
             && before.owned === 0
             && before.targetVisible
+            && before.selectedRows === 1
+            && before.selectedDetail.startsWith("decor:")
             && before.summary.includes("永久收藏")
             && before.contained
             && purchased.owned

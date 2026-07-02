@@ -80,6 +80,51 @@ async function isVisible(page, selector) {
                 interaction.buildingRoomArtSwitches = new Set(backgrounds).size;
                 interaction.buildingEmbeddedSwitches = backgrounds
                     .filter(value => value.includes('url("data:image/jpeg;base64,')).length;
+            } else if (panel === "shop") {
+                const tabStates = {};
+                for (const tab of ["resource", "item", "cat", "deco"]) {
+                    await page.click(`#fatcat-dom-panel-overlay [data-action="shopTab"][data-tab="${tab}"]`);
+                    await page.waitForTimeout(180);
+                    const firstProduct = page.locator('#fatcat-dom-panel-overlay [data-action="selectShopProduct"]').first();
+                    if (await firstProduct.count()) {
+                        await firstProduct.click();
+                        await page.waitForTimeout(100);
+                    }
+                    tabStates[tab] = await page.evaluate(() => {
+                        const shell = document.querySelector("#fatcat-dom-panel-overlay .shop-shell");
+                        const detail = document.querySelector("#fatcat-dom-panel-overlay .shop-detail-target");
+                        const art = document.querySelector("#fatcat-dom-panel-overlay .shop-detail-art");
+                        return {
+                            category: shell?.getAttribute("data-shop-category") || "",
+                            rows: document.querySelectorAll("#fatcat-dom-panel-overlay .shop-row").length,
+                            key: detail?.getAttribute("data-selected-key") || "",
+                            selectedRows: document.querySelectorAll("#fatcat-dom-panel-overlay .shop-row.selected").length,
+                            activeTabs: document.querySelectorAll("#fatcat-dom-panel-overlay .shop-tabs .tab.active").length,
+                            embeddedDetailArt: !!art && getComputedStyle(art).backgroundImage.startsWith('url("data:image/'),
+                        };
+                    });
+                }
+                await page.click('#fatcat-dom-panel-overlay [data-action="shopTab"][data-tab="resource"]');
+                await page.waitForTimeout(120);
+                const beforeKey = await page.locator("#fatcat-dom-panel-overlay .shop-detail-target").getAttribute("data-selected-key");
+                await page.locator('#fatcat-dom-panel-overlay [data-action="selectShopProduct"]').nth(1).click();
+                await page.waitForTimeout(100);
+                const afterState = await page.evaluate(() => ({
+                    key: document.querySelector("#fatcat-dom-panel-overlay .shop-detail-target")?.getAttribute("data-selected-key") || "",
+                    selectedRows: document.querySelectorAll("#fatcat-dom-panel-overlay .shop-row.selected").length,
+                    realPurchaseActions: document.querySelectorAll("#fatcat-dom-panel-overlay .shop-detail-action [data-action='buy']").length,
+                }));
+                interaction.shopTabStates = tabStates;
+                interaction.shopTabs = Object.entries(tabStates).every(([tab, state]) => state.category === tab
+                    && state.rows >= 4
+                    && !!state.key
+                    && state.selectedRows === 1
+                    && state.activeTabs === 1
+                    && state.embeddedDetailArt);
+                interaction.shopDetailSwitch = !!beforeKey
+                    && afterState.key !== beforeKey
+                    && afterState.selectedRows === 1;
+                interaction.shopRealPurchaseAction = afterState.realPurchaseActions === 1;
             } else if (panel === "inventory") {
                 const tabStates = {};
                 for (const tab of ["resource", "shard", "other", "all"]) {
@@ -157,11 +202,24 @@ async function isVisible(page, selector) {
                 embeddedShopProductArt: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay .shop-icon.product-art"))
                     .filter(element => getComputedStyle(element).backgroundImage.startsWith('url("data:image/png;base64,')).length,
                 shopRowsClearNav: (() => {
-                    const rows = Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay .shop-row"));
+                    const viewport = document.querySelector("#fatcat-dom-panel-overlay .shop-catalog-viewport");
                     const nav = document.querySelector("#fatcat-dom-nav .nav-bar");
-                    if (rows.length === 0 || !nav) return false;
-                    return rows[rows.length - 1].getBoundingClientRect().bottom <= nav.getBoundingClientRect().top - 2;
+                    if (!viewport || !nav) return false;
+                    return viewport.getBoundingClientRect().bottom <= nav.getBoundingClientRect().top - 2;
                 })(),
+                shopDetailVisible: (() => {
+                    const detail = document.querySelector("#fatcat-dom-panel-overlay .shop-detail-target");
+                    if (!detail) return false;
+                    const rect = detail.getBoundingClientRect();
+                    return rect.width > 0 && rect.height > 0 && rect.top < window.innerHeight;
+                })(),
+                shopDetailClearNav: (() => {
+                    const detail = document.querySelector("#fatcat-dom-panel-overlay .shop-detail-target");
+                    const nav = document.querySelector("#fatcat-dom-nav .nav-bar");
+                    if (!detail || !nav) return false;
+                    return detail.getBoundingClientRect().bottom <= nav.getBoundingClientRect().top - 2;
+                })(),
+                shopSelectedRows: document.querySelectorAll("#fatcat-dom-panel-overlay .shop-row.selected").length,
                 bagCards: document.querySelectorAll("#fatcat-dom-panel-overlay .bag-card").length,
                 inventoryArtKinds: new Set(Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay [data-inventory-art]"))
                     .map(element => element.getAttribute("data-inventory-art"))).size,
@@ -248,7 +306,13 @@ async function isVisible(page, selector) {
         if (entry.panel === "shop") return entry.state.shopRows < 6
             || entry.state.shopProductArt < 6
             || entry.state.embeddedShopProductArt < 6
-            || !entry.state.shopRowsClearNav;
+            || !entry.state.shopRowsClearNav
+            || !entry.state.shopDetailVisible
+            || !entry.state.shopDetailClearNav
+            || entry.state.shopSelectedRows !== 1
+            || !entry.interaction.shopTabs
+            || !entry.interaction.shopDetailSwitch
+            || !entry.interaction.shopRealPurchaseAction;
         if (entry.panel === "inventory") return entry.state.bagCards !== 20
             || entry.state.inventoryArtKinds < 7
             || entry.state.embeddedInventoryArt < 8
