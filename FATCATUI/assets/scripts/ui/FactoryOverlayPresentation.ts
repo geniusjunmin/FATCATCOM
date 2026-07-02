@@ -425,7 +425,7 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
                 left:6.2%;
                 right:6.2%;
                 top:16.4%;
-                bottom:16.7%;
+                bottom:14.0%;
                 border:0;
                 border-radius:0;
                 background:transparent;
@@ -436,7 +436,7 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
                 left:13%;
                 right:13%;
                 top:17%;
-                bottom:16.3%;
+                bottom:13.8%;
             }
             #fatcat-dom-factory .building:before,
             #fatcat-dom-factory .building:after,
@@ -462,10 +462,10 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
             #fatcat-dom-factory .floor-kpi { display:none; }
             #fatcat-dom-factory .floor-card,
             #fatcat-dom-factory.compact .floor-card {
-                left:10%;
-                top:21%;
-                width:24%;
-                height:52%;
+                left:8.5%;
+                top:27%;
+                width:22.5%;
+                height:46%;
                 grid-template-columns:38% 1fr;
                 border-radius:10px;
                 border-width:2px;
@@ -482,10 +482,10 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
             #fatcat-dom-factory .floor-medal { display:none; }
             #fatcat-dom-factory .bonus,
             #fatcat-dom-factory.compact .bonus {
-                right:6%;
-                top:18%;
+                right:4%;
+                top:24%;
                 width:18.5%;
-                height:64%;
+                height:52%;
                 grid-template-columns:28% 1fr;
                 grid-template-rows:42% 25% 33%;
                 column-gap:5%;
@@ -521,9 +521,9 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
             #fatcat-dom-factory.wide .bottom-widgets {
                 left:3%;
                 right:3%;
-                bottom:8.7%;
-                height:8.0%;
-                grid-template-columns:18fr 11.5fr 38.5fr 32fr;
+                bottom:7.15%;
+                height:7.2%;
+                grid-template-columns:17fr 10.5fr 39fr 30.5fr;
                 gap:1.3%;
             }
             #fatcat-dom-factory.wide .bottom-widgets { left:9%; right:9%; }
@@ -534,11 +534,12 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
             #fatcat-dom-factory.compact .side-btn i.asset { width:62%; margin-bottom:4%; }
             #fatcat-dom-factory .launch-count,
             #fatcat-dom-factory.wide .launch-count {
-                bottom:7.95%;
-                height:2.05%;
+                bottom:6.45%;
+                height:1.9%;
             }
             #fatcat-dom-factory .order .order-text { align-self:center; line-height:1.05; }
             #fatcat-dom-factory .order .order-text b { margin-top:4%; }
+            #fatcat-dom-factory .gift:after { display:none; }
             @media (max-width:390px) {
                 #fatcat-dom-factory .side-btn {
                     min-height:50px;
@@ -556,7 +557,7 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
                 #fatcat-dom-factory .bottom-widgets,
                 #fatcat-dom-factory.compact .bottom-widgets,
                 #fatcat-dom-factory.tall .bottom-widgets {
-                    grid-template-columns:19fr 10fr 39fr 30fr;
+                    grid-template-columns:18fr 9.5fr 40fr 29fr;
                     gap:.8%;
                 }
                 #fatcat-dom-factory .order {
@@ -568,13 +569,19 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
                 }
                 #fatcat-dom-factory .order .order-icon { display:none; }
                 #fatcat-dom-factory .gift {
-                    grid-template-columns:34% 1fr;
-                    gap:1%;
+                    grid-template-columns:28% 1fr;
+                    gap:2%;
                     padding:0 2%;
-                    font-size:1.15%;
-                    line-height:1;
+                    font-size:1.08%;
+                    line-height:.96;
                 }
-                #fatcat-dom-factory .gift em { padding:1% 3%; font-size:72%; }
+                #fatcat-dom-factory .gift-cat.asset { width:116%; margin-left:-8%; }
+                #fatcat-dom-factory .gift em {
+                    margin-top:1%;
+                    padding:1% 2%;
+                    font-size:68%;
+                    white-space:nowrap;
+                }
                 #fatcat-dom-factory.compact .launch {
                     border-width:3px;
                     font-size:2.7%;

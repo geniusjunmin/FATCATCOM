@@ -1,6 +1,6 @@
 # Next Tasks
 
-Updated: 2026-07-01
+Updated: 2026-07-02
 
 ## Round Contract
 
@@ -19,7 +19,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Continue final main/cat proportion tuning and add richer illustration assets where CSS is still flat. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Preserve the measured main/cat proportions and target the remaining flat feature-panel hero art. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
@@ -133,7 +133,9 @@ Keep these scripts in the regular set when touching related flows:
 - Done in latest cooperative-tier batch: 1/2/3 assists independently unlock coin, research, and diamond rewards; SQLite migrates a claim mask, old final claims remain valid, and a three-player 360px browser flow claims every tier and rejects repeats.
 - Done in latest decor-shop batch: six permanent decorations now have authoritative catalog/ownership/price state, one-time purchase, resource transactions, live shop rows, local floor artwork, building-warehouse handoff, a real purchase/place browser test, and four-size screenshots.
 - Done in latest decor-collection batch: the shop has a three-tier collection book, total score/progress, authoritative one-time rewards, atomic concurrent-claim protection, live resource snapshots, a real purchase/claim browser test, and four-size layout coverage.
-- Next move: return to final main/cat target-UI proportion tuning, then use the same dedicated-art pipeline for any remaining flat feature-panel hero surfaces.
+- Done in latest main-proportion batch: exact `2580` diamond formatting is shared by the main DOM HUD, cat HUD, and Cocos top bar; the factory now reaches 86% of the canvas; compact operation/nav bands are about 7.2%/6.1%; floor and bonus cards are thinner; and the 360px gift countdown is no longer crowded by duplicate decoration.
+- `capture-main-regression.js` now fails on diamond abbreviation, factory/action/nav geometry drift, oversized floor cards, or overflowing chest/launch/gift text. `capture-cat-regression.js` also requires the unabridged diamond value at all four sizes.
+- Next move: keep this geometry stable and use the dedicated-art pipeline for the most visibly flat building/shop/inventory hero surface before making more global spacing changes.
 
 ### 1. Main Factory Richness
 

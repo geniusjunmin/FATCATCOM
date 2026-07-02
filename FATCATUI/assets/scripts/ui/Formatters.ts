@@ -23,6 +23,11 @@ export function formatDisplayNumber(value: number): string {
     return `${Math.floor(value)}`;
 }
 
+export function formatExactInteger(value: number): string {
+    if (!Number.isFinite(value)) return "0";
+    return Math.floor(value).toString();
+}
+
 export function formatRateValue(value: number): string {
     if (value >= 10) return formatDisplayNumber(value);
     if (value >= 1) return value.toFixed(1).replace(/\.0$/, "");

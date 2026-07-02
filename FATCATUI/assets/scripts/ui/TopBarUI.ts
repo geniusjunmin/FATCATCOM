@@ -3,7 +3,7 @@ import { EventBus, GameEvents } from "../core/EventBus";
 import { ResourceChangedPayload, ResourceManager } from "../manager/ResourceManager";
 import { SaveManager } from "../manager/SaveManager";
 import { GameSaveData } from "../model/SaveData";
-import { formatCompactNumber } from "./Formatters";
+import { formatCompactNumber, formatExactInteger } from "./Formatters";
 
 const { ccclass, property } = _decorator;
 
@@ -143,7 +143,7 @@ export class TopBarUI extends Component {
         this.setLabel(this.coinLabel, formatCompactNumber(resources.coin));
         this.setLabel(this.beanLabel, formatCompactNumber(resources.bean));
         this.setLabel(this.catFoodLabel, formatCompactNumber(resources.catFood));
-        this.setLabel(this.diamondLabel, formatCompactNumber(resources.diamond));
+        this.setLabel(this.diamondLabel, formatExactInteger(resources.diamond));
     }
 
     private setLabel(label: Label | null, value: string): void {

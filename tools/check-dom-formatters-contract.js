@@ -28,6 +28,7 @@ const formatters = read("FATCATUI/assets/scripts/ui/Formatters.ts");
 const bottomNav = read("FATCATUI/assets/scripts/ui/BottomNavUI.ts");
 
 assertContains("display number formatter", formatters, "formatDisplayNumber");
+assertContains("exact integer formatter", formatters, "formatExactInteger");
 assertContains("rate formatter", formatters, "formatRateValue");
 assertContains("clock formatter", formatters, "formatClockTime");
 assertContains("friend relative formatter", formatters, "formatFriendReportRelativeTime");
@@ -36,6 +37,8 @@ assertContains("signed percent still exported", formatters, "formatSignedPercent
 
 assertContains("bottom nav imports formatters", bottomNav, "from \"./Formatters\"");
 assertContains("bottom nav number wrapper", bottomNav, "return formatDisplayNumber(value);");
+assertContains("diamond HUD keeps exact integer", bottomNav, "item.kind === \"diamond\"");
+assertContains("cat HUD keeps exact diamond integer", bottomNav, "formatExactInteger(ResourceManager.get(\"diamond\"))");
 assertContains("bottom nav rate wrapper", bottomNav, "return formatRateValue(value);");
 assertContains("bottom nav activity wrapper", bottomNav, "return formatClockTime(timestamp);");
 assertContains("bottom nav friend time wrapper", bottomNav, "return formatFriendReportRelativeTime(timestamp);");

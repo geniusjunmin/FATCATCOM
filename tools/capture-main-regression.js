@@ -63,6 +63,19 @@ const sizes = [
             const player = rect("#fatcat-dom-hud .player");
             const firstResource = rect("#fatcat-dom-hud .res");
             const chest = document.querySelector("#fatcat-dom-factory .chest");
+            const launch = document.querySelector("#fatcat-dom-factory .launch");
+            const gift = document.querySelector("#fatcat-dom-factory .gift");
+            const canvas = rect("canvas");
+            const floor = rect("#fatcat-dom-factory .floor");
+            const floorCard = rect("#fatcat-dom-factory .floor-card");
+            const bonus = rect("#fatcat-dom-factory .bonus");
+            const building = rect("#fatcat-dom-factory .building");
+            const bottomWidgets = rect("#fatcat-dom-factory .bottom-widgets");
+            const navBar = rect("#fatcat-dom-nav .nav-bar");
+            const diamondValue = document.querySelector("#fatcat-dom-hud .res.diamond .value")?.textContent?.trim() ?? "";
+            const ratio = (part, whole) => part && whole
+                ? Math.round(part / whole * 10000) / 10000
+                : null;
 
             return {
                 resourceCount: document.querySelectorAll("#fatcat-dom-hud .res").length,
@@ -76,8 +89,23 @@ const sizes = [
                 hudGap: player && firstResource ? Math.round((firstResource.left - player.right) * 10) / 10 : null,
                 chest: rect("#fatcat-dom-factory .chest"),
                 launch: rect("#fatcat-dom-factory .launch"),
+                diamondValue,
+                buildingHeightRatio: ratio(building?.height, canvas?.height),
+                buildingBottomRatio: building && canvas
+                    ? Math.round((building.bottom - canvas.top) / canvas.height * 10000) / 10000
+                    : null,
+                floorCardHeightRatio: ratio(floorCard?.height, floor?.height),
+                bonusHeightRatio: ratio(bonus?.height, floor?.height),
+                operationHeightRatio: ratio(bottomWidgets?.height, canvas?.height),
+                navHeightRatio: ratio(navBar?.height, canvas?.height),
                 chestTextFits: chest
                     ? chest.scrollWidth <= chest.clientWidth + 1 && chest.scrollHeight <= chest.clientHeight + 1
+                    : false,
+                launchTextFits: launch
+                    ? launch.scrollWidth <= launch.clientWidth + 1 && launch.scrollHeight <= launch.clientHeight + 1
+                    : false,
+                giftTextFits: gift
+                    ? gift.scrollWidth <= gift.clientWidth + 1 && gift.scrollHeight <= gift.clientHeight + 1
                     : false,
             };
         });
@@ -98,7 +126,22 @@ const sizes = [
         || !entry.state.hasSettings
         || entry.state.hudGap === null
         || entry.state.hudGap < 0
+        || entry.state.diamondValue !== "2580"
+        || entry.state.buildingHeightRatio === null
+        || entry.state.buildingHeightRatio < 0.68
+        || entry.state.buildingBottomRatio === null
+        || entry.state.buildingBottomRatio > 0.865
+        || entry.state.floorCardHeightRatio === null
+        || entry.state.floorCardHeightRatio > 0.5
+        || entry.state.bonusHeightRatio === null
+        || entry.state.bonusHeightRatio > 0.56
+        || entry.state.operationHeightRatio === null
+        || entry.state.operationHeightRatio > 0.075
+        || entry.state.navHeightRatio === null
+        || entry.state.navHeightRatio > 0.065
         || !entry.state.chestTextFits
+        || !entry.state.launchTextFits
+        || !entry.state.giftTextFits
     )) {
         process.exit(1);
     }

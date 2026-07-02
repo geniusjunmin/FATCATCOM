@@ -28,7 +28,7 @@ import {
     getGeneratedIconAsset,
     getSkillIconAsset,
 } from "./DomAssetResolver";
-import { formatClockTime, formatDisplayNumber, formatFriendReportRelativeTime, formatRateValue } from "./Formatters";
+import { formatClockTime, formatDisplayNumber, formatExactInteger, formatFriendReportRelativeTime, formatRateValue } from "./Formatters";
 import {
     MAIN_DOM_NAV_ITEMS,
     MAIN_NAV_FEATURE_ICON_BY_PANEL,
@@ -105,7 +105,7 @@ import {
     HUD_RESOURCE_ITEMS,
     type HudResourceKind,
 } from "./HudPresentation";
-import { DOM_NAV_STYLES } from "./NavPresentation";
+import { DOM_NAV_STYLES, DOM_NAV_TARGET_STYLES } from "./NavPresentation";
 import { DOM_PANEL_STYLES } from "./PanelPresentation";
 
 const { ccclass, property } = _decorator;
@@ -2460,7 +2460,13 @@ export class BottomNavUI extends Component {
                     </div>
                 </div>
                 <div class="resources">
-                    ${HUD_RESOURCE_ITEMS.map(item => this.renderHudResource(item.kind, item.label, this.formatNumber(resources[item.resourceKey]))).join("")}
+                    ${HUD_RESOURCE_ITEMS.map(item => this.renderHudResource(
+                        item.kind,
+                        item.label,
+                        item.kind === "diamond"
+                            ? formatExactInteger(resources[item.resourceKey])
+                            : this.formatNumber(resources[item.resourceKey]),
+                    )).join("")}
                 </div>
                 ${this._factoryMessage && this.currentPanel === "factory" ? `<div class="factory-msg">${this._factoryMessage}</div>` : ""}
             </div>`;
@@ -2478,7 +2484,7 @@ export class BottomNavUI extends Component {
         const overlay = document.createElement("div");
         overlay.id = "fatcat-dom-nav";
         const style = document.createElement("style");
-        style.textContent = DOM_NAV_STYLES;
+        style.textContent = DOM_NAV_STYLES + DOM_NAV_TARGET_STYLES;
         document.head.appendChild(style);
         overlay.addEventListener("pointerdown", this.onDomNavPointerDown);
         document.body.appendChild(overlay);
@@ -2768,7 +2774,7 @@ export class BottomNavUI extends Component {
                     <div class="res coin"><i class="asset" style="background-image:url('${this.getGeneratedIconAsset("coin")}')"></i>${this.formatNumber(ResourceManager.get("coin"))}<b class="plus">+</b></div>
                     <div class="res bean"><i class="asset" style="background-image:url('${this.getGeneratedIconAsset("bean")}')"></i>${this.formatNumber(ResourceManager.get("bean"))}<b class="plus">+</b></div>
                     <div class="res food"><i class="asset" style="background-image:url('${this.getGeneratedIconAsset("food")}')"></i>${this.formatNumber(ResourceManager.get("catFood"))}<b class="plus">+</b></div>
-                    <div class="res gem"><i class="asset" style="background-image:url('${this.getGeneratedIconAsset("diamond")}')"></i>${this.formatNumber(ResourceManager.get("diamond"))}<b class="plus">+</b></div>
+                    <div class="res gem"><i class="asset" style="background-image:url('${this.getGeneratedIconAsset("diamond")}')"></i>${formatExactInteger(ResourceManager.get("diamond"))}<b class="plus">+</b></div>
                 </div>
                 <div class="cat-modal-title">猫咪图鉴</div>
                 <button class="close-x" data-action="back">×</button>

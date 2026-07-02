@@ -74,6 +74,11 @@ async function isVisible(page, selector) {
             const sideRail = rect("#fatcat-dom-cat-overlay .cat-side");
             const hero = rect("#fatcat-dom-cat-overlay .cat-hero");
             const roster = rect("#fatcat-dom-cat-overlay .cat-list");
+            const diamondResource = document.querySelector("#fatcat-dom-cat-overlay .cat-page-hud .res.gem");
+            const diamondValue = Array.from(diamondResource?.childNodes ?? [])
+                .find(node => node.nodeType === 3)
+                ?.textContent
+                ?.trim() ?? "";
 
             return {
                 overlayVisible: !!document.querySelector("#fatcat-dom-cat-overlay"),
@@ -86,6 +91,7 @@ async function isVisible(page, selector) {
                 equipSlotTags: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-slot-tag").length,
                 equipBonusPills: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-bonus-pill").length,
                 hasStoryPhoto: !!document.querySelector("#fatcat-dom-cat-overlay .story-photo"),
+                diamondValue,
                 storyTags: document.querySelectorAll("#fatcat-dom-cat-overlay .story-tags span").length,
                 backText: document.querySelector("#fatcat-dom-cat-overlay .back")?.textContent?.trim() || "",
                 overlay,
@@ -138,6 +144,7 @@ async function isVisible(page, selector) {
         || !entry.state.overlayVisible
         || !entry.state.hasPortrait
         || !entry.state.hasStoryPhoto
+        || entry.state.diamondValue !== "2580"
         || !entry.state.storyVisible
         || !entry.state.storyButtonVisible
         || entry.state.storyTags < 3

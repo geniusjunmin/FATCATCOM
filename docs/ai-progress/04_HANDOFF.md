@@ -1,6 +1,6 @@
 # Handoff
 
-Updated: 2026-07-01
+Updated: 2026-07-02
 
 ## 90-Second Boot
 
@@ -24,6 +24,8 @@ Updated: 2026-07-01
 
 ## Latest UI Note
 
+- Latest main-screen pass is measured against `主页面.png`: the six-floor building ends at 86% of the visible canvas, the operation band is about 7.2%, compact navigation is about 6.1%, floor cards stay below 50% of room height, and bonus cards stay below 56%. The main DOM HUD, cat HUD, and Cocos `TopBarUI` now render diamonds as exact integers (`2580`) instead of compacting to `2.58K`.
+- `node tools/capture-main-regression.js` guards those ratios plus HUD separation and bottom-card text containment at 360x800, 414x896, 430x932, and 768x1024. `node tools/capture-cat-regression.js` guards exact diamond text on the same four sizes. After frontend edits, refresh `db://assets/scripts/ui`.
 - Latest feature-panel batch aligns the building, shop, inventory, and research overlays with `其他页面.png`. The building panel now uses six floor selector chips, a generated factory-cutaway room hero, target-like level effects, conditions, and the existing upgrade action. Shop uses four category tabs plus six purchase rows. Inventory uses a 20-card grid and a selected-detail card. Research preserves a dark left tree and cream right detail panel at 360px, 430px, and 768px widths.
 - New gate: `node tools\capture-feature-regression.js`. It writes screenshots to `docs/verification/screenshots/2026-06-29-feature-regression/` and fails if the expected feature-panel structure, inventory detail, research split, or clean runtime state regresses.
 - Latest utility-panel batch gives task, achievement, mail, friend, and settings panels a shared `utility-shell` treatment. Important fix: the task board must keep its own local `font-size`; without that, the overlay design-height font makes the task board render as a huge clipped shape on 360/430 widths.

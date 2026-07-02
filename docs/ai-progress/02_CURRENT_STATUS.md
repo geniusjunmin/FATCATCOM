@@ -1,13 +1,13 @@
 # Current Status
 
-Updated: 2026-07-01
+Updated: 2026-07-02
 
 ## Control Panel
 
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Continue visual fidelity with generated friend-room backdrops or final main/cat proportion tuning; the planned cooperative tiers and decor collection systems are now complete. |
+| Best Next Move | Keep the newly measured main-screen geometry stable, then add dedicated art only to feature-panel hero surfaces that still look flat beside the target references. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -26,6 +26,8 @@ Updated: 2026-07-01
 
 ## Client UI
 
+- Latest main-screen target pass fixes the top-right diamond display to the reference value style (`2580`, never `2.58K`) in the DOM HUD, cat HUD, and Cocos top bar. It extends the six-floor factory to 86% of the canvas, reduces the operation band to about 7.2% and compact navigation to about 6.1%, thins floor/bonus cards, and removes the duplicate gift-card mascot that crowded the 360px countdown.
+- `tools/capture-main-regression.js` now treats those proportions as contracts at 360x800, 414x896, 430x932, and 768x1024. It also checks exact diamond text and chest/launch/gift text containment. `capture-cat-regression.js` checks the exact diamond value in all four cat-page sizes.
 - Latest friend-visit visual pass adds a dedicated generated six-floor coffee-workshop backdrop instead of reusing the main factory cutaway. The scene keeps live room, cat, decor, reward, and action DOM above the art, adds a compact workshop sign, and uses lighter overlays so the original office/roaster/tank/grinder/cafe/storage rooms remain visible.
 - Source and runtime assets live at `FATCATUI/assets/resources/textures/generated/backgrounds/friend_factory_visit_bg_v1.png` and `friend_factory_visit_bg_640_v1.jpg`. `UiAssetRegistry.ts` and the DOM Data URI bridge register the runtime JPEG; `tools/check-friend-factory-art.js` guards both files and their wiring.
 - Friend utility coverage now includes 360x800, 414x896, 430x932, and 768x1024. `tools/capture-friend-visit-regression.js` captures the complete visit component at all four sizes and verifies its backdrop, sign, floors, five actions, containment, requests, and console output.
