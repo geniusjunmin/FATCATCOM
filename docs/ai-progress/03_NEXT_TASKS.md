@@ -19,12 +19,20 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Keep main/shop geometry stable; next target the repeated inventory icons and research-node art. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory/research base art is done; next add distinct research effect medals and clickable inventory selection/details without changing verified geometry. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
 
 ## P0 Now
+
+### 0. Next Visual Batch
+
+- Preserve the four-size feature-panel geometry and all nav-clearance assertions added in the inventory/research art pass.
+- Generate or derive distinct research symbols for coin production, bean efficiency, and upgrade cost instead of repeating one medal on every node.
+- Make inventory cards selectable and drive the lower detail card from the selected resource/item rather than the active tab summary.
+- Keep the 20-card first viewport at 360x800; do not restore the clipped detail card or hide the research action.
+- Extend `check-inventory-research-art.js` and `capture-feature-regression.js` with the new behavior before widening scope.
 
 ### 1. Shared Config And Economy Coverage
 

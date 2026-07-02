@@ -71,11 +71,38 @@ async function isVisible(page, selector) {
                     return rows[rows.length - 1].getBoundingClientRect().bottom <= nav.getBoundingClientRect().top - 2;
                 })(),
                 bagCards: document.querySelectorAll("#fatcat-dom-panel-overlay .bag-card").length,
+                inventoryArtKinds: new Set(Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay [data-inventory-art]"))
+                    .map(element => element.getAttribute("data-inventory-art"))).size,
+                embeddedInventoryArt: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay .bag-icon.dedicated-art"))
+                    .filter(element => getComputedStyle(element).backgroundImage.startsWith('url("data:image/png;base64,')).length,
                 bagDetailVisible: (() => {
                     const detail = document.querySelector("#fatcat-dom-panel-overlay .bag-detail-target");
                     if (!detail) return false;
                     const rect = detail.getBoundingClientRect();
                     return rect.width > 0 && rect.height > 0 && rect.top < window.innerHeight;
+                })(),
+                bagDetailClearNav: (() => {
+                    const detail = document.querySelector("#fatcat-dom-panel-overlay .bag-detail-target");
+                    const nav = document.querySelector("#fatcat-dom-nav .nav-bar");
+                    if (!detail || !nav) return false;
+                    return detail.getBoundingClientRect().bottom <= nav.getBoundingClientRect().top - 2;
+                })(),
+                researchNodeArt: document.querySelectorAll("#fatcat-dom-panel-overlay .node-icon.asset").length,
+                embeddedResearchArt: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay .node-icon.asset, #fatcat-dom-panel-overlay .research-medal-art"))
+                    .filter(element => getComputedStyle(element).backgroundImage.startsWith('url("data:image/png;base64,')).length,
+                researchHeroArt: !!document.querySelector("#fatcat-dom-panel-overlay .research-medal-art"),
+                researchDetailClearNav: (() => {
+                    const detail = document.querySelector("#fatcat-dom-panel-overlay .research-detail");
+                    const nav = document.querySelector("#fatcat-dom-nav .nav-bar");
+                    if (!detail || !nav) return false;
+                    return detail.getBoundingClientRect().bottom <= nav.getBoundingClientRect().top - 2;
+                })(),
+                researchActionVisible: (() => {
+                    const action = document.querySelector("#fatcat-dom-panel-overlay .research-detail .tag:last-child");
+                    const nav = document.querySelector("#fatcat-dom-nav .nav-bar");
+                    if (!action || !nav) return false;
+                    const rect = action.getBoundingClientRect();
+                    return rect.height > 0 && rect.bottom <= nav.getBoundingClientRect().top - 2;
                 })(),
                 researchSideBySide: (() => {
                     const tree = document.querySelector("#fatcat-dom-panel-overlay .tree");
@@ -116,8 +143,17 @@ async function isVisible(page, selector) {
             || entry.state.shopProductArt < 6
             || entry.state.embeddedShopProductArt < 6
             || !entry.state.shopRowsClearNav;
-        if (entry.panel === "inventory") return entry.state.bagCards !== 20 || !entry.state.bagDetailVisible;
-        if (entry.panel === "research") return !entry.state.researchSideBySide;
+        if (entry.panel === "inventory") return entry.state.bagCards !== 20
+            || entry.state.inventoryArtKinds < 7
+            || entry.state.embeddedInventoryArt < 8
+            || !entry.state.bagDetailVisible
+            || !entry.state.bagDetailClearNav;
+        if (entry.panel === "research") return !entry.state.researchSideBySide
+            || entry.state.researchNodeArt < 4
+            || entry.state.embeddedResearchArt < 5
+            || !entry.state.researchHeroArt
+            || !entry.state.researchDetailClearNav
+            || !entry.state.researchActionVisible;
         return false;
     });
     if (failed) process.exit(1);

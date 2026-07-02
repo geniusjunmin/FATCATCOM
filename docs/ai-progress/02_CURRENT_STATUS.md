@@ -7,7 +7,7 @@ Updated: 2026-07-02
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Preserve the stable main/shop geometry, then replace the inventory grid's repeated generic icons and the research tree's flat locked-node symbols with dedicated art. |
+| Best Next Move | Preserve the stable feature geometry, then add effect-specific research medals and real inventory-card selection/detail behavior instead of further static decoration. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -26,6 +26,11 @@ Updated: 2026-07-02
 
 ## Client UI
 
+- Latest inventory/research art pass adds four generated transparent 384px props under `FATCATUI/assets/resources/textures/generated/items/`: speed ticket, order voucher, guard charm, and bronze coffee-lab research medal. The inventory preview also reuses four matching cat illustrations for shard cards, removing the repeated gift/diamond placeholder look.
+- `GeneratedInventoryArtAssets`, `GeneratedResearchArtAssets`, `getInventoryPreviewAsset()`, and `getResearchMedalAsset()` own the new mapping. The DOM Data URI bridge embeds every file; Cocos metadata was generated through asset-db refresh.
+- Research nodes now use a vertical medal/name composition with grayscale locked states, while the selected research detail reuses the full-color medal. Compact inventory cards and detail copy were tightened so all 20 cards and the selected-detail card clear the bottom navigation at 360x800.
+- `capture-feature-regression.js` now covers 360x800, 414x896, 430x932, and 768x1024 and asserts seven inventory art kinds, embedded PNG counts, inventory-detail/nav clearance, research medal counts, side-by-side layout, research-detail/nav clearance, and visible research action. `check-inventory-research-art.js` is registered in `quick-verify.ps1`.
+- Verification for this pass: focused TypeScript diagnostics, Cocos refresh for generated items and UI scripts, four-size main/cat/feature regressions, utility regression, 18-step click regression, and `quick-verify.ps1` all pass; server tests are 84/84.
 - Latest shop-art pass replaces six repeated circular resource placeholders with four generated transparent product props: a cat-food pouch, coffee-bean sack, coin pouch, and diamond chest. The 384px PNGs live under `FATCATUI/assets/resources/textures/generated/shop/`, are registered through `GeneratedShopProductAssets`, and are embedded through the DOM asset bridge.
 - Resource shop rows select product art by item/category and reuse the food pouch at deliberate small/large scales. At 360x800 the six rows are compressed just enough to clear the bottom navigation; 414x896 is now included in feature regression alongside 360x800, 430x932, and 768x1024.
 - Web preview now hides the underlying Cocos canvas after the complete DOM UI is ready, preventing native panel labels and resource zeros from leaking around DOM overlays. Non-browser builds keep the native Cocos shop/inventory/research/task panels. Main, cat, feature, and utility screenshots all assert this mode boundary.

@@ -69,14 +69,14 @@ export const INVENTORY_TABS: Array<{ id: InventoryTabId; label: string }> = [
 ];
 
 export const INVENTORY_PREVIEW_CARDS: Array<[string, string, number]> = [
-    ["加速5分", "gift", 12],
-    ["加速30分", "gift", 8],
-    ["订单券", "shard", 7],
-    ["保护罩", "equipCollar", 5],
-    ["大橘碎片", "shard", 32],
-    ["黑猫碎片", "shard", 18],
-    ["布丁碎片", "shard", 22],
-    ["灰皮碎片", "shard", 15],
+    ["加速5分", "speedTicket", 12],
+    ["加速30分", "speedTicket", 8],
+    ["订单券", "orderVoucher", 7],
+    ["保护罩", "guardCharm", 5],
+    ["大橘碎片", "catOrange", 32],
+    ["黑猫碎片", "catBlack", 18],
+    ["布丁碎片", "catWhite", 22],
+    ["灰皮碎片", "catCalico", 15],
     ["装饰币", "coin", 80],
     ["研究石", "diamond", 120],
     ["幸运杯", "equipCup", 43],

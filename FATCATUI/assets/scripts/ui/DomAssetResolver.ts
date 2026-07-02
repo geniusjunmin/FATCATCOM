@@ -1,6 +1,14 @@
 import { DomAssetDataUris } from "./DomAssetDataUris";
 import { FactoryPropDataUris } from "./FactoryPropDataUris";
-import { GeneratedCatFullArtAssets, GeneratedFeatureIconAssets, GeneratedItemIconAssets, GeneratedShopProductAssets, GeneratedSkillIconAssets } from "./UiAssetRegistry";
+import {
+    GeneratedCatFullArtAssets,
+    GeneratedFeatureIconAssets,
+    GeneratedInventoryArtAssets,
+    GeneratedItemIconAssets,
+    GeneratedResearchArtAssets,
+    GeneratedShopProductAssets,
+    GeneratedSkillIconAssets,
+} from "./UiAssetRegistry";
 
 export function getDomAssetDataUri(assetPath: string): string {
     return DomAssetDataUris[assetPath] ?? assetPath;
@@ -27,6 +35,20 @@ export function getGeneratedIconAsset(iconClass: string): string {
 export function getShopProductAsset(kind: string): string {
     const asset = GeneratedShopProductAssets[kind];
     return asset ? getDomAssetDataUri(asset) : getGeneratedIconAsset(kind);
+}
+
+export function getInventoryPreviewAsset(kind: string): string {
+    const generatedAsset = GeneratedInventoryArtAssets[kind];
+    if (generatedAsset) return getDomAssetDataUri(generatedAsset);
+    if (kind === "catOrange") return getCatFullArtAsset("c_001");
+    if (kind === "catBlack") return getCatFullArtAsset("c_002");
+    if (kind === "catWhite") return getCatFullArtAsset("c_003");
+    if (kind === "catCalico") return getCatFullArtAsset("c_004");
+    return getGeneratedIconAsset(kind);
+}
+
+export function getResearchMedalAsset(): string {
+    return getDomAssetDataUri(GeneratedResearchArtAssets.medal);
 }
 
 export function getCatFullArtAsset(catId: string, portrait?: string): string {

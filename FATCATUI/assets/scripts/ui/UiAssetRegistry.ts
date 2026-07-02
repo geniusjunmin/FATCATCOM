@@ -50,6 +50,16 @@ export const GeneratedShopProductAssets: Record<string, string> = {
     food: `${GENERATED_ROOT}/shop/shop_cat_food_pouch_v1.png`,
 };
 
+export const GeneratedInventoryArtAssets: Record<string, string> = {
+    guardCharm: `${GENERATED_ROOT}/items/inventory_guard_charm_v1.png`,
+    orderVoucher: `${GENERATED_ROOT}/items/inventory_order_voucher_v1.png`,
+    speedTicket: `${GENERATED_ROOT}/items/inventory_speed_ticket_v1.png`,
+};
+
+export const GeneratedResearchArtAssets = {
+    medal: `${GENERATED_ROOT}/items/research_medal_v1.png`,
+};
+
 export const GeneratedFeatureIconAssets: Record<string, string> = {
     achievement: `${GENERATED_ROOT}/ui/icon_achievement.png`,
     buildings: `${GENERATED_ROOT}/ui/nav_buildings.png`,

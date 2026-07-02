@@ -544,10 +544,9 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .research-preview span { padding:5% 4%; border-radius:12px; background:linear-gradient(#fff8df,#d9b980); font-weight:900; text-align:center; box-shadow:inset 0 0 0 2px rgba(112,78,45,.14); }
             #fatcat-dom-panel-overlay .tree { min-height: 480px; background: radial-gradient(circle at 50% 30%, rgba(255,197,93,.15), transparent 34%), linear-gradient(#3b2a20,#1f1510); border:3px solid #6f4a2d; border-radius:14px; position: relative; box-shadow: inset 0 0 0 3px rgba(255,224,160,.12), 0 4px 0 rgba(52,31,18,.28); }
             #fatcat-dom-panel-overlay .node { position: absolute; width: 30%; min-height: 12%; border-radius: 14px; background: linear-gradient(#82623b,#3b271b); border: 2px solid #d7a85a; color: #ffe0a0; display: grid; grid-template-columns:30% 1fr; align-items: center; justify-content: center; text-align: left; font-size: 2.0%; font-weight: 900; box-shadow: 0 0 14px rgba(255,180,70,.28), inset 0 0 0 2px rgba(255,235,180,.12); padding:1.6% 2%; box-sizing:border-box; }
-            #fatcat-dom-panel-overlay .node-icon { width:82%; aspect-ratio:1; border-radius:50%; background:linear-gradient(#fff0b8,#cc8730); box-shadow:inset 0 0 0 3px #6f441f; position:relative; justify-self:center; }
-            #fatcat-dom-panel-overlay .node-icon:before { content:""; position:absolute; inset:24%; border-radius:50%; background:#ffe16b; box-shadow:0 0 10px rgba(255,210,80,.5); }
-            #fatcat-dom-panel-overlay .node.done .node-icon { background:linear-gradient(#91c75c,#3f7d2d); }
-            #fatcat-dom-panel-overlay .node.locked .node-icon { background:linear-gradient(#9a9186,#514940); }
+            #fatcat-dom-panel-overlay .node-icon { width:94%; aspect-ratio:1; background:center/contain no-repeat; filter:drop-shadow(0 2px 2px rgba(20,10,4,.5)); position:relative; justify-self:center; }
+            #fatcat-dom-panel-overlay .node.done .node-icon { filter:sepia(.15) saturate(1.15) drop-shadow(0 0 6px rgba(155,224,80,.55)); }
+            #fatcat-dom-panel-overlay .node.locked .node-icon { filter:grayscale(1) brightness(.62) drop-shadow(0 2px 2px rgba(20,10,4,.45)); }
             #fatcat-dom-panel-overlay button.node { font-family: inherit; cursor: pointer; pointer-events: auto; }
             #fatcat-dom-panel-overlay .node.selected { box-shadow: 0 0 0 3px #ffd071 inset, 0 0 18px rgba(255,190,75,.55); }
             #fatcat-dom-panel-overlay .node.done { background: linear-gradient(#5f8f3a,#2d4e22); border-color:#b8e078; color:#f3ffe0; }
@@ -974,6 +973,9 @@ export const DOM_PANEL_STYLES = `
                 background-size:136%;
                 box-shadow:none;
             }
+            #fatcat-dom-panel-overlay .inventory-shell .bag-icon.dedicated-art {
+                background-size:contain;
+            }
             #fatcat-dom-panel-overlay .inventory-shell .bag-card > b {
                 max-width:96%;
                 white-space:nowrap;
@@ -1038,11 +1040,16 @@ export const DOM_PANEL_STYLES = `
                 min-height:570px;
             }
             #fatcat-dom-panel-overlay .research-shell .node {
-                width:34%;
-                min-height:11%;
+                width:36%;
+                min-height:12%;
                 padding:1.3%;
                 font-size:1.5%;
+                display:flex;
+                flex-direction:column;
+                gap:1%;
+                text-align:center;
             }
+            #fatcat-dom-panel-overlay .research-shell .node .node-icon { width:39%; }
             #fatcat-dom-panel-overlay .research-shell .research-detail {
                 gap:1.2%;
             }
@@ -1057,6 +1064,11 @@ export const DOM_PANEL_STYLES = `
             }
             #fatcat-dom-panel-overlay .research-shell .research-hero .shop-icon {
                 width:46%;
+            }
+            #fatcat-dom-panel-overlay .research-shell .research-medal-art {
+                background-size:contain;
+                background-color:transparent;
+                box-shadow:none;
             }
             #fatcat-dom-panel-overlay .research-shell .research-preview {
                 grid-template-columns:1fr;
@@ -1122,7 +1134,23 @@ export const DOM_PANEL_STYLES = `
             }
             #fatcat-dom-panel-overlay.compact .decor-catalog-row { grid-template-columns:15% 1fr 27%; }
             #fatcat-dom-panel-overlay.compact .decor-meta { gap:2%; }
-            #fatcat-dom-panel-overlay.compact .inventory-shell .bag-card { min-height:82px; }
+            #fatcat-dom-panel-overlay.compact .inventory-shell .bag-grid { gap:.8%; }
+            #fatcat-dom-panel-overlay.compact .inventory-shell .bag-card {
+                min-height:72px;
+                padding:3% 2%;
+            }
+            #fatcat-dom-panel-overlay.compact .inventory-shell .bag-icon {
+                width:56%;
+                max-width:46px;
+                margin-bottom:1%;
+            }
+            #fatcat-dom-panel-overlay.compact .inventory-shell .bag-detail-target {
+                grid-template-columns:14% 1fr;
+                padding:1.4% 2%;
+                font-size:1.68%;
+            }
+            #fatcat-dom-panel-overlay.compact .inventory-shell .bag-detail-target p { margin:1% 0; }
+            #fatcat-dom-panel-overlay.compact .inventory-shell .bag-detail-target small { display:none; }
             #fatcat-dom-panel-overlay.tall .panel-shell { padding-top: 4.8%; padding-bottom: 18.5%; }
             #fatcat-dom-panel-overlay.wide .panel-shell { left: 8%; right: 8%; }
             @media (max-width:390px) {
@@ -1136,5 +1164,12 @@ export const DOM_PANEL_STYLES = `
                 #fatcat-dom-panel-overlay.compact .shop-shell .shop-icon.product-food.product-small { width:76%; }
                 #fatcat-dom-panel-overlay.compact .shop-shell .shop-icon.product-food.product-large,
                 #fatcat-dom-panel-overlay.compact .shop-shell .shop-icon.product-diamond { width:98%; }
+                #fatcat-dom-panel-overlay.compact .research-shell .tree,
+                #fatcat-dom-panel-overlay.compact .research-shell .research-detail {
+                    min-height:500px;
+                }
+                #fatcat-dom-panel-overlay.compact .research-shell .research-detail .item {
+                    padding:4%;
+                }
             }
         `;

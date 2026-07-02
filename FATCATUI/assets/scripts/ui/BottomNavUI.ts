@@ -26,6 +26,8 @@ import {
     getFactoryPropDataUri,
     getFeatureIconAsset,
     getGeneratedIconAsset,
+    getInventoryPreviewAsset,
+    getResearchMedalAsset,
     getShopProductAsset,
     getSkillIconAsset,
 } from "./DomAssetResolver";
@@ -2350,7 +2352,7 @@ export class BottomNavUI extends Component {
 
     private renderInventoryPreviewCards(count: number): string {
         if (this._domInventoryTab !== "all" || count <= 0) return "";
-        return INVENTORY_PREVIEW_CARDS.slice(0, count).map(([name, icon, itemCount]) => `<div class="item bag-card preview"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')"></div><b>${name}</b><span class="bag-count">${itemCount}</span></div>`).join("");
+        return INVENTORY_PREVIEW_CARDS.slice(0, count).map(([name, art, itemCount]) => `<div class="item bag-card preview" data-inventory-art="${art}"><div class="bag-icon asset dedicated-art" style="background-image:url('${getInventoryPreviewAsset(art)}')"></div><b>${name}</b><span class="bag-count">${itemCount}</span></div>`).join("");
     }
 
     private getItemIconClass(itemId: string): string {
@@ -2396,7 +2398,7 @@ export class BottomNavUI extends Component {
         const selected = id === this._selectedResearchId;
         const cls = `${done ? "done" : ""} ${!done && !canUnlock ? "locked" : ""} ${selected ? "selected" : ""}`;
         const state = done ? "已完成" : canUnlock ? `${config.cost}点` : "未解锁";
-        return `<button class="node ${cls}" style="left:${pos.left}%;top:${pos.top}%" data-action="selectResearch" data-id="${id}"><span class="node-icon"></span><span>${config.name}<br>${state}</span></button>`;
+        return `<button class="node ${cls}" style="left:${pos.left}%;top:${pos.top}%" data-action="selectResearch" data-id="${id}"><span class="node-icon asset" style="background-image:url('${getResearchMedalAsset()}')"></span><span>${config.name}<br>${state}</span></button>`;
     }
 
     private renderResearchPlaceholderNodes(startIndex: number): string {
@@ -2404,7 +2406,7 @@ export class BottomNavUI extends Component {
             const pos = RESEARCH_PLACEHOLDER_POSITIONS[offset];
             const index = startIndex + offset;
             if (index < 3) return "";
-            return `<div class="node locked" style="left:${pos.left}%;top:${pos.top}%"><span class="node-icon"></span><span>${label}<br>未开放</span></div>`;
+            return `<div class="node locked" style="left:${pos.left}%;top:${pos.top}%"><span class="node-icon asset" style="background-image:url('${getResearchMedalAsset()}')"></span><span>${label}<br>未开放</span></div>`;
         }).join("");
     }
 
@@ -2417,7 +2419,7 @@ export class BottomNavUI extends Component {
         const owned = ResourceManager.get("researchPoint");
         const progress = Math.min(100, Math.floor((owned / Math.max(1, config.cost)) * 100));
         const nextHint = ResearchManager.isUnlocked(id) ? "已加入全局加成" : progress >= 100 ? "资源已备齐" : "继续收集研究点";
-        return `<div class="item research-hero"><div class="shop-icon">${this.renderCssIcon(this.getResearchIconClass(config.effectType))}</div><div><b>${config.name}</b><br>${config.description}<br><span class="research-state">${status}</span></div></div><div class="item"><b>当前效果</b><br><span class="effect-pill">${this.renderCssIcon(this.getResearchIconClass(config.effectType))}${effectText}</span><div class="research-preview"><span>节点状态<br>${status}</span><span>解锁反馈<br>${nextHint}</span></div></div><div class="item"><b>研究条件</b><br>前置：${parent}<div class="research-cost">研究点：${this.formatNumber(owned)}/${config.cost}<div class="research-cost-line"><i style="width:${progress}%"></i></div></div>${this.renderResearchButton(config.id, config.cost)}</div>`;
+        return `<div class="item research-hero"><div class="shop-icon asset research-medal-art" style="background-image:url('${getResearchMedalAsset()}')"></div><div><b>${config.name}</b><br>${config.description}<br><span class="research-state">${status}</span></div></div><div class="item"><b>当前效果</b><br><span class="effect-pill">${this.renderCssIcon(this.getResearchIconClass(config.effectType))}${effectText}</span><div class="research-preview"><span>节点状态<br>${status}</span><span>解锁反馈<br>${nextHint}</span></div></div><div class="item"><b>研究条件</b><br>前置：${parent}<div class="research-cost">研究点：${this.formatNumber(owned)}/${config.cost}<div class="research-cost-line"><i style="width:${progress}%"></i></div></div>${this.renderResearchButton(config.id, config.cost)}</div>`;
     }
 
     private getResearchIconClass(effectType: string): string {
