@@ -58,6 +58,9 @@ export const GeneratedInventoryArtAssets: Record<string, string> = {
 
 export const GeneratedResearchArtAssets = {
     medal: `${GENERATED_ROOT}/items/research_medal_v1.png`,
+    beanEfficiency: `${GENERATED_ROOT}/items/research_medal_bean_v1.png`,
+    coinProduction: `${GENERATED_ROOT}/items/research_medal_coin_v1.png`,
+    upgradeCost: `${GENERATED_ROOT}/items/research_medal_upgrade_v1.png`,
 };
 
 export const GeneratedFeatureIconAssets: Record<string, string> = {

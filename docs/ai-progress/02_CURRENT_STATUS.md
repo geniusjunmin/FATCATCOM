@@ -7,7 +7,7 @@ Updated: 2026-07-02
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Preserve the stable feature geometry, then add effect-specific research medals and real inventory-card selection/detail behavior instead of further static decoration. |
+| Best Next Move | Preserve the completed inventory/research interactions, then replace the building-detail panel's shared factory hero with floor-specific room art and selected-floor visual state. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -26,6 +26,11 @@ Updated: 2026-07-02
 
 ## Client UI
 
+- Latest feature-interaction pass adds three effect-specific 384px research medals: paw coin for `coin_production_mult`, coffee beans/down arrow for `bean_reduce`, and wrench/up arrow for `upgrade_cost_reduce`. `getResearchMedalAsset(effectType)` maps each server-backed research type while the generic laboratory medal remains the placeholder fallback.
+- Research now renders an eleven-segment connected branch skeleton instead of disconnected horizontal marks. Node medals are larger, locked variants retain grayscale treatment, and the selected detail swaps to the matching full-color effect medal.
+- Inventory preview definitions are structured presentation records with stable id, category, art, count, description, and source. Resource, owned-item, and preview cards are selectable buttons; exactly one card is selected, and the lower detail card now follows the selection instead of showing a tab summary.
+- Usable owned items expose their action from the detail card, avoiding nested buttons. Resource, shard, other, and all tabs reset to suitable default selections; the default snapshot contains 6 resource cards, 4 shard previews, 15 mixed other cards, and the fixed 20-card all view.
+- Four-size feature regression now clicks all inventory tabs, switches resource -> preview -> usable owned item, verifies the detail title and use action, clicks all three research effects, verifies three distinct embedded backgrounds/titles, and requires 11 research connectors. Shared main/cat/utility/click regressions and `quick-verify.ps1` pass; server tests remain 84/84.
 - Latest inventory/research art pass adds four generated transparent 384px props under `FATCATUI/assets/resources/textures/generated/items/`: speed ticket, order voucher, guard charm, and bronze coffee-lab research medal. The inventory preview also reuses four matching cat illustrations for shard cards, removing the repeated gift/diamond placeholder look.
 - `GeneratedInventoryArtAssets`, `GeneratedResearchArtAssets`, `getInventoryPreviewAsset()`, and `getResearchMedalAsset()` own the new mapping. The DOM Data URI bridge embeds every file; Cocos metadata was generated through asset-db refresh.
 - Research nodes now use a vertical medal/name composition with grayscale locked states, while the selected research detail reuses the full-color medal. Compact inventory cards and detail copy were tightened so all 20 cards and the selected-detail card clear the bottom navigation at 360x800.

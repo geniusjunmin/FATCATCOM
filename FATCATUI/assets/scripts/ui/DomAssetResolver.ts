@@ -47,7 +47,16 @@ export function getInventoryPreviewAsset(kind: string): string {
     return getGeneratedIconAsset(kind);
 }
 
-export function getResearchMedalAsset(): string {
+export function getResearchMedalAsset(effectType = ""): string {
+    if (effectType === "coin_production_mult") {
+        return getDomAssetDataUri(GeneratedResearchArtAssets.coinProduction);
+    }
+    if (effectType === "bean_reduce") {
+        return getDomAssetDataUri(GeneratedResearchArtAssets.beanEfficiency);
+    }
+    if (effectType === "upgrade_cost_reduce") {
+        return getDomAssetDataUri(GeneratedResearchArtAssets.upgradeCost);
+    }
     return getDomAssetDataUri(GeneratedResearchArtAssets.medal);
 }
 

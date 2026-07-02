@@ -124,6 +124,16 @@ type FriendPanelRow = {
     lastHelpAt?: number;
 };
 
+type InventoryDetailView = {
+    key: string;
+    name: string;
+    count: number;
+    description: string;
+    source: string;
+    art: string;
+    usableItemId?: string;
+};
+
 export const MainPanelEvents = {
     NAV_CHANGED: "main-nav:changed",
 } as const;
@@ -184,6 +194,7 @@ export class BottomNavUI extends Component {
     private _selectedDomBuildingId = "building_cafe_1f";
     private _domShopTab: ShopTabId = "resource";
     private _domInventoryTab: InventoryTabId = "all";
+    private _selectedInventoryKey = "resource:bean";
     private _selectedResearchId = "res_basic_prod";
     private _serverFriends: FriendDto[] = [];
     private _serverDecorations: DecorStateDto[] = [];
@@ -1327,8 +1338,12 @@ export class BottomNavUI extends Component {
             const tab = button.dataset.tab as "all" | "resource" | "shard" | "other" | undefined;
             if (tab) {
                 this._domInventoryTab = tab;
+                this._selectedInventoryKey = this.getDefaultInventorySelection(tab);
                 success = true;
             }
+        } else if (action === "selectInventory") {
+            this._selectedInventoryKey = id;
+            success = !!this.getInventoryDetail(id);
         } else if (action === "selectResearch") {
             this._selectedResearchId = id;
             success = !!ResearchManager.getAllConfigs().find(item => item.id === id);
@@ -1388,6 +1403,7 @@ export class BottomNavUI extends Component {
             if (action === "unassignCat") return "猫咪已撤下，等待重新排班。";
             if (action === "shopTab") return "商店分类已切换。";
             if (action === "inventoryTab") return "背包分类已切换。";
+            if (action === "selectInventory") return "背包物品详情已切换。";
             if (action === "selectResearch") return "研究详情已切换。";
         }
         if (action === "buy") return "购买失败：余额不足或今日限购已用完。";
@@ -1403,6 +1419,7 @@ export class BottomNavUI extends Component {
         if (action === "previewProduction") return "结算预览失败：请先连接服务器。";
         if (action === "assignCat") return "派遣失败：猫咪未招募或楼层容量不足。";
         if (action === "unassignCat") return "撤下失败：猫咪未招募。";
+        if (action === "selectInventory") return "背包物品不存在。";
         if (action === "selectResearch") return "研究节点不存在。";
         return "操作未完成。";
     }
@@ -2303,11 +2320,15 @@ export class BottomNavUI extends Component {
     }
 
     private renderInventoryPanel(): string {
-        const ownedCount = InventoryManager.getOwnedItems().reduce((sum, item) => sum + item.count, 0);
         const ownedTypes = InventoryManager.getOwnedItems().filter(item => this.inventoryItemMatchesTab(item.itemId)).length;
         const resourceTypes = this._domInventoryTab === "all" || this._domInventoryTab === "resource" ? 4 : 0;
-        const previewCount = this._domInventoryTab === "all" ? Math.max(0, 20 - resourceTypes - ownedTypes) : 0;
-        return `<div class="panel-shell inventory-shell"><h2>背包详情</h2><div class="tabs">${INVENTORY_TABS.map(tab => `<button class="tab ${this._domInventoryTab === tab.id ? "active" : ""}" data-action="inventoryTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list bag-grid">${this.renderInventoryItems()}${this.renderInventoryPreviewCards(previewCount)}</div><div class="bag-detail-target"><span class="bag-detail-icon asset" style="background-image:url('${this.getGeneratedIconAsset("bean")}')"></span><div><b>${this.getInventoryTabLabel()}</b><strong>拥有：${ownedCount}</strong><p>${this.getInventoryTabDesc()}</p><small>主要获取途径：商店购买、订单奖励、好友赠礼</small></div></div></div>`;
+        const previewCount = this._domInventoryTab === "all"
+            ? Math.max(0, 20 - resourceTypes - ownedTypes)
+            : INVENTORY_PREVIEW_CARDS.length;
+        const detail = this.getInventoryDetail(this._selectedInventoryKey)
+            ?? this.getInventoryDetail(this.getDefaultInventorySelection(this._domInventoryTab));
+        if (detail) this._selectedInventoryKey = detail.key;
+        return `<div class="panel-shell inventory-shell"><h2>背包详情</h2><div class="tabs">${INVENTORY_TABS.map(tab => `<button class="tab ${this._domInventoryTab === tab.id ? "active" : ""}" data-action="inventoryTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list bag-grid">${this.renderInventoryItems()}${this.renderInventoryPreviewCards(previewCount)}</div>${detail ? this.renderInventoryDetail(detail) : ""}</div>`;
     }
 
     private getInventoryTabLabel(): string {
@@ -2329,30 +2350,115 @@ export class BottomNavUI extends Component {
             : "";
         const filteredItems = items.filter(item => this.inventoryItemMatchesTab(item.itemId));
         if (filteredItems.length === 0) {
+            if (INVENTORY_PREVIEW_CARDS.some(card => card.category === this._domInventoryTab)) {
+                return resourceCards;
+            }
             return resourceCards || `<div class="item bag-card empty"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset("gift")}')">${this.renderCssIcon("gift")}</div><b>暂无物品</b><br>该分类还没有可展示内容</div>`;
         }
         const itemCards = filteredItems.map(item => {
             const usable = item.itemId === "item_cat_food_pack" || item.itemId === "item_coin_pack_small";
-            const action = usable
-                ? `<button class="tag" data-action="use" data-id="${item.itemId}">使用</button>`
-                : `<span class="tag warn">材料</span>`;
+            const action = `<span class="tag ${usable ? "" : "warn"}">${usable ? "可用" : "材料"}</span>`;
             const icon = this.getItemIconClass(item.itemId);
+            const key = `item:${item.itemId}`;
             const displayName = ConfigManager.items.find(config => config.id === item.itemId)?.name
                 ?? CatManager.getEquipmentConfig(item.itemId)?.name
                 ?? this.getItemDisplayName(item.itemId);
-            return `<div class="item bag-card ${usable ? "usable" : ""}"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')">${this.renderCssIcon(icon)}</div><b>${displayName}</b>${action}<span class="bag-count">x${item.count}</span></div>`;
+            const art = item.itemId === "item_shard_orange"
+                ? getInventoryPreviewAsset("catOrange")
+                : this.getGeneratedIconAsset(icon);
+            return `<button class="item bag-card ${usable ? "usable" : ""} ${this._selectedInventoryKey === key ? "selected" : ""}" data-action="selectInventory" data-id="${key}" aria-pressed="${this._selectedInventoryKey === key}"><div class="bag-icon asset dedicated-art" style="background-image:url('${art}')">${this.renderCssIcon(icon)}</div><b>${displayName}</b>${action}<span class="bag-count">x${item.count}</span></button>`;
         }).join("");
         return `${resourceCards}${itemCards}`;
     }
 
     private renderResourceBagCard(resource: string, label: string, amount: number): string {
         const icon = this.getResourceIconClass(resource);
-        return `<div class="item bag-card resource ${resource === "bean" ? "selected" : ""}"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')">${this.renderCssIcon(icon)}</div><b>${label}</b><span class="bag-count">${this.formatNumber(amount)}</span></div>`;
+        const key = `resource:${resource}`;
+        return `<button class="item bag-card resource ${this._selectedInventoryKey === key ? "selected" : ""}" data-action="selectInventory" data-id="${key}" aria-pressed="${this._selectedInventoryKey === key}"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')">${this.renderCssIcon(icon)}</div><b>${label}</b><span class="bag-count">${this.formatNumber(amount)}</span></button>`;
     }
 
     private renderInventoryPreviewCards(count: number): string {
-        if (this._domInventoryTab !== "all" || count <= 0) return "";
-        return INVENTORY_PREVIEW_CARDS.slice(0, count).map(([name, art, itemCount]) => `<div class="item bag-card preview" data-inventory-art="${art}"><div class="bag-icon asset dedicated-art" style="background-image:url('${getInventoryPreviewAsset(art)}')"></div><b>${name}</b><span class="bag-count">${itemCount}</span></div>`).join("");
+        if (count <= 0) return "";
+        const cards = this._domInventoryTab === "all"
+            ? INVENTORY_PREVIEW_CARDS
+            : INVENTORY_PREVIEW_CARDS.filter(card => card.category === this._domInventoryTab);
+        return cards.slice(0, count).map(card => {
+            const key = `preview:${card.id}`;
+            const selected = this._selectedInventoryKey === key;
+            return `<button class="item bag-card preview ${selected ? "selected" : ""}" data-action="selectInventory" data-id="${key}" data-inventory-art="${card.art}" aria-pressed="${selected}"><div class="bag-icon asset dedicated-art" style="background-image:url('${getInventoryPreviewAsset(card.art)}')"></div><b>${card.name}</b><span class="bag-count">${card.count}</span></button>`;
+        }).join("");
+    }
+
+    private getDefaultInventorySelection(tab: InventoryTabId): string {
+        if (tab === "shard") {
+            return InventoryManager.getItemCount("item_shard_orange") > 0
+                ? "item:item_shard_orange"
+                : "preview:shard-orange";
+        }
+        if (tab === "other") return "preview:speed-5";
+        return "resource:bean";
+    }
+
+    private getInventoryDetail(key: string): InventoryDetailView | null {
+        if (key.startsWith("resource:")) {
+            const resource = key.slice("resource:".length);
+            const details: Record<string, { name: string; description: string; source: string }> = {
+                bean: { name: "咖啡豆", description: "工厂生产咖啡的基础原料，会被猫咪和车间持续消耗。", source: "原料仓库、订单奖励" },
+                catFood: { name: "猫粮", description: "用于喂养猫咪、提升体重并维持良好心情。", source: "商店购买、好友赠礼" },
+                diamond: { name: "钻石", description: "稀有货币，可购买高级道具和猫咪资源。", source: "成就、活动、协作奖励" },
+                coin: { name: "金币", description: "公司通用货币，用于升级建筑、猫咪和装备。", source: "工厂生产、订单结算" },
+            };
+            const detail = details[resource];
+            if (!detail) return null;
+            return {
+                key,
+                name: detail.name,
+                count: ResourceManager.get(resource as "bean" | "catFood" | "diamond" | "coin"),
+                description: detail.description,
+                source: detail.source,
+                art: this.getGeneratedIconAsset(this.getResourceIconClass(resource)),
+            };
+        }
+        if (key.startsWith("item:")) {
+            const itemId = key.slice("item:".length);
+            const config = ConfigManager.items.find(item => item.id === itemId);
+            const equipment = CatManager.getEquipmentConfig(itemId);
+            if (!config && !equipment) return null;
+            const icon = this.getItemIconClass(itemId);
+            const usable = itemId === "item_cat_food_pack" || itemId === "item_coin_pack_small";
+            return {
+                key,
+                name: config?.name ?? equipment?.name ?? this.getItemDisplayName(itemId),
+                count: InventoryManager.getItemCount(itemId),
+                description: config?.description ?? equipment?.description ?? "公司背包中保存的特殊物品。",
+                source: equipment?.source ?? (config?.type === "shard" ? "猫咪招募、故事关卡" : "商店购买、订单奖励"),
+                art: itemId === "item_shard_orange"
+                    ? getInventoryPreviewAsset("catOrange")
+                    : this.getGeneratedIconAsset(icon),
+                usableItemId: usable ? itemId : undefined,
+            };
+        }
+        if (key.startsWith("preview:")) {
+            const id = key.slice("preview:".length);
+            const card = INVENTORY_PREVIEW_CARDS.find(item => item.id === id);
+            if (!card) return null;
+            return {
+                key,
+                name: card.name,
+                count: card.count,
+                description: card.description,
+                source: card.source,
+                art: getInventoryPreviewAsset(card.art),
+            };
+        }
+        return null;
+    }
+
+    private renderInventoryDetail(detail: InventoryDetailView): string {
+        const action = detail.usableItemId
+            ? `<button class="tag bag-detail-action" data-action="use" data-id="${detail.usableItemId}" ${detail.count > 0 ? "" : "disabled"}>使用</button>`
+            : "";
+        return `<div class="bag-detail-target" data-selected-key="${detail.key}"><span class="bag-detail-icon asset" style="background-image:url('${detail.art}')"></span><div class="bag-detail-copy"><div class="bag-detail-head"><b>${detail.name}</b><span><strong>拥有：${this.formatNumber(detail.count)}</strong>${action}</span></div><p>${detail.description}</p><small>主要获取途径：${detail.source}</small></div></div>`;
     }
 
     private getItemIconClass(itemId: string): string {
@@ -2382,11 +2488,23 @@ export class BottomNavUI extends Component {
 
     private renderResearchLines(configs: ReturnType<typeof ResearchManager.getAllConfigs>): string {
         if (configs.length <= 1) return "";
-        return configs.slice(1).map((_, index) => {
-            const left = index % 2 === 0 ? 35 : 58;
-            const top = 24 + index * 19;
-            return `<div class="tree-line" style="left:${left}%;top:${top}%;width:24%"></div>`;
-        }).join("");
+        const lines = [
+            { left: 53, top: 18, width: 0, height: 8 },
+            { left: 31, top: 26, width: 45, height: 0 },
+            { left: 31, top: 26, width: 0, height: 6 },
+            { left: 76, top: 26, width: 0, height: 6 },
+            { left: 31, top: 44, width: 0, height: 8 },
+            { left: 76, top: 44, width: 0, height: 8 },
+            { left: 31, top: 52, width: 45, height: 0 },
+            { left: 31, top: 70, width: 0, height: 5 },
+            { left: 76, top: 70, width: 0, height: 5 },
+            { left: 31, top: 75, width: 45, height: 0 },
+            { left: 53, top: 75, width: 0, height: 5 },
+        ];
+        return lines.map(line => line.height > 0
+            ? `<div class="tree-line v" style="left:${line.left}%;top:${line.top}%;height:${line.height}%"></div>`
+            : `<div class="tree-line" style="left:${line.left}%;top:${line.top}%;width:${line.width}%"></div>`
+        ).join("");
     }
 
     private renderResearchNode(id: string, index: number): string {
@@ -2398,7 +2516,7 @@ export class BottomNavUI extends Component {
         const selected = id === this._selectedResearchId;
         const cls = `${done ? "done" : ""} ${!done && !canUnlock ? "locked" : ""} ${selected ? "selected" : ""}`;
         const state = done ? "已完成" : canUnlock ? `${config.cost}点` : "未解锁";
-        return `<button class="node ${cls}" style="left:${pos.left}%;top:${pos.top}%" data-action="selectResearch" data-id="${id}"><span class="node-icon asset" style="background-image:url('${getResearchMedalAsset()}')"></span><span>${config.name}<br>${state}</span></button>`;
+        return `<button class="node ${cls}" style="left:${pos.left}%;top:${pos.top}%" data-action="selectResearch" data-id="${id}" data-research-art="${config.effectType}"><span class="node-icon asset" style="background-image:url('${getResearchMedalAsset(config.effectType)}')"></span><span>${config.name}<br>${state}</span></button>`;
     }
 
     private renderResearchPlaceholderNodes(startIndex: number): string {
@@ -2419,7 +2537,7 @@ export class BottomNavUI extends Component {
         const owned = ResourceManager.get("researchPoint");
         const progress = Math.min(100, Math.floor((owned / Math.max(1, config.cost)) * 100));
         const nextHint = ResearchManager.isUnlocked(id) ? "已加入全局加成" : progress >= 100 ? "资源已备齐" : "继续收集研究点";
-        return `<div class="item research-hero"><div class="shop-icon asset research-medal-art" style="background-image:url('${getResearchMedalAsset()}')"></div><div><b>${config.name}</b><br>${config.description}<br><span class="research-state">${status}</span></div></div><div class="item"><b>当前效果</b><br><span class="effect-pill">${this.renderCssIcon(this.getResearchIconClass(config.effectType))}${effectText}</span><div class="research-preview"><span>节点状态<br>${status}</span><span>解锁反馈<br>${nextHint}</span></div></div><div class="item"><b>研究条件</b><br>前置：${parent}<div class="research-cost">研究点：${this.formatNumber(owned)}/${config.cost}<div class="research-cost-line"><i style="width:${progress}%"></i></div></div>${this.renderResearchButton(config.id, config.cost)}</div>`;
+        return `<div class="item research-hero" data-research-art="${config.effectType}"><div class="shop-icon asset research-medal-art" style="background-image:url('${getResearchMedalAsset(config.effectType)}')"></div><div><b>${config.name}</b><br>${config.description}<br><span class="research-state">${status}</span></div></div><div class="item"><b>当前效果</b><br><span class="effect-pill">${this.renderCssIcon(this.getResearchIconClass(config.effectType))}${effectText}</span><div class="research-preview"><span>节点状态<br>${status}</span><span>解锁反馈<br>${nextHint}</span></div></div><div class="item"><b>研究条件</b><br>前置：${parent}<div class="research-cost">研究点：${this.formatNumber(owned)}/${config.cost}<div class="research-cost-line"><i style="width:${progress}%"></i></div></div>${this.renderResearchButton(config.id, config.cost)}</div>`;
     }
 
     private getResearchIconClass(effectType: string): string {

@@ -959,6 +959,16 @@ export const DOM_PANEL_STYLES = `
                 flex-direction:column;
                 overflow:hidden;
             }
+            #fatcat-dom-panel-overlay .inventory-shell button.bag-card {
+                width:100%;
+                color:#51331f;
+                font-family:inherit;
+                cursor:pointer;
+            }
+            #fatcat-dom-panel-overlay .inventory-shell button.bag-card:focus-visible {
+                outline:3px solid #ffe18d;
+                outline-offset:-4px;
+            }
             #fatcat-dom-panel-overlay .inventory-shell .bag-card.selected {
                 border-color:#d98b2c;
                 box-shadow:inset 0 0 0 3px #ffd77a,0 3px 0 rgba(72,43,25,.24);
@@ -1017,7 +1027,22 @@ export const DOM_PANEL_STYLES = `
                 box-shadow:inset 0 0 0 2px rgba(104,68,37,.18);
             }
             #fatcat-dom-panel-overlay .bag-detail-target b { font-size:140%; }
-            #fatcat-dom-panel-overlay .bag-detail-target strong { float:right; }
+            #fatcat-dom-panel-overlay .bag-detail-head {
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+                gap:2%;
+            }
+            #fatcat-dom-panel-overlay .bag-detail-head > span {
+                display:flex;
+                align-items:center;
+                justify-content:flex-end;
+                gap:8px;
+                white-space:nowrap;
+            }
+            #fatcat-dom-panel-overlay .bag-detail-target strong { float:none; }
+            #fatcat-dom-panel-overlay .bag-detail-action { margin:0; border:0; cursor:pointer; font:inherit; }
+            #fatcat-dom-panel-overlay .bag-detail-action:disabled { opacity:.55; cursor:default; }
             #fatcat-dom-panel-overlay .bag-detail-target p { margin:2% 0; }
             #fatcat-dom-panel-overlay .bag-detail-target small { color:#7b573d; }
             #fatcat-dom-panel-overlay .research-point-strip {
@@ -1049,7 +1074,7 @@ export const DOM_PANEL_STYLES = `
                 gap:1%;
                 text-align:center;
             }
-            #fatcat-dom-panel-overlay .research-shell .node .node-icon { width:39%; }
+            #fatcat-dom-panel-overlay .research-shell .node .node-icon { width:50%; }
             #fatcat-dom-panel-overlay .research-shell .research-detail {
                 gap:1.2%;
             }
@@ -1063,7 +1088,7 @@ export const DOM_PANEL_STYLES = `
                 text-align:center;
             }
             #fatcat-dom-panel-overlay .research-shell .research-hero .shop-icon {
-                width:46%;
+                width:58%;
             }
             #fatcat-dom-panel-overlay .research-shell .research-medal-art {
                 background-size:contain;

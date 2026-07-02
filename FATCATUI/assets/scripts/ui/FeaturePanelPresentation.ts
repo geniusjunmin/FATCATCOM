@@ -12,6 +12,16 @@ export interface FeaturePosition {
     top: number;
 }
 
+export interface InventoryPreviewCard {
+    id: string;
+    name: string;
+    art: string;
+    count: number;
+    category: Exclude<InventoryTabId, "all" | "resource">;
+    description: string;
+    source: string;
+}
+
 export const SETTINGS_PANEL_ITEMS: FeatureToggleItem[] = [
     { id: "music", name: "音乐", desc: "咖啡工厂背景音乐。" },
     { id: "sfx", name: "音效", desc: "按钮、生产和奖励音效。" },
@@ -68,20 +78,20 @@ export const INVENTORY_TABS: Array<{ id: InventoryTabId; label: string }> = [
     { id: "other", label: "其他" },
 ];
 
-export const INVENTORY_PREVIEW_CARDS: Array<[string, string, number]> = [
-    ["加速5分", "speedTicket", 12],
-    ["加速30分", "speedTicket", 8],
-    ["订单券", "orderVoucher", 7],
-    ["保护罩", "guardCharm", 5],
-    ["大橘碎片", "catOrange", 32],
-    ["黑猫碎片", "catBlack", 18],
-    ["布丁碎片", "catWhite", 22],
-    ["灰皮碎片", "catCalico", 15],
-    ["装饰币", "coin", 80],
-    ["研究石", "diamond", 120],
-    ["幸运杯", "equipCup", 43],
-    ["小鱼干", "food", 67],
-    ["舒适垫", "equipCushion", 9],
+export const INVENTORY_PREVIEW_CARDS: InventoryPreviewCard[] = [
+    { id: "speed-5", name: "加速5分", art: "speedTicket", count: 12, category: "other", description: "使用后让当前工厂生产加速 5 分钟。", source: "每日订单、活动任务" },
+    { id: "speed-30", name: "加速30分", art: "speedTicket", count: 8, category: "other", description: "高效生产券，可让全厂加速 30 分钟。", source: "成就奖励、限时商店" },
+    { id: "order-refresh", name: "订单券", art: "orderVoucher", count: 7, category: "other", description: "立即刷新一批咖啡订单。", source: "订单里程碑、好友赠礼" },
+    { id: "guard-hour", name: "保护罩", art: "guardCharm", count: 5, category: "other", description: "保护一小时离线收益不受损失。", source: "活动任务、道具商店" },
+    { id: "shard-orange", name: "大橘碎片", art: "catOrange", count: 32, category: "shard", description: "集齐后可招募或升星大橘。", source: "猫咪招募、故事关卡" },
+    { id: "shard-black", name: "黑猫碎片", art: "catBlack", count: 18, category: "shard", description: "集齐后可招募或升星黑猫。", source: "猫咪招募、好友协作" },
+    { id: "shard-white", name: "布丁碎片", art: "catWhite", count: 22, category: "shard", description: "集齐后可招募或升星布丁。", source: "猫咪招募、每日订单" },
+    { id: "shard-calico", name: "灰皮碎片", art: "catCalico", count: 15, category: "shard", description: "集齐后可招募或升星灰皮。", source: "猫咪招募、活动任务" },
+    { id: "decor-coin", name: "装饰币", art: "coin", count: 80, category: "other", description: "用于兑换工厂外观和楼层摆件。", source: "装饰收藏、访问好友" },
+    { id: "research-stone", name: "研究石", art: "diamond", count: 120, category: "other", description: "实验室研究使用的稀有材料。", source: "研究任务、协作奖励" },
+    { id: "lucky-cup", name: "幸运杯", art: "equipCup", count: 43, category: "other", description: "猫咪装备材料，可强化幸运杯。", source: "装备商店、咖啡订单" },
+    { id: "dried-fish", name: "小鱼干", art: "food", count: 67, category: "other", description: "猫咪喜爱的零食，可恢复少量心情。", source: "每日签到、好友赠礼" },
+    { id: "comfort-cushion", name: "舒适垫", art: "equipCushion", count: 9, category: "other", description: "猫咪装备材料，可强化舒适坐垫。", source: "装备商店、成就奖励" },
 ];
 
 export const RESEARCH_NODE_POSITIONS: FeaturePosition[] = [

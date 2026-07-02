@@ -7,6 +7,9 @@ const relativeAssets = [
   "items/inventory_guard_charm_v1.png",
   "items/inventory_order_voucher_v1.png",
   "items/research_medal_v1.png",
+  "items/research_medal_bean_v1.png",
+  "items/research_medal_coin_v1.png",
+  "items/research_medal_upgrade_v1.png",
 ];
 
 function read(relativePath) {
@@ -48,17 +51,28 @@ assertContains("inventory registry", registry, "GeneratedInventoryArtAssets");
 assertContains("research registry", registry, "GeneratedResearchArtAssets");
 assertContains("inventory resolver", resolver, "getInventoryPreviewAsset");
 assertContains("research resolver", resolver, "getResearchMedalAsset");
+assertContains("coin research mapping", resolver, 'effectType === "coin_production_mult"');
+assertContains("bean research mapping", resolver, 'effectType === "bean_reduce"');
+assertContains("upgrade research mapping", resolver, 'effectType === "upgrade_cost_reduce"');
 assertContains("speed ticket mapping", featurePresentation, '"speedTicket"');
 assertContains("order voucher mapping", featurePresentation, '"orderVoucher"');
 assertContains("guard charm mapping", featurePresentation, '"guardCharm"');
 assertContains("cat shard art mapping", featurePresentation, '"catOrange"');
-assertContains("inventory renderer marker", bottomNav, 'data-inventory-art="${art}"');
+assertContains("inventory selection state", bottomNav, "_selectedInventoryKey");
+assertContains("inventory selection action", bottomNav, 'data-action="selectInventory"');
+assertContains("inventory dynamic detail", bottomNav, "renderInventoryDetail(detail)");
 assertContains("research node asset", bottomNav, 'class="node-icon asset"');
 assertContains("research detail asset", bottomNav, "research-medal-art");
+assertContains("research effect marker", bottomNav, 'data-research-art="${config.effectType}"');
+assertContains("research branch skeleton", bottomNav, 'class="tree-line v"');
 assertContains("dedicated inventory art sizing", panelStyles, ".bag-icon.dedicated-art");
 assertContains("research medal sizing", panelStyles, ".research-medal-art");
 assertContains("inventory screenshot guard", capture, "embeddedInventoryArt");
 assertContains("research screenshot guard", capture, "embeddedResearchArt");
+assertContains("inventory interaction guard", capture, "inventoryDetailSwitch");
+assertContains("inventory tab guard", capture, "inventoryTabs");
+assertContains("research interaction guard", capture, "researchEffectSwitches");
+assertContains("research branch guard", capture, "researchLines");
 assertContains("quick verify registration", quickVerify, "check-inventory-research-art.js");
 for (const relativeAsset of relativeAssets) {
   assertContains(`DOM generator includes ${relativeAsset}`, generator, `"${relativeAsset}"`);
@@ -68,9 +82,9 @@ console.log(JSON.stringify({
   ok: true,
   assets: relativeAssets,
   checked: [
-    "four 384px transparent feature illustrations",
+    "seven 384px transparent feature illustrations",
     "registry, resolver, and data URI wiring",
-    "inventory and research render markers",
-    "four-size screenshot regression guards",
+    "inventory selection and effect-specific research rendering",
+    "four-size visual and interaction regression guards",
   ],
 }, null, 2));

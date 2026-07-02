@@ -51,6 +51,64 @@ async function isVisible(page, selector) {
         for (const panel of panels) {
             await page.click(`#fatcat-dom-nav [data-panel="${panel}"]`);
             await page.waitForTimeout(450);
+            const interaction = {};
+            if (panel === "inventory") {
+                const tabStates = {};
+                for (const tab of ["resource", "shard", "other", "all"]) {
+                    await page.click(`#fatcat-dom-panel-overlay [data-action="inventoryTab"][data-tab="${tab}"]`);
+                    await page.waitForTimeout(100);
+                    tabStates[tab] = await page.evaluate(() => ({
+                        cards: document.querySelectorAll("#fatcat-dom-panel-overlay .bag-card").length,
+                        key: document.querySelector("#fatcat-dom-panel-overlay .bag-detail-target")?.getAttribute("data-selected-key") || "",
+                    }));
+                }
+                const initialKey = await page.locator("#fatcat-dom-panel-overlay .bag-detail-target").getAttribute("data-selected-key");
+                await page.click('#fatcat-dom-panel-overlay [data-id="preview:order-refresh"]');
+                await page.waitForTimeout(120);
+                const previewState = await page.evaluate(() => ({
+                    key: document.querySelector("#fatcat-dom-panel-overlay .bag-detail-target")?.getAttribute("data-selected-key") || "",
+                    title: document.querySelector("#fatcat-dom-panel-overlay .bag-detail-head b")?.textContent?.trim() || "",
+                    selectedCount: document.querySelectorAll("#fatcat-dom-panel-overlay .bag-card.selected").length,
+                }));
+                await page.click('#fatcat-dom-panel-overlay [data-id="item:item_cat_food_pack"]');
+                await page.waitForTimeout(120);
+                const usableActionVisible = await isVisible(page, "#fatcat-dom-panel-overlay .bag-detail-action");
+                await page.click('#fatcat-dom-panel-overlay [data-id="preview:order-refresh"]');
+                await page.waitForTimeout(120);
+                interaction.inventoryDetailSwitch = initialKey === "resource:bean"
+                    && previewState.key === "preview:order-refresh"
+                    && previewState.title === "订单券"
+                    && previewState.selectedCount === 1;
+                interaction.inventoryUseAction = usableActionVisible;
+                interaction.inventoryTabStates = tabStates;
+                interaction.inventoryTabs = tabStates.resource.cards >= 6
+                    && tabStates.resource.key === "resource:bean"
+                    && tabStates.shard.cards >= 4
+                    && (tabStates.shard.key === "item:item_shard_orange" || tabStates.shard.key === "preview:shard-orange")
+                    && tabStates.other.cards >= 9
+                    && tabStates.other.key === "preview:speed-5"
+                    && tabStates.all.cards === 20
+                    && tabStates.all.key === "resource:bean";
+            } else if (panel === "research") {
+                const effects = ["coin_production_mult", "bean_reduce", "upgrade_cost_reduce"];
+                const backgrounds = [];
+                const titles = [];
+                for (const effect of effects) {
+                    await page.click(`#fatcat-dom-panel-overlay .node[data-research-art="${effect}"]`);
+                    await page.waitForTimeout(120);
+                    const selected = await page.evaluate(() => ({
+                        title: document.querySelector("#fatcat-dom-panel-overlay .research-hero b")?.textContent?.trim() || "",
+                        background: getComputedStyle(document.querySelector("#fatcat-dom-panel-overlay .research-medal-art")).backgroundImage,
+                    }));
+                    titles.push(selected.title);
+                    backgrounds.push(selected.background);
+                }
+                await page.click('#fatcat-dom-panel-overlay .node[data-research-art="coin_production_mult"]');
+                await page.waitForTimeout(120);
+                interaction.researchEffectSwitches = new Set(backgrounds).size;
+                interaction.researchTitles = new Set(titles).size;
+                interaction.researchEmbeddedSwitches = backgrounds.filter(value => value.startsWith('url("data:image/png;base64,')).length;
+            }
             const file = path.join(outDir, `${panel}-${width}x${height}.png`);
             await page.screenshot({ path: file, fullPage: false });
             const state = await page.evaluate(() => ({
@@ -88,6 +146,9 @@ async function isVisible(page, selector) {
                     return detail.getBoundingClientRect().bottom <= nav.getBoundingClientRect().top - 2;
                 })(),
                 researchNodeArt: document.querySelectorAll("#fatcat-dom-panel-overlay .node-icon.asset").length,
+                researchLines: document.querySelectorAll("#fatcat-dom-panel-overlay .tree-line").length,
+                researchArtKinds: new Set(Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay [data-research-art]"))
+                    .map(element => element.getAttribute("data-research-art"))).size,
                 embeddedResearchArt: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay .node-icon.asset, #fatcat-dom-panel-overlay .research-medal-art"))
                     .filter(element => getComputedStyle(element).backgroundImage.startsWith('url("data:image/png;base64,')).length,
                 researchHeroArt: !!document.querySelector("#fatcat-dom-panel-overlay .research-medal-art"),
@@ -119,6 +180,7 @@ async function isVisible(page, selector) {
                 file,
                 visible: await isVisible(page, "#fatcat-dom-panel-overlay .panel-shell"),
                 state,
+                interaction,
             });
         }
 
@@ -147,13 +209,21 @@ async function isVisible(page, selector) {
             || entry.state.inventoryArtKinds < 7
             || entry.state.embeddedInventoryArt < 8
             || !entry.state.bagDetailVisible
-            || !entry.state.bagDetailClearNav;
+            || !entry.state.bagDetailClearNav
+            || !entry.interaction.inventoryTabs
+            || !entry.interaction.inventoryDetailSwitch
+            || !entry.interaction.inventoryUseAction;
         if (entry.panel === "research") return !entry.state.researchSideBySide
             || entry.state.researchNodeArt < 4
+            || entry.state.researchLines < 11
+            || entry.state.researchArtKinds < 3
             || entry.state.embeddedResearchArt < 5
             || !entry.state.researchHeroArt
             || !entry.state.researchDetailClearNav
-            || !entry.state.researchActionVisible;
+            || !entry.state.researchActionVisible
+            || entry.interaction.researchEffectSwitches !== 3
+            || entry.interaction.researchTitles !== 3
+            || entry.interaction.researchEmbeddedSwitches !== 3;
         return false;
     });
     if (failed) process.exit(1);

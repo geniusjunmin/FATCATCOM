@@ -65,7 +65,7 @@ assertContains("BottomNavUI uses task milestones", bottomNav, "TASK_PROGRESS_MIL
 assertContains("BottomNavUI uses shop tabs", bottomNav, "SHOP_TABS.map");
 assertContains("BottomNavUI uses shop preview catalogs", bottomNav, "SHOP_PREVIEW_CATALOGS[category]");
 assertContains("BottomNavUI uses inventory tabs", bottomNav, "INVENTORY_TABS.map");
-assertContains("BottomNavUI uses inventory previews", bottomNav, "INVENTORY_PREVIEW_CARDS.slice");
+assertContains("BottomNavUI uses inventory previews", bottomNav, "INVENTORY_PREVIEW_CARDS.filter");
 assertContains("BottomNavUI uses research node positions", bottomNav, "RESEARCH_NODE_POSITIONS[index]");
 assertContains("BottomNavUI uses research placeholder labels", bottomNav, "RESEARCH_PLACEHOLDER_LABELS.map");
 assertContains("BottomNavUI uses research placeholder positions", bottomNav, "RESEARCH_PLACEHOLDER_POSITIONS[offset]");
