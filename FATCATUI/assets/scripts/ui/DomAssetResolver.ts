@@ -1,6 +1,7 @@
 import { DomAssetDataUris } from "./DomAssetDataUris";
 import { FactoryPropDataUris } from "./FactoryPropDataUris";
 import {
+    GeneratedBuildingRoomAssets,
     GeneratedCatFullArtAssets,
     GeneratedFeatureIconAssets,
     GeneratedInventoryArtAssets,
@@ -20,6 +21,10 @@ export function getFeatureIconAsset(kind: string): string {
 
 export function getFactoryPropDataUri(scene: string): string {
     return FactoryPropDataUris[scene] ?? FactoryPropDataUris.storage;
+}
+
+export function getBuildingRoomAsset(scene: string): string {
+    return getDomAssetDataUri(GeneratedBuildingRoomAssets[scene] ?? GeneratedBuildingRoomAssets.storage);
 }
 
 export function getGeneratedIconAsset(iconClass: string): string {

@@ -52,7 +52,35 @@ async function isVisible(page, selector) {
             await page.click(`#fatcat-dom-nav [data-panel="${panel}"]`);
             await page.waitForTimeout(450);
             const interaction = {};
-            if (panel === "inventory") {
+            if (panel === "buildings") {
+                const buildingScenes = [];
+                const buildingIds = [];
+                const backgrounds = [];
+                const chipCount = await page.locator("#fatcat-dom-panel-overlay .building-chip").count();
+                for (let index = 0; index < chipCount; index += 1) {
+                    await page.locator("#fatcat-dom-panel-overlay .building-chip").nth(index).click();
+                    await page.waitForTimeout(120);
+                    const selected = await page.evaluate(() => {
+                        const hero = document.querySelector("#fatcat-dom-panel-overlay .building-detail-hero");
+                        return {
+                            scene: hero?.getAttribute("data-building-scene") || "",
+                            id: hero?.getAttribute("data-building-id") || "",
+                            background: hero ? getComputedStyle(hero).backgroundImage : "",
+                            activeChips: document.querySelectorAll("#fatcat-dom-panel-overlay .building-chip.active").length,
+                        };
+                    });
+                    buildingScenes.push(selected.scene);
+                    buildingIds.push(selected.id);
+                    backgrounds.push(selected.background);
+                    if (selected.activeChips !== 1) interaction.buildingSingleSelection = false;
+                }
+                interaction.buildingSingleSelection = interaction.buildingSingleSelection !== false;
+                interaction.buildingSceneSwitches = new Set(buildingScenes).size;
+                interaction.buildingIdSwitches = new Set(buildingIds).size;
+                interaction.buildingRoomArtSwitches = new Set(backgrounds).size;
+                interaction.buildingEmbeddedSwitches = backgrounds
+                    .filter(value => value.includes('url("data:image/jpeg;base64,')).length;
+            } else if (panel === "inventory") {
                 const tabStates = {};
                 for (const tab of ["resource", "shard", "other", "all"]) {
                     await page.click(`#fatcat-dom-panel-overlay [data-action="inventoryTab"][data-tab="${tab}"]`);
@@ -117,6 +145,12 @@ async function isVisible(page, selector) {
                 shellCount: document.querySelectorAll("#fatcat-dom-panel-overlay .panel-shell").length,
                 buildingChips: document.querySelectorAll("#fatcat-dom-panel-overlay .building-chip").length,
                 buildingHero: !!document.querySelector("#fatcat-dom-panel-overlay .building-detail-hero"),
+                buildingHeroScene: document.querySelector("#fatcat-dom-panel-overlay .building-detail-hero")?.getAttribute("data-building-scene") || "",
+                embeddedBuildingRoomArt: (() => {
+                    const hero = document.querySelector("#fatcat-dom-panel-overlay .building-detail-hero");
+                    return !!hero && getComputedStyle(hero).backgroundImage.includes('url("data:image/jpeg;base64,');
+                })(),
+                buildingActiveChips: document.querySelectorAll("#fatcat-dom-panel-overlay .building-chip.active").length,
                 buildingDecorManager: !!document.querySelector("#fatcat-dom-panel-overlay .building-decor-manager"),
                 shopRows: document.querySelectorAll("#fatcat-dom-panel-overlay .shop-row").length,
                 shopProductArt: document.querySelectorAll("#fatcat-dom-panel-overlay .shop-icon.product-art").length,
@@ -200,7 +234,17 @@ async function isVisible(page, selector) {
             return entry.messages.length > 0 || entry.failedRequests.length > 0;
         }
         if (!entry.visible || entry.state.shellCount !== 1 || !entry.state.title || !entry.state.domCanvasHidden) return true;
-        if (entry.panel === "buildings") return entry.state.buildingChips !== 6 || !entry.state.buildingHero || !entry.state.buildingDecorManager;
+        if (entry.panel === "buildings") return entry.state.buildingChips !== 6
+            || !entry.state.buildingHero
+            || !entry.state.buildingHeroScene
+            || !entry.state.embeddedBuildingRoomArt
+            || entry.state.buildingActiveChips !== 1
+            || !entry.state.buildingDecorManager
+            || !entry.interaction.buildingSingleSelection
+            || entry.interaction.buildingSceneSwitches !== 6
+            || entry.interaction.buildingIdSwitches !== 6
+            || entry.interaction.buildingRoomArtSwitches !== 6
+            || entry.interaction.buildingEmbeddedSwitches !== 6;
         if (entry.panel === "shop") return entry.state.shopRows < 6
             || entry.state.shopProductArt < 6
             || entry.state.embeddedShopProductArt < 6

@@ -20,6 +20,7 @@ import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
 import { GeneratedBackgroundAssets } from "./UiAssetRegistry";
 import {
+    getBuildingRoomAsset,
     getCatFullArtAsset,
     getDomAssetDataUri,
     getEquipIconAsset,
@@ -2008,14 +2009,6 @@ export class BottomNavUI extends Component {
             this._selectedDomBuildingId = buildings[buildings.length - 1]?.id ?? "building_cafe_1f";
         }
         const selected = BuildingManager.getById(this._selectedDomBuildingId) ?? buildings[0];
-        const scenePosition: Record<string, number> = {
-            office: 12,
-            roast: 30,
-            tank: 47,
-            mill: 63,
-            cafe: 78,
-            storage: 92,
-        };
         const scene = getBuildingScene(selected.id);
         const nextEffect = BuildingManager.getNextEffectValue(selected.id);
         const nextCapacity = Math.min(12, selected.scheduleCapacity + 1);
@@ -2028,7 +2021,7 @@ export class BottomNavUI extends Component {
             ["容量上限", `${selected.scheduleCapacity}`, `${nextCapacity}`],
         ].map(row => `<div class="building-target-row"><span>${row[0]}</span><b>${row[1]}</b><em>➜</em><strong>${row[2]}</strong></div>`).join("");
         const conditions = `<div class="building-conditions"><b>升级条件</b><div><span>${this.renderCssIcon("deco")}工厂等级达到${levelRequirement}级</span><strong class="${28 >= levelRequirement ? "ok" : "bad"}">${Math.min(28, levelRequirement)}/${levelRequirement}</strong></div><div><span>${this.renderCssIcon("coin")}消耗金币</span><strong class="${ownedCoin >= selected.upgradeCost ? "ok" : "bad"}">${this.formatNumber(ownedCoin)}/${this.formatNumber(selected.upgradeCost)}</strong></div><div><span>${this.renderCssIcon("bean")}咖啡豆储备</span><strong class="ok">${this.formatNumber(ResourceManager.get("bean"))}/2.5K</strong></div></div>`;
-        return `<div class="panel-shell building-shell"><h2>建筑详情</h2><div class="building-selector">${selector}</div><div class="building-detail-hero" style="background-image:linear-gradient(rgba(34,22,15,.12),rgba(34,22,15,.28)),url('${this.getDomAssetDataUri(GeneratedBackgroundAssets.factoryCutaway)}');background-position:center ${scenePosition[scene]}%"><span class="building-floor-tag">${selected.floor}<small>Lv.${selected.level}</small></span><span class="building-scene-prop" style="background-image:url('${this.getFactoryPropDataUri(scene)}')"></span><div class="building-hero-copy"><b>${selected.name}</b><span>Lv.${selected.level}</span><em>生产建筑</em></div></div><div class="building-description">${selected.description}</div>${this.renderBuildingDecorManager(selected.id)}<div class="building-target-effects"><div class="building-target-title"><b>等级效果</b><span>Lv.${selected.level}</span><em>➜</em><span>Lv.${Math.min(selected.maxLevel, selected.level + 1)}</span></div>${effectRows}</div>${conditions}<div class="building-main-upgrade">${this.renderBuildingUpgradeButton(selected.id)}</div><div class="building-roster"><b>值班猫咪 ${selected.assignedCatCount}/${selected.scheduleCapacity}</b>${this.renderAssignedCatRows(selected.id)}${this.renderAvailableCatRows(selected.id)}</div></div>`;
+        return `<div class="panel-shell building-shell"><h2>建筑详情</h2><div class="building-selector">${selector}</div><div class="building-detail-hero" data-building-id="${selected.id}" data-building-scene="${scene}" style="background-image:linear-gradient(rgba(34,22,15,.04),rgba(34,22,15,.14)),url('${getBuildingRoomAsset(scene)}')"><span class="building-floor-tag">${selected.floor}<small>Lv.${selected.level}</small></span><div class="building-hero-copy"><b>${selected.name}</b><span>Lv.${selected.level}</span><em>生产建筑</em></div></div><div class="building-description">${selected.description}</div>${this.renderBuildingDecorManager(selected.id)}<div class="building-target-effects"><div class="building-target-title"><b>等级效果</b><span>Lv.${selected.level}</span><em>➜</em><span>Lv.${Math.min(selected.maxLevel, selected.level + 1)}</span></div>${effectRows}</div>${conditions}<div class="building-main-upgrade">${this.renderBuildingUpgradeButton(selected.id)}</div><div class="building-roster"><b>值班猫咪 ${selected.assignedCatCount}/${selected.scheduleCapacity}</b>${this.renderAssignedCatRows(selected.id)}${this.renderAvailableCatRows(selected.id)}</div></div>`;
     }
 
     private renderBuildingDecorManager(buildingId: string): string {

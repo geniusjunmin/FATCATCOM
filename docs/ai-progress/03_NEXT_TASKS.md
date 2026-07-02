@@ -19,7 +19,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory/research art and interaction are done; next give each building-detail floor a matching room hero and selected-floor presentation. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory/research and six building-room heroes are done; next deepen shop category switching and selected-product detail. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
@@ -28,11 +28,11 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 ### 0. Next Visual Batch
 
-- Preserve the completed inventory tab/detail interaction, three effect-specific research medals, eleven branch lines, and all four-size nav-clearance assertions.
-- Inspect the building-detail hero against the top-left panel in `其他页面.png`; the selected roast room should read as one detailed interior, not the same full factory view on every floor.
-- Generate or derive floor-specific room hero art for office, roast, fermentation, material, cafe, and storage while keeping live names, levels, costs, and buttons in DOM.
-- Map the six building selector chips to the correct hero asset and verify the hero changes on click without changing the stable panel geometry.
-- Extend the feature screenshot and asset contracts before widening into another screen.
+- Preserve the completed inventory detail interaction, three research medals, eleven branch lines, and six floor-specific building rooms.
+- Compare the shop panel against `其他页面.png` and make all four category tabs expose meaningful filtered content instead of a mostly static catalog.
+- Add a selected-product detail or confirmation state with clear art, quantity/value, price, remaining limit, and real purchase action while keeping authoritative online behavior.
+- Reuse the existing four generated product props; generate only genuinely missing category art and keep live values/buttons in DOM.
+- Extend four-size feature interaction checks for category switching, single selection, purchase-action visibility, and bottom-nav clearance.
 
 ### 1. Shared Config And Economy Coverage
 

@@ -77,6 +77,10 @@ Invoke-Step "Shop product art contract check" {
     node .\tools\check-shop-product-art.js
 }
 
+Invoke-Step "Building room art contract check" {
+    node .\tools\check-building-room-art.js
+}
+
 Invoke-Step "Inventory and research art contract check" {
     node .\tools\check-inventory-research-art.js
 }

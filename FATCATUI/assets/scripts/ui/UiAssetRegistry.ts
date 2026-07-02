@@ -30,6 +30,15 @@ export const GeneratedFactoryAssets: Record<string, string> = {
     storage: `${GENERATED_ROOT}/factory/prop_storage.png`,
 };
 
+export const GeneratedBuildingRoomAssets: Record<string, string> = {
+    office: `${GENERATED_ROOT}/building_rooms/room_office_v1.jpg`,
+    roast: `${GENERATED_ROOT}/building_rooms/room_roast_v1.jpg`,
+    tank: `${GENERATED_ROOT}/building_rooms/room_tank_v1.jpg`,
+    mill: `${GENERATED_ROOT}/building_rooms/room_mill_v1.jpg`,
+    cafe: `${GENERATED_ROOT}/building_rooms/room_cafe_v1.jpg`,
+    storage: `${GENERATED_ROOT}/building_rooms/room_storage_v1.jpg`,
+};
+
 export const GeneratedItemIconAssets: Record<string, string> = {
     bean: `${GENERATED_ROOT}/items/icon_coffee_bean.png`,
     coin: `${GENERATED_ROOT}/items/icon_coin_pack.png`,

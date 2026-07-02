@@ -609,11 +609,13 @@ export const DOM_PANEL_STYLES = `
             }
             #fatcat-dom-panel-overlay .building-detail-hero {
                 position:relative;
+                aspect-ratio:16 / 9;
                 min-height:225px;
                 border:3px solid #67452e;
                 border-radius:14px;
-                background-size:175% auto;
-                background-position:center 54%;
+                background-size:cover;
+                background-position:center;
+                background-repeat:no-repeat;
                 overflow:hidden;
                 box-shadow:inset 0 0 0 3px rgba(255,232,185,.2),0 4px 0 rgba(58,34,20,.3);
             }
@@ -621,8 +623,8 @@ export const DOM_PANEL_STYLES = `
                 content:"";
                 position:absolute;
                 inset:auto 0 0;
-                height:38%;
-                background:linear-gradient(transparent,rgba(31,19,13,.82));
+                height:46%;
+                background:linear-gradient(transparent,rgba(31,19,13,.88));
             }
             #fatcat-dom-panel-overlay .building-floor-tag {
                 position:absolute;

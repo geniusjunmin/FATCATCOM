@@ -7,7 +7,7 @@ Updated: 2026-07-02
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Preserve the completed inventory/research interactions, then replace the building-detail panel's shared factory hero with floor-specific room art and selected-floor visual state. |
+| Best Next Move | Preserve the completed feature interactions and six floor-specific building rooms, then deepen shop category switching and selected-product detail without disturbing narrow-screen clearance. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -26,6 +26,10 @@ Updated: 2026-07-02
 
 ## Client UI
 
+- Latest building-detail art pass replaces the shared factory-cutaway crop with six dedicated 768x432 room illustrations for office, roasting, fermentation, milling, cafe, and storage. They live under `FATCATUI/assets/resources/textures/generated/building_rooms/`, contain no baked UI text, and keep all live floor, level, effect, cost, decor, and staffing data in DOM.
+- `GeneratedBuildingRoomAssets` and `getBuildingRoomAsset(scene)` own the floor mapping. The room hero now exposes stable `data-building-id` and `data-building-scene` markers, uses a 16:9 cover layout, and switches embedded JPEG art whenever a floor chip is selected.
+- `check-building-room-art.js` guards dimensions, JPEG signatures, registry/resolver/renderer wiring, and Data URI generation. The four-size feature regression clicks all six floors at 360x800, 414x896, 430x932, and 768x1024 and requires six unique scenes, ids, backgrounds, embedded images, and exactly one active chip.
+- Verification for this pass: focused TypeScript diagnostics, Cocos asset refresh, four-size feature/main/cat regressions, utility regression, complete click regression, and `quick-verify.ps1` all pass; server tests remain 84/84.
 - Latest feature-interaction pass adds three effect-specific 384px research medals: paw coin for `coin_production_mult`, coffee beans/down arrow for `bean_reduce`, and wrench/up arrow for `upgrade_cost_reduce`. `getResearchMedalAsset(effectType)` maps each server-backed research type while the generic laboratory medal remains the placeholder fallback.
 - Research now renders an eleven-segment connected branch skeleton instead of disconnected horizontal marks. Node medals are larger, locked variants retain grayscale treatment, and the selected detail swaps to the matching full-color effect medal.
 - Inventory preview definitions are structured presentation records with stable id, category, art, count, description, and source. Resource, owned-item, and preview cards are selectable buttons; exactly one card is selected, and the lower detail card now follows the selection instead of showing a tab summary.
