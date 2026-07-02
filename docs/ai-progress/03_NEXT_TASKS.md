@@ -19,7 +19,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Core feature panels and shop interaction are done; next add the missing factory-appearance preview/selection surface from `其他页面.png`. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Factory appearance and shop interaction are done; next align inventory with the target's five-category organization and richer item detail. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
@@ -28,11 +28,11 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 ### 0. Next Visual Batch
 
-- Preserve the completed shop category/detail interaction, authoritative purchase actions, inventory selection, research tree, and six building-room heroes.
-- Build the missing factory-appearance preview view shown at the bottom-right of `其他页面.png`, reachable from the building/factory flow without replacing the existing building upgrade panel.
-- Add four appearance cards (default active plus locked themes), a large factory preview, active bonus summary, and stable selected/active states.
-- Reuse the main factory cutaway for the default preview and generate only the genuinely missing themed factory art; keep names, unlock state, bonuses, and actions in DOM.
-- Add four-size appearance switching, active-state, embedded-art, containment, and return-navigation regression before widening into another feature.
+- Preserve the completed shop interaction, factory-appearance selection, research tree, and six building-room heroes.
+- Align inventory with the five target categories: all, resources, items, shards, and other. Move usable owned items out of the mixed other bucket without changing authoritative use actions.
+- Give selected-item detail stronger hierarchy for quantity, source, description, rarity/type, and action state while keeping it above bottom navigation.
+- Reuse current generated item and cat-shard art first; generate only genuinely missing inventory props after visual review.
+- Extend four-size feature regression for all five tabs, stable default selection, usable-item action, embedded art, and detail/nav containment.
 
 ### 1. Shared Config And Economy Coverage
 

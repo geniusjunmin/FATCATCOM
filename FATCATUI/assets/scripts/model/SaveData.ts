@@ -32,6 +32,7 @@ export interface FeatureSaveData {
     settings: Record<string, boolean>;
     friendGifts: Record<string, number>;
     friendVisits: Record<string, number>;
+    factoryAppearanceId?: string;
 }
 
 export interface GameSaveData {

@@ -39,6 +39,13 @@ export const GeneratedBuildingRoomAssets: Record<string, string> = {
     storage: `${GENERATED_ROOT}/building_rooms/room_storage_v1.jpg`,
 };
 
+export const GeneratedFactoryAppearanceAssets: Record<string, string> = {
+    simple: `${GENERATED_ROOT}/factory_cutaway_bg_640.jpg`,
+    classic: `${GENERATED_ROOT}/factory_appearances/appearance_classic_v1.jpg`,
+    steam: `${GENERATED_ROOT}/factory_appearances/appearance_steam_v1.jpg`,
+    future: `${GENERATED_ROOT}/factory_appearances/appearance_future_v1.jpg`,
+};
+
 export const GeneratedItemIconAssets: Record<string, string> = {
     bean: `${GENERATED_ROOT}/items/icon_coffee_bean.png`,
     coin: `${GENERATED_ROOT}/items/icon_coin_pack.png`,

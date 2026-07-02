@@ -580,6 +580,32 @@ export const DOM_PANEL_STYLES = `
                 background:rgba(62,39,25,.72);
                 box-shadow:inset 0 0 0 2px rgba(255,226,169,.12);
             }
+            #fatcat-dom-panel-overlay .building-panel-tools {
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+                margin:-1.4% 0 1.2%;
+                padding:1% 1.4% 1% 3%;
+                border-radius:10px;
+                background:rgba(69,43,27,.74);
+                color:#ffe2aa;
+                font-size:1.75%;
+                font-weight:900;
+                box-shadow:inset 0 0 0 2px rgba(255,226,169,.12);
+            }
+            #fatcat-dom-panel-overlay .building-panel-tools button {
+                min-height:31px;
+                padding:1% 4%;
+                border:1px solid #704421;
+                border-radius:8px;
+                background:linear-gradient(#f6c968,#d57925);
+                color:#fff8dc;
+                font:inherit;
+                font-weight:900;
+                cursor:pointer;
+                pointer-events:auto;
+                box-shadow:0 2px 0 #7f451d,inset 0 1px 0 rgba(255,255,255,.25);
+            }
             #fatcat-dom-panel-overlay .building-chip {
                 min-height:48px;
                 padding:3% 2%;
@@ -679,6 +705,278 @@ export const DOM_PANEL_STYLES = `
                 font-size:2.15%;
                 line-height:1.35;
                 box-shadow:inset 0 0 0 1px rgba(103,67,37,.14);
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-shell {
+                display:flex;
+                flex-direction:column;
+                background:
+                    repeating-linear-gradient(135deg,rgba(88,57,34,.026) 0 2px,transparent 2px 8px),
+                    linear-gradient(#ead3a8,#b38457 70%,#644531);
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-toolbar {
+                display:grid;
+                grid-template-columns:9% 1fr 20%;
+                align-items:center;
+                gap:2%;
+                margin-bottom:1.4%;
+                padding:1.3% 2%;
+                border-radius:12px;
+                background:linear-gradient(#fff1d1,#d8ad74);
+                border:2px solid #765033;
+                color:#51321f;
+                font-size:1.8%;
+                box-shadow:inset 0 0 0 2px rgba(255,250,224,.38),0 3px 0 rgba(63,37,21,.24);
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-toolbar > button {
+                width:100%;
+                aspect-ratio:1;
+                border:2px solid #67442c;
+                border-radius:9px;
+                background:linear-gradient(#8b6848,#533725);
+                color:#fff0c8;
+                font:inherit;
+                font-size:180%;
+                font-weight:900;
+                cursor:pointer;
+                pointer-events:auto;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-toolbar > span {
+                display:flex;
+                min-width:0;
+                flex-direction:column;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-toolbar > span b { font-size:145%; }
+            #fatcat-dom-panel-overlay .factory-appearance-toolbar > span small {
+                overflow:hidden;
+                color:#7b593b;
+                text-overflow:ellipsis;
+                white-space:nowrap;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-toolbar > em {
+                padding:5% 4%;
+                border-radius:999px;
+                background:#66462f;
+                color:#ffe5b3;
+                font-style:normal;
+                font-weight:900;
+                text-align:center;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-stage {
+                position:relative;
+                aspect-ratio:16 / 9;
+                min-height:238px;
+                border:3px solid #60412d;
+                border-radius:13px;
+                background-color:#b8dff0;
+                background-position:center;
+                background-repeat:no-repeat;
+                background-size:cover;
+                overflow:hidden;
+                box-shadow:inset 0 0 0 3px rgba(255,239,200,.22),0 4px 0 rgba(56,34,21,.3);
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-stage.portrait {
+                background-size:contain;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-stage:after {
+                content:"";
+                position:absolute;
+                inset:auto 0 0;
+                height:32%;
+                background:linear-gradient(transparent,rgba(37,24,17,.76));
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-stage > span {
+                position:absolute;
+                z-index:1;
+                left:3%;
+                bottom:4%;
+                color:#fff3d0;
+                font-size:2.8%;
+                font-weight:900;
+                text-shadow:0 2px #3d271b;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-stage > span small {
+                display:block;
+                font-size:58%;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-cards {
+                display:grid;
+                grid-template-columns:repeat(4,minmax(0,1fr));
+                gap:1.2%;
+                margin-top:1.4%;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-card {
+                position:relative;
+                min-width:0;
+                min-height:112px;
+                padding:3% 3% 4%;
+                border:2px solid #735037;
+                border-radius:10px;
+                background:linear-gradient(#fff0cf,#d5aa70);
+                color:#54341f;
+                font:inherit;
+                font-size:1.52%;
+                cursor:pointer;
+                pointer-events:auto;
+                box-shadow:inset 0 0 0 2px rgba(255,250,224,.35),0 3px 0 rgba(65,39,23,.25);
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-card.selected {
+                border-color:#e38a29;
+                box-shadow:inset 0 0 0 3px #ffe59d,0 3px 0 #934f1c;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-card.locked {
+                filter:saturate(.62);
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-card.locked:after {
+                content:"锁";
+                position:absolute;
+                right:7%;
+                top:7%;
+                width:24px;
+                height:24px;
+                border-radius:50%;
+                background:#55483d;
+                color:#fff0d0;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-size:78%;
+                font-weight:900;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-thumb {
+                display:block;
+                width:100%;
+                aspect-ratio:16 / 9;
+                margin-bottom:5%;
+                border-radius:7px;
+                background-color:#b8dff0;
+                background-position:center;
+                background-repeat:no-repeat;
+                background-size:cover;
+                box-shadow:inset 0 0 0 2px rgba(78,49,29,.28);
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-thumb.portrait { background-size:contain; }
+            #fatcat-dom-panel-overlay .factory-appearance-card b,
+            #fatcat-dom-panel-overlay .factory-appearance-card small {
+                display:block;
+                overflow:hidden;
+                text-overflow:ellipsis;
+                white-space:nowrap;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-card small {
+                margin-top:2%;
+                color:#80603f;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-card.active small {
+                color:#4f842e;
+                font-weight:900;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-bonuses {
+                display:flex;
+                flex:1 1 auto;
+                flex-direction:column;
+                min-height:148px;
+                margin-top:1.5%;
+                padding:1.8% 2.2%;
+                border:2px solid #735037;
+                border-radius:12px;
+                background:linear-gradient(#fff2d3,#dbb37b);
+                color:#54341f;
+                box-shadow:inset 0 0 0 2px rgba(255,250,224,.36),0 3px 0 rgba(65,39,23,.25);
+                font-size:1.66%;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-bonuses > div:first-child {
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+                gap:3%;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-bonuses > div:first-child small { color:#866242; }
+            #fatcat-dom-panel-overlay .factory-appearance-bonus-grid {
+                display:grid;
+                grid-template-columns:repeat(4,minmax(0,1fr));
+                gap:1%;
+                margin-top:1.2%;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-bonus-grid > span {
+                display:grid;
+                grid-template-columns:24% 1fr;
+                align-items:center;
+                min-width:0;
+                padding:4%;
+                border-radius:8px;
+                background:rgba(255,248,221,.58);
+                box-shadow:inset 0 0 0 1px rgba(102,66,37,.15);
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-bonus-grid i {
+                grid-row:1 / 3;
+                width:100%;
+                font-style:normal;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-bonus-grid .css-icon { width:78%; }
+            #fatcat-dom-panel-overlay .factory-appearance-bonus-grid small {
+                overflow:hidden;
+                color:#795737;
+                text-overflow:ellipsis;
+                white-space:nowrap;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-bonus-grid b { color:#558331; }
+            #fatcat-dom-panel-overlay .factory-appearance-summary {
+                display:grid;
+                grid-template-columns:1fr auto;
+                align-items:center;
+                gap:3%;
+                margin-top:auto;
+                min-height:48px;
+                padding:2.2%;
+                border-radius:8px;
+                background:rgba(255,248,221,.48);
+                color:#65452d;
+                box-shadow:inset 0 0 0 1px rgba(102,66,37,.12);
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-summary > span {
+                display:flex;
+                min-width:0;
+                flex-direction:column;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-summary small {
+                display:-webkit-box;
+                overflow:hidden;
+                margin-top:2px;
+                color:#80603f;
+                line-height:1.25;
+                -webkit-box-orient:vertical;
+                -webkit-line-clamp:2;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-summary em {
+                padding:5px 8px;
+                border-radius:7px;
+                background:rgba(108,75,45,.12);
+                font-style:normal;
+                white-space:nowrap;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-summary strong { color:#568533; }
+            #fatcat-dom-panel-overlay .factory-appearance-apply {
+                display:block;
+                width:44%;
+                min-height:42px;
+                margin:1.4% auto 0;
+                border:2px solid #446e24;
+                border-radius:9px;
+                background:linear-gradient(#86b94e,#4e842f);
+                color:#fff9df;
+                font:inherit;
+                font-size:120%;
+                font-weight:900;
+                cursor:pointer;
+                pointer-events:auto;
+                box-shadow:0 3px 0 #31521d,inset 0 1px 0 rgba(255,255,255,.24);
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-apply.active,
+            #fatcat-dom-panel-overlay .factory-appearance-apply.locked {
+                border-color:#695344;
+                background:linear-gradient(#8c7660,#66503e);
+                box-shadow:0 3px 0 #49372b;
+                cursor:default;
             }
             #fatcat-dom-panel-overlay .building-decor-manager {
                 margin:1.4% 0;
@@ -1267,6 +1565,24 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay.compact .building-detail-hero { min-height:210px; }
             #fatcat-dom-panel-overlay.compact .building-chip span { display:none; }
             #fatcat-dom-panel-overlay.compact .building-chip { min-height:42px; font-size:1.55%; }
+            #fatcat-dom-panel-overlay.compact .factory-appearance-toolbar {
+                grid-template-columns:10% 1fr 21%;
+                font-size:1.62%;
+            }
+            #fatcat-dom-panel-overlay.compact .factory-appearance-stage { min-height:210px; }
+            #fatcat-dom-panel-overlay.compact .factory-appearance-card {
+                min-height:92px;
+                font-size:1.4%;
+            }
+            #fatcat-dom-panel-overlay.compact .factory-appearance-bonuses {
+                min-height:132px;
+                padding:1.4% 1.8%;
+                font-size:1.52%;
+            }
+            #fatcat-dom-panel-overlay.compact .factory-appearance-apply {
+                min-height:35px;
+                margin-top:1%;
+            }
             #fatcat-dom-panel-overlay.compact .shop-shell .shop-row { min-height:86px; }
             #fatcat-dom-panel-overlay.compact .shop-detail-target {
                 grid-template-columns:16% 1fr 27%;
@@ -1331,6 +1647,31 @@ export const DOM_PANEL_STYLES = `
                 #fatcat-dom-panel-overlay.compact .shop-detail-copy em { display:none; }
                 #fatcat-dom-panel-overlay.compact .shop-detail-action,
                 #fatcat-dom-panel-overlay.compact .shop-detail-action .tag { min-height:27px; }
+                #fatcat-dom-panel-overlay.compact .factory-appearance-toolbar {
+                    grid-template-columns:11% 1fr 23%;
+                    min-height:38px;
+                }
+                #fatcat-dom-panel-overlay.compact .factory-appearance-toolbar > span small { display:none; }
+                #fatcat-dom-panel-overlay.compact .factory-appearance-stage { min-height:188px; }
+                #fatcat-dom-panel-overlay.compact .factory-appearance-card {
+                    min-height:78px;
+                    padding:2% 2% 3%;
+                    font-size:1.28%;
+                }
+                #fatcat-dom-panel-overlay.compact .factory-appearance-card.locked:after {
+                    width:18px;
+                    height:18px;
+                }
+                #fatcat-dom-panel-overlay.compact .factory-appearance-bonuses > div:first-child small { display:none; }
+                #fatcat-dom-panel-overlay.compact .factory-appearance-bonuses { min-height:126px; }
+                #fatcat-dom-panel-overlay.compact .factory-appearance-summary {
+                    padding-top:2%;
+                    font-size:96%;
+                }
+                #fatcat-dom-panel-overlay.compact .factory-appearance-bonus-grid > span {
+                    padding:3%;
+                    grid-template-columns:22% 1fr;
+                }
                 #fatcat-dom-panel-overlay.compact .shop-shell .shop-list { gap:.8%; }
                 #fatcat-dom-panel-overlay.compact .shop-shell .shop-icon.product-art { width:90%; }
                 #fatcat-dom-panel-overlay.compact .shop-shell .shop-icon.product-food.product-small { width:76%; }

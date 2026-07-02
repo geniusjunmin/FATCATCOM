@@ -24,6 +24,7 @@ import {
     getCatFullArtAsset,
     getDomAssetDataUri,
     getEquipIconAsset,
+    getFactoryAppearanceAsset,
     getFactoryPropDataUri,
     getFeatureIconAsset,
     getGeneratedIconAsset,
@@ -77,6 +78,7 @@ import {
 import { getDomFactoryStyles } from "./FactoryOverlayPresentation";
 import {
     getDefaultSettingValue as getDefaultFeatureSettingValue,
+    FACTORY_APPEARANCES,
     INVENTORY_PREVIEW_CARDS,
     INVENTORY_TABS,
     RESEARCH_NODE_POSITIONS,
@@ -207,6 +209,8 @@ export class BottomNavUI extends Component {
     private _domCatMessage = "";
     private _selectedEquipSlot: CatEquipmentSlotName = "项圈";
     private _selectedDomBuildingId = "building_cafe_1f";
+    private _buildingPanelMode: "detail" | "appearance" = "detail";
+    private _selectedFactoryAppearanceId = "simple";
     private _domShopTab: ShopTabId = "resource";
     private _selectedShopProductKey = "shop:shop_cat_food_1";
     private _domInventoryTab: InventoryTabId = "all";
@@ -1320,6 +1324,30 @@ export class BottomNavUI extends Component {
         } else if (action === "selectBuilding") {
             this._selectedDomBuildingId = id;
             success = true;
+        } else if (action === "openFactoryAppearance") {
+            this._buildingPanelMode = "appearance";
+            this._selectedFactoryAppearanceId = this.getActiveFactoryAppearanceId();
+            success = true;
+        } else if (action === "closeFactoryAppearance") {
+            this._buildingPanelMode = "detail";
+            success = true;
+        } else if (action === "selectFactoryAppearance") {
+            const appearance = FACTORY_APPEARANCES.find(item => item.id === id);
+            if (appearance) {
+                this._selectedFactoryAppearanceId = appearance.id;
+                success = true;
+            }
+        } else if (action === "applyFactoryAppearance") {
+            const appearance = FACTORY_APPEARANCES.find(item => item.id === id);
+            if (appearance?.unlocked) {
+                SaveManager.update(data => {
+                    data.featureState.factoryAppearanceId = appearance.id;
+                });
+                this._selectedFactoryAppearanceId = appearance.id;
+                success = true;
+            } else {
+                actionMessageOverride = appearance ? `${appearance.name}尚未解锁。` : "工厂外观不存在。";
+            }
         } else if (action === "assignCat") {
             const buildingId = button.dataset.building || this._selectedDomBuildingId;
             const building = BuildingManager.getById(buildingId);
@@ -1424,6 +1452,10 @@ export class BottomNavUI extends Component {
             if (action === "pushSettings") return "设置已推送到服务器。";
             if (action === "previewProduction") return "服务端结算预览已完成。";
             if (action === "selectBuilding") return "楼层详情已切换。";
+            if (action === "openFactoryAppearance") return "工厂外观预览已打开。";
+            if (action === "closeFactoryAppearance") return "已返回建筑详情。";
+            if (action === "selectFactoryAppearance") return "工厂外观预览已切换。";
+            if (action === "applyFactoryAppearance") return "工厂外观已启用。";
             if (action === "assignCat") return "猫咪已派遣到当前楼层。";
             if (action === "unassignCat") return "猫咪已撤下，等待重新排班。";
             if (action === "shopTab") return "商店分类已切换。";
@@ -1446,6 +1478,8 @@ export class BottomNavUI extends Component {
         if (action === "assignCat") return "派遣失败：猫咪未招募或楼层容量不足。";
         if (action === "unassignCat") return "撤下失败：猫咪未招募。";
         if (action === "selectInventory") return "背包物品不存在。";
+        if (action === "selectFactoryAppearance") return "工厂外观不存在。";
+        if (action === "applyFactoryAppearance") return "工厂外观尚未解锁。";
         if (action === "selectShopProduct") return "商品不存在或不属于当前分类。";
         if (action === "selectResearch") return "研究节点不存在。";
         return "操作未完成。";
@@ -2033,6 +2067,9 @@ export class BottomNavUI extends Component {
     }
 
     private renderBuildingPanel(): string {
+        if (this._buildingPanelMode === "appearance") {
+            return this.renderFactoryAppearancePanel();
+        }
         const buildings = BuildingManager.getAll().slice().reverse();
         if (!BuildingManager.getById(this._selectedDomBuildingId)) {
             this._selectedDomBuildingId = buildings[buildings.length - 1]?.id ?? "building_cafe_1f";
@@ -2050,7 +2087,30 @@ export class BottomNavUI extends Component {
             ["容量上限", `${selected.scheduleCapacity}`, `${nextCapacity}`],
         ].map(row => `<div class="building-target-row"><span>${row[0]}</span><b>${row[1]}</b><em>➜</em><strong>${row[2]}</strong></div>`).join("");
         const conditions = `<div class="building-conditions"><b>升级条件</b><div><span>${this.renderCssIcon("deco")}工厂等级达到${levelRequirement}级</span><strong class="${28 >= levelRequirement ? "ok" : "bad"}">${Math.min(28, levelRequirement)}/${levelRequirement}</strong></div><div><span>${this.renderCssIcon("coin")}消耗金币</span><strong class="${ownedCoin >= selected.upgradeCost ? "ok" : "bad"}">${this.formatNumber(ownedCoin)}/${this.formatNumber(selected.upgradeCost)}</strong></div><div><span>${this.renderCssIcon("bean")}咖啡豆储备</span><strong class="ok">${this.formatNumber(ResourceManager.get("bean"))}/2.5K</strong></div></div>`;
-        return `<div class="panel-shell building-shell"><h2>建筑详情</h2><div class="building-selector">${selector}</div><div class="building-detail-hero" data-building-id="${selected.id}" data-building-scene="${scene}" style="background-image:linear-gradient(rgba(34,22,15,.04),rgba(34,22,15,.14)),url('${getBuildingRoomAsset(scene)}')"><span class="building-floor-tag">${selected.floor}<small>Lv.${selected.level}</small></span><div class="building-hero-copy"><b>${selected.name}</b><span>Lv.${selected.level}</span><em>生产建筑</em></div></div><div class="building-description">${selected.description}</div>${this.renderBuildingDecorManager(selected.id)}<div class="building-target-effects"><div class="building-target-title"><b>等级效果</b><span>Lv.${selected.level}</span><em>➜</em><span>Lv.${Math.min(selected.maxLevel, selected.level + 1)}</span></div>${effectRows}</div>${conditions}<div class="building-main-upgrade">${this.renderBuildingUpgradeButton(selected.id)}</div><div class="building-roster"><b>值班猫咪 ${selected.assignedCatCount}/${selected.scheduleCapacity}</b>${this.renderAssignedCatRows(selected.id)}${this.renderAvailableCatRows(selected.id)}</div></div>`;
+        return `<div class="panel-shell building-shell"><h2>建筑详情</h2><div class="building-panel-tools"><span>楼层管理</span><button data-action="openFactoryAppearance">工厂外观</button></div><div class="building-selector">${selector}</div><div class="building-detail-hero" data-building-id="${selected.id}" data-building-scene="${scene}" style="background-image:linear-gradient(rgba(34,22,15,.04),rgba(34,22,15,.14)),url('${getBuildingRoomAsset(scene)}')"><span class="building-floor-tag">${selected.floor}<small>Lv.${selected.level}</small></span><div class="building-hero-copy"><b>${selected.name}</b><span>Lv.${selected.level}</span><em>生产建筑</em></div></div><div class="building-description">${selected.description}</div>${this.renderBuildingDecorManager(selected.id)}<div class="building-target-effects"><div class="building-target-title"><b>等级效果</b><span>Lv.${selected.level}</span><em>➜</em><span>Lv.${Math.min(selected.maxLevel, selected.level + 1)}</span></div>${effectRows}</div>${conditions}<div class="building-main-upgrade">${this.renderBuildingUpgradeButton(selected.id)}</div><div class="building-roster"><b>值班猫咪 ${selected.assignedCatCount}/${selected.scheduleCapacity}</b>${this.renderAssignedCatRows(selected.id)}${this.renderAvailableCatRows(selected.id)}</div></div>`;
+    }
+
+    private getActiveFactoryAppearanceId(): string {
+        const savedId = SaveManager.data.featureState.factoryAppearanceId ?? "simple";
+        return FACTORY_APPEARANCES.some(item => item.id === savedId && item.unlocked) ? savedId : "simple";
+    }
+
+    private renderFactoryAppearancePanel(): string {
+        const activeId = this.getActiveFactoryAppearanceId();
+        const selected = FACTORY_APPEARANCES.find(item => item.id === this._selectedFactoryAppearanceId) ?? FACTORY_APPEARANCES[0];
+        this._selectedFactoryAppearanceId = selected.id;
+        const cards = FACTORY_APPEARANCES.map(item => {
+            const state = item.id === activeId ? "active" : item.unlocked ? "available" : "locked";
+            const selectedClass = item.id === selected.id ? "selected" : "";
+            return `<button class="factory-appearance-card ${state} ${selectedClass}" data-action="selectFactoryAppearance" data-id="${item.id}" data-appearance-id="${item.id}"><span class="factory-appearance-thumb ${item.id === "simple" ? "portrait" : ""}" style="background-image:url('${getFactoryAppearanceAsset(item.id)}')"></span><b>${item.name}</b><small>${item.id === activeId ? "使用中" : item.unlockLabel}</small></button>`;
+        }).join("");
+        const bonuses = selected.bonuses.map(bonus => `<span><i>${this.renderCssIcon(bonus.icon)}</i><small>${bonus.label}</small><b>${bonus.value}</b></span>`).join("");
+        const action = selected.id === activeId
+            ? `<button class="factory-appearance-apply active" disabled>使用中</button>`
+            : selected.unlocked
+                ? `<button class="factory-appearance-apply" data-action="applyFactoryAppearance" data-id="${selected.id}">启用外观</button>`
+                : `<button class="factory-appearance-apply locked" disabled>${selected.unlockLabel}</button>`;
+        return `<div class="panel-shell building-shell factory-appearance-shell"><h2>工厂外观</h2><div class="factory-appearance-toolbar"><button data-action="closeFactoryAppearance" aria-label="返回建筑详情">←</button><span><b>${selected.name}</b><small>${selected.description}</small></span><em>${selected.id === activeId ? "当前使用" : selected.unlocked ? "可使用" : "未解锁"}</em></div><div class="factory-appearance-stage ${selected.id === "simple" ? "portrait" : ""}" data-selected-appearance="${selected.id}" data-active-appearance="${activeId}" style="background-image:linear-gradient(rgba(25,22,18,.03),rgba(25,22,18,.15)),url('${getFactoryAppearanceAsset(selected.id)}')"><span>${selected.name}<small>${selected.unlockLabel}</small></span></div><div class="factory-appearance-cards">${cards}</div><section class="factory-appearance-bonuses"><div><b>外观属性加成</b><small>正式数值将在服务端外观系统接入后生效</small></div><div class="factory-appearance-bonus-grid">${bonuses}</div><div class="factory-appearance-summary"><span><b>外观档案</b><small>${selected.description}</small></span><em>收集进度 <strong>${FACTORY_APPEARANCES.filter(item => item.unlocked).length}/${FACTORY_APPEARANCES.length}</strong></em></div>${action}</section></div>`;
     }
 
     private renderBuildingDecorManager(buildingId: string): string {

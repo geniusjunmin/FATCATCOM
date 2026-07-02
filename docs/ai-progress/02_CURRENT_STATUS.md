@@ -7,7 +7,7 @@ Updated: 2026-07-02
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Preserve the completed feature interactions, then add the missing factory-appearance preview/selection surface shown at the bottom-right of `其他页面.png`. |
+| Best Next Move | Match the inventory reference more closely with a fifth item category, clearer grouping, and richer selected-item detail while preserving the verified four-column layout. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -26,6 +26,11 @@ Updated: 2026-07-02
 
 ## Client UI
 
+- Latest factory-appearance pass adds the missing building subview from `其他页面.png`. It has four selectable themes, one active default, three locked states, a large scene, four bonus summaries, collection progress, and return navigation.
+- Three new 768x432 JPEG themes live under `FATCATUI/assets/resources/textures/generated/factory_appearances/`: classic wood-and-brass, steam industrial, and bright future eco-lab. The default reuses the existing factory cutaway. Names, bonuses, lock state, and actions remain live DOM text.
+- `GeneratedFactoryAppearanceAssets`, `getFactoryAppearanceAsset()`, `FACTORY_APPEARANCES`, and optional `featureState.factoryAppearanceId` own registry, presentation, and local selection state. Locked themes cannot be applied; advertised bonuses are preview-only until an authoritative server appearance system exists.
+- `check-factory-appearance-art.js` guards image dimensions/signatures and wiring. `capture-factory-appearance-regression.js` switches all four themes at 360x800, 414x896, 430x932, and 768x1024, requiring unique embedded backgrounds, stable selected/active state, containment, and working return navigation.
+- Verification for this pass: focused TypeScript diagnostics, Cocos asset refresh, four-size factory-appearance/feature/main/cat/utility screenshots, complete click regression, and `quick-verify.ps1` all pass; server tests remain 84/84.
 - Latest shop interaction pass turns all four category tabs into meaningful selectable catalogs. Resource and item categories prefer real configured products, cat and unavailable entries use preview products, and decoration entries preserve the authoritative server catalog. Every tab resets to a valid default selection and every row has a stable `shop:`, `preview:`, or `decor:` key.
 - A new `.shop-detail-target` keeps selected art, description, source, price, limit, and action visible above the scrollable shelf. Real products still route through `buy`/`SyncManager.purchaseServerShopItem`, decorations through `buyDecor`, and preview-only products expose a disabled preview action.
 - Product selection and purchase are separate buttons. The selected row has an orange target-like outline; resource previews use dedicated shop props, item previews reuse ticket/voucher/guard art, cat previews use the generated lineup, and decor previews use matching room props.

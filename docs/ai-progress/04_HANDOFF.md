@@ -24,6 +24,11 @@ Updated: 2026-07-02
 
 ## Latest UI Note
 
+- Factory appearance is a dedicated mode inside the building panel, opened by `openFactoryAppearance` and returned with `closeFactoryAppearance`. `_buildingPanelMode` keeps it separate from the existing floor upgrade view; do not replace or duplicate that panel.
+- `FACTORY_APPEARANCES` defines simple/classic/steam/future. The default reuses `factory_cutaway_bg_640.jpg`; three generated 768x432 JPEGs are under `textures/generated/factory_appearances/`. They contain no UI text and are embedded through `GeneratedFactoryAppearanceAssets` plus `getFactoryAppearanceAsset()`.
+- Only the default theme is unlocked. `featureState.factoryAppearanceId` persists an enabled unlocked theme locally, while locked buttons remain disabled. Bonus values are previews and must not alter production until the server owns unlocks, activation, and economy effects.
+- The shell uses a 16:9 scene, four fixed cards, and a flexible lower bonus/archive panel so 360x800 through 768x1024 fill the viewport without cropping art or colliding with navigation.
+- Run `node tools/check-factory-appearance-art.js` and `node tools/capture-factory-appearance-regression.js` after changing appearance files, config, actions, or layout. The capture switches all four themes at all supported sizes and checks embedded JPEGs, selected/active/locked state, containment, and return navigation.
 - Shop now tracks `_selectedShopProductKey` and renders a unified `.shop-detail-target[data-selected-key]` above a scrollable `.shop-catalog-viewport`. Keys are namespaced as `shop:<configId>`, `preview:<category>:<index>`, or `decor:<decorId>`; do not collapse these into array positions.
 - When the asynchronous server decor catalog replaces offline preview rows, `refreshServerDecorCatalogForPanel()` repairs the selection to the first real `decor:` key. Successful product/decor purchases also select the purchased key; preserve this or the online catalog can render with no highlighted row.
 - `selectShopProduct` only changes the selected detail. Real purchase buttons remain independent siblings in `.buy-zone`, so row selection never triggers a purchase and there are no nested buttons. Online decor regression deliberately scopes ownership checks to `.buy-zone button`.

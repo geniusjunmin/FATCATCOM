@@ -22,6 +22,15 @@ export interface InventoryPreviewCard {
     source: string;
 }
 
+export interface FactoryAppearancePreview {
+    id: string;
+    name: string;
+    description: string;
+    unlockLabel: string;
+    unlocked: boolean;
+    bonuses: Array<{ icon: string; label: string; value: string }>;
+}
+
 export const SETTINGS_PANEL_ITEMS: FeatureToggleItem[] = [
     { id: "music", name: "音乐", desc: "咖啡工厂背景音乐。" },
     { id: "sfx", name: "音效", desc: "按钮、生产和奖励音效。" },
@@ -70,6 +79,61 @@ export const SHOP_PREVIEW_CATALOGS: Record<string, Array<[string, string, string
         ["猫爪旗帜", "屋顶外观装饰", "deco", "120", "钻石"],
     ],
 };
+
+export const FACTORY_APPEARANCES: FactoryAppearancePreview[] = [
+    {
+        id: "simple",
+        name: "简版工厂",
+        description: "熟悉的六层咖啡工坊，温暖、可靠，适合稳定经营。",
+        unlockLabel: "默认拥有",
+        unlocked: true,
+        bonuses: [
+            { icon: "coin", label: "全局收益", value: "+5%" },
+            { icon: "deco", label: "生产速度", value: "+5%" },
+            { icon: "cat", label: "猫咪工资", value: "-5%" },
+            { icon: "gift", label: "仓库容量", value: "+10%" },
+        ],
+    },
+    {
+        id: "classic",
+        name: "经典工厂",
+        description: "木雕、砖墙与黄铜共同构成的咖啡公会式工厂。",
+        unlockLabel: "工厂 30 级解锁",
+        unlocked: false,
+        bonuses: [
+            { icon: "coin", label: "订单金币", value: "+8%" },
+            { icon: "cat", label: "顾客心情", value: "+5%" },
+            { icon: "bean", label: "咖啡产量", value: "+8%" },
+            { icon: "gift", label: "仓库容量", value: "+12%" },
+        ],
+    },
+    {
+        id: "steam",
+        name: "蒸汽工厂",
+        description: "铜制锅炉与机械传动持续运转的高压烘焙工坊。",
+        unlockLabel: "工厂 45 级解锁",
+        unlocked: false,
+        bonuses: [
+            { icon: "deco", label: "生产速度", value: "+12%" },
+            { icon: "bean", label: "豆耗降低", value: "-6%" },
+            { icon: "coin", label: "订单金币", value: "+10%" },
+            { icon: "gift", label: "仓库容量", value: "+15%" },
+        ],
+    },
+    {
+        id: "future",
+        name: "未来工厂",
+        description: "以洁净能源、生态温室和智能设备驱动的咖啡实验室。",
+        unlockLabel: "工厂 60 级解锁",
+        unlocked: false,
+        bonuses: [
+            { icon: "deco", label: "生产速度", value: "+15%" },
+            { icon: "diamond", label: "研究效率", value: "+10%" },
+            { icon: "coin", label: "全局收益", value: "+12%" },
+            { icon: "gift", label: "仓库容量", value: "+20%" },
+        ],
+    },
+];
 
 export const INVENTORY_TABS: Array<{ id: InventoryTabId; label: string }> = [
     { id: "all", label: "全部" },
