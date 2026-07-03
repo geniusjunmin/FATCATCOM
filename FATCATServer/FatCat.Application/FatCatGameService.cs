@@ -121,7 +121,7 @@ public sealed class FatCatGameService(
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "friend-coop-tiers", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "friend-coop-tiers", "daily-order", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -144,6 +144,87 @@ public sealed class FatCatGameService(
 
         var transactions = await repository.GetResourceTransactionsAsync(playerId, limit, cancellationToken);
         return transactions.Select(ToResourceTransactionDto).ToArray();
+    }
+
+    public async Task<DailyOrderDto?> GetDailyOrderAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var state = await repository.EnsureDailyOrderStateAsync(
+            playerId,
+            ToUtcDate(now),
+            DailyOrderInitialProgress,
+            now,
+            cancellationToken);
+        return ToDailyOrderDto(state, now);
+    }
+
+    public async Task<DailyOrderClaimResponse?> ClaimDailyOrderAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var orderDate = ToUtcDate(now);
+        await repository.EnsureDailyOrderStateAsync(
+            playerId,
+            orderDate,
+            DailyOrderInitialProgress,
+            now,
+            cancellationToken);
+        var claimed = await repository.ClaimDailyOrderAsync(
+            playerId,
+            orderDate,
+            DailyOrderTarget,
+            now,
+            cancellationToken);
+        var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
+        if (claimed)
+        {
+            resources.Coin += DailyOrderRewardCoin;
+            resources.ResearchPoint += DailyOrderRewardResearchPoint;
+            resources.UpdatedAt = now;
+            await AddResourceTransactionAsync(
+                playerId,
+                "daily_order_claim",
+                orderDate.ToString(),
+                null,
+                DailyOrderRewardCoin,
+                0,
+                0,
+                0,
+                DailyOrderRewardResearchPoint,
+                resources,
+                cancellationToken);
+            await repository.SaveChangesAsync(cancellationToken);
+        }
+
+        var state = await repository.EnsureDailyOrderStateAsync(
+            playerId,
+            orderDate,
+            DailyOrderInitialProgress,
+            now,
+            cancellationToken);
+        var order = ToDailyOrderDto(state, now);
+        if (claimed && !order.Claimed)
+        {
+            order = order with { Claimed = true, Claimable = false, UpdatedAt = now.ToUnixTimeMilliseconds() };
+        }
+        return new DailyOrderClaimResponse(
+            claimed,
+            order,
+            resources.Coin,
+            resources.Bean,
+            resources.CatFood,
+            resources.Diamond,
+            resources.ResearchPoint,
+            claimed ? null : order.Claimed ? "already_claimed" : "order_not_complete");
     }
 
     public ProductionPreviewResponse PreviewProduction(ProductionPreviewRequest request)
@@ -333,6 +414,14 @@ public sealed class FatCatGameService(
         };
         await repository.AddLaunchRecordAsync(record, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
+        var now = DateTimeOffset.UtcNow;
+        await repository.IncrementDailyOrderProgressAsync(
+            playerId,
+            ToUtcDate(now),
+            DailyOrderInitialProgress,
+            DailyOrderTarget,
+            now,
+            cancellationToken);
         return ToLaunchResponse(record, resources);
     }
 
@@ -2016,6 +2105,21 @@ public sealed class FatCatGameService(
             transaction.CreatedAt.ToUnixTimeMilliseconds());
     }
 
+    private static DailyOrderDto ToDailyOrderDto(PlayerDailyOrderState state, DateTimeOffset now)
+    {
+        var progress = Math.Clamp(state.Progress, 0, DailyOrderTarget);
+        return new DailyOrderDto(
+            state.OrderDate,
+            progress,
+            DailyOrderTarget,
+            progress >= DailyOrderTarget && !state.IsClaimed,
+            state.IsClaimed,
+            DailyOrderRewardCoin,
+            DailyOrderRewardResearchPoint,
+            state.UpdatedAt.ToUnixTimeMilliseconds(),
+            now.ToUnixTimeMilliseconds());
+    }
+
     private async Task AddResourceTransactionAsync(
         Guid playerId,
         string sourceType,
@@ -3280,6 +3384,10 @@ public sealed class FatCatGameService(
     private const int MaxFriendBoostPercent = 30;
     private const int FriendCoopGoalTarget = 3;
     private const int FriendCoopGoalRewardDiamond = 30;
+    private const int DailyOrderInitialProgress = 56;
+    private const int DailyOrderTarget = 60;
+    private const int DailyOrderRewardCoin = 1_000;
+    private const int DailyOrderRewardResearchPoint = 10;
     private static readonly TimeSpan FriendHelpDuration = TimeSpan.FromMinutes(30);
     private sealed record ShopItemDefinition(string ShopItemId, string ItemId, string PriceType, int PriceAmount, int LimitDaily);
     private sealed record DecorCatalogDefinition(

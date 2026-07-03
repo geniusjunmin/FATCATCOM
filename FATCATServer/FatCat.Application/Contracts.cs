@@ -507,6 +507,27 @@ public sealed record ProductionPreviewResponse(
     double BeanCostPerSecond,
     IReadOnlyList<ProductionBuildingPreviewDto> Buildings);
 
+public sealed record DailyOrderDto(
+    int OrderDate,
+    int Progress,
+    int Target,
+    bool Claimable,
+    bool Claimed,
+    int RewardCoin,
+    int RewardResearchPoint,
+    long UpdatedAt,
+    long ServerTime);
+
+public sealed record DailyOrderClaimResponse(
+    bool Claimed,
+    DailyOrderDto Order,
+    double CoinBalance,
+    double BeanBalance,
+    double CatFoodBalance,
+    double DiamondBalance,
+    double ResearchPointBalance,
+    string? LimitedReason = null);
+
 public sealed record LaunchRequest(
     string? ClientRequestId,
     int LaunchSeconds,

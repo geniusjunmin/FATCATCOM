@@ -269,6 +269,11 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
                 filter:drop-shadow(0 3px 0 rgba(75,39,16,.28));
             }
             #fatcat-dom-factory .chest:after { content:"!"; position:absolute; right:9%; top:8%; width:22%; aspect-ratio:1; border-radius:50%; background:#e84e25; color:white; display:flex; align-items:center; justify-content:center; border:2px solid #ffd6a0; font-size:1.5%; }
+            #fatcat-dom-factory .chest:disabled { filter:saturate(.62) brightness(.82); cursor:default; box-shadow:0 4px 0 rgba(0,0,0,.28), inset 0 0 0 2px rgba(255,255,255,.25); }
+            #fatcat-dom-factory .chest:disabled:after { display:none; }
+            #fatcat-dom-factory .chest.ready { animation:fatcatChestReady 1.25s ease-in-out infinite alternate; }
+            #fatcat-dom-factory .chest.claimed { filter:grayscale(.25) brightness(.72); }
+            @keyframes fatcatChestReady { from { transform:translateY(0); } to { transform:translateY(-3%); } }
             #fatcat-dom-factory .launch { height: 112%; align-self:center; border-radius: 999px; background: radial-gradient(circle at 50% 0, rgba(255,245,202,.76), transparent 35%), linear-gradient(#ffbd55, #df6e19 72%, #b65213); border: 5px solid #9a5721; color: #fff7d8; text-shadow: 0 3px #8c3b12; font-size: 4.75%; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 0 rgba(95,44,14,.54), inset 0 0 0 3px rgba(255,242,178,.25), inset 0 -13px 22px rgba(124,47,13,.18); }
             #fatcat-dom-factory .launch:before { content:""; position:absolute; left:8%; right:8%; top:10%; height:20%; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,.42), rgba(255,255,255,0)); pointer-events:none; }
             #fatcat-dom-factory .rocket-shape { position: relative; width: 18%; aspect-ratio: .72; margin-right: 4%; border-radius: 50% 50% 42% 42%; background: linear-gradient(#fff8e4 0 54%, #e54d2e 55%); transform: rotate(35deg) translateY(-4%); box-shadow: inset 0 0 0 2px rgba(112,57,25,.25), 0 3px 0 rgba(0,0,0,.25); }

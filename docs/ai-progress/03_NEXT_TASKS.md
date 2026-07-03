@@ -18,7 +18,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
-| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Main order/chest state is still a local preview; move its daily progress, claim guard, and reward transaction to the server. |
+| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Daily order/chest authority is complete; move the static `5/5` daily launch quota to persisted server state next. |
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main HUD/factory materials and six direct floor routes now match the target workflow; preserve them while authority work proceeds. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
@@ -28,12 +28,18 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 ### 0. Next Main Operation Authority Batch
 
-- Add a persisted daily order/chest state to the server with progress, target, claim eligibility, claim timestamp/day, and reward metadata.
-- Make claim conditional and atomic so refreshes or simultaneous clients cannot grant the chest twice.
-- Return authoritative coin/research balances plus updated daily state from the API.
-- Consume the snapshot on login/save sync and render the existing order/chest controls from server state when online.
-- Preserve offline fallback without silently applying it after an online rejection.
-- Add service, API concurrency, browser online, main-screen state, and transaction-ledger coverage.
+- Persist a UTC-day launch quota with remaining/maximum launches and reset metadata.
+- Reject launch settlement when the quota is exhausted without changing resources, order progress, launch records, or transactions.
+- Return quota state with launch responses and bootstrap/login synchronization.
+- Render the existing `今日剩余次数：5/5` strip from authority, including a disabled/exhausted launch state.
+- Preserve an explicit offline quota and add service, API concurrency/idempotency, online browser, and four-size state coverage.
+
+### Completed: Daily Order And Chest Authority
+
+- `PlayerDailyOrderState` persists UTC date, 56→60 progress, and one-time claim state.
+- Only accepted non-replayed launches increment progress; the SQLite claim guard grants 1000 coin plus 10 research points once.
+- Client login/save sync, launch refresh, online claim, offline reset/progression/claim, resource snapshots, and factory three-state rendering are connected.
+- `tools/check-daily-order-contract.js`, `tools/check-daily-order-online-ui.js`, four-size main regression, a concurrent API claim, 95 server tests, API smoke, and full quick verify cover the flow.
 
 ### Completed: Main Floor Direct Routes
 

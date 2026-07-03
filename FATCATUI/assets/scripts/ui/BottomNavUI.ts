@@ -15,6 +15,7 @@ import { NetworkManager } from "../manager/NetworkManager";
 import { SyncManager } from "../manager/SyncManager";
 import { FriendBoostManager } from "../manager/FriendBoostManager";
 import { FriendCoopManager } from "../manager/FriendCoopManager";
+import { DailyOrderManager } from "../manager/DailyOrderManager";
 import { DecorCatalogItemDto, DecorCollectionDto, DecorCollectionTierDto, DecorStateDto, FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
@@ -310,6 +311,8 @@ export class BottomNavUI extends Component {
         EventBus.on<SocialRealtimeEventDto>(GameEvents.SOCIAL_REALTIME_EVENT, this.onSocialRealtimeEvent);
         EventBus.off(GameEvents.FRIEND_BOOST_HISTORY_CHANGED, this.onFriendBoostHistoryChanged);
         EventBus.on(GameEvents.FRIEND_BOOST_HISTORY_CHANGED, this.onFriendBoostHistoryChanged);
+        EventBus.off(GameEvents.DAILY_ORDER_CHANGED, this.onDailyOrderChanged);
+        EventBus.on(GameEvents.DAILY_ORDER_CHANGED, this.onDailyOrderChanged);
 
         // Ensure navigation is on top of everything
         this.node.parent?.setSiblingIndex(999);
@@ -345,6 +348,7 @@ export class BottomNavUI extends Component {
     protected onDestroy(): void {
         EventBus.off(GameEvents.SOCIAL_REALTIME_EVENT, this.onSocialRealtimeEvent);
         EventBus.off(GameEvents.FRIEND_BOOST_HISTORY_CHANGED, this.onFriendBoostHistoryChanged);
+        EventBus.off(GameEvents.DAILY_ORDER_CHANGED, this.onDailyOrderChanged);
         if (this._waitingForAppReady) {
             EventBus.off(GameEvents.APP_READY, this.onAppReady);
             this._waitingForAppReady = false;
@@ -390,6 +394,12 @@ export class BottomNavUI extends Component {
             this.renderDomFactoryOverlay();
         } else if (this.currentPanel === "friends") {
             this.renderDomPanel("friends");
+        }
+    };
+
+    private onDailyOrderChanged = (): void => {
+        if (this.currentPanel === "factory") {
+            this.renderDomFactoryOverlay();
         }
     };
 
@@ -582,6 +592,7 @@ export class BottomNavUI extends Component {
             } else {
                 const payload = ProductionManager.settle(10, "manual_launch");
                 if (payload.coinGained > 0) {
+                    DailyOrderManager.advanceOffline();
                     const serverText = NetworkManager.canUseServer ? "，服务端发射失败，已按本地结算" : "";
                     this._factoryMessage = `发射完成：+${this.formatNumber(payload.coinGained)} 金币，-${this.formatNumber(payload.beanSpent)} 咖啡豆${serverText}`;
                 } else {
@@ -601,18 +612,37 @@ export class BottomNavUI extends Component {
         this.renderDomFactoryOverlay();
     }
 
-    private claimQuickReward(): void {
+    private async claimQuickReward(): Promise<void> {
         this._factoryNoticeKind = "";
-        const claimable = TaskManager.getActiveTasks().find(({ config, data }) => (
-            data.currentValue >= config.goalValue && !data.isClaimed
-        ));
-
-        if (claimable) {
-            const ok = TaskManager.claimReward(claimable.config.id);
-            this._factoryMessage = ok ? `领取成功：${claimable.config.name}` : "暂时没有可领取奖励";
+        const state = DailyOrderManager.getState();
+        if (state.claimed) {
+            this._factoryMessage = "今日订单宝箱已经领取";
+        } else if (!state.claimable) {
+            this._factoryMessage = `再完成 ${Math.max(0, state.target - state.progress)} 单即可领取宝箱`;
+        } else if (NetworkManager.canUseServer) {
+            this._factoryMessage = "正在向服务端领取订单宝箱...";
+            this.renderDomFactoryOverlay();
+            const result = await SyncManager.claimServerDailyOrder();
+            if (result?.claimed) {
+                this._factoryMessage = `订单宝箱：+${result.order.rewardCoin} 金币，+${result.order.rewardResearchPoint} 研究点`;
+            } else if (result?.limitedReason === "already_claimed") {
+                this._factoryMessage = "今日订单宝箱已经领取";
+            } else if (result?.limitedReason === "order_not_complete") {
+                this._factoryMessage = "服务端订单尚未达标";
+            } else {
+                this._factoryMessage = "订单宝箱领取失败，请稍后重试";
+            }
         } else {
-            ResourceManager.add({ coin: 1000, researchPoint: 10 }, "quick_chest_reward");
-            this._factoryMessage = "宝箱奖励：+1000 金币，+10 研究点";
+            const claimed = DailyOrderManager.claimOffline();
+            if (claimed) {
+                ResourceManager.add({
+                    coin: claimed.rewardCoin,
+                    researchPoint: claimed.rewardResearchPoint,
+                }, "daily_order_claim_offline");
+                this._factoryMessage = `订单宝箱：+${claimed.rewardCoin} 金币，+${claimed.rewardResearchPoint} 研究点`;
+            } else {
+                this._factoryMessage = "暂时没有可领取奖励";
+            }
         }
 
         this.renderDomHudOverlay(true);
@@ -800,7 +830,7 @@ export class BottomNavUI extends Component {
         } else if (action === "order") {
             this.select("tasks");
         } else if (action === "claim") {
-            this.claimQuickReward();
+            void this.claimQuickReward();
         } else if (action === "launch") {
             this.handleLaunch();
             this.renderDomFactoryOverlay();
@@ -830,6 +860,13 @@ export class BottomNavUI extends Component {
             .filter(entry => entry.active && entry.sourceName !== friendBoost.boostedByName)
             .slice(0, 3);
         const coopGoal = FriendCoopManager.getState();
+        const dailyOrder = DailyOrderManager.getState();
+        const dailyOrderPercent = Math.round(dailyOrder.progress / Math.max(1, dailyOrder.target) * 100);
+        const dailyOrderStatus = dailyOrder.claimed
+            ? "已领取"
+            : dailyOrder.claimable
+                ? "可领取"
+                : `差${dailyOrder.target - dailyOrder.progress}单`;
         void this.refreshFriendRequestBadgeForFactory();
         const pendingFriendRequests = this.getPendingFriendRequestCount();
         const floors = MAIN_FACTORY_FLOORS.map(floor => ({
@@ -856,8 +893,8 @@ export class BottomNavUI extends Component {
             <div class="left-tools"><button class="side-btn alert" data-action="tasks"><i class="ico-task asset" style="background-image:url('${this.getFeatureIconAsset("task")}')"></i>任务</button></div>
             <div class="right-tools"><button class="side-btn alert" data-action="achievement"><i class="ico-trophy asset" style="background-image:url('${this.getFeatureIconAsset("achievement")}')"></i>成就</button><button class="side-btn alert" data-action="mail"><i class="ico-mail asset" style="background-image:url('${this.getFeatureIconAsset("mail")}')"></i>邮件</button><button class="side-btn" data-action="friend"><i class="ico-friend asset" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></i>好友</button><button class="side-btn" data-action="settings"><i class="ico-gear asset" style="background-image:url('${this.getFeatureIconAsset("settings")}')"></i>设置</button></div>
             <div class="bottom-widgets">
-                <button class="order" data-action="order"><span class="order-icon"></span><span class="order-text">今日订单<b>56/60</b></span><span class="bar"><i></i></span></button>
-                <button class="chest" data-action="claim"><span class="chest-art" style="background-image:url('${this.getFeatureIconAsset("rewardChest")}')"></span>可领取</button>
+                <button class="order" data-action="order" data-daily-progress="${dailyOrder.progress}" data-daily-target="${dailyOrder.target}"><span class="order-icon"></span><span class="order-text">今日订单<b>${dailyOrder.progress}/${dailyOrder.target}</b></span><span class="bar"><i style="width:${dailyOrderPercent}%"></i></span></button>
+                <button class="chest ${dailyOrder.claimable ? "ready" : ""} ${dailyOrder.claimed ? "claimed" : ""}" data-action="claim" data-daily-claimable="${dailyOrder.claimable}" data-daily-claimed="${dailyOrder.claimed}" ${dailyOrder.claimable ? "" : "disabled"}><span class="chest-art" style="background-image:url('${this.getFeatureIconAsset("rewardChest")}')"></span>${dailyOrderStatus}</button>
                 <button class="launch" data-action="launch"><span class="rocket-shape asset" style="background-image:url('${this.getFeatureIconAsset("launch")}')"></span>发射猫咪</button>
                 <button class="gift" data-action="gift"><span class="gift-cat asset" style="background-image:url('${this.getCatFullArtAsset("c_005")}')"></span><span><b>超级猫粮礼包</b><br><em>03:25:15</em></span></button>
             </div>

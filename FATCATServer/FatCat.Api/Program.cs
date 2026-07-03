@@ -216,6 +216,28 @@ app.MapGet("/api/resources/transactions", async (
         : Results.Ok(ApiEnvelope<IReadOnlyList<ResourceTransactionDto>>.Success(transactions));
 });
 
+app.MapGet("/api/daily-order", async (
+    Guid playerId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var order = await service.GetDailyOrderAsync(playerId, cancellationToken);
+    return order is null
+        ? Results.NotFound(ApiEnvelope<DailyOrderDto>.Fail("player_not_found"))
+        : Results.Ok(ApiEnvelope<DailyOrderDto>.Success(order));
+});
+
+app.MapPost("/api/daily-order/claim", async (
+    Guid playerId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.ClaimDailyOrderAsync(playerId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<DailyOrderClaimResponse>.Fail("player_not_found"))
+        : Results.Ok(ApiEnvelope<DailyOrderClaimResponse>.Success(result));
+});
+
 app.MapGet("/api/save", async (
     Guid playerId,
     FatCatGameService service,

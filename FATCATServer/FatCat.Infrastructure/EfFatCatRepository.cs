@@ -357,6 +357,122 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         return true;
     }
 
+    public Task<PlayerDailyOrderState?> GetDailyOrderStateAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        return dbContext.DailyOrderStates.FirstOrDefaultAsync(state => state.PlayerId == playerId, cancellationToken);
+    }
+
+    public async Task<PlayerDailyOrderState> EnsureDailyOrderStateAsync(
+        Guid playerId,
+        int orderDate,
+        int initialProgress,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        if (dbContext.Database.IsSqlite())
+        {
+            await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO "DailyOrderStates" ("PlayerId", "OrderDate", "Progress", "IsClaimed", "UpdatedAt")
+                VALUES ({playerId}, {orderDate}, {initialProgress}, 0, {now})
+                ON CONFLICT ("PlayerId") DO UPDATE SET
+                    "OrderDate" = CASE WHEN "OrderDate" = {orderDate} THEN "OrderDate" ELSE {orderDate} END,
+                    "Progress" = CASE WHEN "OrderDate" = {orderDate} THEN "Progress" ELSE {initialProgress} END,
+                    "IsClaimed" = CASE WHEN "OrderDate" = {orderDate} THEN "IsClaimed" ELSE 0 END,
+                    "UpdatedAt" = CASE WHEN "OrderDate" = {orderDate} THEN "UpdatedAt" ELSE {now} END;
+                """, cancellationToken);
+            return await dbContext.DailyOrderStates
+                .AsNoTracking()
+                .SingleAsync(state => state.PlayerId == playerId, cancellationToken);
+        }
+
+        var state = await GetDailyOrderStateAsync(playerId, cancellationToken);
+        if (state is null)
+        {
+            state = new PlayerDailyOrderState
+            {
+                PlayerId = playerId,
+                OrderDate = orderDate,
+                Progress = initialProgress,
+                UpdatedAt = now,
+            };
+            await dbContext.DailyOrderStates.AddAsync(state, cancellationToken);
+        }
+        else if (state.OrderDate != orderDate)
+        {
+            state.OrderDate = orderDate;
+            state.Progress = initialProgress;
+            state.IsClaimed = false;
+            state.UpdatedAt = now;
+        }
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return state;
+    }
+
+    public async Task<PlayerDailyOrderState> IncrementDailyOrderProgressAsync(
+        Guid playerId,
+        int orderDate,
+        int initialProgress,
+        int target,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        if (dbContext.Database.IsSqlite())
+        {
+            await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO "DailyOrderStates" ("PlayerId", "OrderDate", "Progress", "IsClaimed", "UpdatedAt")
+                VALUES ({playerId}, {orderDate}, {Math.Min(target, initialProgress + 1)}, 0, {now})
+                ON CONFLICT ("PlayerId") DO UPDATE SET
+                    "OrderDate" = {orderDate},
+                    "Progress" = CASE
+                        WHEN "OrderDate" = {orderDate} THEN MIN("Progress" + 1, {target})
+                        ELSE {Math.Min(target, initialProgress + 1)}
+                    END,
+                    "IsClaimed" = CASE WHEN "OrderDate" = {orderDate} THEN "IsClaimed" ELSE 0 END,
+                    "UpdatedAt" = {now};
+                """, cancellationToken);
+            return await dbContext.DailyOrderStates
+                .AsNoTracking()
+                .SingleAsync(state => state.PlayerId == playerId, cancellationToken);
+        }
+
+        var state = await EnsureDailyOrderStateAsync(playerId, orderDate, initialProgress, now, cancellationToken);
+        state.Progress = Math.Min(target, state.Progress + 1);
+        state.UpdatedAt = now;
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return state;
+    }
+
+    public async Task<bool> ClaimDailyOrderAsync(
+        Guid playerId,
+        int orderDate,
+        int target,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        if (dbContext.Database.IsSqlite())
+        {
+            var updated = await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE "DailyOrderStates"
+                SET "IsClaimed" = 1, "UpdatedAt" = {now}
+                WHERE "PlayerId" = {playerId}
+                    AND "OrderDate" = {orderDate}
+                    AND "Progress" >= {target}
+                    AND "IsClaimed" = 0
+                """, cancellationToken);
+            return updated == 1;
+        }
+
+        var state = await GetDailyOrderStateAsync(playerId, cancellationToken);
+        if (state is null || state.OrderDate != orderDate || state.Progress < target || state.IsClaimed)
+        {
+            return false;
+        }
+        state.IsClaimed = true;
+        state.UpdatedAt = now;
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     public Task<PlayerSettings?> GetSettingsAsync(Guid playerId, CancellationToken cancellationToken)
     {
         return dbContext.PlayerSettings.FirstOrDefaultAsync(settings => settings.PlayerId == playerId, cancellationToken);

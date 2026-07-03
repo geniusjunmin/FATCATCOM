@@ -84,6 +84,7 @@ const floorRoutes = [
             const firstBonus = document.querySelector("#fatcat-dom-factory .bonus");
             const factoryIllustration = document.querySelector("#fatcat-dom-factory .factory-illustration");
             const diamondValue = document.querySelector("#fatcat-dom-hud .res.diamond .value")?.textContent?.trim() ?? "";
+            const dailyOrder = document.querySelector("#fatcat-dom-factory .order");
             const ratio = (part, whole) => part && whole
                 ? Math.round(part / whole * 10000) / 10000
                 : null;
@@ -115,6 +116,11 @@ const floorRoutes = [
                 chest: rect("#fatcat-dom-factory .chest"),
                 launch: rect("#fatcat-dom-factory .launch"),
                 diamondValue,
+                dailyOrderProgress: dailyOrder?.getAttribute("data-daily-progress") ?? "",
+                dailyOrderTarget: dailyOrder?.getAttribute("data-daily-target") ?? "",
+                dailyChestClaimable: chest?.getAttribute("data-daily-claimable") ?? "",
+                dailyChestClaimed: chest?.getAttribute("data-daily-claimed") ?? "",
+                dailyChestDisabled: chest instanceof HTMLButtonElement ? chest.disabled : false,
                 buildingHeightRatio: ratio(building?.height, canvas?.height),
                 buildingBottomRatio: building && canvas
                     ? Math.round((building.bottom - canvas.top) / canvas.height * 10000) / 10000
@@ -198,6 +204,11 @@ const floorRoutes = [
         || entry.state.hudGap === null
         || entry.state.hudGap < 0
         || entry.state.diamondValue !== "2580"
+        || entry.state.dailyOrderProgress !== "56"
+        || entry.state.dailyOrderTarget !== "60"
+        || entry.state.dailyChestClaimable !== "false"
+        || entry.state.dailyChestClaimed !== "false"
+        || !entry.state.dailyChestDisabled
         || entry.state.buildingHeightRatio === null
         || entry.state.buildingHeightRatio < 0.68
         || entry.state.buildingBottomRatio === null

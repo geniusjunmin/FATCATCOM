@@ -79,6 +79,7 @@ export class SaveManager {
             parsed.featureState.settings = parsed.featureState.settings ?? {};
             parsed.featureState.friendGifts = parsed.featureState.friendGifts ?? {};
             parsed.featureState.friendVisits = parsed.featureState.friendVisits ?? {};
+            parsed.featureState.dailyOrder = parsed.featureState.dailyOrder ?? this.createInitialDailyOrder();
             
             for (const catId of Object.keys(parsed.cats)) {
                 const cat = parsed.cats[catId];
@@ -132,6 +133,20 @@ export class SaveManager {
             },
             friendGifts: {},
             friendVisits: {},
+            dailyOrder: this.createInitialDailyOrder(),
+        };
+    }
+
+    private static createInitialDailyOrder() {
+        const now = new Date();
+        return {
+            orderDate: now.getUTCFullYear() * 10000 + (now.getUTCMonth() + 1) * 100 + now.getUTCDate(),
+            progress: 56,
+            target: 60,
+            claimed: false,
+            rewardCoin: 1000,
+            rewardResearchPoint: 10,
+            updatedAt: Date.now(),
         };
     }
 

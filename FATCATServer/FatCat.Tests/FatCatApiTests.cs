@@ -1510,4 +1510,100 @@ public sealed class FatCatApiTests
         Assert.Equal(firstData.GetProperty("coinBalance").GetDouble(), secondData.GetProperty("coinBalance").GetDouble());
         Assert.Equal(firstData.GetProperty("beanBalance").GetDouble(), secondData.GetProperty("beanBalance").GetDouble());
     }
+
+    [Fact]
+    public async Task DailyOrder_AdvancesFromLaunchAndClaimsOnce()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-daily-order-device",
+            companyName = "FatCat",
+        });
+        var authBody = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync());
+        var playerId = authBody.RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+
+        var initialResponse = await client.GetAsync($"/api/daily-order?playerId={playerId}");
+        var initial = JsonDocument.Parse(await initialResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        Assert.Equal(56, initial.GetProperty("progress").GetInt32());
+        Assert.False(initial.GetProperty("claimable").GetBoolean());
+
+        for (var index = 1; index <= 4; index++)
+        {
+            var launchResponse = await client.PostAsJsonAsync($"/api/launch?playerId={playerId}", new
+            {
+                clientRequestId = $"api-daily-order-{index}",
+                launchSeconds = 1,
+                availableBean = 8240,
+                production = new
+                {
+                    grossCoinPerSecond = 213,
+                    wageCostPerSecond = 0.25,
+                    beanCostPerSecond = 4,
+                },
+            });
+            Assert.Equal(HttpStatusCode.OK, launchResponse.StatusCode);
+        }
+
+        var readyResponse = await client.GetAsync($"/api/daily-order?playerId={playerId}");
+        var ready = JsonDocument.Parse(await readyResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        Assert.Equal(60, ready.GetProperty("progress").GetInt32());
+        Assert.True(ready.GetProperty("claimable").GetBoolean());
+
+        var firstClaim = await client.PostAsJsonAsync($"/api/daily-order/claim?playerId={playerId}", new { });
+        var secondClaim = await client.PostAsJsonAsync($"/api/daily-order/claim?playerId={playerId}", new { });
+        var first = JsonDocument.Parse(await firstClaim.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var second = JsonDocument.Parse(await secondClaim.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+
+        Assert.Equal(HttpStatusCode.OK, firstClaim.StatusCode);
+        Assert.True(first.GetProperty("claimed").GetBoolean());
+        Assert.True(first.GetProperty("order").GetProperty("claimed").GetBoolean());
+        Assert.False(second.GetProperty("claimed").GetBoolean());
+        Assert.Equal("already_claimed", second.GetProperty("limitedReason").GetString());
+        Assert.Equal(first.GetProperty("coinBalance").GetDouble(), second.GetProperty("coinBalance").GetDouble());
+        Assert.Equal(first.GetProperty("researchPointBalance").GetDouble(), second.GetProperty("researchPointBalance").GetDouble());
+    }
+
+    [Fact]
+    public async Task DailyOrder_ConcurrentClaimsGrantExactlyOneReward()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-daily-order-race-device",
+            companyName = "Daily Race Cafe",
+        });
+        var authBody = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync());
+        var playerId = authBody.RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+        await client.GetAsync($"/api/daily-order?playerId={playerId}");
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<FatCatDbContext>();
+            var state = await db.DailyOrderStates.FindAsync([playerId], CancellationToken.None);
+            Assert.NotNull(state);
+            state!.Progress = 60;
+            await db.SaveChangesAsync();
+        }
+
+        var responses = await Task.WhenAll(
+            client.PostAsJsonAsync($"/api/daily-order/claim?playerId={playerId}", new { }),
+            client.PostAsJsonAsync($"/api/daily-order/claim?playerId={playerId}", new { }));
+        var results = await Task.WhenAll(responses.Select(async response =>
+            JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("data")));
+        var resourcesResponse = await client.GetAsync($"/api/resources?playerId={playerId}");
+        var resources = JsonDocument.Parse(await resourcesResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var transactionsResponse = await client.GetAsync($"/api/resources/transactions?playerId={playerId}&limit=10");
+        var transactions = JsonDocument.Parse(await transactionsResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+
+        Assert.All(responses, response => Assert.Equal(HttpStatusCode.OK, response.StatusCode));
+        Assert.Single(results, result => result.GetProperty("claimed").GetBoolean());
+        Assert.Single(results, result => !result.GetProperty("claimed").GetBoolean());
+        Assert.Equal(12451000, resources.GetProperty("coin").GetDouble());
+        Assert.Equal(210, resources.GetProperty("researchPoint").GetDouble());
+        Assert.Single(transactions.EnumerateArray(), transaction =>
+            transaction.GetProperty("sourceType").GetString() == "daily_order_claim");
+    }
 }

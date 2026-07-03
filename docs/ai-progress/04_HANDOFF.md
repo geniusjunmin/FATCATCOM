@@ -24,11 +24,17 @@ Updated: 2026-07-03
 
 ## Latest UI Note
 
+- Main daily orders are no longer fixed UI. `PlayerDailyOrderState` starts each UTC day at `56/60`; every accepted new launch calls `IncrementDailyOrderProgressAsync`, while replayed `clientRequestId` settlements return before the increment.
+- `GET /api/daily-order` restores state and `POST /api/daily-order/claim` conditionally flips `IsClaimed` only at 60/60. A successful claim grants 1000 coin and 10 research points through one `daily_order_claim` ledger row; repeats return `already_claimed`.
+- `DailyOrderManager` persists the offline fallback and applies server DTOs. It deliberately returns an ephemeral startup snapshot before `SaveManager` initialization because native `FactoryView.onEnable` runs early.
+- Factory markup exposes `data-daily-progress`, `data-daily-target`, `data-daily-claimable`, and `data-daily-claimed`. Chest copy is `差N单`, `可领取`, or `已领取`; do not restore the old unconditional `quick_chest_reward`.
+- Keep `node tools/check-daily-order-online-ui.js` green. It clicks the real launch hotspot four times, proves `56,57,58,59,60`, claims through the chest hotspot, checks the authoritative reward text, and rejects runtime/network errors. `capture-main-regression.js` guards the initial state at all four sizes.
+- Current verification baseline: focused TypeScript, Cocos refresh, concurrent API claim, online daily flow, 360/414/430/768 main screenshots plus 24 floor routes, 18-step click regression, API smoke, `quick-verify.ps1`, and 95/95 tests.
+- Best next server batch: make the static main `今日剩余次数：5/5` launch quota authoritative and daily-resetting without weakening launch idempotency.
 - All six main floor cards are now `<button>` controls with `data-action="openBuildingFloor"`, authoritative `data-id`, scene metadata, and an accessible label. They open the existing building panel and set `_selectedDomBuildingId` before rendering.
 - `handleDomFactoryAction()` is the single factory action dispatcher. `pointerdown`, Enter, and Space call it; do not add a separate click path that would double-trigger touch/mouse actions.
 - `.floor-card:hover`, `:active`, and `:focus-visible` provide material-matched feedback without changing the verified dimensions.
 - `capture-main-regression.js` runs six floor routes at each of four sizes and checks id, scene, title, `Lv.*`, active chip, and embedded JPEG. In-app Enter testing and runtime logs also pass.
-- Next authority batch should move the main daily order/chest progress and claim reward off `claimQuickReward()` local mutation and into a persisted atomic server transaction, retaining offline fallback only when truly offline.
 - The main-screen material pass is complete without geometry changes. `HudPresentation.ts` owns paper grain, recessed charcoal resource wells, bronze rims, external generated icons, ivory values, and orange plus controls. Resource DOM nodes now expose `data-resource-kind`.
 - `FactoryOverlayPresentation.ts` keeps the generated cutaway as the only room-art source and applies `saturate(1.1) contrast(1.075) brightness(.975)`. Do not re-enable the hidden duplicate CSS machines/cats/props.
 - Floor cards now use parchment grain, dark wood side rails, inner frames, and stronger shadows. Bonus cards use dark metal, gold edges, highlights, and green running lights; side tools use matching carved wood.

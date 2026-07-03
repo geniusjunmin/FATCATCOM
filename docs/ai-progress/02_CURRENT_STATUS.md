@@ -7,7 +7,7 @@ Updated: 2026-07-03
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Move the main operation strip toward server authority: replace the local quick chest/order preview state with persisted daily server state and rewards. |
+| Best Next Move | Continue main operation authority: replace the static `今日剩余次数 5/5` launch quota with persisted UTC-day server state and a clear exhausted state. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -17,7 +17,7 @@ Updated: 2026-07-03
 | Track | State | Signal |
 | --- | --- | --- |
 | Client UI | Playable and clickable | Main screen, cat page, feature panels, bottom nav, and four-size screenshot regressions exist. |
-| Server Authority | Advanced | Cats, equipment, buildings, research, shop state, friends, launch, production preview, resources, and transactions are server-backed. |
+| Server Authority | Advanced | Cats, equipment, buildings, research, shop state, friends, launch, daily orders, production preview, resources, and transactions are server-backed. |
 | Economy Model | Covered | Production uses assignment, building level, equipment, research, skills, and mood. |
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
@@ -26,6 +26,11 @@ Updated: 2026-07-03
 
 ## Client UI
 
+- Daily orders and the adjacent reward chest are now authoritative. `PlayerDailyOrderState` persists UTC-day progress and claim state; new days begin at the target-reference `56/60`, each new successful launch advances one order, and a replayed `clientRequestId` does not advance it again.
+- `GET /api/daily-order` and `POST /api/daily-order/claim` return reward metadata plus authoritative balances. SQLite claims require date, progress >= 60, and `IsClaimed=0`; the winner receives 1000 coin plus 10 research points and writes one `daily_order_claim` transaction.
+- `DailyOrderManager` owns online snapshots and an explicit offline fallback. The factory renders `差N单`, `可领取`, or `已领取`, exposes stable daily state attributes, animates only the ready chest, and never applies a local reward after an online rejection.
+- A startup-order regression found native `FactoryView.onEnable` reading before `SaveManager.initialize`; the manager now supplies an ephemeral `56/60` bootstrap snapshot until persistence is ready. The preview error overlay is clean.
+- Verification: Cocos asset refresh, focused TypeScript diagnostics, daily contract, concurrent API claim, online 56→60→claimed browser flow, four-size main screenshots and 24 floor routes, 18-step UI navigation, API smoke, full quick verify, and 95/95 server tests pass.
 - Latest main-floor interaction pass turns all six parchment floor cards into semantic buttons. Each carries its authoritative building id/scene and opens the existing building detail with the matching floor already active; no building data or upgrade logic is duplicated on the main screen.
 - Factory pointer and keyboard input now share `handleDomFactoryAction()`. Enter and Space trigger the same route as touch/mouse, while hover, active, and focus-visible feedback reuse the parchment/wood language without changing card geometry.
 - Main regression performs 24 cross-panel routes: 5F/4F/3F/2F/1F/B1 at each of 360x800, 414x896, 430x932, and 768x1024. Every route must match building id, scene, title, authoritative level, active selector chip, and embedded room JPEG before returning to the factory.

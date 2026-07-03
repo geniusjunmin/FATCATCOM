@@ -1551,6 +1551,88 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task DailyOrder_StartsAtReferenceProgressAndRejectsEarlyClaim()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("daily-order-start-device", "FatCat"), CancellationToken.None);
+
+        var order = await service.GetDailyOrderAsync(auth.PlayerId, CancellationToken.None);
+        var claim = await service.ClaimDailyOrderAsync(auth.PlayerId, CancellationToken.None);
+
+        Assert.NotNull(order);
+        Assert.Equal(56, order!.Progress);
+        Assert.Equal(60, order.Target);
+        Assert.False(order.Claimable);
+        Assert.False(order.Claimed);
+        Assert.NotNull(claim);
+        Assert.False(claim!.Claimed);
+        Assert.Equal("order_not_complete", claim.LimitedReason);
+        Assert.Empty(dbContext.ResourceTransactions.Where(item => item.SourceType == "daily_order_claim"));
+    }
+
+    [Fact]
+    public async Task LaunchAsync_AdvancesDailyOrderOnlyForNewSettlement()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("daily-order-launch-device", "FatCat"), CancellationToken.None);
+        var request = new LaunchRequest(
+            ClientRequestId: "daily-progress-1",
+            LaunchSeconds: 10,
+            AvailableBean: 3200,
+            Production: new ProductionPreviewRequest(213, 0.25, 4));
+
+        await service.LaunchAsync(auth.PlayerId, request, CancellationToken.None);
+        await service.LaunchAsync(auth.PlayerId, request, CancellationToken.None);
+        var afterReplay = await service.GetDailyOrderAsync(auth.PlayerId, CancellationToken.None);
+        for (var index = 2; index <= 4; index++)
+        {
+            await service.LaunchAsync(
+                auth.PlayerId,
+                request with { ClientRequestId = $"daily-progress-{index}" },
+                CancellationToken.None);
+        }
+        var complete = await service.GetDailyOrderAsync(auth.PlayerId, CancellationToken.None);
+
+        Assert.NotNull(afterReplay);
+        Assert.Equal(57, afterReplay!.Progress);
+        Assert.NotNull(complete);
+        Assert.Equal(60, complete!.Progress);
+        Assert.True(complete.Claimable);
+    }
+
+    [Fact]
+    public async Task DailyOrder_ClaimRewardsResourcesExactlyOnce()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("daily-order-claim-device", "FatCat"), CancellationToken.None);
+        await service.GetDailyOrderAsync(auth.PlayerId, CancellationToken.None);
+        var state = await dbContext.DailyOrderStates.FindAsync([auth.PlayerId], CancellationToken.None);
+        Assert.NotNull(state);
+        state!.Progress = 60;
+        await dbContext.SaveChangesAsync();
+
+        var first = await service.ClaimDailyOrderAsync(auth.PlayerId, CancellationToken.None);
+        var second = await service.ClaimDailyOrderAsync(auth.PlayerId, CancellationToken.None);
+
+        Assert.NotNull(first);
+        Assert.True(first!.Claimed);
+        Assert.True(first.Order.Claimed);
+        Assert.Equal(12451000, first.CoinBalance);
+        Assert.Equal(210, first.ResearchPointBalance);
+        Assert.NotNull(second);
+        Assert.False(second!.Claimed);
+        Assert.Equal("already_claimed", second.LimitedReason);
+        Assert.Equal(first.CoinBalance, second.CoinBalance);
+        Assert.Equal(first.ResearchPointBalance, second.ResearchPointBalance);
+        var transaction = Assert.Single(dbContext.ResourceTransactions.Where(item => item.SourceType == "daily_order_claim"));
+        Assert.Equal(1000, transaction.CoinDelta);
+        Assert.Equal(10, transaction.ResearchPointDelta);
+    }
+
+    [Fact]
     public void BalanceConfig_FromJson_LoadsResearchEquipmentAndDefaults()
     {
         var json = """

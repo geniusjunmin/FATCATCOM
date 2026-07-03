@@ -16,6 +16,7 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
     public DbSet<PlayerSocialActivity> SocialActivities => Set<PlayerSocialActivity>();
     public DbSet<PlayerFriendBoostContribution> FriendBoostContributions => Set<PlayerFriendBoostContribution>();
     public DbSet<PlayerCoopGoalState> CoopGoalStates => Set<PlayerCoopGoalState>();
+    public DbSet<PlayerDailyOrderState> DailyOrderStates => Set<PlayerDailyOrderState>();
     public DbSet<PlayerSettings> PlayerSettings => Set<PlayerSettings>();
     public DbSet<PlayerResourceState> ResourceStates => Set<PlayerResourceState>();
     public DbSet<PlayerResourceTransaction> ResourceTransactions => Set<PlayerResourceTransaction>();
@@ -266,6 +267,16 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             """ALTER TABLE "CoopGoalStates" ADD COLUMN "ClaimedTierMask" INTEGER NOT NULL DEFAULT 0;""",
             cancellationToken);
         await Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "DailyOrderStates" (
+                "PlayerId" TEXT NOT NULL CONSTRAINT "PK_DailyOrderStates" PRIMARY KEY,
+                "OrderDate" INTEGER NOT NULL,
+                "Progress" INTEGER NOT NULL,
+                "IsClaimed" INTEGER NOT NULL,
+                "UpdatedAt" TEXT NOT NULL,
+                CONSTRAINT "FK_DailyOrderStates_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
+            );
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS "FriendBoostContributions" (
                 "Id" TEXT NOT NULL CONSTRAINT "PK_FriendBoostContributions" PRIMARY KEY,
                 "PlayerId" TEXT NOT NULL,
@@ -417,6 +428,15 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.HasOne(state => state.Player)
                 .WithOne()
                 .HasForeignKey<PlayerCoopGoalState>(state => state.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlayerDailyOrderState>(entity =>
+        {
+            entity.HasKey(state => state.PlayerId);
+            entity.HasOne(state => state.Player)
+                .WithOne()
+                .HasForeignKey<PlayerDailyOrderState>(state => state.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

@@ -2,6 +2,7 @@ import { _decorator, Color, Component, instantiate, Label, Node, Prefab, resourc
 import { EventBus, GameEvents } from "../core/EventBus";
 import { BuildingManager } from "../manager/BuildingManager";
 import { ProductionManager, ProductionTickPayload } from "../manager/ProductionManager";
+import { DailyOrderManager } from "../manager/DailyOrderManager";
 import { BuildingViewData } from "../model/BuildingModel";
 import { GameSaveData } from "../model/SaveData";
 import { BuildingFloorEvents, BuildingFloorItem } from "./components/BuildingFloorItem";
@@ -167,7 +168,8 @@ export class FactoryView extends Component {
         this.size(order?.getChildByName("DebugAddCoin_Background"), 180, 116, new Color(230, 210, 170, 255));
         const orderLabel = order?.getComponentInChildren(Label);
         if (orderLabel) {
-            orderLabel.string = "今日订单\n56/60";
+            const dailyOrder = DailyOrderManager.getState();
+            orderLabel.string = `今日订单\n${dailyOrder.progress}/${dailyOrder.target}`;
             orderLabel.fontSize = 28;
             orderLabel.lineHeight = 34;
             orderLabel.color = new Color(76, 44, 28);

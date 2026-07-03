@@ -33,6 +33,17 @@ export interface FeatureSaveData {
     friendGifts: Record<string, number>;
     friendVisits: Record<string, number>;
     factoryAppearanceId?: string;
+    dailyOrder?: DailyOrderSaveData;
+}
+
+export interface DailyOrderSaveData {
+    orderDate: number;
+    progress: number;
+    target: number;
+    claimed: boolean;
+    rewardCoin: number;
+    rewardResearchPoint: number;
+    updatedAt: number;
 }
 
 export interface GameSaveData {

@@ -39,6 +39,29 @@ export type ResourceStateDto = {
     updatedAt: number;
 };
 
+export type DailyOrderDto = {
+    orderDate: number;
+    progress: number;
+    target: number;
+    claimable: boolean;
+    claimed: boolean;
+    rewardCoin: number;
+    rewardResearchPoint: number;
+    updatedAt: number;
+    serverTime: number;
+};
+
+export type DailyOrderClaimResponse = {
+    claimed: boolean;
+    order: DailyOrderDto;
+    coinBalance: number;
+    beanBalance: number;
+    catFoodBalance: number;
+    diamondBalance: number;
+    researchPointBalance: number;
+    limitedReason?: string | null;
+};
+
 export type MailDto = {
     id: string;
     title: string;

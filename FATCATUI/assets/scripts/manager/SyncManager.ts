@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -13,6 +13,7 @@ import { ResourceManager } from "./ResourceManager";
 import { CatManager } from "./CatManager";
 import { ResearchManager } from "./ResearchManager";
 import { ShopManager } from "./ShopManager";
+import { DailyOrderManager } from "./DailyOrderManager";
 
 export type SyncSnapshot = {
     mode: "offline" | "ready" | "syncing" | "failed";
@@ -91,6 +92,7 @@ export class SyncManager {
         void this.fetchServerFriendBoost();
         void this.fetchServerFriendBoostHistory();
         void this.fetchServerFriendCoopGoal();
+        void this.fetchServerDailyOrder();
         this.startSocialEventStream();
         return true;
     }
@@ -202,6 +204,7 @@ export class SyncManager {
         await this.fetchServerSocialProfile();
         await this.fetchServerFriendActivities();
         await this.fetchServerLeaderboard();
+        await this.fetchServerDailyOrder();
         this.refreshPendingFeatureChanges();
         this.emitSyncChanged();
         return true;
@@ -221,6 +224,44 @@ export class SyncManager {
             diamond: response.data.diamond,
             researchPoint: response.data.researchPoint,
         }, "server_resources");
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerDailyOrder(): Promise<DailyOrderDto | null> {
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.getDailyOrder(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "daily_order_fetch_failed");
+            return null;
+        }
+        DailyOrderManager.apply(response.data);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async claimServerDailyOrder(): Promise<DailyOrderClaimResponse | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.claimDailyOrder(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "daily_order_claim_failed");
+            return null;
+        }
+        DailyOrderManager.apply(response.data.order);
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, "server_daily_order_claim");
         this.markReadyAfterServerCall();
         return response.data;
     }
@@ -985,6 +1026,7 @@ export class SyncManager {
             this.markFailed(response.error ?? response.data?.rejectedReason ?? "launch_failed");
             return response.data ?? null;
         }
+        await this.fetchServerDailyOrder();
         this.markReadyAfterServerCall();
         return response.data;
     }
