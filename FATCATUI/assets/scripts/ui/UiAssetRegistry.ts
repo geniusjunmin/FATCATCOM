@@ -67,9 +67,15 @@ export const GeneratedShopProductAssets: Record<string, string> = {
 };
 
 export const GeneratedInventoryArtAssets: Record<string, string> = {
+    accelerator: `${GENERATED_ROOT}/items/inventory_accelerator_v1.png`,
+    catFoodLarge: `${GENERATED_ROOT}/items/inventory_cat_food_large_v1.png`,
+    catFoodSmall: `${GENERATED_ROOT}/items/inventory_cat_food_small_v1.png`,
+    driedFish: `${GENERATED_ROOT}/items/inventory_dried_fish_v1.png`,
+    factoryVoucher: `${GENERATED_ROOT}/items/inventory_factory_voucher_v1.png`,
     guardCharm: `${GENERATED_ROOT}/items/inventory_guard_charm_v1.png`,
     orderVoucher: `${GENERATED_ROOT}/items/inventory_order_voucher_v1.png`,
     speedTicket: `${GENERATED_ROOT}/items/inventory_speed_ticket_v1.png`,
+    superFood: `${GENERATED_ROOT}/items/inventory_super_food_v1.png`,
 };
 
 export const GeneratedResearchArtAssets = {

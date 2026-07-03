@@ -79,6 +79,7 @@ import { getDomFactoryStyles } from "./FactoryOverlayPresentation";
 import {
     getDefaultSettingValue as getDefaultFeatureSettingValue,
     FACTORY_APPEARANCES,
+    INVENTORY_ALL_SLOTS,
     INVENTORY_PREVIEW_CARDS,
     INVENTORY_TABS,
     RESEARCH_NODE_POSITIONS,
@@ -2524,15 +2525,13 @@ export class BottomNavUI extends Component {
     }
 
     private renderInventoryPanel(): string {
-        const ownedTypes = InventoryManager.getOwnedItems().filter(item => this.inventoryItemMatchesTab(item.itemId)).length;
-        const resourceTypes = this._domInventoryTab === "all" || this._domInventoryTab === "resource" ? 4 : 0;
-        const previewCount = this._domInventoryTab === "all"
-            ? Math.max(0, 20 - resourceTypes - ownedTypes)
-            : INVENTORY_PREVIEW_CARDS.length;
         const detail = this.getInventoryDetail(this._selectedInventoryKey)
             ?? this.getInventoryDetail(this.getDefaultInventorySelection(this._domInventoryTab));
         if (detail) this._selectedInventoryKey = detail.key;
-        return `<div class="panel-shell inventory-shell"><h2>背包详情</h2><div class="tabs">${INVENTORY_TABS.map(tab => `<button class="tab ${this._domInventoryTab === tab.id ? "active" : ""}" data-action="inventoryTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list bag-grid">${this.renderInventoryItems()}${this.renderInventoryPreviewCards(previewCount)}</div>${detail ? this.renderInventoryDetail(detail) : ""}</div>`;
+        const grid = this._domInventoryTab === "all"
+            ? this.renderInventoryAllSlots()
+            : `${this.renderInventoryItems()}${this.renderInventoryPreviewCards(INVENTORY_PREVIEW_CARDS.length)}`;
+        return `<div class="panel-shell inventory-shell"><h2>背包详情</h2><div class="tabs">${INVENTORY_TABS.map(tab => `<button class="tab ${this._domInventoryTab === tab.id ? "active" : ""}" data-action="inventoryTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list bag-grid">${grid}</div>${detail ? this.renderInventoryDetail(detail) : ""}</div>`;
     }
 
     private getInventoryTabLabel(): string {
@@ -2559,37 +2558,77 @@ export class BottomNavUI extends Component {
             }
             return resourceCards || `<div class="item bag-card empty"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset("gift")}')">${this.renderCssIcon("gift")}</div><b>暂无物品</b><br>该分类还没有可展示内容</div>`;
         }
-        const itemCards = filteredItems.map(item => {
-            const usable = item.itemId === "item_cat_food_pack" || item.itemId === "item_coin_pack_small";
-            const action = `<span class="tag ${usable ? "" : "warn"}">${usable ? "可用" : "材料"}</span>`;
-            const icon = this.getItemIconClass(item.itemId);
-            const key = `item:${item.itemId}`;
-            const displayName = ConfigManager.items.find(config => config.id === item.itemId)?.name
-                ?? CatManager.getEquipmentConfig(item.itemId)?.name
-                ?? this.getItemDisplayName(item.itemId);
-            const art = item.itemId === "item_shard_orange"
-                ? getInventoryPreviewAsset("catOrange")
-                : this.getGeneratedIconAsset(icon);
-            return `<button class="item bag-card ${usable ? "usable" : ""} ${this._selectedInventoryKey === key ? "selected" : ""}" data-action="selectInventory" data-id="${key}" aria-pressed="${this._selectedInventoryKey === key}"><div class="bag-icon asset dedicated-art" style="background-image:url('${art}')">${this.renderCssIcon(icon)}</div><b>${displayName}</b>${action}<span class="bag-count">x${item.count}</span></button>`;
-        }).join("");
+        const itemCards = filteredItems.map(item => this.renderOwnedInventoryCard(item)).join("");
         return `${resourceCards}${itemCards}`;
     }
 
-    private renderResourceBagCard(resource: string, label: string, amount: number): string {
+    private renderOwnedInventoryCard(item: { itemId: string; count: number }, slotIndex?: number): string {
+        const usable = item.itemId === "item_cat_food_pack" || item.itemId === "item_coin_pack_small";
+        const action = `<span class="tag ${usable ? "" : "warn"}">${usable ? "可用" : "材料"}</span>`;
+        const icon = this.getItemIconClass(item.itemId);
+        const key = `item:${item.itemId}`;
+        const displayName = ConfigManager.items.find(config => config.id === item.itemId)?.name
+            ?? CatManager.getEquipmentConfig(item.itemId)?.name
+            ?? this.getItemDisplayName(item.itemId);
+        const artKind = item.itemId === "item_shard_orange"
+            ? "catOrange"
+            : item.itemId === "item_cat_food_pack"
+                ? "catFoodSmall"
+                : "";
+        const art = artKind ? getInventoryPreviewAsset(artKind) : this.getGeneratedIconAsset(icon);
+        const artMarker = artKind ? ` data-inventory-art="${artKind}"` : "";
+        const slot = slotIndex === undefined ? "" : ` data-inventory-slot="${slotIndex}"`;
+        return `<button class="item bag-card ${usable ? "usable" : ""} ${this._selectedInventoryKey === key ? "selected" : ""}" data-action="selectInventory" data-id="${key}"${slot}${artMarker} aria-pressed="${this._selectedInventoryKey === key}"><div class="bag-icon asset dedicated-art" style="background-image:url('${art}')">${this.renderCssIcon(icon)}</div><b>${displayName}</b>${action}<span class="bag-count">x${item.count}</span></button>`;
+    }
+
+    private renderResourceBagCard(resource: string, label: string, amount: number, slotIndex?: number): string {
         const icon = this.getResourceIconClass(resource);
         const key = `resource:${resource}`;
-        return `<button class="item bag-card resource ${this._selectedInventoryKey === key ? "selected" : ""}" data-action="selectInventory" data-id="${key}" aria-pressed="${this._selectedInventoryKey === key}"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')">${this.renderCssIcon(icon)}</div><b>${label}</b><span class="bag-count">${this.formatNumber(amount)}</span></button>`;
+        const slot = slotIndex === undefined ? "" : ` data-inventory-slot="${slotIndex}"`;
+        return `<button class="item bag-card resource ${this._selectedInventoryKey === key ? "selected" : ""}" data-action="selectInventory" data-id="${key}"${slot} aria-pressed="${this._selectedInventoryKey === key}"><div class="bag-icon asset" style="background-image:url('${this.getGeneratedIconAsset(icon)}')">${this.renderCssIcon(icon)}</div><b>${label}</b><span class="bag-count">${this.formatNumber(amount)}</span></button>`;
     }
 
     private renderInventoryPreviewCards(count: number): string {
         if (count <= 0) return "";
-        const cards = this._domInventoryTab === "all"
-            ? INVENTORY_PREVIEW_CARDS
-            : INVENTORY_PREVIEW_CARDS.filter(card => card.category === this._domInventoryTab);
-        return cards.slice(0, count).map(card => {
-            const key = `preview:${card.id}`;
-            const selected = this._selectedInventoryKey === key;
-            return `<button class="item bag-card preview ${selected ? "selected" : ""}" data-action="selectInventory" data-id="${key}" data-inventory-art="${card.art}" aria-pressed="${selected}"><div class="bag-icon asset dedicated-art" style="background-image:url('${getInventoryPreviewAsset(card.art)}')"></div><b>${card.name}</b><span class="bag-count">${card.count}</span></button>`;
+        return INVENTORY_PREVIEW_CARDS
+            .filter(card => card.category === this._domInventoryTab)
+            .slice(0, count)
+            .map(card => this.renderInventoryPreviewCard(card))
+            .join("");
+    }
+
+    private renderInventoryPreviewCard(card: typeof INVENTORY_PREVIEW_CARDS[number], slotIndex?: number): string {
+        const key = `preview:${card.id}`;
+        const selected = this._selectedInventoryKey === key;
+        const slot = slotIndex === undefined ? "" : ` data-inventory-slot="${slotIndex}"`;
+        return `<button class="item bag-card preview ${selected ? "selected" : ""}" data-action="selectInventory" data-id="${key}"${slot} data-inventory-art="${card.art}" aria-pressed="${selected}"><div class="bag-icon asset dedicated-art" style="background-image:url('${getInventoryPreviewAsset(card.art)}')"></div><b>${card.name}</b><span class="bag-count">${this.formatNumber(card.count)}</span></button>`;
+    }
+
+    private renderInventoryAllSlots(): string {
+        const resourceLabels: Record<string, string> = {
+            bean: "咖啡豆",
+            catFood: "猫粮",
+            diamond: "钻石",
+            coin: "金币",
+        };
+        const owned = InventoryManager.getOwnedItems();
+        return INVENTORY_ALL_SLOTS.map((slot, slotIndex) => {
+            let key = slot.key;
+            if (key.startsWith("item:")) {
+                const itemId = key.slice("item:".length);
+                const item = owned.find(entry => entry.itemId === itemId);
+                if (item) return this.renderOwnedInventoryCard(item, slotIndex);
+                key = slot.fallbackKey ?? "";
+            }
+            if (key.startsWith("resource:")) {
+                const resource = key.slice("resource:".length);
+                return this.renderResourceBagCard(resource, resourceLabels[resource] ?? resource, ResourceManager.get(resource as "bean" | "catFood" | "diamond" | "coin"), slotIndex);
+            }
+            if (key.startsWith("preview:")) {
+                const card = INVENTORY_PREVIEW_CARDS.find(item => item.id === key.slice("preview:".length));
+                return card ? this.renderInventoryPreviewCard(card, slotIndex) : "";
+            }
+            return "";
         }).join("");
     }
 

@@ -1,6 +1,6 @@
 # Handoff
 
-Updated: 2026-07-02
+Updated: 2026-07-03
 
 ## 90-Second Boot
 
@@ -24,11 +24,15 @@ Updated: 2026-07-02
 
 ## Latest UI Note
 
+- `INVENTORY_ALL_SLOTS` is the visual source of truth for the 20-card all-items screen. Do not revert to `Object.values(save.inventory)` ordering or preview slicing. Slot 2 intentionally prefers the real cat-food pack and falls back to `preview:cat-food-small`; category tabs still enumerate all real inventory.
+- New final props are `inventory_cat_food_small_v1.png`, `inventory_cat_food_large_v1.png`, `inventory_super_food_v1.png`, `inventory_factory_voucher_v1.png`, `inventory_accelerator_v1.png`, and `inventory_dried_fish_v1.png` under `textures/generated/items/`. All are 384x384 alpha PNGs with Cocos metadata.
+- The built-in image tool generated one asset per prompt using `其他页面.png` and `inventory_speed_ticket_v1.png` as style references. Prompt intent: one centered warm hand-painted coffee-game prop, thick dark-brown outline, readable mobile silhouette, flat `#ff00ff` key, no text/shadow/UI. The installed chroma helper removed the key; local checks found transparent corners, bounded subjects, and no magenta fringe.
+- `GeneratedInventoryArtAssets` and `getInventoryPreviewAsset()` own resolution; `generate-dom-asset-data-uris.ps1` embeds every file. Per-kind background scaling in `PanelPresentation.ts` compensates for different transparent margins without altering card dimensions.
+- `capture-feature-regression.js` now requires exact 20-slot order (with the allowed missing-real-food fallback), resource 4, item 10, shard 4, other 13, 16 first-screen art kinds, 17 embedded item images, real use visibility, selected-detail behavior, and four-size containment.
 - Backpack now follows the target's five categories. `InventoryTabId` includes `item`; `INVENTORY_TABS` renders all/resource/item/shard/other in a dedicated five-column strip. Keep generic four-tab panel styling unchanged for shop and research.
 - `inventoryItemMatchesTab()` intentionally treats configured resource packs as usable items, because direct balances already occupy the resource tab. Unknown/equipment material records stay in other; shard configs stay in shards.
 - `InventoryDetailView` now carries `kind`, `rarity`, and `status`. `.bag-detail-target[data-detail-kind]` renders those with owned count, description, source, and the existing real `use` action. Preview tickets must remain non-actionable until their gameplay exists.
-- `capture-feature-regression.js` opens all five tabs at all four supported sizes. Current expected snapshots are resource 4, item at least 4 (normally 6), shard at least 4, other at least 5 (currently 11), and all exactly 20; each tab must expose one active button and a valid detail kind.
-- The all-items grid still contains repeated equipment-material art because it is assembled from live owned items before preview cards. The next visual batch should define a curated 20-slot order and generate only the six missing target props listed in `03_NEXT_TASKS.md`, without hiding real items from their category views.
+- `capture-feature-regression.js` opens all five tabs at all four supported sizes. Each tab must expose one active button and a valid detail kind; update count assertions only when the presentation catalog intentionally changes.
 - Factory appearance is a dedicated mode inside the building panel, opened by `openFactoryAppearance` and returned with `closeFactoryAppearance`. `_buildingPanelMode` keeps it separate from the existing floor upgrade view; do not replace or duplicate that panel.
 - `FACTORY_APPEARANCES` defines simple/classic/steam/future. The default reuses `factory_cutaway_bg_640.jpg`; three generated 768x432 JPEGs are under `textures/generated/factory_appearances/`. They contain no UI text and are embedded through `GeneratedFactoryAppearanceAssets` plus `getFactoryAppearanceAsset()`.
 - Only the default theme is unlocked. `featureState.factoryAppearanceId` persists an enabled unlocked theme locally, while locked buttons remain disabled. Bonus values are previews and must not alter production until the server owns unlocks, activation, and economy effects.

@@ -37,6 +37,7 @@ for (const name of [
   "SHOP_PREVIEW_CATALOGS",
   "INVENTORY_TABS",
   "INVENTORY_PREVIEW_CARDS",
+  "INVENTORY_ALL_SLOTS",
   "RESEARCH_NODE_POSITIONS",
   "RESEARCH_PLACEHOLDER_LABELS",
   "RESEARCH_PLACEHOLDER_POSITIONS",
@@ -51,6 +52,7 @@ for (const label of [
   "装饰商店",
   "全部",
   "资源",
+  "道具",
   "碎片",
   "其他",
   "咖啡萃取 II",
@@ -65,7 +67,8 @@ assertContains("BottomNavUI uses task milestones", bottomNav, "TASK_PROGRESS_MIL
 assertContains("BottomNavUI uses shop tabs", bottomNav, "SHOP_TABS.map");
 assertContains("BottomNavUI uses shop preview catalogs", bottomNav, "SHOP_PREVIEW_CATALOGS[category]");
 assertContains("BottomNavUI uses inventory tabs", bottomNav, "INVENTORY_TABS.map");
-assertContains("BottomNavUI uses inventory previews", bottomNav, "INVENTORY_PREVIEW_CARDS.filter");
+assertContains("BottomNavUI uses inventory previews", bottomNav, "renderInventoryPreviewCards");
+assertContains("BottomNavUI uses curated inventory slots", bottomNav, "renderInventoryAllSlots");
 assertContains("BottomNavUI uses research node positions", bottomNav, "RESEARCH_NODE_POSITIONS[index]");
 assertContains("BottomNavUI uses research placeholder labels", bottomNav, "RESEARCH_PLACEHOLDER_LABELS.map");
 assertContains("BottomNavUI uses research placeholder positions", bottomNav, "RESEARCH_PLACEHOLDER_POSITIONS[offset]");

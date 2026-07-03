@@ -1,6 +1,6 @@
 # Next Tasks
 
-Updated: 2026-07-02
+Updated: 2026-07-03
 
 ## Round Contract
 
@@ -19,7 +19,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory has five categories and richer detail; next replace repeated material art and curate the 20-slot order against the target. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory first screen now matches the target structure and prop variety; next complete the seven-node research tree and detail hierarchy. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
@@ -28,11 +28,11 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 ### 0. Next Visual Batch
 
-- Preserve the completed five-category inventory model, real use action, selected detail, shop interaction, factory appearance, and research tree.
-- Compare the all-items grid directly with `其他页面.png` and define a deliberate 20-slot presentation order instead of relying on owned-item iteration plus preview slicing.
-- Generate only the missing target-like props: small/large cat-food bags, super food, factory voucher, accelerator, and dried fish. Reuse current resource, ticket, guard, order, cat, and research art.
-- Remove repeated collar/cup placeholders from the first-screen all-items grid while keeping real owned equipment reachable in the other tab.
-- Extend art/feature guards to require the curated order, distinct target prop mappings, five tabs, real use action, and four-size containment.
+- Preserve the completed inventory slots/art, five categories, real use action, shop interaction, factory appearance, and server-backed research unlock.
+- Align the research tree with the target's seven-node hierarchy: one root, two second-tier nodes, three third-tier nodes, and one final node.
+- Keep the three real research definitions interactive and server-authoritative; use presentation-only locked nodes for missing branches without inventing local unlock mutations.
+- Add clearer node-specific icon/lock treatment and selected-detail sections for current effect, next effect, and research conditions while retaining the compact split layout.
+- Extend four-size regression to require seven nodes, the intended tier distribution/connectors, three real effect switches, embedded art, visible action, and nav containment.
 
 ### 1. Shared Config And Economy Coverage
 

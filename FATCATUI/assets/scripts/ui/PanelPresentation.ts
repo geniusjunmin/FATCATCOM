@@ -1415,6 +1415,12 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .inventory-shell .bag-icon.dedicated-art {
                 background-size:contain;
             }
+            #fatcat-dom-panel-overlay .inventory-shell [data-inventory-art="catFoodSmall"] .bag-icon { background-size:145%; }
+            #fatcat-dom-panel-overlay .inventory-shell [data-inventory-art="catFoodLarge"] .bag-icon { background-size:132%; }
+            #fatcat-dom-panel-overlay .inventory-shell [data-inventory-art="superFood"] .bag-icon { background-size:130%; }
+            #fatcat-dom-panel-overlay .inventory-shell [data-inventory-art="factoryVoucher"] .bag-icon { background-size:112%; }
+            #fatcat-dom-panel-overlay .inventory-shell [data-inventory-art="accelerator"] .bag-icon { background-size:150%; }
+            #fatcat-dom-panel-overlay .inventory-shell [data-inventory-art="driedFish"] .bag-icon { background-size:135%; }
             #fatcat-dom-panel-overlay .inventory-shell .bag-card > b {
                 max-width:96%;
                 white-space:nowrap;

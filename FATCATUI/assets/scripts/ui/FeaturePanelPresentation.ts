@@ -24,6 +24,11 @@ export interface InventoryPreviewCard {
     source: string;
 }
 
+export interface InventoryAllSlot {
+    key: string;
+    fallbackKey?: string;
+}
+
 export interface FactoryAppearancePreview {
     id: string;
     name: string;
@@ -146,8 +151,13 @@ export const INVENTORY_TABS: Array<{ id: InventoryTabId; label: string }> = [
 ];
 
 export const INVENTORY_PREVIEW_CARDS: InventoryPreviewCard[] = [
+    { id: "cat-food-small", name: "猫粮小包", art: "catFoodSmall", count: 200, category: "item", rarity: "B", kind: "资源道具", description: "打开后获得一份猫粮补给。", source: "资源商店、每日任务" },
+    { id: "cat-food-large", name: "猫粮大袋", art: "catFoodLarge", count: 1000, category: "item", rarity: "A", kind: "资源道具", description: "装满优质猫粮的大型补给袋。", source: "资源商店、活动奖励" },
+    { id: "coffee-cup", name: "成品咖啡", art: "equipCup", count: 1260, category: "other", rarity: "B", kind: "订单材料", description: "已完成萃取、等待订单装箱的咖啡。", source: "咖啡厅、订单生产" },
     { id: "speed-5", name: "加速5分", art: "speedTicket", count: 12, category: "item", rarity: "B", kind: "生产道具", description: "使用后让当前工厂生产加速 5 分钟。", source: "每日订单、活动任务" },
     { id: "speed-30", name: "加速30分", art: "speedTicket", count: 8, category: "item", rarity: "A", kind: "生产道具", description: "高效生产券，可让全厂加速 30 分钟。", source: "成就奖励、限时商店" },
+    { id: "super-food", name: "超级猫粮", art: "superFood", count: 25, category: "item", rarity: "S", kind: "猫咪道具", description: "高能营养罐，可大幅提升猫咪心情。", source: "高级任务、限时活动" },
+    { id: "factory-voucher", name: "工厂通兑券", art: "factoryVoucher", count: 6, category: "item", rarity: "A", kind: "经营道具", description: "用于兑换工厂生产与装饰奖励。", source: "工厂里程碑、协作目标" },
     { id: "order-refresh", name: "订单券", art: "orderVoucher", count: 7, category: "item", rarity: "B", kind: "经营道具", description: "立即刷新一批咖啡订单。", source: "订单里程碑、好友赠礼" },
     { id: "guard-hour", name: "保护罩", art: "guardCharm", count: 5, category: "item", rarity: "A", kind: "防护道具", description: "保护一小时离线收益不受损失。", source: "活动任务、道具商店" },
     { id: "shard-orange", name: "大橘碎片", art: "catOrange", count: 32, category: "shard", rarity: "A", kind: "猫咪碎片", description: "集齐后可招募或升星大橘。", source: "猫咪招募、故事关卡" },
@@ -156,9 +166,33 @@ export const INVENTORY_PREVIEW_CARDS: InventoryPreviewCard[] = [
     { id: "shard-calico", name: "灰皮碎片", art: "catCalico", count: 15, category: "shard", rarity: "A", kind: "猫咪碎片", description: "集齐后可招募或升星灰皮。", source: "猫咪招募、活动任务" },
     { id: "decor-coin", name: "装饰币", art: "coin", count: 80, category: "other", rarity: "B", kind: "装饰货币", description: "用于兑换工厂外观和楼层摆件。", source: "装饰收藏、访问好友" },
     { id: "research-stone", name: "研究石", art: "diamond", count: 120, category: "other", rarity: "A", kind: "研究材料", description: "实验室研究使用的稀有材料。", source: "研究任务、协作奖励" },
+    { id: "accelerator", name: "加速器", art: "accelerator", count: 43, category: "other", rarity: "A", kind: "机械材料", description: "用于强化生产设备的精密计时装置。", source: "建筑升级、研究任务" },
     { id: "lucky-cup", name: "幸运杯", art: "equipCup", count: 43, category: "other", rarity: "A", kind: "装备材料", description: "猫咪装备材料，可强化幸运杯。", source: "装备商店、咖啡订单" },
-    { id: "dried-fish", name: "小鱼干", art: "food", count: 67, category: "other", rarity: "B", kind: "猫咪零食", description: "猫咪喜爱的零食，可恢复少量心情。", source: "每日签到、好友赠礼" },
+    { id: "dried-fish", name: "小鱼干", art: "driedFish", count: 67, category: "other", rarity: "B", kind: "猫咪零食", description: "猫咪喜爱的零食，可恢复少量心情。", source: "每日签到、好友赠礼" },
     { id: "comfort-cushion", name: "舒适垫", art: "equipCushion", count: 9, category: "other", rarity: "B", kind: "装备材料", description: "猫咪装备材料，可强化舒适坐垫。", source: "装备商店、成就奖励" },
+];
+
+export const INVENTORY_ALL_SLOTS: InventoryAllSlot[] = [
+    { key: "resource:bean" },
+    { key: "item:item_cat_food_pack", fallbackKey: "preview:cat-food-small" },
+    { key: "preview:cat-food-large" },
+    { key: "preview:coffee-cup" },
+    { key: "resource:coin" },
+    { key: "resource:diamond" },
+    { key: "preview:speed-5" },
+    { key: "preview:speed-30" },
+    { key: "preview:super-food" },
+    { key: "preview:factory-voucher" },
+    { key: "preview:guard-hour" },
+    { key: "preview:order-refresh" },
+    { key: "preview:shard-orange" },
+    { key: "preview:shard-black" },
+    { key: "preview:shard-white" },
+    { key: "preview:shard-calico" },
+    { key: "preview:decor-coin" },
+    { key: "preview:research-stone" },
+    { key: "preview:accelerator" },
+    { key: "preview:dried-fish" },
 ];
 
 export const RESEARCH_NODE_POSITIONS: FeaturePosition[] = [

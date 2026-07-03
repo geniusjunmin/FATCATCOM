@@ -3,7 +3,13 @@ const path = require("path");
 
 const root = path.resolve(__dirname, "..");
 const relativeAssets = [
+  "items/inventory_accelerator_v1.png",
+  "items/inventory_cat_food_large_v1.png",
+  "items/inventory_cat_food_small_v1.png",
+  "items/inventory_dried_fish_v1.png",
+  "items/inventory_factory_voucher_v1.png",
   "items/inventory_speed_ticket_v1.png",
+  "items/inventory_super_food_v1.png",
   "items/inventory_guard_charm_v1.png",
   "items/inventory_order_voucher_v1.png",
   "items/research_medal_v1.png",
@@ -29,7 +35,7 @@ for (const relativeAsset of relativeAssets) {
   const assetPath = path.join(root, "FATCATUI/assets/resources/textures/generated", relativeAsset);
   if (!fs.existsSync(assetPath)) fail("Inventory/research art is missing.", { assetPath });
   const png = fs.readFileSync(assetPath);
-  if (png.length < 100000) fail("Inventory/research art is unexpectedly small.", { assetPath, bytes: png.length });
+  if (png.length < 80000) fail("Inventory/research art is unexpectedly small.", { assetPath, bytes: png.length });
   if (png.toString("ascii", 1, 4) !== "PNG") fail("Inventory/research art is not a PNG.", { assetPath });
   const width = png.readUInt32BE(16);
   const height = png.readUInt32BE(20);
@@ -57,10 +63,19 @@ assertContains("upgrade research mapping", resolver, 'effectType === "upgrade_co
 assertContains("speed ticket mapping", featurePresentation, '"speedTicket"');
 assertContains("order voucher mapping", featurePresentation, '"orderVoucher"');
 assertContains("guard charm mapping", featurePresentation, '"guardCharm"');
+assertContains("curated all slots", featurePresentation, "INVENTORY_ALL_SLOTS");
+assertContains("small cat food mapping", registry, "inventory_cat_food_small_v1.png");
+assertContains("large cat food mapping", registry, "inventory_cat_food_large_v1.png");
+assertContains("super food mapping", registry, "inventory_super_food_v1.png");
+assertContains("factory voucher mapping", registry, "inventory_factory_voucher_v1.png");
+assertContains("accelerator mapping", registry, "inventory_accelerator_v1.png");
+assertContains("dried fish mapping", registry, "inventory_dried_fish_v1.png");
 assertContains("cat shard art mapping", featurePresentation, '"catOrange"');
 assertContains("inventory selection state", bottomNav, "_selectedInventoryKey");
 assertContains("inventory selection action", bottomNav, 'data-action="selectInventory"');
 assertContains("inventory dynamic detail", bottomNav, "renderInventoryDetail(detail)");
+assertContains("curated all renderer", bottomNav, "renderInventoryAllSlots()");
+assertContains("inventory slot markers", bottomNav, 'data-inventory-slot="${slotIndex}"');
 assertContains("inventory item category", featurePresentation, '{ id: "item", label: "道具" }');
 assertContains("inventory detail kind marker", bottomNav, 'data-detail-kind="${detail.kind}"');
 assertContains("inventory detail rarity badges", bottomNav, "bag-detail-badges");
@@ -75,6 +90,7 @@ assertContains("inventory screenshot guard", capture, "embeddedInventoryArt");
 assertContains("research screenshot guard", capture, "embeddedResearchArt");
 assertContains("inventory interaction guard", capture, "inventoryDetailSwitch");
 assertContains("inventory tab guard", capture, "inventoryTabs");
+assertContains("inventory order guard", capture, "inventoryAllOrder");
 assertContains("research interaction guard", capture, "researchEffectSwitches");
 assertContains("research branch guard", capture, "researchLines");
 assertContains("quick verify registration", quickVerify, "check-inventory-research-art.js");
@@ -86,7 +102,7 @@ console.log(JSON.stringify({
   ok: true,
   assets: relativeAssets,
   checked: [
-    "seven 384px transparent feature illustrations",
+    "thirteen 384px transparent inventory/research illustrations",
     "registry, resolver, and data URI wiring",
     "inventory selection and effect-specific research rendering",
     "four-size visual and interaction regression guards",

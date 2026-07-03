@@ -1,13 +1,13 @@
 # Current Status
 
-Updated: 2026-07-02
+Updated: 2026-07-03
 
 ## Control Panel
 
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Replace the remaining repeated inventory material icons with target-specific props and curate the 20-slot all-items order to match `其他页面.png`. |
+| Best Next Move | Match the research reference with a seven-node tree, a three-node third tier, clearer lock plaques, and node-specific selected-detail presentation. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -26,6 +26,12 @@ Updated: 2026-07-02
 
 ## Client UI
 
+- Latest inventory-art pass replaces repeated first-screen equipment placeholders with six generated 384px transparent props: small/large cat-food bags, super-food tin, factory voucher, accelerator, and dried fish. Final files live under `FATCATUI/assets/resources/textures/generated/items/` and are registered in the DOM Data URI bridge.
+- `INVENTORY_ALL_SLOTS` now defines the target-like 20-card order explicitly: food/coffee resources, currency, acceleration tools, special food/voucher/guard/order items, four cat shards, and four special materials. The small food slot prefers real `item_cat_food_pack` inventory and falls back to a preview card when absent.
+- The all-items view no longer depends on save-object iteration or preview slicing. Real equipment and surplus items remain available in item/other category views, so visual curation does not hide authoritative inventory.
+- Asset-specific card scaling keeps the six new silhouettes readable at 360px without changing card geometry. Four-size regression requires the exact slot order, five valid categories, one active tab, 20 all cards, 16 art kinds, 17 embedded item images, real use action, and nav clearance.
+- Generated sources used the built-in image tool with `其他页面.png` plus the existing speed ticket as style references, a flat magenta key, warm hand-painted outlines, and no text. Chroma removal, 384px resizing, transparent-corner checks, alpha bounds, and fringe checks all passed.
+- Full main/cat/feature/utility/factory-appearance/click regression and `quick-verify.ps1` pass; server tests remain 84/84.
 - Latest inventory-fidelity pass aligns the backpack with the five target tabs: all, resources, items, shards, and other. Direct balances stay in resources; usable cat-food/coin packs move into items; shards and special materials retain separate categories.
 - `InventoryTabId`, `INVENTORY_TABS`, preview categories, tab defaults, and `inventoryItemMatchesTab()` now share the five-category model. The item tab defaults to a real owned usable item when available, while other defaults to decoration currency instead of a production ticket.
 - Selected detail now exposes rarity, item kind, owned count, description, source, and action/status state. Real usable items still call the existing `use` action; preview-only production tickets are labeled as previews and do not mutate resources.

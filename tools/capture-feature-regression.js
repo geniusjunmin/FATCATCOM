@@ -139,6 +139,32 @@ async function isVisible(page, selector) {
                 }
                 await page.click('#fatcat-dom-panel-overlay [data-action="inventoryTab"][data-tab="all"]');
                 await page.waitForTimeout(100);
+                const allSlotOrder = await page.evaluate(() => Array.from(
+                    document.querySelectorAll("#fatcat-dom-panel-overlay [data-inventory-slot]"),
+                ).sort((left, right) => Number(left.getAttribute("data-inventory-slot")) - Number(right.getAttribute("data-inventory-slot")))
+                    .map(element => element.getAttribute("data-id") || ""));
+                const expectedAllOrder = [
+                    "resource:bean",
+                    "item:item_cat_food_pack",
+                    "preview:cat-food-large",
+                    "preview:coffee-cup",
+                    "resource:coin",
+                    "resource:diamond",
+                    "preview:speed-5",
+                    "preview:speed-30",
+                    "preview:super-food",
+                    "preview:factory-voucher",
+                    "preview:guard-hour",
+                    "preview:order-refresh",
+                    "preview:shard-orange",
+                    "preview:shard-black",
+                    "preview:shard-white",
+                    "preview:shard-calico",
+                    "preview:decor-coin",
+                    "preview:research-stone",
+                    "preview:accelerator",
+                    "preview:dried-fish",
+                ];
                 const initialKey = await page.locator("#fatcat-dom-panel-overlay .bag-detail-target").getAttribute("data-selected-key");
                 await page.click('#fatcat-dom-panel-overlay [data-id="preview:order-refresh"]');
                 await page.waitForTimeout(120);
@@ -157,18 +183,21 @@ async function isVisible(page, selector) {
                     && previewState.title === "订单券"
                     && previewState.selectedCount === 1;
                 interaction.inventoryUseAction = usableActionVisible;
+                interaction.inventoryAllOrder = allSlotOrder.length === expectedAllOrder.length
+                    && allSlotOrder.every((key, index) => key === expectedAllOrder[index]
+                        || (index === 1 && key === "preview:cat-food-small"));
                 interaction.inventoryTabStates = tabStates;
                 interaction.inventoryTabs = tabStates.resource.cards === 4
                     && tabStates.resource.key === "resource:bean"
                     && tabStates.resource.activeTabs === 1
                     && tabStates.resource.kind === "公司资源"
-                    && tabStates.item.cards >= 4
+                    && tabStates.item.cards >= 10
                     && tabStates.item.key.startsWith("item:")
                     && tabStates.item.activeTabs === 1
                     && tabStates.shard.cards >= 4
                     && (tabStates.shard.key === "item:item_shard_orange" || tabStates.shard.key === "preview:shard-orange")
                     && tabStates.shard.activeTabs === 1
-                    && tabStates.other.cards >= 5
+                    && tabStates.other.cards >= 8
                     && tabStates.other.key === "preview:decor-coin"
                     && tabStates.other.activeTabs === 1
                     && tabStates.all.cards === 20
@@ -331,6 +360,7 @@ async function isVisible(page, selector) {
             || !entry.state.bagDetailVisible
             || !entry.state.bagDetailClearNav
             || !entry.interaction.inventoryTabs
+            || !entry.interaction.inventoryAllOrder
             || !entry.interaction.inventoryDetailSwitch
             || !entry.interaction.inventoryUseAction;
         if (entry.panel === "research") return !entry.state.researchSideBySide
