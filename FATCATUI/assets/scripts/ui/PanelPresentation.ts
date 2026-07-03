@@ -551,7 +551,7 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .node.selected { box-shadow: 0 0 0 3px #ffd071 inset, 0 0 18px rgba(255,190,75,.55); }
             #fatcat-dom-panel-overlay .node.done { background: linear-gradient(#5f8f3a,#2d4e22); border-color:#b8e078; color:#f3ffe0; }
             #fatcat-dom-panel-overlay .node.done:after { content:"✓"; position:absolute; right:5%; top:8%; width:16%; aspect-ratio:1; border-radius:50%; background:#f4d05b; color:#31501f; display:flex; align-items:center; justify-content:center; font-weight:900; }
-            #fatcat-dom-panel-overlay .node.locked:after { content:""; position:absolute; right:5%; top:8%; width:15%; aspect-ratio:1; border-radius:4px; background:#6f6253; box-shadow:inset 0 0 0 2px rgba(255,236,190,.16); }
+            #fatcat-dom-panel-overlay .node.locked:after { content:"锁"; position:absolute; right:5%; top:8%; min-width:18px; min-height:18px; width:15%; aspect-ratio:1; border-radius:4px; background:#6f6253; color:#ead8b8; display:flex; align-items:center; justify-content:center; font-size:70%; box-shadow:inset 0 0 0 2px rgba(255,236,190,.16); }
             #fatcat-dom-panel-overlay .node.locked { filter: grayscale(1); opacity: .72; }
             #fatcat-dom-panel-overlay .research-detail { min-height: 480px; }
             #fatcat-dom-panel-overlay .item b { font-size: 120%; }
@@ -1538,16 +1538,38 @@ export const DOM_PANEL_STYLES = `
                 min-height:570px;
             }
             #fatcat-dom-panel-overlay .research-shell .node {
-                width:36%;
+                width:30%;
                 min-height:12%;
-                padding:1.3%;
-                font-size:1.5%;
+                padding:1.1%;
+                font-size:1.34%;
                 display:flex;
                 flex-direction:column;
-                gap:1%;
+                gap:2%;
                 text-align:center;
             }
-            #fatcat-dom-panel-overlay .research-shell .node .node-icon { width:50%; }
+            #fatcat-dom-panel-overlay .research-shell .node .node-icon { width:44%; }
+            #fatcat-dom-panel-overlay .research-shell .node-copy {
+                display:flex;
+                min-width:0;
+                flex-direction:column;
+                align-items:center;
+                line-height:1.08;
+            }
+            #fatcat-dom-panel-overlay .research-shell .node-copy b {
+                font-size:96%;
+                white-space:nowrap;
+            }
+            #fatcat-dom-panel-overlay .research-shell .node-copy small {
+                margin-top:2%;
+                color:#e6c58e;
+                font-size:84%;
+            }
+            #fatcat-dom-panel-overlay .research-shell .node-copy em {
+                margin-top:2%;
+                color:#d0b593;
+                font-size:68%;
+                font-style:normal;
+            }
             #fatcat-dom-panel-overlay .research-shell .research-detail {
                 gap:1.2%;
             }
@@ -1560,6 +1582,18 @@ export const DOM_PANEL_STYLES = `
                 grid-template-columns:1fr;
                 text-align:center;
             }
+            #fatcat-dom-panel-overlay .research-shell .research-hero p {
+                margin:2% 0;
+                color:#75543b;
+                line-height:1.25;
+            }
+            #fatcat-dom-panel-overlay .research-level {
+                display:block;
+                margin-top:1%;
+                color:#8a633f;
+                font-size:78%;
+                font-weight:900;
+            }
             #fatcat-dom-panel-overlay .research-shell .research-hero .shop-icon {
                 width:58%;
             }
@@ -1568,8 +1602,72 @@ export const DOM_PANEL_STYLES = `
                 background-color:transparent;
                 box-shadow:none;
             }
+            #fatcat-dom-panel-overlay .research-effect-stack {
+                display:grid;
+                grid-template-columns:1fr auto 1fr;
+                align-items:center;
+                gap:3%;
+                margin-top:4%;
+            }
+            #fatcat-dom-panel-overlay .research-effect-stack span {
+                min-width:0;
+                padding:7% 3%;
+                border-radius:10px;
+                background:rgba(93,58,33,.1);
+                text-align:center;
+            }
+            #fatcat-dom-panel-overlay .research-effect-stack span.next {
+                background:linear-gradient(#edf6d3,#c2d994);
+                box-shadow:inset 0 0 0 2px rgba(76,112,42,.16);
+            }
+            #fatcat-dom-panel-overlay .research-effect-stack small,
+            #fatcat-dom-panel-overlay .research-effect-stack strong {
+                display:block;
+            }
+            #fatcat-dom-panel-overlay .research-effect-stack small {
+                color:#76563d;
+                font-size:78%;
+            }
+            #fatcat-dom-panel-overlay .research-effect-stack strong {
+                margin-top:3%;
+                color:#4f3320;
+                font-size:92%;
+                white-space:nowrap;
+            }
+            #fatcat-dom-panel-overlay .research-effect-stack > i {
+                color:#9a6b37;
+                font-size:150%;
+                font-style:normal;
+                font-weight:900;
+            }
             #fatcat-dom-panel-overlay .research-shell .research-preview {
-                grid-template-columns:1fr;
+                grid-template-columns:repeat(2,1fr);
+            }
+            #fatcat-dom-panel-overlay .research-shell .research-preview span {
+                padding:4% 2%;
+                font-size:82%;
+                line-height:1.25;
+            }
+            #fatcat-dom-panel-overlay .research-parent {
+                display:flex;
+                justify-content:space-between;
+                gap:4%;
+                margin-top:4%;
+                color:#75543b;
+            }
+            #fatcat-dom-panel-overlay .research-parent strong {
+                color:#4f3320;
+                text-align:right;
+            }
+            #fatcat-dom-panel-overlay .research-condition-card .research-cost > span {
+                display:flex;
+                justify-content:space-between;
+                gap:4%;
+            }
+            #fatcat-dom-panel-overlay .research-condition-card .tag {
+                width:100%;
+                box-sizing:border-box;
+                text-align:center;
             }
             #fatcat-dom-panel-overlay.compact .panel-shell { padding: 4.4% 2.6% 17.5%; }
             #fatcat-dom-panel-overlay.compact .panel-close { width:7.6%; min-width:36px; }

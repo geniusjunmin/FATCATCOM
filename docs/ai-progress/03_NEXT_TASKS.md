@@ -19,7 +19,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory first screen now matches the target structure and prop variety; next complete the seven-node research tree and detail hierarchy. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory and the seven-node production research tree now match their target structures; next make the preview research nodes authoritative before enabling them. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
@@ -28,11 +28,11 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 ### 0. Next Visual Batch
 
-- Preserve the completed inventory slots/art, five categories, real use action, shop interaction, factory appearance, and server-backed research unlock.
-- Align the research tree with the target's seven-node hierarchy: one root, two second-tier nodes, three third-tier nodes, and one final node.
-- Keep the three real research definitions interactive and server-authoritative; use presentation-only locked nodes for missing branches without inventing local unlock mutations.
-- Add clearer node-specific icon/lock treatment and selected-detail sections for current effect, next effect, and research conditions while retaining the compact split layout.
-- Extend four-size regression to require seven nodes, the intended tier distribution/connectors, three real effect switches, embedded art, visible action, and nav containment.
+- Preserve the completed inventory, shop, appearance, and seven-node research layouts plus all existing authoritative actions.
+- Design four new research definitions for the three-node third tier and final node, including stable ids, parents, costs, descriptions, and supported effect types.
+- Add the definitions through the client/server balance pipeline and extend server economy/effect tests before making any preview node clickable.
+- Replace presentation placeholders only after `/api/research`, unlock persistence, resource deduction, and client snapshot synchronization cover all seven nodes.
+- Keep the four-size `1-2-3-1` geometry, no-overlap, embedded-medal, real-effect-switch, action visibility, and navigation-clearance guards green.
 
 ### 1. Shared Config And Economy Coverage
 

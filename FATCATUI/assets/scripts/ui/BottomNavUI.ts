@@ -83,8 +83,8 @@ import {
     INVENTORY_PREVIEW_CARDS,
     INVENTORY_TABS,
     RESEARCH_NODE_POSITIONS,
-    RESEARCH_PLACEHOLDER_LABELS,
-    RESEARCH_PLACEHOLDER_POSITIONS,
+    RESEARCH_NODE_PRESENTATIONS,
+    RESEARCH_PLACEHOLDER_NODES,
     SETTINGS_PANEL_ITEMS,
     SHOP_PREVIEW_CATALOGS,
     SHOP_TABS,
@@ -2741,27 +2741,28 @@ export class BottomNavUI extends Component {
             this._selectedResearchId = configs[0].id;
         }
         const selected = configs.find(item => item.id === this._selectedResearchId) ?? configs[0];
-        return `<div class="panel-shell research-shell"><h2>研究详情</h2><div class="tabs"><button class="tab active">生产研究</button><button class="tab">经营研究</button><button class="tab">猫咪研究</button><button class="tab">特殊研究</button></div><div class="research-point-strip"><span>咖啡实验室</span><b>研究点 ${this.formatNumber(ResourceManager.get("researchPoint"))}</b></div><div class="list research-view"><div class="tree">${this.renderResearchLines(configs)}${configs.map((config, index) => this.renderResearchNode(config.id, index)).join("")}${this.renderResearchPlaceholderNodes(configs.length)}</div><div class="research-detail">${this.renderResearchDetail(selected.id)}</div></div></div>`;
+        return `<div class="panel-shell research-shell" data-research-node-count="${configs.length + RESEARCH_PLACEHOLDER_NODES.length}"><h2>研究详情</h2><div class="tabs"><button class="tab active">生产研究</button><button class="tab">经营研究</button><button class="tab">猫咪研究</button><button class="tab">特殊研究</button></div><div class="research-point-strip"><span>咖啡实验室</span><b>研究点 ${this.formatNumber(ResourceManager.get("researchPoint"))}</b></div><div class="list research-view"><div class="tree" data-research-layout="1-2-3-1">${this.renderResearchLines(configs)}${configs.map((config, index) => this.renderResearchNode(config.id, index)).join("")}${this.renderResearchPlaceholderNodes()}</div><div class="research-detail">${this.renderResearchDetail(selected.id)}</div></div></div>`;
     }
 
     private renderResearchLines(configs: ReturnType<typeof ResearchManager.getAllConfigs>): string {
         if (configs.length <= 1) return "";
         const lines = [
-            { left: 53, top: 18, width: 0, height: 8 },
-            { left: 31, top: 26, width: 45, height: 0 },
-            { left: 31, top: 26, width: 0, height: 6 },
-            { left: 76, top: 26, width: 0, height: 6 },
-            { left: 31, top: 44, width: 0, height: 8 },
-            { left: 76, top: 44, width: 0, height: 8 },
-            { left: 31, top: 52, width: 45, height: 0 },
-            { left: 31, top: 70, width: 0, height: 5 },
-            { left: 76, top: 70, width: 0, height: 5 },
-            { left: 31, top: 75, width: 45, height: 0 },
-            { left: 53, top: 75, width: 0, height: 5 },
+            { left: 50, top: 16, width: 0, height: 6 },
+            { left: 23, top: 22, width: 54, height: 0 },
+            { left: 23, top: 22, width: 0, height: 6 },
+            { left: 77, top: 22, width: 0, height: 6 },
+            { left: 23, top: 40, width: 0, height: 7 },
+            { left: 77, top: 40, width: 0, height: 7 },
+            { left: 16, top: 47, width: 68, height: 0 },
+            { left: 16, top: 47, width: 0, height: 7 },
+            { left: 50, top: 47, width: 0, height: 7 },
+            { left: 84, top: 47, width: 0, height: 7 },
+            { left: 16, top: 66, width: 68, height: 0 },
+            { left: 50, top: 66, width: 0, height: 13 },
         ];
-        return lines.map(line => line.height > 0
-            ? `<div class="tree-line v" style="left:${line.left}%;top:${line.top}%;height:${line.height}%"></div>`
-            : `<div class="tree-line" style="left:${line.left}%;top:${line.top}%;width:${line.width}%"></div>`
+        return lines.map((line, index) => line.height > 0
+            ? `<div class="tree-line v" data-tree-line="${index}" style="left:${line.left}%;top:${line.top}%;height:${line.height}%"></div>`
+            : `<div class="tree-line" data-tree-line="${index}" style="left:${line.left}%;top:${line.top}%;width:${line.width}%"></div>`
         ).join("");
     }
 
@@ -2774,15 +2775,17 @@ export class BottomNavUI extends Component {
         const selected = id === this._selectedResearchId;
         const cls = `${done ? "done" : ""} ${!done && !canUnlock ? "locked" : ""} ${selected ? "selected" : ""}`;
         const state = done ? "已完成" : canUnlock ? `${config.cost}点` : "未解锁";
-        return `<button class="node ${cls}" style="left:${pos.left}%;top:${pos.top}%" data-action="selectResearch" data-id="${id}" data-research-art="${config.effectType}"><span class="node-icon asset" style="background-image:url('${getResearchMedalAsset(config.effectType)}')"></span><span>${config.name}<br>${state}</span></button>`;
+        const presentation = RESEARCH_NODE_PRESENTATIONS[id];
+        const tier = presentation?.tier ?? (index === 0 ? 1 : 2);
+        const displayName = presentation?.displayName ?? config.name;
+        const level = presentation?.level ?? state;
+        return `<button class="node ${cls}" style="left:${pos.left}%;top:${pos.top}%" data-action="selectResearch" data-id="${id}" data-research-tier="${tier}" data-research-art="${config.effectType}"><span class="node-icon asset" style="background-image:url('${getResearchMedalAsset(config.effectType)}')"></span><span class="node-copy"><b>${displayName}</b><small>${level}</small><em>${state}</em></span></button>`;
     }
 
-    private renderResearchPlaceholderNodes(startIndex: number): string {
-        return RESEARCH_PLACEHOLDER_LABELS.map((label, offset) => {
-            const pos = RESEARCH_PLACEHOLDER_POSITIONS[offset];
-            const index = startIndex + offset;
-            if (index < 3) return "";
-            return `<div class="node locked" style="left:${pos.left}%;top:${pos.top}%"><span class="node-icon asset" style="background-image:url('${getResearchMedalAsset()}')"></span><span>${label}<br>未开放</span></div>`;
+    private renderResearchPlaceholderNodes(): string {
+        return RESEARCH_PLACEHOLDER_NODES.map(node => {
+            const art = node.effectType ?? "future_research";
+            return `<div class="node locked placeholder" style="left:${node.position.left}%;top:${node.position.top}%" data-id="${node.id}" data-research-placeholder="true" data-research-tier="${node.tier}" data-research-art="${art}" title="${node.requirement}"><span class="node-icon asset" style="background-image:url('${getResearchMedalAsset(node.effectType)}')"></span><span class="node-copy"><b>${node.name}</b><small>未开放</small></span></div>`;
         }).join("");
     }
 
@@ -2790,12 +2793,21 @@ export class BottomNavUI extends Component {
         const config = ResearchManager.getAllConfigs().find(item => item.id === id);
         if (!config) return `<div class="item">研究节点不存在</div>`;
         const status = ResearchManager.isUnlocked(id) ? "已解锁" : ResearchManager.canUnlock(id) ? "可研究" : "前置未完成";
-        const parent = config.parentResearchId ? ResearchManager.getAllConfigs().find(item => item.id === config.parentResearchId)?.name ?? config.parentResearchId : "无";
+        const parentConfig = config.parentResearchId
+            ? ResearchManager.getAllConfigs().find(item => item.id === config.parentResearchId)
+            : undefined;
+        const parent = config.parentResearchId
+            ? RESEARCH_NODE_PRESENTATIONS[config.parentResearchId]?.displayName ?? parentConfig?.name ?? config.parentResearchId
+            : "无";
         const effectText = `${this.getResearchEffectLabel(config.effectType)} ${config.effectValue > 0 ? "+" : ""}${config.effectValue}%`;
         const owned = ResourceManager.get("researchPoint");
         const progress = Math.min(100, Math.floor((owned / Math.max(1, config.cost)) * 100));
-        const nextHint = ResearchManager.isUnlocked(id) ? "已加入全局加成" : progress >= 100 ? "资源已备齐" : "继续收集研究点";
-        return `<div class="item research-hero" data-research-art="${config.effectType}"><div class="shop-icon asset research-medal-art" style="background-image:url('${getResearchMedalAsset(config.effectType)}')"></div><div><b>${config.name}</b><br>${config.description}<br><span class="research-state">${status}</span></div></div><div class="item"><b>当前效果</b><br><span class="effect-pill">${this.renderCssIcon(this.getResearchIconClass(config.effectType))}${effectText}</span><div class="research-preview"><span>节点状态<br>${status}</span><span>解锁反馈<br>${nextHint}</span></div></div><div class="item"><b>研究条件</b><br>前置：${parent}<div class="research-cost">研究点：${this.formatNumber(owned)}/${config.cost}<div class="research-cost-line"><i style="width:${progress}%"></i></div></div>${this.renderResearchButton(config.id, config.cost)}</div>`;
+        const unlocked = ResearchManager.isUnlocked(id);
+        const nextHint = unlocked ? "全局加成已生效" : progress >= 100 ? "资源已备齐" : "继续收集研究点";
+        const currentEffect = unlocked ? effectText : "未生效";
+        const presentation = RESEARCH_NODE_PRESENTATIONS[id];
+        const displayName = presentation?.displayName ?? config.name;
+        return `<div class="item research-hero" data-research-art="${config.effectType}"><div class="shop-icon asset research-medal-art" style="background-image:url('${getResearchMedalAsset(config.effectType)}')"></div><div><b>${displayName}</b><small class="research-level">${presentation?.level ?? ""}</small><p>${config.description}</p><span class="research-state">${status}</span></div></div><div class="item research-effect-card"><b>研究效果</b><div class="research-effect-stack"><span><small>当前效果</small><strong>${currentEffect}</strong></span><i>›</i><span class="next"><small>研究后效果</small><strong>${effectText}</strong></span></div><div class="research-preview"><span>节点状态<br><b>${status}</b></span><span>研究反馈<br><b>${nextHint}</b></span></div></div><div class="item research-condition-card"><b>研究条件</b><div class="research-parent">前置研究 <strong>${parent}</strong></div><div class="research-cost"><span>研究点 <b>${this.formatNumber(owned)}/${config.cost}</b></span><div class="research-cost-line"><i style="width:${progress}%"></i></div></div>${this.renderResearchButton(config.id, config.cost)}</div>`;
     }
 
     private getResearchIconClass(effectType: string): string {

@@ -12,6 +12,21 @@ export interface FeaturePosition {
     top: number;
 }
 
+export interface ResearchPlaceholderNode {
+    id: string;
+    name: string;
+    tier: number;
+    position: FeaturePosition;
+    effectType?: string;
+    requirement: string;
+}
+
+export interface ResearchNodePresentation {
+    displayName: string;
+    tier: number;
+    level: string;
+}
+
 export interface InventoryPreviewCard {
     id: string;
     name: string;
@@ -196,18 +211,47 @@ export const INVENTORY_ALL_SLOTS: InventoryAllSlot[] = [
 ];
 
 export const RESEARCH_NODE_POSITIONS: FeaturePosition[] = [
-    { left: 35, top: 6 },
-    { left: 13, top: 32 },
-    { left: 58, top: 32 },
-    { left: 13, top: 58 },
-    { left: 58, top: 58 },
-    { left: 35, top: 80 },
+    { left: 35, top: 4 },
+    { left: 8, top: 28 },
+    { left: 62, top: 28 },
 ];
 
-export const RESEARCH_PLACEHOLDER_LABELS = ["咖啡萃取 II", "烘焙技术 II", "浓缩咖啡"];
+export const RESEARCH_NODE_PRESENTATIONS: Record<string, ResearchNodePresentation> = {
+    res_basic_prod: { displayName: "咖啡萃取 I", tier: 1, level: "Lv.5/10" },
+    res_bean_save: { displayName: "咖啡烘焙 I", tier: 2, level: "Lv.3/10" },
+    res_cheap_upgrade: { displayName: "发酵技术 I", tier: 2, level: "Lv.3/10" },
+};
 
-export const RESEARCH_PLACEHOLDER_POSITIONS: FeaturePosition[] = [
-    { left: 13, top: 58 },
-    { left: 58, top: 58 },
-    { left: 35, top: 80 },
+export const RESEARCH_PLACEHOLDER_NODES: ResearchPlaceholderNode[] = [
+    {
+        id: "res_extract_2",
+        name: "咖啡萃取 II",
+        tier: 3,
+        position: { left: 1, top: 54 },
+        effectType: "coin_production_mult",
+        requirement: "完成基础研究",
+    },
+    {
+        id: "res_roast_2",
+        name: "烘焙技术 II",
+        tier: 3,
+        position: { left: 35, top: 54 },
+        effectType: "bean_reduce",
+        requirement: "完成烘焙技术",
+    },
+    {
+        id: "res_ferment_2",
+        name: "发酵技术 II",
+        tier: 3,
+        position: { left: 69, top: 54 },
+        effectType: "upgrade_cost_reduce",
+        requirement: "完成成本优化",
+    },
+    {
+        id: "res_espresso",
+        name: "浓缩咖啡",
+        tier: 4,
+        position: { left: 35, top: 79 },
+        requirement: "完成第三层研究",
+    },
 ];

@@ -279,6 +279,40 @@ async function isVisible(page, selector) {
                     return detail.getBoundingClientRect().bottom <= nav.getBoundingClientRect().top - 2;
                 })(),
                 researchNodeArt: document.querySelectorAll("#fatcat-dom-panel-overlay .node-icon.asset").length,
+                researchNodes: document.querySelectorAll("#fatcat-dom-panel-overlay .tree .node").length,
+                researchPlaceholders: document.querySelectorAll("#fatcat-dom-panel-overlay [data-research-placeholder]").length,
+                researchPlaceholderActions: document.querySelectorAll("#fatcat-dom-panel-overlay [data-research-placeholder][data-action]").length,
+                researchDisplayNames: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay button.node .node-copy b"))
+                    .map(element => element.textContent?.trim() || ""),
+                researchTierCounts: [1, 2, 3, 4].map(tier =>
+                    document.querySelectorAll(`#fatcat-dom-panel-overlay [data-research-tier="${tier}"]`).length),
+                researchLayout: document.querySelector("#fatcat-dom-panel-overlay .tree")?.getAttribute("data-research-layout") || "",
+                researchNodesInsideTree: (() => {
+                    const tree = document.querySelector("#fatcat-dom-panel-overlay .tree");
+                    if (!tree) return false;
+                    const treeRect = tree.getBoundingClientRect();
+                    return Array.from(tree.querySelectorAll(".node")).every(node => {
+                        const rect = node.getBoundingClientRect();
+                        return rect.left >= treeRect.left - 1
+                            && rect.right <= treeRect.right + 1
+                            && rect.top >= treeRect.top - 1
+                            && rect.bottom <= treeRect.bottom + 1;
+                    });
+                })(),
+                researchNodeOverlaps: (() => {
+                    const nodes = Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay .tree .node"));
+                    let overlaps = 0;
+                    for (let leftIndex = 0; leftIndex < nodes.length; leftIndex += 1) {
+                        const left = nodes[leftIndex].getBoundingClientRect();
+                        for (let rightIndex = leftIndex + 1; rightIndex < nodes.length; rightIndex += 1) {
+                            const right = nodes[rightIndex].getBoundingClientRect();
+                            const overlapWidth = Math.min(left.right, right.right) - Math.max(left.left, right.left);
+                            const overlapHeight = Math.min(left.bottom, right.bottom) - Math.max(left.top, right.top);
+                            if (overlapWidth > 1 && overlapHeight > 1) overlaps += 1;
+                        }
+                    }
+                    return overlaps;
+                })(),
                 researchLines: document.querySelectorAll("#fatcat-dom-panel-overlay .tree-line").length,
                 researchArtKinds: new Set(Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay [data-research-art]"))
                     .map(element => element.getAttribute("data-research-art"))).size,
@@ -364,10 +398,18 @@ async function isVisible(page, selector) {
             || !entry.interaction.inventoryDetailSwitch
             || !entry.interaction.inventoryUseAction;
         if (entry.panel === "research") return !entry.state.researchSideBySide
-            || entry.state.researchNodeArt < 4
-            || entry.state.researchLines < 11
-            || entry.state.researchArtKinds < 3
-            || entry.state.embeddedResearchArt < 5
+            || entry.state.researchNodes !== 7
+            || entry.state.researchNodeArt !== 7
+            || entry.state.researchPlaceholders !== 4
+            || entry.state.researchPlaceholderActions !== 0
+            || entry.state.researchDisplayNames.join(",") !== "咖啡萃取 I,咖啡烘焙 I,发酵技术 I"
+            || entry.state.researchTierCounts.join(",") !== "1,2,3,1"
+            || entry.state.researchLayout !== "1-2-3-1"
+            || !entry.state.researchNodesInsideTree
+            || entry.state.researchNodeOverlaps !== 0
+            || entry.state.researchLines !== 12
+            || entry.state.researchArtKinds < 4
+            || entry.state.embeddedResearchArt < 8
             || !entry.state.researchHeroArt
             || !entry.state.researchDetailClearNav
             || !entry.state.researchActionVisible

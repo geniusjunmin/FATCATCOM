@@ -39,8 +39,8 @@ for (const name of [
   "INVENTORY_PREVIEW_CARDS",
   "INVENTORY_ALL_SLOTS",
   "RESEARCH_NODE_POSITIONS",
-  "RESEARCH_PLACEHOLDER_LABELS",
-  "RESEARCH_PLACEHOLDER_POSITIONS",
+  "RESEARCH_NODE_PRESENTATIONS",
+  "RESEARCH_PLACEHOLDER_NODES",
 ]) {
   assertContains(`${name} exported`, presentation, name);
 }
@@ -56,6 +56,9 @@ for (const label of [
   "碎片",
   "其他",
   "咖啡萃取 II",
+  "咖啡萃取 I",
+  "咖啡烘焙 I",
+  "发酵技术 I",
 ]) {
   assertContains(`feature config includes ${label}`, presentation, label);
 }
@@ -70,8 +73,10 @@ assertContains("BottomNavUI uses inventory tabs", bottomNav, "INVENTORY_TABS.map
 assertContains("BottomNavUI uses inventory previews", bottomNav, "renderInventoryPreviewCards");
 assertContains("BottomNavUI uses curated inventory slots", bottomNav, "renderInventoryAllSlots");
 assertContains("BottomNavUI uses research node positions", bottomNav, "RESEARCH_NODE_POSITIONS[index]");
-assertContains("BottomNavUI uses research placeholder labels", bottomNav, "RESEARCH_PLACEHOLDER_LABELS.map");
-assertContains("BottomNavUI uses research placeholder positions", bottomNav, "RESEARCH_PLACEHOLDER_POSITIONS[offset]");
+assertContains("BottomNavUI uses research node presentation", bottomNav, "RESEARCH_NODE_PRESENTATIONS[id]");
+assertContains("BottomNavUI uses research placeholder nodes", bottomNav, "RESEARCH_PLACEHOLDER_NODES.map");
+assertContains("BottomNavUI marks research tiers", bottomNav, "data-research-tier");
+assertContains("BottomNavUI marks locked research previews", bottomNav, "data-research-placeholder");
 assertNotContains("BottomNavUI no local shop tabs", bottomNav, "const tabs: Array<{ id: \"resource\" | \"item\" | \"cat\" | \"deco\"; label: string }>");
 assertNotContains("BottomNavUI no local inventory tabs", bottomNav, "const tabs: Array<{ id: \"all\" | \"resource\" | \"shard\" | \"other\"; label: string }>");
 assertNotContains("BottomNavUI no local shop preview catalog", bottomNav, "const catalogs: Record<string, Array<[string, string, string, string, string]>>");
