@@ -7,7 +7,7 @@ Updated: 2026-07-03
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Make each main-screen floor card open its matching building detail directly, preserving the newly verified target geometry and material pass. |
+| Best Next Move | Move the main operation strip toward server authority: replace the local quick chest/order preview state with persisted daily server state and rewards. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -26,6 +26,10 @@ Updated: 2026-07-03
 
 ## Client UI
 
+- Latest main-floor interaction pass turns all six parchment floor cards into semantic buttons. Each carries its authoritative building id/scene and opens the existing building detail with the matching floor already active; no building data or upgrade logic is duplicated on the main screen.
+- Factory pointer and keyboard input now share `handleDomFactoryAction()`. Enter and Space trigger the same route as touch/mouse, while hover, active, and focus-visible feedback reuse the parchment/wood language without changing card geometry.
+- Main regression performs 24 cross-panel routes: 5F/4F/3F/2F/1F/B1 at each of 360x800, 414x896, 430x932, and 768x1024. Every route must match building id, scene, title, authoritative level, active selector chip, and embedded room JPEG before returning to the factory.
+- Actual in-app Enter navigation to 5F resolved `building_office_5f`, `管理室`, and the correct active chip with clean logs. The 18-step navigation path, `quick-verify.ps1`, and 90/90 server tests remain green.
 - Latest main-screen material pass keeps the measured target geometry intact while strengthening visual depth against `主页面.png`. The company card gains subtle paper grain and a stronger double frame; resource pills now use recessed charcoal wells, bronze rims, brighter external icons, ivory values, and layered orange plus controls.
 - The generated factory cutaway remains the only room-art source. A restrained `saturate(1.1) contrast(1.075) brightness(.975)` treatment restores warm wood depth without adding duplicate machines or cats over the artwork.
 - Live floor cards now use parchment grain, dark wood side rails, an inset frame, and stronger shadows. Production bonus cards use darker metal, a gold edge, top highlight, and a green running light; utility side buttons share the same carved wood material.

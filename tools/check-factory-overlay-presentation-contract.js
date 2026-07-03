@@ -26,6 +26,7 @@ function assertNotContains(label, source, pattern) {
 
 const presentation = read("FATCATUI/assets/scripts/ui/FactoryOverlayPresentation.ts");
 const bottomNav = read("FATCATUI/assets/scripts/ui/BottomNavUI.ts");
+const mainCapture = read("tools/capture-main-regression.js");
 const quickVerify = read("tools/quick-verify.ps1");
 
 assertContains("factory style builder exported", presentation, "export function getDomFactoryStyles");
@@ -70,6 +71,13 @@ assertContains(
 );
 assertNotContains("BottomNavUI no inline factory CSS", bottomNav, "#fatcat-dom-factory { position: fixed;");
 assertContains("BottomNavUI retains factory pointer actions", bottomNav, "private onDomFactoryPointerDown");
+assertContains("BottomNavUI retains factory keyboard actions", bottomNav, "private onDomFactoryKeyDown");
+assertContains("BottomNavUI shares factory action dispatch", bottomNav, "private handleDomFactoryAction");
+assertContains("BottomNavUI renders floor direct action", bottomNav, 'data-action="openBuildingFloor"');
+assertContains("BottomNavUI preselects floor building", bottomNav, "this._selectedDomBuildingId = buildingId");
+assertContains("factory floor focus treatment", presentation, ".floor-card:focus-visible");
+assertContains("main capture checks every floor route", mainCapture, "floorRouteResults");
+assertContains("main capture checks selected building", mainCapture, "result.selected.activeId !== result.expected.id");
 assertContains("BottomNavUI retains factory rendering", bottomNav, "private renderDomFactoryOverlay");
 assertContains("quick verify includes contract", quickVerify, "check-factory-overlay-presentation-contract.js");
 

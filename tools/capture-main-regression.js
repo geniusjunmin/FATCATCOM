@@ -10,6 +10,14 @@ const sizes = [
     [360, 800],
     [768, 1024],
 ];
+const floorRoutes = [
+    { id: "building_office_5f", scene: "office", title: "管理室" },
+    { id: "building_roast_4f", scene: "roast", title: "烘焙车间" },
+    { id: "building_ferment_3f", scene: "tank", title: "发酵车间" },
+    { id: "building_material_2f", scene: "mill", title: "原料车间" },
+    { id: "building_cafe_1f", scene: "cafe", title: "咖啡厅" },
+    { id: "building_storage_b1", scene: "storage", title: "原料仓库" },
+];
 
 (async () => {
     fs.mkdirSync(outDir, { recursive: true });
@@ -127,7 +135,39 @@ const sizes = [
             };
         });
 
-        results.push({ size: `${width}x${height}`, file, messages, failedRequests, state });
+        const floorRouteResults = [];
+        for (const route of floorRoutes) {
+            await page.click(`#fatcat-dom-factory .floor-card[data-id="${route.id}"]`);
+            await page.waitForSelector(`#fatcat-dom-panel-overlay .building-detail-hero[data-building-id="${route.id}"]`, {
+                timeout: 4000,
+            });
+            const selected = await page.evaluate(() => {
+                const hero = document.querySelector("#fatcat-dom-panel-overlay .building-detail-hero");
+                const activeChip = document.querySelector("#fatcat-dom-panel-overlay .building-chip.active");
+                return {
+                    id: hero?.getAttribute("data-building-id") || "",
+                    scene: hero?.getAttribute("data-building-scene") || "",
+                    title: document.querySelector("#fatcat-dom-panel-overlay .building-hero-copy b")?.textContent?.trim() || "",
+                    level: document.querySelector("#fatcat-dom-panel-overlay .building-hero-copy span")?.textContent?.trim() || "",
+                    activeId: activeChip?.getAttribute("data-id") || "",
+                    embeddedRoomArt: hero
+                        ? getComputedStyle(hero).backgroundImage.includes('url("data:image/jpeg;base64,')
+                        : false,
+                };
+            });
+            floorRouteResults.push({ expected: route, selected });
+            await page.click('#fatcat-dom-nav [data-panel="factory"]');
+            await page.waitForSelector("#fatcat-dom-factory .floor-card", { timeout: 4000 });
+        }
+
+        results.push({
+            size: `${width}x${height}`,
+            file,
+            messages,
+            failedRequests,
+            state,
+            interaction: { floorRouteResults },
+        });
         await page.close();
     }
 
@@ -173,6 +213,15 @@ const sizes = [
         || !entry.state.chestTextFits
         || !entry.state.launchTextFits
         || !entry.state.giftTextFits
+        || entry.interaction.floorRouteResults.length !== floorRoutes.length
+        || entry.interaction.floorRouteResults.some(result =>
+            result.selected.id !== result.expected.id
+            || result.selected.scene !== result.expected.scene
+            || result.selected.title !== result.expected.title
+            || !result.selected.level.startsWith("Lv.")
+            || result.selected.activeId !== result.expected.id
+            || !result.selected.embeddedRoomArt
+        )
     )) {
         process.exit(1);
     }

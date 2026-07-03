@@ -477,6 +477,9 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
                     0 0 0 1px rgba(48,29,18,.56),
                     inset 0 0 0 2px rgba(255,255,255,.42),
                     inset 0 -7px 10px rgba(105,68,37,.1);
+                cursor:pointer;
+                transition:filter .12s ease,box-shadow .12s ease,transform .12s ease;
+                touch-action:manipulation;
             }
             #fatcat-dom-factory .floor-card:before,
             #fatcat-dom-factory.compact .floor-card:before {
@@ -493,6 +496,21 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
                 border:1px solid rgba(100,68,39,.2);
                 border-radius:7px;
                 pointer-events:none;
+            }
+            #fatcat-dom-factory .floor-card:hover {
+                filter:brightness(1.055) saturate(1.04);
+            }
+            #fatcat-dom-factory .floor-card:active {
+                transform:translateY(2px) scale(.985);
+                box-shadow:
+                    0 1px 0 rgba(0,0,0,.38),
+                    0 0 0 1px rgba(48,29,18,.56),
+                    inset 0 0 0 2px rgba(255,255,255,.42);
+            }
+            #fatcat-dom-factory .floor-card:focus-visible {
+                outline:3px solid #ffd66f;
+                outline-offset:2px;
+                filter:brightness(1.07);
             }
             #fatcat-dom-factory .floor-no,
             #fatcat-dom-factory.compact .floor-no { font-size:3.3%; }

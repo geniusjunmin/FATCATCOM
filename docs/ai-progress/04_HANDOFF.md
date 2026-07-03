@@ -24,12 +24,16 @@ Updated: 2026-07-03
 
 ## Latest UI Note
 
+- All six main floor cards are now `<button>` controls with `data-action="openBuildingFloor"`, authoritative `data-id`, scene metadata, and an accessible label. They open the existing building panel and set `_selectedDomBuildingId` before rendering.
+- `handleDomFactoryAction()` is the single factory action dispatcher. `pointerdown`, Enter, and Space call it; do not add a separate click path that would double-trigger touch/mouse actions.
+- `.floor-card:hover`, `:active`, and `:focus-visible` provide material-matched feedback without changing the verified dimensions.
+- `capture-main-regression.js` runs six floor routes at each of four sizes and checks id, scene, title, `Lv.*`, active chip, and embedded JPEG. In-app Enter testing and runtime logs also pass.
+- Next authority batch should move the main daily order/chest progress and claim reward off `claimQuickReward()` local mutation and into a persisted atomic server transaction, retaining offline fallback only when truly offline.
 - The main-screen material pass is complete without geometry changes. `HudPresentation.ts` owns paper grain, recessed charcoal resource wells, bronze rims, external generated icons, ivory values, and orange plus controls. Resource DOM nodes now expose `data-resource-kind`.
 - `FactoryOverlayPresentation.ts` keeps the generated cutaway as the only room-art source and applies `saturate(1.1) contrast(1.075) brightness(.975)`. Do not re-enable the hidden duplicate CSS machines/cats/props.
 - Floor cards now use parchment grain, dark wood side rails, inner frames, and stronger shadows. Bonus cards use dark metal, gold edges, highlights, and green running lights; side tools use matching carved wood.
 - `capture-main-regression.js` requires coin/bean/food/diamond markers, four embedded resource icons, five side tools/icons, minimum touch size, six material frames/lights, clean logs, exact diamond text, unchanged layout ratios, and bottom-text containment at all four sizes.
 - In-app runtime inspection found four resource markers, six floor frames/lights, six floors, and five tools. Main screenshots, 18-step navigation, utility entry screenshots, `quick-verify.ps1`, and 90/90 server tests pass.
-- Next batch: make all six main floor cards open and preselect their matching building detail. Preserve their dimensions and the existing bottom-nav building path.
 - Seven dedicated research-node symbols now live under `FATCATUI/assets/resources/textures/generated/items/` as `research_node_*_v1.png`. They are 384x384 alpha PNGs with Cocos metadata and cover all seven ids; do not collapse them back to the three effect medals.
 - `GeneratedResearchArtAssets.nodes` is the registry, and `getResearchNodeAsset(researchId, effectType)` performs id-first lookup with `getResearchMedalAsset()` as fallback. `BottomNavUI` uses node art in both the tree and selected detail.
 - `.research-node-medal` is a fixed-size progress ring driven by `--research-level-progress`; nodes expose `data-research-maxed`. The online regression proves the root ring changes from `0%` to `10%` after server-backed level 1.

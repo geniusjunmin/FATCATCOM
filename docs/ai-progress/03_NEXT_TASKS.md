@@ -18,22 +18,29 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
-| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main HUD/factory materials and feature panels are aligned; next make the six live floor cards direct building-detail entry points. |
+| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Main order/chest state is still a local preview; move its daily progress, claim guard, and reward transaction to the server. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main HUD/factory materials and six direct floor routes now match the target workflow; preserve them while authority work proceeds. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
 
 ## P0 Now
 
-### 0. Next Main-Floor Interaction Batch
+### 0. Next Main Operation Authority Batch
 
-- Turn each of the six `.floor-card` elements into a clear touch target without nesting controls or obscuring room art.
-- Route a selected floor directly to the existing building-detail panel and preselect the matching authoritative building id.
-- Preserve bottom-nav building entry behavior, online/offline upgrade boundaries, and current floor-card dimensions.
-- Add selected/pressed/focus-visible feedback that matches the parchment/wood material instead of introducing a new visual language.
-- Extend click regression to visit all six floor cards and verify the matching building id, title, level, and room art.
-- Re-run all four main and feature sizes plus the complete navigation and verification gates.
+- Add a persisted daily order/chest state to the server with progress, target, claim eligibility, claim timestamp/day, and reward metadata.
+- Make claim conditional and atomic so refreshes or simultaneous clients cannot grant the chest twice.
+- Return authoritative coin/research balances plus updated daily state from the API.
+- Consume the snapshot on login/save sync and render the existing order/chest controls from server state when online.
+- Preserve offline fallback without silently applying it after an online rejection.
+- Add service, API concurrency, browser online, main-screen state, and transaction-ledger coverage.
+
+### Completed: Main Floor Direct Routes
+
+- All six main `.floor-card` controls are semantic buttons with building id/scene metadata and shared pointer/keyboard action dispatch.
+- Each route opens the existing building panel in detail mode with the matching chip, title, level, and room art selected.
+- Hover/active/focus-visible feedback preserves measured geometry.
+- Four-size main regression performs and verifies all 24 floor routes.
 
 ### Completed: Main HUD And Factory Material Pass
 

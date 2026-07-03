@@ -747,6 +747,7 @@ export class BottomNavUI extends Component {
         style.textContent = getDomFactoryStyles(this.getDomAssetDataUri(GeneratedBackgroundAssets.factoryCutaway));
         document.head.appendChild(style);
         overlay.addEventListener("pointerdown", this.onDomFactoryPointerDown);
+        overlay.addEventListener("keydown", this.onDomFactoryKeyDown);
         document.body.appendChild(overlay);
         this._domFactoryOverlay = overlay;
         return overlay;
@@ -770,7 +771,21 @@ export class BottomNavUI extends Component {
 
         event.preventDefault();
         event.stopPropagation();
+        this.handleDomFactoryAction(button);
+    };
 
+    private onDomFactoryKeyDown = (event: KeyboardEvent): void => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        const target = event.target as HTMLElement | null;
+        const button = target?.closest("[data-action]") as HTMLElement | null;
+        if (!button) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        this.handleDomFactoryAction(button);
+    };
+
+    private handleDomFactoryAction(button: HTMLElement): void {
         const action = button.dataset.action || "";
         if (action === "tasks") {
             this.select("tasks");
@@ -791,12 +806,19 @@ export class BottomNavUI extends Component {
             this.renderDomFactoryOverlay();
         } else if (action === "gift") {
             this.select("shop");
+        } else if (action === "openBuildingFloor") {
+            const buildingId = button.dataset.id || "";
+            if (BuildingManager.getById(buildingId)) {
+                this._selectedDomBuildingId = buildingId;
+                this._buildingPanelMode = "detail";
+                this.select("buildings");
+            }
         }
 
         this.renderDomHudOverlay(true);
         this.renderDomNavOverlay(true);
         this.layoutDomHotspots();
-    };
+    }
 
     private renderDomFactoryOverlay(): void {
         const overlay = this.ensureDomFactoryOverlay();
@@ -826,7 +848,7 @@ export class BottomNavUI extends Component {
                         <div class="pipe"></div>
                         <div class="cat cat-${floor.scene} ${index % 3 === 0 ? "a" : index % 3 === 1 ? "b" : "c"}"><div class="cat-sprite"><i class="cat-face"></i></div></div>
                         <div class="worker-cats ${floor.scene}">${this.renderFactoryWorkerCats(floor.scene)}</div>
-                        <div class="floor-card"><div class="floor-no">${floor.no}</div><div class="floor-name">${floor.name}<span>Lv.${floor.lv}</span></div><div class="floor-medal">${floor.lv}</div></div>
+                        <button type="button" class="floor-card" data-action="openBuildingFloor" data-id="${floor.buildingId}" data-scene="${floor.scene}" aria-label="打开${floor.no} ${floor.name}建筑详情"><div class="floor-no">${floor.no}</div><div class="floor-name">${floor.name}<span>Lv.${floor.lv}</span></div><div class="floor-medal">${floor.lv}</div></button>
                         <div class="cat-dots"><span class="cat-dot"></span><span class="cat-dot gray"></span><span class="cat-dot black"></span></div>
                         <div class="bonus"><i class="bonus-icon ${this.getFloorBonusIconClass(floor.scene)}"></i><strong>${this.getFloorOutputText(floor.scene)}</strong><span>${floor.bonus}</span><b>${floor.value}</b></div>
                     </div>`).join("")}
