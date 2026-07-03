@@ -2897,7 +2897,7 @@ export class BottomNavUI extends Component {
     }
 
     private renderHudResource(kind: HudResourceKind, label: string, value: string): string {
-        return `<div class="res ${kind}" aria-label="${label} ${value}"><div class="icon asset" style="background-image:url('${this.getGeneratedIconAsset(kind)}')" aria-hidden="true"></div><div class="res-name">${label}</div><div class="value">${value}</div><div class="plus">+</div></div>`;
+        return `<div class="res ${kind}" data-resource-kind="${kind}" aria-label="${label} ${value}"><div class="icon asset" style="background-image:url('${this.getGeneratedIconAsset(kind)}')" aria-hidden="true"></div><div class="res-name">${label}</div><div class="value">${value}</div><div class="plus">+</div></div>`;
     }
 
     private ensureDomNavOverlay(): HTMLElement | null {

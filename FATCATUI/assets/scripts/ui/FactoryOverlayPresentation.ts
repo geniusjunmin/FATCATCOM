@@ -393,7 +393,7 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
                 background-position:center top;
                 background-size:auto 92%;
                 opacity:1;
-                filter:saturate(1.08) contrast(1.04) brightness(1.01);
+                filter:saturate(1.1) contrast(1.075) brightness(.975);
             }
             #fatcat-dom-factory .factory-illustration:after { display:none; }
             #fatcat-dom-factory .roof-deck,
@@ -468,11 +468,32 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
                 height:46%;
                 grid-template-columns:38% 1fr;
                 border-radius:10px;
-                border-width:2px;
-                box-shadow:0 3px 0 rgba(0,0,0,.3),inset 0 0 0 2px rgba(255,255,255,.34);
+                border:2px solid #755438;
+                background:
+                    repeating-linear-gradient(92deg,rgba(104,65,35,.035) 0 1px,transparent 1px 7px),
+                    linear-gradient(#fff2d5,#d8b98a);
+                box-shadow:
+                    0 3px 0 rgba(0,0,0,.34),
+                    0 0 0 1px rgba(48,29,18,.56),
+                    inset 0 0 0 2px rgba(255,255,255,.42),
+                    inset 0 -7px 10px rgba(105,68,37,.1);
             }
             #fatcat-dom-factory .floor-card:before,
-            #fatcat-dom-factory.compact .floor-card:before { width:38%; }
+            #fatcat-dom-factory.compact .floor-card:before {
+                width:38%;
+                background:
+                    repeating-linear-gradient(90deg,rgba(255,234,186,.07) 0 1px,transparent 1px 6px),
+                    linear-gradient(#92704f,#5c432f);
+                box-shadow:inset -2px 0 0 rgba(255,231,181,.16);
+            }
+            #fatcat-dom-factory .floor-card:after {
+                content:"";
+                position:absolute;
+                inset:5%;
+                border:1px solid rgba(100,68,39,.2);
+                border-radius:7px;
+                pointer-events:none;
+            }
             #fatcat-dom-factory .floor-no,
             #fatcat-dom-factory.compact .floor-no { font-size:3.3%; }
             #fatcat-dom-factory .floor-name,
@@ -491,8 +512,37 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
                 column-gap:5%;
                 padding:0 3%;
                 border-radius:10px;
-                border-width:2px;
+                border:2px solid #a98755;
+                background:
+                    radial-gradient(circle at 14% 7%,rgba(255,220,146,.15),transparent 30%),
+                    linear-gradient(#403c35,#181a18 76%,#111311);
                 font-size:1.25%;
+                box-shadow:
+                    0 4px 0 rgba(0,0,0,.4),
+                    0 0 0 1px rgba(46,31,19,.68),
+                    inset 0 0 0 2px rgba(255,222,151,.13),
+                    inset 0 12px 16px rgba(255,225,161,.045);
+            }
+            #fatcat-dom-factory .bonus:before {
+                content:"";
+                position:absolute;
+                left:7%;
+                right:7%;
+                top:6%;
+                height:2px;
+                border-radius:999px;
+                background:linear-gradient(90deg,transparent,rgba(255,222,153,.38),transparent);
+            }
+            #fatcat-dom-factory .bonus:after {
+                content:"";
+                position:absolute;
+                right:6%;
+                top:9%;
+                width:5%;
+                aspect-ratio:1;
+                border-radius:50%;
+                background:#83ad48;
+                box-shadow:0 0 5px rgba(153,213,80,.66),inset 0 1px rgba(255,255,255,.35);
             }
             #fatcat-dom-factory .bonus-icon { grid-row:1/4; width:90%; }
             #fatcat-dom-factory .bonus strong {
@@ -532,6 +582,18 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
             #fatcat-dom-factory.compact .rocket-shape { width:22%; margin-right:3%; }
             #fatcat-dom-factory.compact .rocket-shape.asset { width:32%; margin-right:0; }
             #fatcat-dom-factory.compact .side-btn i.asset { width:62%; margin-bottom:4%; }
+            #fatcat-dom-factory .side-btn {
+                border-color:#4b3424;
+                background:
+                    radial-gradient(circle at 50% 0,rgba(255,235,183,.2),transparent 34%),
+                    repeating-linear-gradient(90deg,rgba(255,224,170,.035) 0 1px,transparent 1px 6px),
+                    linear-gradient(#927250,#4d3828 72%,#2e2119);
+                box-shadow:
+                    0 5px 0 rgba(0,0,0,.4),
+                    0 0 0 1px rgba(32,20,14,.52),
+                    inset 0 2px 0 rgba(255,242,203,.22),
+                    inset 0 0 0 2px rgba(255,232,185,.1);
+            }
             #fatcat-dom-factory .launch-count,
             #fatcat-dom-factory.wide .launch-count {
                 bottom:6.45%;

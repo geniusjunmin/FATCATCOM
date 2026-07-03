@@ -19,21 +19,27 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory and the seven-node leveled research tree now include dedicated art and progression; next refine the main HUD and factory-room richness. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main HUD/factory materials and feature panels are aligned; next make the six live floor cards direct building-detail entry points. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
 
 ## P0 Now
 
-### 0. Next Main-Screen Visual Batch
+### 0. Next Main-Floor Interaction Batch
 
-- Re-measure `主页面.png` against the four current main screenshots before moving any geometry.
-- Refine the company card and four resource pills with stronger wood/metal depth, icon framing, plus-button contrast, and exact narrow-screen containment.
-- Increase visible room richness through restrained live overlays or generated room details only where the existing factory cutaway is sparse; do not obscure the primary artwork.
-- Improve rooftop sign, pipe, flag, clock, and floor-card hierarchy while keeping all values/actions live DOM content.
-- Preserve the verified factory/operation/nav height bands and all 360x800, 414x896, 430x932, and 768x1024 guards.
-- Run main screenshots, the complete 18-step click path, focused TypeScript diagnostics, Cocos asset refresh, and `quick-verify.ps1`.
+- Turn each of the six `.floor-card` elements into a clear touch target without nesting controls or obscuring room art.
+- Route a selected floor directly to the existing building-detail panel and preselect the matching authoritative building id.
+- Preserve bottom-nav building entry behavior, online/offline upgrade boundaries, and current floor-card dimensions.
+- Add selected/pressed/focus-visible feedback that matches the parchment/wood material instead of introducing a new visual language.
+- Extend click regression to visit all six floor cards and verify the matching building id, title, level, and room art.
+- Re-run all four main and feature sizes plus the complete navigation and verification gates.
+
+### Completed: Main HUD And Factory Material Pass
+
+- Company paper/wood framing, four recessed resource wells, bronze plus controls, floor parchment frames, dark production cards, green run lights, and carved side buttons now match `主页面.png` more closely.
+- The generated cutaway remains unobscured and receives only a warm contrast treatment.
+- Four-size regression guards exact resource markers/art, five side tools, material hooks, touch dimensions, and unchanged factory/operation/navigation proportions.
 
 ### Completed: Research Node Art And Level Rings
 

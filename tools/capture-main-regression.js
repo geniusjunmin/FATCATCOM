@@ -72,6 +72,9 @@ const sizes = [
             const building = rect("#fatcat-dom-factory .building");
             const bottomWidgets = rect("#fatcat-dom-factory .bottom-widgets");
             const navBar = rect("#fatcat-dom-nav .nav-bar");
+            const firstFloorCard = document.querySelector("#fatcat-dom-factory .floor-card");
+            const firstBonus = document.querySelector("#fatcat-dom-factory .bonus");
+            const factoryIllustration = document.querySelector("#fatcat-dom-factory .factory-illustration");
             const diamondValue = document.querySelector("#fatcat-dom-hud .res.diamond .value")?.textContent?.trim() ?? "";
             const ratio = (part, whole) => part && whole
                 ? Math.round(part / whole * 10000) / 10000
@@ -79,9 +82,22 @@ const sizes = [
 
             return {
                 resourceCount: document.querySelectorAll("#fatcat-dom-hud .res").length,
+                resourceKinds: Array.from(document.querySelectorAll("#fatcat-dom-hud .res"))
+                    .map(element => element.getAttribute("data-resource-kind")),
+                embeddedResourceIcons: Array.from(document.querySelectorAll("#fatcat-dom-hud .icon.asset"))
+                    .filter(element => getComputedStyle(element).backgroundImage.startsWith('url("data:image/png;base64,')).length,
+                resourceMaterial: getComputedStyle(document.querySelector("#fatcat-dom-hud .res")).backgroundImage,
                 domCanvasHidden: document.querySelector("canvas")?.style.opacity === "0",
                 floorCount: document.querySelectorAll("#fatcat-dom-factory .floor").length,
                 roomDecorCount: document.querySelectorAll("#fatcat-dom-factory .room-decor").length,
+                sideButtonCount: document.querySelectorAll("#fatcat-dom-factory .side-btn").length,
+                sideButtonIconCount: document.querySelectorAll("#fatcat-dom-factory .side-btn i.asset").length,
+                sideButton: rect("#fatcat-dom-factory .side-btn"),
+                factoryFilter: factoryIllustration ? getComputedStyle(factoryIllustration).filter : "",
+                floorCardMaterial: firstFloorCard ? getComputedStyle(firstFloorCard).backgroundImage : "",
+                floorCardInnerFrame: firstFloorCard ? getComputedStyle(firstFloorCard, "::after").content : "none",
+                bonusMaterial: firstBonus ? getComputedStyle(firstBonus).backgroundImage : "",
+                bonusStatusLight: firstBonus ? getComputedStyle(firstBonus, "::after").content : "none",
                 hasLaunch: document.body.innerText.includes("发射猫咪"),
                 hasCats: document.body.innerText.includes("猫咪"),
                 hasSettings: document.body.innerText.includes("设置"),
@@ -121,8 +137,21 @@ const sizes = [
         entry.messages.length
         || entry.failedRequests.length
         || entry.state.resourceCount < 4
+        || entry.state.resourceKinds.join(",") !== "coin,bean,food,diamond"
+        || entry.state.embeddedResourceIcons !== 4
+        || !entry.state.resourceMaterial.includes("linear-gradient")
         || !entry.state.domCanvasHidden
         || entry.state.floorCount < 6
+        || entry.state.sideButtonCount !== 5
+        || entry.state.sideButtonIconCount !== 5
+        || !entry.state.sideButton
+        || entry.state.sideButton.width < 28
+        || entry.state.sideButton.height < 48
+        || !entry.state.factoryFilter.includes("contrast(1.075)")
+        || !entry.state.floorCardMaterial.includes("linear-gradient")
+        || entry.state.floorCardInnerFrame === "none"
+        || !entry.state.bonusMaterial.includes("linear-gradient")
+        || entry.state.bonusStatusLight === "none"
         || !entry.state.hasLaunch
         || !entry.state.hasCats
         || !entry.state.hasSettings

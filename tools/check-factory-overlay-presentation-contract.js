@@ -43,6 +43,15 @@ for (const selector of [
 ]) {
   assertContains(`factory styles include ${selector}`, presentation, selector);
 }
+for (const token of [
+  "contrast(1.075)",
+  "repeating-linear-gradient(92deg",
+  ".floor-card:after",
+  ".bonus:after",
+  "background:#83ad48",
+]) {
+  assertContains(`factory target material includes ${token}`, presentation, token);
+}
 
 for (const forbidden of [
   "#fatcat-dom-hud",

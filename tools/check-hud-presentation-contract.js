@@ -43,12 +43,21 @@ for (const name of [
 for (const label of ["金币", "咖啡豆", "猫粮", "钻石", "#fatcat-dom-hud", "compact.tall"]) {
   assertContains(`HUD presentation includes ${label}`, presentation, label);
 }
+for (const token of [
+  "repeating-linear-gradient(92deg",
+  "linear-gradient(#5a493b",
+  "drop-shadow(0 3px 0",
+  "linear-gradient(#f5aa33",
+]) {
+  assertContains(`HUD target material includes ${token}`, presentation, token);
+}
 
 assertContains("BottomNavUI imports HUD presentation", bottomNav, "from \"./HudPresentation\"");
 assertContains("BottomNavUI applies HUD styles", bottomNav, "style.textContent = DOM_HUD_STYLES;");
 assertContains("BottomNavUI uses company constant", bottomNav, "${HUD_COMPANY_NAME}");
 assertContains("BottomNavUI uses resource config", bottomNav, "HUD_RESOURCE_ITEMS.map");
 assertContains("BottomNavUI uses typed HUD resource kind", bottomNav, "kind: HudResourceKind");
+assertContains("BottomNavUI exposes resource kind marker", bottomNav, 'data-resource-kind="${kind}"');
 assertNotContains("BottomNavUI no inline HUD CSS", bottomNav, "#fatcat-dom-hud { position: fixed;");
 assertNotContains("BottomNavUI no hard-coded HUD company", bottomNav, "<div class=\"company\">肥猫咖啡公司</div>");
 assertNotContains("BottomNavUI no hard-coded HUD resource row", bottomNav, "this.renderHudResource(\"coin\", \"金币\"");

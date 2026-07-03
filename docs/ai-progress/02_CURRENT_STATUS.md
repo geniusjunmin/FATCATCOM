@@ -7,7 +7,7 @@ Updated: 2026-07-03
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Return to the main screen: refine HUD material hierarchy and factory-room richness against `主页面.png` without changing responsive geometry. |
+| Best Next Move | Make each main-screen floor card open its matching building detail directly, preserving the newly verified target geometry and material pass. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -26,6 +26,11 @@ Updated: 2026-07-03
 
 ## Client UI
 
+- Latest main-screen material pass keeps the measured target geometry intact while strengthening visual depth against `主页面.png`. The company card gains subtle paper grain and a stronger double frame; resource pills now use recessed charcoal wells, bronze rims, brighter external icons, ivory values, and layered orange plus controls.
+- The generated factory cutaway remains the only room-art source. A restrained `saturate(1.1) contrast(1.075) brightness(.975)` treatment restores warm wood depth without adding duplicate machines or cats over the artwork.
+- Live floor cards now use parchment grain, dark wood side rails, an inset frame, and stronger shadows. Production bonus cards use darker metal, a gold edge, top highlight, and a green running light; utility side buttons share the same carved wood material.
+- `renderHudResource()` exposes stable `data-resource-kind` markers. Main regression now requires the exact four resource kinds, four embedded icons, five side tools and icons, minimum touch geometry, material hooks, six floor frames/status lights, unchanged building/operation/nav ratios, clean runtime logs, and text containment.
+- Verified in the in-app preview and visually at 360x800, 414x896, 430x932, and 768x1024. Main screenshot regression, the 18-step navigation path, four-size utility entry regression, Cocos refresh, `quick-verify.ps1`, and 90/90 server tests all pass.
 - Latest research-art pass gives every real node a dedicated 384px transparent symbol: first/advanced extraction, first/advanced roasting, cheaper upgrades, advanced fermentation, and ultimate espresso. `GeneratedResearchArtAssets.nodes` and `getResearchNodeAsset(researchId, effectType)` own id-first resolution with the old effect medals retained as fallback.
 - Each tree node now renders a stable circular level ring from authoritative `level/maxLevel`, exposes `data-research-maxed`, and has separate available, progressing, locked, and maxed treatments. The selected detail follows the same node-specific art instead of repeating one of three effect medals.
 - The seven images were generated individually with the built-in image tool from `其他页面.png` and the existing research medal as style references. Prompts requested warm hand-painted brass coffee machinery, bold 32px silhouettes, no text/UI, and flat magenta keys. Chroma removal, 384px resizing, alpha bounds, transparent-corner checks, and visual contact-sheet review passed.

@@ -99,10 +99,15 @@ export const DOM_HUD_STYLES = `            #fatcat-dom-hud { position: fixed; z-
                 grid-template-columns:31% 1fr;
                 padding:0 3.0% 0 1.2%;
                 background:
+                    repeating-linear-gradient(92deg,rgba(113,72,36,.035) 0 1px,transparent 1px 7px),
                     radial-gradient(circle at 21% 15%, rgba(255,255,255,.72), transparent 23%),
                     linear-gradient(#f2dfb8 0 54%, #c49b66 55%, #7e5b3e);
                 border-color:#8b6848;
-                box-shadow:0 5px 0 rgba(0,0,0,.34), inset 0 0 0 3px rgba(255,248,220,.36), inset 0 -10px 16px rgba(82,49,25,.17);
+                box-shadow:
+                    0 5px 0 rgba(0,0,0,.34),
+                    0 0 0 1px rgba(62,39,23,.5),
+                    inset 0 0 0 3px rgba(255,248,220,.42),
+                    inset 0 -10px 16px rgba(82,49,25,.2);
             }
             #fatcat-dom-hud .player span {
                 position:relative;
@@ -149,6 +154,49 @@ export const DOM_HUD_STYLES = `            #fatcat-dom-hud { position: fixed; z-
             }
             #fatcat-dom-hud .res {
                 grid-template-columns:24% minmax(0,1fr) 18.5%;
+                background:
+                    radial-gradient(circle at 8% 18%,rgba(255,233,169,.28),transparent 18%),
+                    linear-gradient(#5a493b 0 12%,#302720 13% 72%,#201914 73%);
+                border-color:#9b7042;
+                box-shadow:
+                    0 4px 0 rgba(28,17,10,.42),
+                    0 0 0 1px rgba(55,34,20,.74),
+                    inset 0 2px 0 rgba(255,230,176,.28),
+                    inset 0 0 0 2px rgba(232,181,111,.1),
+                    inset 0 -7px 10px rgba(9,7,5,.22);
+            }
+            #fatcat-dom-hud .res:before {
+                left:24%;
+                right:20%;
+                top:10%;
+                height:13%;
+                background:linear-gradient(90deg,rgba(255,240,201,.22),rgba(255,255,255,0));
+            }
+            #fatcat-dom-hud .res:after {
+                right:18.5%;
+                top:15%;
+                bottom:15%;
+                background:rgba(237,191,122,.23);
+                box-shadow:-1px 0 rgba(18,11,7,.58);
+            }
+            #fatcat-dom-hud .icon.asset {
+                filter:
+                    drop-shadow(0 3px 0 rgba(30,17,8,.48))
+                    drop-shadow(0 0 2px rgba(255,222,155,.3));
+            }
+            #fatcat-dom-hud .value {
+                color:#fff7e6;
+                text-shadow:0 2px 0 #1a100b,0 0 3px rgba(255,232,185,.18);
+            }
+            #fatcat-dom-hud .plus {
+                border:1px solid rgba(255,223,157,.5);
+                background:
+                    radial-gradient(circle at 38% 18%,rgba(255,244,198,.58),transparent 26%),
+                    linear-gradient(#f5aa33,#d66c11 72%,#9f3e0d);
+                box-shadow:
+                    0 3px 0 rgba(61,30,9,.7),
+                    inset 0 1px 0 rgba(255,245,208,.38),
+                    inset 0 -3px 0 rgba(100,39,10,.2);
             }
             #fatcat-dom-hud.compact .player {
                 width:28.2%;
