@@ -19,21 +19,28 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory and the seven-node leveled research tree match their target structures; next add dedicated node symbols and level-progress treatment. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory and the seven-node leveled research tree now include dedicated art and progression; next refine the main HUD and factory-room richness. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
 
 ## P0 Now
 
-### 0. Next Research Visual Batch
+### 0. Next Main-Screen Visual Batch
 
-- Preserve all seven ids, `1-2-3-1` geometry, multi-parent rules, level migration, cost/effect formulas, and online/offline action boundaries.
-- Create seven dedicated research symbols in the warm brass/coffee target style, with clear silhouettes around 28-40px and no baked text.
-- Map node art by research id instead of repeating only three effect medals; retain effect medals in detail where useful.
-- Add a compact level ring or progress arc that distinguishes 0/10, partial progress, and 10/10 without changing measured card geometry.
-- Give available, locked, progressing, and maxed nodes distinct restrained treatment matching `其他页面.png`; keep locked detail selectable.
-- Extend asset contracts and four-size screenshots to require seven mapped symbols, stable containment, real level labels, and active/max state hooks.
+- Re-measure `主页面.png` against the four current main screenshots before moving any geometry.
+- Refine the company card and four resource pills with stronger wood/metal depth, icon framing, plus-button contrast, and exact narrow-screen containment.
+- Increase visible room richness through restrained live overlays or generated room details only where the existing factory cutaway is sparse; do not obscure the primary artwork.
+- Improve rooftop sign, pipe, flag, clock, and floor-card hierarchy while keeping all values/actions live DOM content.
+- Preserve the verified factory/operation/nav height bands and all 360x800, 414x896, 430x932, and 768x1024 guards.
+- Run main screenshots, the complete 18-step click path, focused TypeScript diagnostics, Cocos asset refresh, and `quick-verify.ps1`.
+
+### Completed: Research Node Art And Level Rings
+
+- Seven id-specific 384px alpha symbols are mapped through `GeneratedResearchArtAssets.nodes` and `getResearchNodeAsset()`.
+- Tree rings consume real `level/maxLevel`; `data-research-maxed` supports max treatment and locked detail remains selectable.
+- Four-size regression requires seven art ids/rings and online regression proves `0% -> 10%` at `Lv.1`.
+- Preserve this mapping, the `1-2-3-1` geometry, multi-parent rules, and online/offline authority boundary.
 
 ### 1. Shared Config And Economy Coverage
 

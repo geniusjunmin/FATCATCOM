@@ -24,13 +24,18 @@ Updated: 2026-07-03
 
 ## Latest UI Note
 
+- Seven dedicated research-node symbols now live under `FATCATUI/assets/resources/textures/generated/items/` as `research_node_*_v1.png`. They are 384x384 alpha PNGs with Cocos metadata and cover all seven ids; do not collapse them back to the three effect medals.
+- `GeneratedResearchArtAssets.nodes` is the registry, and `getResearchNodeAsset(researchId, effectType)` performs id-first lookup with `getResearchMedalAsset()` as fallback. `BottomNavUI` uses node art in both the tree and selected detail.
+- `.research-node-medal` is a fixed-size progress ring driven by `--research-level-progress`; nodes expose `data-research-maxed`. The online regression proves the root ring changes from `0%` to `10%` after server-backed level 1.
+- `capture-feature-regression.js` now requires seven unique art ids, seven rings, seven embedded nodes plus detail art, initial progress/max markers, containment, no overlap, and all seven detail switches at 360x800, 414x896, 430x932, and 768x1024.
+- Asset-generation intent: built-in image tool, `其他页面.png` plus `research_medal_coin_v1.png` references, warm brass coffee machinery, bold small-screen silhouettes, no text/UI, flat `#ff00ff` key. The installed chroma helper removed the key; final alpha/corners/bounds were checked.
+- The next visible batch should return to `主页面.png`: refine HUD material hierarchy and selectively enrich factory-room details while preserving the measured layout bands.
 - Research levels are authoritative. `PlayerResearchState.Level` persists 0-10; runtime SQLite migration maps old unlocked rows to level 1, and legacy client saves infer level 1 when only `isUnlocked` exists.
 - Every definition carries `maxLevel`, `costGrowth`, and `effectStep`. Cost is `floor(base * growth^currentLevel)` and effect is `base + (level - 1) * step`; do not move either formula into presentation constants.
 - `/api/research` returns level/max, next cost, growth, current/next effect, and prerequisites. `ResearchUnlockResponse` returns previous/new level; `SyncManager` applies that level rather than only `isUnlocked`.
 - DOM nodes expose `data-research-level` and `data-research-max-level`. New saves show seven `Lv.0/10` nodes; after online root research the node shows `Lv.1/10`, next cost 135, and +10% -> +11%.
 - Native `ResearchPanel` supports repeated upgrades and max-level disabling. Online calls remain routed through `SyncManager`; offline fallback uses the same formulas through `ResearchManager`.
 - Tests cover real SQLite migration, level-2 cost/economy effect, ten-level max, API metadata, concurrent requests, four-size fresh progression, and online 0 -> 1. Full server count is 90/90.
-- Next visual move is seven dedicated research symbols plus level-progress rings. Preserve node dimensions and all authority/regression hooks.
 - Research has seven real balance/config entries in the target `1-2-3-1` hierarchy; there are no presentation-only placeholders. `RESEARCH_NODE_PRESENTATIONS` owns only display name, tier, and measured position.
 - `ResearchConfig`, `ResearchStateDto`, and `ResearchDefinition` support `parentResearchIds` while retaining `parentResearchId`. The final `res_espresso` requires `res_extract_2`, `res_roast_2`, and `res_ferment_2`; never reduce this to one parent.
 - `renderResearchLines()` emits twelve measured segments. Every node is a selectable real config with `data-research-tier`; locked selection only opens detail and does not bypass `ResearchManager.canUnlock`.

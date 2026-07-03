@@ -1547,7 +1547,52 @@ export const DOM_PANEL_STYLES = `
                 gap:2%;
                 text-align:center;
             }
-            #fatcat-dom-panel-overlay .research-shell .node .node-icon { width:44%; }
+            #fatcat-dom-panel-overlay .research-shell .research-node-medal {
+                position:relative;
+                display:grid;
+                width:48%;
+                aspect-ratio:1;
+                place-items:center;
+                overflow:visible;
+                border:2px solid rgba(247,211,140,.58);
+                border-radius:50%;
+                background:
+                    radial-gradient(circle at 50% 50%,rgba(62,39,24,.96) 0 66%,transparent 68%),
+                    conic-gradient(#f3c663 var(--research-level-progress),rgba(91,63,41,.72) 0);
+                box-shadow:
+                    0 2px 4px rgba(19,10,4,.55),
+                    inset 0 0 0 2px rgba(55,31,18,.7);
+            }
+            #fatcat-dom-panel-overlay .research-shell .research-node-medal::after {
+                position:absolute;
+                inset:8%;
+                z-index:0;
+                border:1px solid rgba(250,222,161,.28);
+                border-radius:50%;
+                content:"";
+                pointer-events:none;
+            }
+            #fatcat-dom-panel-overlay .research-shell .node .node-icon {
+                z-index:1;
+                width:112%;
+                aspect-ratio:1;
+            }
+            #fatcat-dom-panel-overlay .research-shell .node.done .research-node-medal {
+                border-color:#efd17f;
+                box-shadow:0 0 8px rgba(244,193,75,.56),inset 0 0 0 2px rgba(55,31,18,.7);
+            }
+            #fatcat-dom-panel-overlay .research-shell .node[data-research-maxed="true"] .research-node-medal {
+                background:
+                    radial-gradient(circle at 50% 50%,rgba(55,38,22,.96) 0 66%,transparent 68%),
+                    conic-gradient(#a8d35e 0 100%);
+                box-shadow:0 0 10px rgba(150,212,76,.76),inset 0 0 0 2px rgba(55,31,18,.7);
+            }
+            #fatcat-dom-panel-overlay .research-shell .node.locked .research-node-medal {
+                border-color:rgba(154,132,106,.55);
+                background:
+                    radial-gradient(circle at 50% 50%,rgba(48,40,34,.96) 0 66%,transparent 68%),
+                    conic-gradient(rgba(104,91,78,.72) 0 100%);
+            }
             #fatcat-dom-panel-overlay .research-shell .node-copy {
                 display:flex;
                 min-width:0;

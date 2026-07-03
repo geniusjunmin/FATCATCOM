@@ -59,10 +59,13 @@ async function waitForApi() {
 
         const before = await page.evaluate((key) => {
             const save = JSON.parse(localStorage.getItem(key) || "{}");
+            const node = document.querySelector('#fatcat-dom-panel-overlay .node[data-id="res_basic_prod"]');
             return {
                 unlocked: !!save.research?.res_basic_prod?.isUnlocked,
                 level: save.research?.res_basic_prod?.level || 0,
                 researchPoint: save.resources?.researchPoint,
+                levelProgress: node?.style.getPropertyValue("--research-level-progress") || "",
+                art: node?.getAttribute("data-research-art") || "",
             };
         }, saveKey);
 
@@ -71,10 +74,14 @@ async function waitForApi() {
 
         const after = await page.evaluate((key) => {
             const save = JSON.parse(localStorage.getItem(key) || "{}");
+            const node = document.querySelector('#fatcat-dom-panel-overlay .node[data-id="res_basic_prod"]');
             return {
                 unlocked: !!save.research?.res_basic_prod?.isUnlocked,
                 level: save.research?.res_basic_prod?.level || 0,
                 researchPoint: save.resources?.researchPoint,
+                levelProgress: node?.style.getPropertyValue("--research-level-progress") || "",
+                maxed: node?.getAttribute("data-research-maxed") || "",
+                art: node?.getAttribute("data-research-art") || "",
                 message: document.querySelector("#fatcat-dom-panel-overlay .dom-msg")?.textContent || "",
                 text: document.querySelector("#fatcat-dom-panel-overlay")?.textContent || "",
             };
@@ -87,9 +94,14 @@ async function waitForApi() {
             && before.unlocked === false
             && before.level === 0
             && before.researchPoint === 200
+            && before.levelProgress === "0%"
+            && before.art === "res_basic_prod"
             && after.unlocked === true
             && after.level === 1
             && after.researchPoint === 100
+            && after.levelProgress === "10%"
+            && after.maxed === "false"
+            && after.art === "res_basic_prod"
             && after.text.includes("研究同步完成")
             && after.text.includes("Lv.0 → Lv.1")
             && after.text.includes("100")

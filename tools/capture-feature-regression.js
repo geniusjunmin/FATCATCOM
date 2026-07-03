@@ -312,6 +312,11 @@ async function isVisible(page, selector) {
                     .map(element => element.textContent?.trim() || ""),
                 researchLevelLabels: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay button.node .node-copy small"))
                     .map(element => element.textContent?.trim() || ""),
+                researchLevelRings: document.querySelectorAll("#fatcat-dom-panel-overlay .research-node-medal").length,
+                researchLevelProgress: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay button.node"))
+                    .map(element => element.style.getPropertyValue("--research-level-progress")),
+                researchMaxedMarkers: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay button.node"))
+                    .map(element => element.getAttribute("data-research-maxed")),
                 researchTierCounts: [1, 2, 3, 4].map(tier =>
                     document.querySelectorAll(`#fatcat-dom-panel-overlay [data-research-tier="${tier}"]`).length),
                 researchLayout: document.querySelector("#fatcat-dom-panel-overlay .tree")?.getAttribute("data-research-layout") || "",
@@ -438,9 +443,12 @@ async function isVisible(page, selector) {
             || !entry.state.researchNodesInsideTree
             || entry.state.researchNodeOverlaps !== 0
             || entry.state.researchLines !== 12
-            || entry.state.researchArtKinds < 3
+            || entry.state.researchArtKinds !== 7
             || entry.state.embeddedResearchArt < 8
             || !entry.state.researchHeroArt
+            || entry.state.researchLevelRings !== 7
+            || entry.state.researchLevelProgress.join(",") !== "0%,0%,0%,0%,0%,0%,0%"
+            || entry.state.researchMaxedMarkers.join(",") !== "false,false,false,false,false,false,false"
             || !entry.state.researchDetailClearNav
             || !entry.state.researchActionVisible
             || entry.interaction.researchSelectionSwitches !== 7

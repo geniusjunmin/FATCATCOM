@@ -70,6 +70,13 @@ export function getResearchMedalAsset(effectType = ""): string {
     return getDomAssetDataUri(GeneratedResearchArtAssets.medal);
 }
 
+export function getResearchNodeAsset(researchId: string, effectType = ""): string {
+    const nodeAsset = GeneratedResearchArtAssets.nodes[researchId];
+    return nodeAsset
+        ? getDomAssetDataUri(nodeAsset)
+        : getResearchMedalAsset(effectType);
+}
+
 export function getCatFullArtAsset(catId: string, portrait?: string): string {
     if (GeneratedCatFullArtAssets[catId]) return getDomAssetDataUri(GeneratedCatFullArtAssets[catId]);
     if (portrait?.includes("black")) return getDomAssetDataUri(GeneratedCatFullArtAssets.black);

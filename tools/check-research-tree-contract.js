@@ -37,6 +37,7 @@ const dbContext = read("FATCATServer/FatCat.Infrastructure/FatCatDbContext.cs");
 const serviceTests = read("FATCATServer/FatCat.Tests/FatCatGameServiceTests.cs");
 const apiTests = read("FATCATServer/FatCat.Tests/FatCatApiTests.cs");
 const apiSmoke = read("tools/check-server-api.ps1");
+const researchOnline = read("tools/check-research-unlock-online.js");
 const quickVerify = read("tools/quick-verify.ps1");
 
 const expectedIds = [
@@ -106,6 +107,8 @@ requireText("server serializes player research unlocks", service, "ResearchUnloc
 requireText("server API returns prerequisite list", contracts, "IReadOnlyList<string> ParentResearchIds");
 requireText("DOM tree only renders real configs", bottomNav, "configs.map(config => this.renderResearchNode(config.id))");
 requireText("DOM renders authoritative level", bottomNav, 'data-research-level="${level}"');
+requireText("DOM renders research level progress", bottomNav, "--research-level-progress");
+requireText("DOM renders research max state", bottomNav, 'data-research-maxed="${maxed}"');
 if (bottomNav.includes("renderResearchPlaceholderNodes")) {
   fail("Presentation-only research placeholders must not return.");
 }
@@ -117,6 +120,8 @@ requireText("API deep-chain coverage", apiTests, "ResearchUnlock_RequiresAllFina
 requireText("API concurrent unlock coverage", apiTests, "ResearchUnlock_ConcurrentRequestsChargeExactlyOnce");
 requireText("API smoke expects seven research rows", apiSmoke, "$researchRows.Count -ne 7");
 requireText("API smoke checks final prerequisites", apiSmoke, "Research snapshot final-node prerequisites mismatch.");
+requireText("online upgrade checks level ring", researchOnline, 'after.levelProgress === "10%"');
+requireText("online upgrade checks node art", researchOnline, 'after.art === "res_basic_prod"');
 requireText("quick verify registration", quickVerify, "check-research-tree-contract.js");
 
 console.log(JSON.stringify({

@@ -7,7 +7,7 @@ Updated: 2026-07-03
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Give all seven research nodes dedicated target-like symbols and visible level-progress rings while preserving authoritative progression. |
+| Best Next Move | Return to the main screen: refine HUD material hierarchy and factory-room richness against `主页面.png` without changing responsive geometry. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -26,6 +26,11 @@ Updated: 2026-07-03
 
 ## Client UI
 
+- Latest research-art pass gives every real node a dedicated 384px transparent symbol: first/advanced extraction, first/advanced roasting, cheaper upgrades, advanced fermentation, and ultimate espresso. `GeneratedResearchArtAssets.nodes` and `getResearchNodeAsset(researchId, effectType)` own id-first resolution with the old effect medals retained as fallback.
+- Each tree node now renders a stable circular level ring from authoritative `level/maxLevel`, exposes `data-research-maxed`, and has separate available, progressing, locked, and maxed treatments. The selected detail follows the same node-specific art instead of repeating one of three effect medals.
+- The seven images were generated individually with the built-in image tool from `其他页面.png` and the existing research medal as style references. Prompts requested warm hand-painted brass coffee machinery, bold 32px silhouettes, no text/UI, and flat magenta keys. Chroma removal, 384px resizing, alpha bounds, transparent-corner checks, and visual contact-sheet review passed.
+- Four-size feature regression now requires seven unique research art ids, seven embedded node images plus detail art, seven level rings, initial `0%` progress, max-state markers, no overlap, full containment, twelve connectors, and seven detail switches. The online browser check proves the root ring changes `0% -> 10%` after the authoritative `Lv.0 -> Lv.1` upgrade while retaining `res_basic_prod` art.
+- Verified with Cocos asset refresh, actual in-app seven-node clicking, clean browser logs, 360x800/414x896/430x932/768x1024 screenshots, 18-step click regression, online research progression, `quick-verify.ps1`, and 90/90 server tests.
 - Latest research-level pass replaces static `Lv.x/10` copy with persisted progression. `PlayerResearchState.Level` is runtime-migrated onto SQLite; legacy `IsUnlocked=true` rows become level 1, and old local saves infer level 1 without losing effects.
 - All seven definitions declare `maxLevel=10`, `costGrowth=1.35`, and `effectStep=1`. Next cost is `floor(baseCost * 1.35^currentLevel)`; level 1 retains the old effect value and every later level adds one percentage point.
 - `/api/research` now returns level/max, base/next cost, cost growth, base/current/next effect, and prerequisites. Upgrade responses return previous/new level, current/next effect, spend, and authoritative resource balances.

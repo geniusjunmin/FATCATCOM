@@ -29,7 +29,7 @@ import {
     getFeatureIconAsset,
     getGeneratedIconAsset,
     getInventoryPreviewAsset,
-    getResearchMedalAsset,
+    getResearchNodeAsset,
     getShopProductAsset,
     getSkillIconAsset,
 } from "./DomAssetResolver";
@@ -2778,7 +2778,8 @@ export class BottomNavUI extends Component {
         const state = maxed ? "已满级" : canUnlock ? `${ResearchManager.getNextCost(config, level)}点` : "未解锁";
         const tier = presentation?.tier ?? 4;
         const displayName = presentation?.displayName ?? config.name;
-        return `<button class="node ${cls}" style="left:${pos.left}%;top:${pos.top}%" data-action="selectResearch" data-id="${id}" data-research-level="${level}" data-research-max-level="${config.maxLevel}" data-research-tier="${tier}" data-research-art="${config.effectType}"><span class="node-icon asset" style="background-image:url('${getResearchMedalAsset(config.effectType)}')"></span><span class="node-copy"><b>${displayName}</b><small>Lv.${level}/${config.maxLevel}</small><em>${state}</em></span></button>`;
+        const levelProgress = Math.round((level / Math.max(1, config.maxLevel)) * 100);
+        return `<button class="node ${cls}" style="left:${pos.left}%;top:${pos.top}%;--research-level-progress:${levelProgress}%" data-action="selectResearch" data-id="${id}" data-research-level="${level}" data-research-max-level="${config.maxLevel}" data-research-maxed="${maxed}" data-research-tier="${tier}" data-research-art="${id}"><span class="research-node-medal"><span class="node-icon asset" style="background-image:url('${getResearchNodeAsset(id, config.effectType)}')"></span></span><span class="node-copy"><b>${displayName}</b><small>Lv.${level}/${config.maxLevel}</small><em>${state}</em></span></button>`;
     }
 
     private renderResearchDetail(id: string): string {
@@ -2806,7 +2807,7 @@ export class BottomNavUI extends Component {
         const currentEffect = level > 0 ? currentEffectText : "未生效";
         const presentation = RESEARCH_NODE_PRESENTATIONS[id];
         const displayName = presentation?.displayName ?? config.name;
-        return `<div class="item research-hero" data-research-art="${config.effectType}" data-research-detail-level="${level}"><div class="shop-icon asset research-medal-art" style="background-image:url('${getResearchMedalAsset(config.effectType)}')"></div><div><b>${displayName}</b><small class="research-level">Lv.${level}/${config.maxLevel}</small><p>${config.description}</p><span class="research-state">${status}</span></div></div><div class="item research-effect-card"><b>研究效果</b><div class="research-effect-stack"><span><small>当前效果</small><strong>${currentEffect}</strong></span><i>›</i><span class="next"><small>下级效果</small><strong>${nextEffectText}</strong></span></div><div class="research-preview"><span>节点状态<br><b>${status}</b></span><span>研究反馈<br><b>${nextHint}</b></span></div></div><div class="item research-condition-card"><b>研究条件</b><div class="research-parent">前置研究 <strong>${parent}</strong></div><div class="research-cost"><span>研究点 <b>${maxed ? "MAX" : `${this.formatNumber(owned)}/${nextCost}`}</b></span><div class="research-cost-line"><i style="width:${progress}%"></i></div></div>${this.renderResearchButton(config.id)}</div>`;
+        return `<div class="item research-hero" data-research-art="${id}" data-research-detail-level="${level}"><div class="shop-icon asset research-medal-art" style="background-image:url('${getResearchNodeAsset(id, config.effectType)}')"></div><div><b>${displayName}</b><small class="research-level">Lv.${level}/${config.maxLevel}</small><p>${config.description}</p><span class="research-state">${status}</span></div></div><div class="item research-effect-card"><b>研究效果</b><div class="research-effect-stack"><span><small>当前效果</small><strong>${currentEffect}</strong></span><i>›</i><span class="next"><small>下级效果</small><strong>${nextEffectText}</strong></span></div><div class="research-preview"><span>节点状态<br><b>${status}</b></span><span>研究反馈<br><b>${nextHint}</b></span></div></div><div class="item research-condition-card"><b>研究条件</b><div class="research-parent">前置研究 <strong>${parent}</strong></div><div class="research-cost"><span>研究点 <b>${maxed ? "MAX" : `${this.formatNumber(owned)}/${nextCost}`}</b></span><div class="research-cost-line"><i style="width:${progress}%"></i></div></div>${this.renderResearchButton(config.id)}</div>`;
     }
 
     private getResearchIconClass(effectType: string): string {

@@ -83,6 +83,15 @@ export const GeneratedResearchArtAssets = {
     beanEfficiency: `${GENERATED_ROOT}/items/research_medal_bean_v1.png`,
     coinProduction: `${GENERATED_ROOT}/items/research_medal_coin_v1.png`,
     upgradeCost: `${GENERATED_ROOT}/items/research_medal_upgrade_v1.png`,
+    nodes: {
+        res_basic_prod: `${GENERATED_ROOT}/items/research_node_extract_1_v1.png`,
+        res_bean_save: `${GENERATED_ROOT}/items/research_node_roast_1_v1.png`,
+        res_cheap_upgrade: `${GENERATED_ROOT}/items/research_node_cheap_upgrade_v1.png`,
+        res_extract_2: `${GENERATED_ROOT}/items/research_node_extract_2_v1.png`,
+        res_roast_2: `${GENERATED_ROOT}/items/research_node_roast_2_v1.png`,
+        res_ferment_2: `${GENERATED_ROOT}/items/research_node_ferment_2_v1.png`,
+        res_espresso: `${GENERATED_ROOT}/items/research_node_espresso_v1.png`,
+    } as Record<string, string>,
 };
 
 export const GeneratedFeatureIconAssets: Record<string, string> = {

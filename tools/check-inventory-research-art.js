@@ -16,6 +16,13 @@ const relativeAssets = [
   "items/research_medal_bean_v1.png",
   "items/research_medal_coin_v1.png",
   "items/research_medal_upgrade_v1.png",
+  "items/research_node_extract_1_v1.png",
+  "items/research_node_roast_1_v1.png",
+  "items/research_node_cheap_upgrade_v1.png",
+  "items/research_node_extract_2_v1.png",
+  "items/research_node_roast_2_v1.png",
+  "items/research_node_ferment_2_v1.png",
+  "items/research_node_espresso_v1.png",
 ];
 
 function read(relativePath) {
@@ -57,6 +64,8 @@ assertContains("inventory registry", registry, "GeneratedInventoryArtAssets");
 assertContains("research registry", registry, "GeneratedResearchArtAssets");
 assertContains("inventory resolver", resolver, "getInventoryPreviewAsset");
 assertContains("research resolver", resolver, "getResearchMedalAsset");
+assertContains("research node resolver", resolver, "getResearchNodeAsset");
+assertContains("research node registry", registry, "research_node_espresso_v1.png");
 assertContains("coin research mapping", resolver, 'effectType === "coin_production_mult"');
 assertContains("bean research mapping", resolver, 'effectType === "bean_reduce"');
 assertContains("upgrade research mapping", resolver, 'effectType === "upgrade_cost_reduce"');
@@ -80,12 +89,16 @@ assertContains("inventory item category", featurePresentation, '{ id: "item", la
 assertContains("inventory detail kind marker", bottomNav, 'data-detail-kind="${detail.kind}"');
 assertContains("inventory detail rarity badges", bottomNav, "bag-detail-badges");
 assertContains("inventory five-tab layout", panelStyles, "grid-template-columns:repeat(5,minmax(0,1fr))");
-assertContains("research node asset", bottomNav, 'class="node-icon asset"');
+assertContains("research node asset", bottomNav, 'class="research-node-medal"');
 assertContains("research detail asset", bottomNav, "research-medal-art");
-assertContains("research effect marker", bottomNav, 'data-research-art="${config.effectType}"');
+assertContains("research id marker", bottomNav, 'data-research-art="${id}"');
+assertContains("research level progress", bottomNav, "--research-level-progress");
+assertContains("research max level marker", bottomNav, 'data-research-maxed="${maxed}"');
 assertContains("research branch skeleton", bottomNav, 'class="tree-line v"');
 assertContains("dedicated inventory art sizing", panelStyles, ".bag-icon.dedicated-art");
 assertContains("research medal sizing", panelStyles, ".research-medal-art");
+assertContains("research level ring", panelStyles, ".research-node-medal");
+assertContains("research max level ring", panelStyles, 'data-research-maxed="true"');
 assertContains("inventory screenshot guard", capture, "embeddedInventoryArt");
 assertContains("research screenshot guard", capture, "embeddedResearchArt");
 assertContains("inventory interaction guard", capture, "inventoryDetailSwitch");
@@ -94,6 +107,9 @@ assertContains("inventory order guard", capture, "inventoryAllOrder");
 assertContains("research seven-node interaction guard", capture, "researchSelectionSwitches");
 assertContains("research final prerequisite guard", capture, "researchFinalParents");
 assertContains("research branch guard", capture, "researchLines");
+assertContains("research seven-art guard", capture, "researchArtKinds !== 7");
+assertContains("research level ring guard", capture, "researchLevelRings !== 7");
+assertContains("research level progress guard", capture, "researchLevelProgress.join");
 assertContains("quick verify registration", quickVerify, "check-inventory-research-art.js");
 for (const relativeAsset of relativeAssets) {
   assertContains(`DOM generator includes ${relativeAsset}`, generator, `"${relativeAsset}"`);
@@ -103,9 +119,9 @@ console.log(JSON.stringify({
   ok: true,
   assets: relativeAssets,
   checked: [
-    "thirteen 384px transparent inventory/research illustrations",
+    "twenty 384px transparent inventory/research illustrations",
     "registry, resolver, and data URI wiring",
-    "inventory selection and effect-specific research rendering",
+    "inventory selection and node-specific research rendering",
     "four-size visual and interaction regression guards",
   ],
 }, null, 2));
