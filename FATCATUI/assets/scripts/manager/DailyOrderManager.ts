@@ -5,6 +5,7 @@ import { SaveManager } from "./SaveManager";
 
 export type DailyOrderState = DailyOrderSaveData & {
     claimable: boolean;
+    launchesRemaining: number;
     serverTime: number;
 };
 
@@ -16,12 +17,14 @@ export class DailyOrderManager {
         return {
             ...state,
             claimable: state.progress >= state.target && !state.claimed,
+            launchesRemaining: Math.max(0, state.launchLimit - state.launchesUsed),
             serverTime: this.serverTime,
         };
     }
 
     public static apply(dto: DailyOrderDto): DailyOrderState {
         const target = Math.max(1, Math.floor(dto.target || 60));
+        const launchLimit = Math.max(1, Math.floor(dto.launchLimit || 5));
         const next: DailyOrderSaveData = {
             orderDate: dto.orderDate,
             progress: Math.max(0, Math.min(target, Math.floor(dto.progress || 0))),
@@ -29,6 +32,8 @@ export class DailyOrderManager {
             claimed: dto.claimed,
             rewardCoin: Math.max(0, Math.floor(dto.rewardCoin || 0)),
             rewardResearchPoint: Math.max(0, Math.floor(dto.rewardResearchPoint || 0)),
+            launchesUsed: Math.max(0, Math.min(launchLimit, Math.floor(dto.launchesUsed || 0))),
+            launchLimit,
             updatedAt: dto.updatedAt,
         };
         SaveManager.data.featureState.dailyOrder = next;
@@ -39,9 +44,13 @@ export class DailyOrderManager {
         return state;
     }
 
-    public static advanceOffline(amount = 1): DailyOrderState {
+    public static advanceOffline(amount = 1): DailyOrderState | null {
         const current = this.ensureCurrentState();
+        if (current.launchesUsed >= current.launchLimit) {
+            return null;
+        }
         current.progress = Math.min(current.target, current.progress + Math.max(0, Math.floor(amount)));
+        current.launchesUsed++;
         current.updatedAt = Date.now();
         SaveManager.persist();
         const state = this.getState();
@@ -85,6 +94,8 @@ export class DailyOrderManager {
             claimed: false,
             rewardCoin: 1000,
             rewardResearchPoint: 10,
+            launchesUsed: 0,
+            launchLimit: 5,
             updatedAt: Date.now(),
         };
     }

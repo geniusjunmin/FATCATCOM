@@ -43,6 +43,8 @@ export interface DailyOrderSaveData {
     claimed: boolean;
     rewardCoin: number;
     rewardResearchPoint: number;
+    launchesUsed: number;
+    launchLimit: number;
     updatedAt: number;
 }
 

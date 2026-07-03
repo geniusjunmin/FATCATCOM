@@ -38,7 +38,7 @@ public interface IFatCatRepository
     Task<bool> ClaimCoopGoalTierAsync(Guid playerId, int goalDate, int tierTarget, int tierBit, bool markLegacyClaimed, DateTimeOffset now, CancellationToken cancellationToken);
     Task<PlayerDailyOrderState?> GetDailyOrderStateAsync(Guid playerId, CancellationToken cancellationToken);
     Task<PlayerDailyOrderState> EnsureDailyOrderStateAsync(Guid playerId, int orderDate, int initialProgress, DateTimeOffset now, CancellationToken cancellationToken);
-    Task<PlayerDailyOrderState> IncrementDailyOrderProgressAsync(Guid playerId, int orderDate, int initialProgress, int target, DateTimeOffset now, CancellationToken cancellationToken);
+    Task<PlayerDailyOrderState?> TryAdvanceDailyLaunchAsync(Guid playerId, int orderDate, int initialProgress, int target, int launchLimit, DateTimeOffset now, CancellationToken cancellationToken);
     Task<bool> ClaimDailyOrderAsync(Guid playerId, int orderDate, int target, DateTimeOffset now, CancellationToken cancellationToken);
     Task<PlayerSettings?> GetSettingsAsync(Guid playerId, CancellationToken cancellationToken);
     Task SetSettingsAsync(PlayerSettings settings, CancellationToken cancellationToken);

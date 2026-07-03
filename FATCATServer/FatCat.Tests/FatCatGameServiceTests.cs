@@ -1544,6 +1544,10 @@ public sealed class FatCatGameServiceTests
         Assert.Equal(first.BeanBalance, second.BeanBalance);
         Assert.Single(dbContext.LaunchRecords);
         Assert.Single(dbContext.ResourceTransactions.Where(item => item.PlayerId == auth.PlayerId));
+        var dailyOrder = await service.GetDailyOrderAsync(auth.PlayerId, CancellationToken.None);
+        Assert.NotNull(dailyOrder);
+        Assert.Equal(1, dailyOrder!.LaunchesUsed);
+        Assert.Equal(4, dailyOrder.LaunchesRemaining);
         var resources = await dbContext.ResourceStates.FindAsync([auth.PlayerId], CancellationToken.None);
         Assert.NotNull(resources);
         Assert.Equal(12452243, resources!.Coin);
@@ -1600,6 +1604,47 @@ public sealed class FatCatGameServiceTests
         Assert.NotNull(complete);
         Assert.Equal(60, complete!.Progress);
         Assert.True(complete.Claimable);
+    }
+
+    [Fact]
+    public async Task LaunchAsync_EnforcesDailyQuotaAndKeepsReplayIdempotent()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("daily-launch-limit-device", "FatCat"), CancellationToken.None);
+        var request = new LaunchRequest(
+            ClientRequestId: "daily-limit-1",
+            LaunchSeconds: 1,
+            AvailableBean: 8240,
+            Production: new ProductionPreviewRequest(213, 0.25, 4));
+        var accepted = new List<LaunchResponse>();
+        for (var index = 1; index <= 5; index++)
+        {
+            accepted.Add(await service.LaunchAsync(
+                auth.PlayerId,
+                request with { ClientRequestId = $"daily-limit-{index}" },
+                CancellationToken.None));
+        }
+
+        var rejected = await service.LaunchAsync(
+            auth.PlayerId,
+            request with { ClientRequestId = "daily-limit-6" },
+            CancellationToken.None);
+        var replay = await service.LaunchAsync(auth.PlayerId, request, CancellationToken.None);
+
+        Assert.All(accepted, result => Assert.True(result.Accepted));
+        Assert.All(accepted, result => Assert.NotNull(result.DailyOrder));
+        Assert.Equal(0, accepted[^1].DailyOrder!.LaunchesRemaining);
+        Assert.False(rejected.Accepted);
+        Assert.Equal("daily_launch_limit_reached", rejected.RejectedReason);
+        Assert.NotNull(rejected.DailyOrder);
+        Assert.Equal(5, rejected.DailyOrder!.LaunchesUsed);
+        Assert.Equal(0, rejected.DailyOrder.LaunchesRemaining);
+        Assert.True(replay.Accepted);
+        Assert.Equal(accepted[0].LaunchId, replay.LaunchId);
+        Assert.Equal(5, dbContext.LaunchRecords.Count(item => item.PlayerId == auth.PlayerId));
+        Assert.Equal(5, dbContext.ResourceTransactions.Count(item =>
+            item.PlayerId == auth.PlayerId && item.SourceType == "launch"));
     }
 
     [Fact]
@@ -1753,10 +1798,20 @@ public sealed class FatCatGameServiceTests
                     "IsUnlocked" INTEGER NOT NULL,
                     "UpdatedAt" TEXT NOT NULL
                 );
+                CREATE TABLE "DailyOrderStates" (
+                    "PlayerId" TEXT NOT NULL PRIMARY KEY,
+                    "OrderDate" INTEGER NOT NULL,
+                    "Progress" INTEGER NOT NULL,
+                    "IsClaimed" INTEGER NOT NULL,
+                    "UpdatedAt" TEXT NOT NULL
+                );
                 INSERT INTO "Players" ("Id") VALUES ($playerId);
                 INSERT INTO "ResearchStates"
                     ("Id", "PlayerId", "ResearchKey", "IsUnlocked", "UpdatedAt")
                 VALUES ($researchId, $playerId, 'res_basic_prod', 1, '2026-07-03T00:00:00+00:00');
+                INSERT INTO "DailyOrderStates"
+                    ("PlayerId", "OrderDate", "Progress", "IsClaimed", "UpdatedAt")
+                VALUES ($playerId, 20260703, 58, 0, '2026-07-03T00:00:00+00:00');
                 """;
             command.Parameters.AddWithValue("$playerId", playerId.ToString());
             command.Parameters.AddWithValue("$researchId", researchId.ToString());
@@ -1773,8 +1828,13 @@ public sealed class FatCatGameServiceTests
         verify.CommandText = """SELECT "Level" FROM "ResearchStates" WHERE "Id" = $researchId;""";
         verify.Parameters.AddWithValue("$researchId", researchId.ToString());
         var level = Convert.ToInt32(await verify.ExecuteScalarAsync());
+        await using var verifyDailyOrder = connection.CreateCommand();
+        verifyDailyOrder.CommandText = """SELECT "LaunchCount" FROM "DailyOrderStates" WHERE "PlayerId" = $playerId;""";
+        verifyDailyOrder.Parameters.AddWithValue("$playerId", playerId.ToString());
+        var launchCount = Convert.ToInt32(await verifyDailyOrder.ExecuteScalarAsync());
 
         Assert.Equal(1, level);
+        Assert.Equal(0, launchCount);
     }
 
     private static FatCatDbContext CreateDbContext()

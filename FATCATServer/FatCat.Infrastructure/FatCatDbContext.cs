@@ -271,11 +271,17 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
                 "PlayerId" TEXT NOT NULL CONSTRAINT "PK_DailyOrderStates" PRIMARY KEY,
                 "OrderDate" INTEGER NOT NULL,
                 "Progress" INTEGER NOT NULL,
+                "LaunchCount" INTEGER NOT NULL DEFAULT 0,
                 "IsClaimed" INTEGER NOT NULL,
                 "UpdatedAt" TEXT NOT NULL,
                 CONSTRAINT "FK_DailyOrderStates_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
             );
             """, cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "DailyOrderStates",
+            "LaunchCount",
+            """ALTER TABLE "DailyOrderStates" ADD COLUMN "LaunchCount" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS "FriendBoostContributions" (
                 "Id" TEXT NOT NULL CONSTRAINT "PK_FriendBoostContributions" PRIMARY KEY,

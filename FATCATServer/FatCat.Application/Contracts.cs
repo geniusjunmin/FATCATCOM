@@ -515,6 +515,9 @@ public sealed record DailyOrderDto(
     bool Claimed,
     int RewardCoin,
     int RewardResearchPoint,
+    int LaunchesUsed,
+    int LaunchLimit,
+    int LaunchesRemaining,
     long UpdatedAt,
     long ServerTime);
 
@@ -550,4 +553,5 @@ public sealed record LaunchResponse(
     double DiamondBalance,
     double ResearchPointBalance,
     long ServerTime,
-    string? RejectedReason = null);
+    string? RejectedReason = null,
+    DailyOrderDto? DailyOrder = null);

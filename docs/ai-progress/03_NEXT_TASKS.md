@@ -18,7 +18,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
-| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Daily order/chest authority is complete; move the static `5/5` daily launch quota to persisted server state next. |
+| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Daily order/chest and five-launch quota are authoritative; preserve their shared conditional row update. |
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main HUD/factory materials and six direct floor routes now match the target workflow; preserve them while authority work proceeds. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
@@ -26,13 +26,20 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 ## P0 Now
 
-### 0. Next Main Operation Authority Batch
+### 0. Next Authenticated Player Boundary
 
-- Persist a UTC-day launch quota with remaining/maximum launches and reset metadata.
-- Reject launch settlement when the quota is exhausted without changing resources, order progress, launch records, or transactions.
-- Return quota state with launch responses and bootstrap/login synchronization.
-- Render the existing `今日剩余次数：5/5` strip from authority, including a disabled/exhausted launch state.
-- Preserve an explicit offline quota and add service, API concurrency/idempotency, online browser, and four-size state coverage.
+- Validate the guest token currently returned by `/api/auth/guest` and bind it to one player id.
+- Add an authenticated request helper/middleware so gameplay routes cannot operate on another query-string `playerId`.
+- Update `ApiClient` to send the token consistently and migrate endpoints in a controlled batch.
+- Keep CORS/local preview behavior explicit; malformed, absent, and mismatched credentials need API coverage.
+- Add dual-player authorization tests proving one client cannot mutate or read another player's private resources, cats, buildings, research, mail, or daily operation state.
+
+### Completed: Daily Launch Quota Authority
+
+- `LaunchCount` is stored on the UTC daily order row and runtime-migrated for existing SQLite databases.
+- `TryAdvanceDailyLaunchAsync` consumes quota and advances order progress together; per-player settlement gates prevent concurrent over-issue.
+- Five unique launches succeed, the sixth is rejected without mutation, and an idempotent replay still returns its original settlement.
+- `LaunchResponse.dailyOrder`, offline save migration, dynamic `5/5 → 0/5` rendering, exhausted button/hotspot guard, online browser flow, concurrent API coverage, four-size regression, and 97 tests are green.
 
 ### Completed: Daily Order And Chest Authority
 
@@ -130,6 +137,7 @@ Keep these scripts in the regular set when touching related flows:
 - `node tools\check-building-upgrade-online.js`
 - `node tools\check-settings-production-preview-online.js`
 - `node tools\check-launch-production-preview-online.js`
+- `node tools\check-daily-order-online-ui.js`
 
 ## P1 Visual Push
 

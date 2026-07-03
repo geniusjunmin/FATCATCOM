@@ -80,6 +80,8 @@ export class SaveManager {
             parsed.featureState.friendGifts = parsed.featureState.friendGifts ?? {};
             parsed.featureState.friendVisits = parsed.featureState.friendVisits ?? {};
             parsed.featureState.dailyOrder = parsed.featureState.dailyOrder ?? this.createInitialDailyOrder();
+            parsed.featureState.dailyOrder.launchesUsed = parsed.featureState.dailyOrder.launchesUsed ?? 0;
+            parsed.featureState.dailyOrder.launchLimit = parsed.featureState.dailyOrder.launchLimit ?? 5;
             
             for (const catId of Object.keys(parsed.cats)) {
                 const cat = parsed.cats[catId];
@@ -146,6 +148,8 @@ export class SaveManager {
             claimed: false,
             rewardCoin: 1000,
             rewardResearchPoint: 10,
+            launchesUsed: 0,
+            launchLimit: 5,
             updatedAt: Date.now(),
         };
     }

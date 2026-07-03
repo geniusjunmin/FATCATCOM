@@ -1606,4 +1606,56 @@ public sealed class FatCatApiTests
         Assert.Single(transactions.EnumerateArray(), transaction =>
             transaction.GetProperty("sourceType").GetString() == "daily_order_claim");
     }
+
+    [Fact]
+    public async Task Launch_ConcurrentRequestsRespectDailyQuota()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-daily-launch-race-device",
+            companyName = "Launch Race Cafe",
+        });
+        var authBody = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync());
+        var playerId = authBody.RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+        var requests = Enumerable.Range(1, 6).Select(index => new
+        {
+            clientRequestId = $"api-launch-race-{index}",
+            launchSeconds = 1,
+            availableBean = 8240,
+            production = new
+            {
+                grossCoinPerSecond = 213,
+                wageCostPerSecond = 0.25,
+                beanCostPerSecond = 4,
+            },
+        }).ToArray();
+
+        var responses = await Task.WhenAll(requests.Select(request =>
+            client.PostAsJsonAsync($"/api/launch?playerId={playerId}", request)));
+        var accepted = responses
+            .Select((response, index) => new { response, index })
+            .Where(item => item.response.StatusCode == HttpStatusCode.OK)
+            .ToArray();
+        var rejected = Assert.Single(responses, response => response.StatusCode == HttpStatusCode.BadRequest);
+        var rejectedData = JsonDocument.Parse(await rejected.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var orderResponse = await client.GetAsync($"/api/daily-order?playerId={playerId}");
+        var order = JsonDocument.Parse(await orderResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var transactionsResponse = await client.GetAsync($"/api/resources/transactions?playerId={playerId}&limit=10");
+        var transactions = JsonDocument.Parse(await transactionsResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var replay = await client.PostAsJsonAsync(
+            $"/api/launch?playerId={playerId}",
+            requests[accepted[0].index]);
+
+        Assert.Equal(5, accepted.Length);
+        Assert.Equal("daily_launch_limit_reached", rejectedData.GetProperty("rejectedReason").GetString());
+        Assert.Equal(0, rejectedData.GetProperty("dailyOrder").GetProperty("launchesRemaining").GetInt32());
+        Assert.Equal(5, order.GetProperty("launchesUsed").GetInt32());
+        Assert.Equal(5, order.GetProperty("launchLimit").GetInt32());
+        Assert.Equal(0, order.GetProperty("launchesRemaining").GetInt32());
+        Assert.Equal(HttpStatusCode.OK, replay.StatusCode);
+        Assert.Equal(5, transactions.EnumerateArray().Count(transaction =>
+            transaction.GetProperty("sourceType").GetString() == "launch"));
+    }
 }

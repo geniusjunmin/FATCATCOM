@@ -85,6 +85,7 @@ const floorRoutes = [
             const factoryIllustration = document.querySelector("#fatcat-dom-factory .factory-illustration");
             const diamondValue = document.querySelector("#fatcat-dom-hud .res.diamond .value")?.textContent?.trim() ?? "";
             const dailyOrder = document.querySelector("#fatcat-dom-factory .order");
+            const launchCount = document.querySelector("#fatcat-dom-factory .launch-count");
             const ratio = (part, whole) => part && whole
                 ? Math.round(part / whole * 10000) / 10000
                 : null;
@@ -121,6 +122,11 @@ const floorRoutes = [
                 dailyChestClaimable: chest?.getAttribute("data-daily-claimable") ?? "",
                 dailyChestClaimed: chest?.getAttribute("data-daily-claimed") ?? "",
                 dailyChestDisabled: chest instanceof HTMLButtonElement ? chest.disabled : false,
+                dailyLaunchesUsed: launch?.getAttribute("data-launches-used") ?? "",
+                dailyLaunchLimit: launch?.getAttribute("data-launch-limit") ?? "",
+                dailyLaunchesRemaining: launch?.getAttribute("data-launches-remaining") ?? "",
+                dailyLaunchDisabled: launch instanceof HTMLButtonElement ? launch.disabled : false,
+                dailyLaunchCountText: launchCount?.textContent?.trim() ?? "",
                 buildingHeightRatio: ratio(building?.height, canvas?.height),
                 buildingBottomRatio: building && canvas
                     ? Math.round((building.bottom - canvas.top) / canvas.height * 10000) / 10000
@@ -209,6 +215,11 @@ const floorRoutes = [
         || entry.state.dailyChestClaimable !== "false"
         || entry.state.dailyChestClaimed !== "false"
         || !entry.state.dailyChestDisabled
+        || entry.state.dailyLaunchesUsed !== "0"
+        || entry.state.dailyLaunchLimit !== "5"
+        || entry.state.dailyLaunchesRemaining !== "5"
+        || entry.state.dailyLaunchDisabled
+        || entry.state.dailyLaunchCountText !== "今日剩余次数：5/5"
         || entry.state.buildingHeightRatio === null
         || entry.state.buildingHeightRatio < 0.68
         || entry.state.buildingBottomRatio === null

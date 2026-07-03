@@ -1022,11 +1022,17 @@ export class SyncManager {
             availableBean: ResourceManager.get("bean"),
             production: this.createProductionPreviewRequestFromPreview(preview),
         });
+        if (response.data?.dailyOrder) {
+            DailyOrderManager.apply(response.data.dailyOrder);
+        }
         if (!response.ok || !response.data?.accepted) {
-            this.markFailed(response.error ?? response.data?.rejectedReason ?? "launch_failed");
+            if (response.data?.rejectedReason) {
+                this.markReadyAfterServerCall();
+            } else {
+                this.markFailed(response.error ?? "launch_failed");
+            }
             return response.data ?? null;
         }
-        await this.fetchServerDailyOrder();
         this.markReadyAfterServerCall();
         return response.data;
     }

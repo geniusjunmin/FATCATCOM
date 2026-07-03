@@ -372,11 +372,12 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         if (dbContext.Database.IsSqlite())
         {
             await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
-                INSERT INTO "DailyOrderStates" ("PlayerId", "OrderDate", "Progress", "IsClaimed", "UpdatedAt")
-                VALUES ({playerId}, {orderDate}, {initialProgress}, 0, {now})
+                INSERT INTO "DailyOrderStates" ("PlayerId", "OrderDate", "Progress", "LaunchCount", "IsClaimed", "UpdatedAt")
+                VALUES ({playerId}, {orderDate}, {initialProgress}, 0, 0, {now})
                 ON CONFLICT ("PlayerId") DO UPDATE SET
                     "OrderDate" = CASE WHEN "OrderDate" = {orderDate} THEN "OrderDate" ELSE {orderDate} END,
                     "Progress" = CASE WHEN "OrderDate" = {orderDate} THEN "Progress" ELSE {initialProgress} END,
+                    "LaunchCount" = CASE WHEN "OrderDate" = {orderDate} THEN "LaunchCount" ELSE 0 END,
                     "IsClaimed" = CASE WHEN "OrderDate" = {orderDate} THEN "IsClaimed" ELSE 0 END,
                     "UpdatedAt" = CASE WHEN "OrderDate" = {orderDate} THEN "UpdatedAt" ELSE {now} END;
                 """, cancellationToken);
@@ -401,6 +402,7 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         {
             state.OrderDate = orderDate;
             state.Progress = initialProgress;
+            state.LaunchCount = 0;
             state.IsClaimed = false;
             state.UpdatedAt = now;
         }
@@ -408,35 +410,43 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         return state;
     }
 
-    public async Task<PlayerDailyOrderState> IncrementDailyOrderProgressAsync(
+    public async Task<PlayerDailyOrderState?> TryAdvanceDailyLaunchAsync(
         Guid playerId,
         int orderDate,
         int initialProgress,
         int target,
+        int launchLimit,
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
         if (dbContext.Database.IsSqlite())
         {
-            await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
-                INSERT INTO "DailyOrderStates" ("PlayerId", "OrderDate", "Progress", "IsClaimed", "UpdatedAt")
-                VALUES ({playerId}, {orderDate}, {Math.Min(target, initialProgress + 1)}, 0, {now})
-                ON CONFLICT ("PlayerId") DO UPDATE SET
-                    "OrderDate" = {orderDate},
-                    "Progress" = CASE
-                        WHEN "OrderDate" = {orderDate} THEN MIN("Progress" + 1, {target})
-                        ELSE {Math.Min(target, initialProgress + 1)}
-                    END,
-                    "IsClaimed" = CASE WHEN "OrderDate" = {orderDate} THEN "IsClaimed" ELSE 0 END,
-                    "UpdatedAt" = {now};
+            await EnsureDailyOrderStateAsync(playerId, orderDate, initialProgress, now, cancellationToken);
+            var updated = await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE "DailyOrderStates"
+                SET "Progress" = MIN("Progress" + 1, {target}),
+                    "LaunchCount" = "LaunchCount" + 1,
+                    "UpdatedAt" = {now}
+                WHERE "PlayerId" = {playerId}
+                    AND "OrderDate" = {orderDate}
+                    AND "LaunchCount" < {launchLimit}
                 """, cancellationToken);
+            if (updated != 1)
+            {
+                return null;
+            }
             return await dbContext.DailyOrderStates
                 .AsNoTracking()
                 .SingleAsync(state => state.PlayerId == playerId, cancellationToken);
         }
 
         var state = await EnsureDailyOrderStateAsync(playerId, orderDate, initialProgress, now, cancellationToken);
+        if (state.LaunchCount >= launchLimit)
+        {
+            return null;
+        }
         state.Progress = Math.Min(target, state.Progress + 1);
+        state.LaunchCount++;
         state.UpdatedAt = now;
         await dbContext.SaveChangesAsync(cancellationToken);
         return state;

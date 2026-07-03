@@ -13,6 +13,7 @@ public sealed class FatCatGameService(
     private readonly BalanceConfig balance = balanceConfig ?? BalanceConfig.Default;
     private readonly SocialEventBroker socialEvents = socialEventBroker ?? new SocialEventBroker();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> ResearchUnlockGates = new();
+    private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> LaunchSettlementGates = new();
     private const double InitialCoin = 12_450_000;
     private const double InitialBean = 8_240;
     private const double InitialCatFood = 3_510;
@@ -340,30 +341,53 @@ public sealed class FatCatGameService(
 
     public async Task<LaunchResponse> LaunchAsync(Guid playerId, LaunchRequest request, CancellationToken cancellationToken)
     {
+        var gate = LaunchSettlementGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            return await LaunchCoreAsync(playerId, request, cancellationToken);
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    private async Task<LaunchResponse> LaunchCoreAsync(Guid playerId, LaunchRequest request, CancellationToken cancellationToken)
+    {
         if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
         {
             return CreateRejectedLaunch(request, "player_not_found");
         }
 
         var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
+        var now = DateTimeOffset.UtcNow;
+        var orderDate = ToUtcDate(now);
+        var dailyState = await repository.EnsureDailyOrderStateAsync(
+            playerId,
+            orderDate,
+            DailyOrderInitialProgress,
+            now,
+            cancellationToken);
+        var dailyOrder = ToDailyOrderDto(dailyState, now);
         var clientRequestId = NormalizeClientRequestId(request.ClientRequestId);
         var existing = await repository.GetLaunchRecordAsync(playerId, clientRequestId, cancellationToken);
         if (existing is not null)
         {
-            return ToLaunchResponse(existing, resources);
+            return ToLaunchResponse(existing, resources, dailyOrder);
         }
 
         var requestedSeconds = Math.Clamp(request.LaunchSeconds, 0, 600);
         if (requestedSeconds <= 0)
         {
-            return CreateRejectedLaunch(request, "invalid_launch_seconds", resources);
+            return CreateRejectedLaunch(request, "invalid_launch_seconds", resources, dailyOrder: dailyOrder);
         }
 
         var preview = await PreviewServerProductionAsync(playerId, cancellationToken)
             ?? PreviewProduction(request.Production, ProductionModifiers.None);
         if (preview.NetCoinPerSecond <= 0)
         {
-            return CreateRejectedLaunch(request, "no_net_production", resources, requestedSeconds, preview);
+            return CreateRejectedLaunch(request, "no_net_production", resources, requestedSeconds, preview, dailyOrder);
         }
 
         var availableBean = NonNegative(resources.Bean);
@@ -373,19 +397,44 @@ public sealed class FatCatGameService(
         var productiveSeconds = Math.Max(0, Math.Min(requestedSeconds, maxSecondsByBean));
         if (productiveSeconds <= 0)
         {
-            return CreateRejectedLaunch(request, "bean_not_enough", resources, requestedSeconds, preview);
+            return CreateRejectedLaunch(request, "bean_not_enough", resources, requestedSeconds, preview, dailyOrder);
         }
 
         var coinGained = (int)Math.Floor(preview.NetCoinPerSecond * productiveSeconds);
         var beanSpent = (int)Math.Ceiling(preview.BeanCostPerSecond * productiveSeconds);
         if (coinGained <= 0 && beanSpent <= 0)
         {
-            return CreateRejectedLaunch(request, "settlement_empty", resources, requestedSeconds, preview);
+            return CreateRejectedLaunch(request, "settlement_empty", resources, requestedSeconds, preview, dailyOrder);
+        }
+
+        var advancedDailyState = await repository.TryAdvanceDailyLaunchAsync(
+            playerId,
+            orderDate,
+            DailyOrderInitialProgress,
+            DailyOrderTarget,
+            DailyLaunchLimit,
+            now,
+            cancellationToken);
+        if (advancedDailyState is null)
+        {
+            dailyState = await repository.EnsureDailyOrderStateAsync(
+                playerId,
+                orderDate,
+                DailyOrderInitialProgress,
+                now,
+                cancellationToken);
+            return CreateRejectedLaunch(
+                request,
+                "daily_launch_limit_reached",
+                resources,
+                requestedSeconds,
+                preview,
+                ToDailyOrderDto(dailyState, now));
         }
 
         resources.Coin = Math.Max(0, resources.Coin + coinGained);
         resources.Bean = Math.Max(0, resources.Bean - beanSpent);
-        resources.UpdatedAt = DateTimeOffset.UtcNow;
+        resources.UpdatedAt = now;
         await AddResourceTransactionAsync(
             playerId,
             "launch",
@@ -410,19 +459,11 @@ public sealed class FatCatGameService(
             NetCoinPerSecond = preview.NetCoinPerSecond,
             WageCostPerSecond = preview.WageCostPerSecond,
             BeanCostPerSecond = preview.BeanCostPerSecond,
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = now,
         };
         await repository.AddLaunchRecordAsync(record, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
-        var now = DateTimeOffset.UtcNow;
-        await repository.IncrementDailyOrderProgressAsync(
-            playerId,
-            ToUtcDate(now),
-            DailyOrderInitialProgress,
-            DailyOrderTarget,
-            now,
-            cancellationToken);
-        return ToLaunchResponse(record, resources);
+        return ToLaunchResponse(record, resources, ToDailyOrderDto(advancedDailyState, now));
     }
 
     public async Task<SaveSyncResponse> SyncSaveAsync(Guid playerId, SaveSyncRequest request, CancellationToken cancellationToken)
@@ -2018,7 +2059,8 @@ public sealed class FatCatGameService(
         string reason,
         PlayerResourceState? resources = null,
         int? requestedSeconds = null,
-        ProductionPreviewResponse? preview = null)
+        ProductionPreviewResponse? preview = null,
+        DailyOrderDto? dailyOrder = null)
     {
         return new LaunchResponse(
             CreateLaunchId(request.ClientRequestId),
@@ -2036,7 +2078,8 @@ public sealed class FatCatGameService(
             resources?.Diamond ?? 0,
             resources?.ResearchPoint ?? 0,
             DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            reason);
+            reason,
+            dailyOrder);
     }
 
     private static string CreateLaunchId(string? clientRequestId)
@@ -2054,7 +2097,10 @@ public sealed class FatCatGameService(
             : clientRequestId.Trim();
     }
 
-    private static LaunchResponse ToLaunchResponse(PlayerLaunchRecord record, PlayerResourceState resources)
+    private static LaunchResponse ToLaunchResponse(
+        PlayerLaunchRecord record,
+        PlayerResourceState resources,
+        DailyOrderDto? dailyOrder = null)
     {
         return new LaunchResponse(
             record.LaunchKey,
@@ -2071,7 +2117,8 @@ public sealed class FatCatGameService(
             resources.CatFood,
             resources.Diamond,
             resources.ResearchPoint,
-            record.CreatedAt.ToUnixTimeMilliseconds());
+            record.CreatedAt.ToUnixTimeMilliseconds(),
+            DailyOrder: dailyOrder);
     }
 
     private static ResourceStateDto ToResourceStateDto(PlayerResourceState resources)
@@ -2116,6 +2163,9 @@ public sealed class FatCatGameService(
             state.IsClaimed,
             DailyOrderRewardCoin,
             DailyOrderRewardResearchPoint,
+            Math.Clamp(state.LaunchCount, 0, DailyLaunchLimit),
+            DailyLaunchLimit,
+            Math.Max(0, DailyLaunchLimit - state.LaunchCount),
             state.UpdatedAt.ToUnixTimeMilliseconds(),
             now.ToUnixTimeMilliseconds());
     }
@@ -3388,6 +3438,7 @@ public sealed class FatCatGameService(
     private const int DailyOrderTarget = 60;
     private const int DailyOrderRewardCoin = 1_000;
     private const int DailyOrderRewardResearchPoint = 10;
+    private const int DailyLaunchLimit = 5;
     private static readonly TimeSpan FriendHelpDuration = TimeSpan.FromMinutes(30);
     private sealed record ShopItemDefinition(string ShopItemId, string ItemId, string PriceType, int PriceAmount, int LimitDaily);
     private sealed record DecorCatalogDefinition(

@@ -569,6 +569,12 @@ export class BottomNavUI extends Component {
             this.renderDomFactoryOverlay();
             return;
         }
+        const dailyOrder = DailyOrderManager.getState();
+        if (dailyOrder.launchesRemaining <= 0) {
+            this._factoryMessage = "次数已用完 · 明日再来";
+            this.renderDomFactoryOverlay();
+            return;
+        }
         this._launchInProgress = true;
         this._factoryNoticeKind = "";
         this._factoryMessage = NetworkManager.canUseServer ? "正在请求服务端结算预览..." : "";
@@ -588,13 +594,16 @@ export class BottomNavUI extends Component {
                 }, "server_launch");
                 this._factoryMessage = `服务端发射完成：+${this.formatNumber(serverLaunch.coinGained)} 金币，-${this.formatNumber(serverLaunch.beanSpent)} 咖啡豆，净收益 ${this.formatRate(serverLaunch.netCoinPerSecond)}/秒`;
             } else if (serverLaunch && !serverLaunch.accepted) {
-                this._factoryMessage = `服务端发射被拒绝：${serverLaunch.rejectedReason ?? "launch_rejected"}`;
+                this._factoryMessage = serverLaunch.rejectedReason === "daily_launch_limit_reached"
+                    ? "次数已用完 · 明日再来"
+                    : `服务端发射被拒绝：${serverLaunch.rejectedReason ?? "launch_rejected"}`;
+            } else if (NetworkManager.canUseServer) {
+                this._factoryMessage = "服务端发射失败，请检查连接后重试";
             } else {
                 const payload = ProductionManager.settle(10, "manual_launch");
                 if (payload.coinGained > 0) {
                     DailyOrderManager.advanceOffline();
-                    const serverText = NetworkManager.canUseServer ? "，服务端发射失败，已按本地结算" : "";
-                    this._factoryMessage = `发射完成：+${this.formatNumber(payload.coinGained)} 金币，-${this.formatNumber(payload.beanSpent)} 咖啡豆${serverText}`;
+                    this._factoryMessage = `发射完成：+${this.formatNumber(payload.coinGained)} 金币，-${this.formatNumber(payload.beanSpent)} 咖啡豆`;
                 } else {
                     this._factoryMessage = "咖啡豆不足，生产暂停";
                 }
@@ -895,10 +904,10 @@ export class BottomNavUI extends Component {
             <div class="bottom-widgets">
                 <button class="order" data-action="order" data-daily-progress="${dailyOrder.progress}" data-daily-target="${dailyOrder.target}"><span class="order-icon"></span><span class="order-text">今日订单<b>${dailyOrder.progress}/${dailyOrder.target}</b></span><span class="bar"><i style="width:${dailyOrderPercent}%"></i></span></button>
                 <button class="chest ${dailyOrder.claimable ? "ready" : ""} ${dailyOrder.claimed ? "claimed" : ""}" data-action="claim" data-daily-claimable="${dailyOrder.claimable}" data-daily-claimed="${dailyOrder.claimed}" ${dailyOrder.claimable ? "" : "disabled"}><span class="chest-art" style="background-image:url('${this.getFeatureIconAsset("rewardChest")}')"></span>${dailyOrderStatus}</button>
-                <button class="launch" data-action="launch"><span class="rocket-shape asset" style="background-image:url('${this.getFeatureIconAsset("launch")}')"></span>发射猫咪</button>
+                <button class="launch ${dailyOrder.launchesRemaining <= 0 ? "exhausted" : ""}" data-action="launch" data-launches-used="${dailyOrder.launchesUsed}" data-launch-limit="${dailyOrder.launchLimit}" data-launches-remaining="${dailyOrder.launchesRemaining}" ${dailyOrder.launchesRemaining <= 0 ? "disabled" : ""}><span class="rocket-shape asset" style="background-image:url('${this.getFeatureIconAsset("launch")}')"></span>发射猫咪</button>
                 <button class="gift" data-action="gift"><span class="gift-cat asset" style="background-image:url('${this.getCatFullArtAsset("c_005")}')"></span><span><b>超级猫粮礼包</b><br><em>03:25:15</em></span></button>
             </div>
-            <div class="launch-count">今日剩余次数：5/5</div>
+            <div class="launch-count" data-launches-remaining="${dailyOrder.launchesRemaining}" data-launch-limit="${dailyOrder.launchLimit}">今日剩余次数：${dailyOrder.launchesRemaining}/${dailyOrder.launchLimit}</div>
             ${friendBoost.active ? `<div class="friend-boost-banner"><b>好友助力 +${friendBoost.boostPercent}%</b><span class="boost-latest">${friendBoost.boostedByName} · ${Math.max(1, Math.ceil(((friendBoost.boostEndsAt ?? Date.now()) - Date.now()) / 60000))}分钟</span>${activeBoostSources.length > 0 ? `<span class="boost-sources">${activeBoostSources.map(source => `<i>${source.sourceName} +${source.boostPercent}%</i>`).join("")}</span>` : ""}<em class="${coopGoal.claimable ? "ready" : ""}">协作 ${coopGoal.progress}/${coopGoal.target}</em></div>` : ""}
             ${this._factoryMessage ? `<div class="factory-msg">${this._factoryMessage}</div>` : ""}
             ${this.renderFactoryNoticeCard()}
@@ -2950,7 +2959,6 @@ export class BottomNavUI extends Component {
                             : this.formatNumber(resources[item.resourceKey]),
                     )).join("")}
                 </div>
-                ${this._factoryMessage && this.currentPanel === "factory" ? `<div class="factory-msg">${this._factoryMessage}</div>` : ""}
             </div>`;
         this.layoutDomHudOverlay();
     }

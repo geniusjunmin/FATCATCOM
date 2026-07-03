@@ -47,6 +47,9 @@ export type DailyOrderDto = {
     claimed: boolean;
     rewardCoin: number;
     rewardResearchPoint: number;
+    launchesUsed: number;
+    launchLimit: number;
+    launchesRemaining: number;
     updatedAt: number;
     serverTime: number;
 };
@@ -600,6 +603,7 @@ export type LaunchResponse = {
     researchPointBalance: number;
     serverTime: number;
     rejectedReason?: string;
+    dailyOrder?: DailyOrderDto;
 };
 
 export type BootstrapDto = {
