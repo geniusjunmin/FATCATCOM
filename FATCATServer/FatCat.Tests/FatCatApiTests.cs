@@ -1155,7 +1155,7 @@ public sealed class FatCatApiTests
         Assert.Equal(100, data.GetProperty("researchPointSpent").GetInt32());
         Assert.Equal(100, data.GetProperty("researchPointBalance").GetDouble());
         Assert.Equal(HttpStatusCode.OK, snapshot.StatusCode);
-        Assert.Equal(3, snapshotData.GetArrayLength());
+        Assert.Equal(7, snapshotData.GetArrayLength());
         var basic = snapshotData.EnumerateArray().Single(item => item.GetProperty("researchId").GetString() == "res_basic_prod");
         var bean = snapshotData.EnumerateArray().Single(item => item.GetProperty("researchId").GetString() == "res_bean_save");
         Assert.True(basic.GetProperty("isUnlocked").GetBoolean());
@@ -1167,6 +1167,8 @@ public sealed class FatCatApiTests
         Assert.Equal("bean_reduce", bean.GetProperty("effectType").GetString());
         Assert.Equal(5, bean.GetProperty("effectValue").GetInt32());
         Assert.Equal("res_basic_prod", bean.GetProperty("parentResearchId").GetString());
+        var final = snapshotData.EnumerateArray().Single(item => item.GetProperty("researchId").GetString() == "res_espresso");
+        Assert.Equal(3, final.GetProperty("parentResearchIds").GetArrayLength());
         Assert.Equal("research_unlock", transactionData[0].GetProperty("sourceType").GetString());
         Assert.Equal(-100, transactionData[0].GetProperty("researchPointDelta").GetDouble());
     }
@@ -1215,8 +1217,8 @@ public sealed class FatCatApiTests
         Assert.Equal(400, basicData.GetProperty("researchPointBalance").GetDouble());
         Assert.Equal(250, beanData.GetProperty("researchPointBalance").GetDouble());
         Assert.Equal(50, cheapData.GetProperty("researchPointBalance").GetDouble());
-        Assert.Equal(3, snapshotData.GetArrayLength());
-        Assert.All(snapshotData.EnumerateArray(), item => Assert.True(item.GetProperty("isUnlocked").GetBoolean()));
+        Assert.Equal(7, snapshotData.GetArrayLength());
+        Assert.Equal(3, snapshotData.EnumerateArray().Count(item => item.GetProperty("isUnlocked").GetBoolean()));
         Assert.Equal(3, transactionData.GetArrayLength());
         Assert.Equal("res_cheap_upgrade", transactionData[0].GetProperty("sourceKey").GetString());
         Assert.Equal(-200, transactionData[0].GetProperty("researchPointDelta").GetDouble());
@@ -1224,6 +1226,100 @@ public sealed class FatCatApiTests
         Assert.Equal(-150, transactionData[1].GetProperty("researchPointDelta").GetDouble());
         Assert.Equal("res_basic_prod", transactionData[2].GetProperty("sourceKey").GetString());
         Assert.Equal(-100, transactionData[2].GetProperty("researchPointDelta").GetDouble());
+    }
+
+    [Fact]
+    public async Task ResearchUnlock_RequiresAllFinalBranchesThroughApi()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-research-final-device",
+            companyName = "FatCat",
+        });
+        var authBody = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync());
+        var playerId = authBody.RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<FatCatDbContext>();
+            var resources = await db.ResourceStates.FindAsync([playerId], CancellationToken.None);
+            Assert.NotNull(resources);
+            resources!.ResearchPoint = 2500;
+            await db.SaveChangesAsync();
+        }
+
+        foreach (var researchId in new[]
+        {
+            "res_basic_prod",
+            "res_bean_save",
+            "res_cheap_upgrade",
+            "res_extract_2",
+            "res_roast_2",
+        })
+        {
+            var response = await client.PostAsJsonAsync($"/api/research/{researchId}/unlock?playerId={playerId}", new {});
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        var blockedFinal = await client.PostAsJsonAsync($"/api/research/res_espresso/unlock?playerId={playerId}", new {});
+        var ferment = await client.PostAsJsonAsync($"/api/research/res_ferment_2/unlock?playerId={playerId}", new {});
+        var final = await client.PostAsJsonAsync($"/api/research/res_espresso/unlock?playerId={playerId}", new {});
+        var finalData = JsonDocument.Parse(await final.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var snapshot = await client.GetAsync($"/api/research?playerId={playerId}");
+        var snapshotData = JsonDocument.Parse(await snapshot.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var transactions = await client.GetAsync($"/api/resources/transactions?playerId={playerId}&limit=10");
+        var transactionData = JsonDocument.Parse(await transactions.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+
+        Assert.Equal(HttpStatusCode.BadRequest, blockedFinal.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, ferment.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, final.StatusCode);
+        Assert.Equal(500, finalData.GetProperty("researchPointSpent").GetInt32());
+        Assert.Equal(575, finalData.GetProperty("researchPointBalance").GetDouble());
+        Assert.Equal(7, snapshotData.GetArrayLength());
+        Assert.All(snapshotData.EnumerateArray(), item => Assert.True(item.GetProperty("isUnlocked").GetBoolean()));
+        var finalState = snapshotData.EnumerateArray().Single(item => item.GetProperty("researchId").GetString() == "res_espresso");
+        Assert.Equal(
+            new[] { "res_extract_2", "res_roast_2", "res_ferment_2" },
+            finalState.GetProperty("parentResearchIds").EnumerateArray().Select(item => item.GetString()).ToArray());
+        Assert.Equal(7, transactionData.GetArrayLength());
+        Assert.Equal("res_espresso", transactionData[0].GetProperty("sourceKey").GetString());
+        Assert.Equal(-500, transactionData[0].GetProperty("researchPointDelta").GetDouble());
+    }
+
+    [Fact]
+    public async Task ResearchUnlock_ConcurrentRequestsChargeExactlyOnce()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-research-concurrent-device",
+            companyName = "FatCat",
+        });
+        var authBody = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync());
+        var playerId = authBody.RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+
+        var requests = await Task.WhenAll(
+            client.PostAsJsonAsync($"/api/research/res_basic_prod/unlock?playerId={playerId}", new {}),
+            client.PostAsJsonAsync($"/api/research/res_basic_prod/unlock?playerId={playerId}", new {}));
+        var resources = await client.GetAsync($"/api/resources?playerId={playerId}");
+        var resourceData = JsonDocument.Parse(await resources.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var transactions = await client.GetAsync($"/api/resources/transactions?playerId={playerId}&limit=10");
+        var transactionData = JsonDocument.Parse(await transactions.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+
+        Assert.Single(requests, response => response.StatusCode == HttpStatusCode.OK);
+        Assert.Single(requests, response => response.StatusCode == HttpStatusCode.BadRequest);
+        Assert.Equal(100, resourceData.GetProperty("researchPoint").GetDouble());
+        var researchTransactions = transactionData.EnumerateArray()
+            .Where(item => item.GetProperty("sourceType").GetString() == "research_unlock")
+            .ToArray();
+        var transaction = Assert.Single(researchTransactions);
+        Assert.Equal("res_basic_prod", transaction.GetProperty("sourceKey").GetString());
+        Assert.Equal(-100, transaction.GetProperty("researchPointDelta").GetDouble());
     }
 
     [Fact]

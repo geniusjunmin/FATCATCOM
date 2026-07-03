@@ -235,7 +235,8 @@ $researchSnapshot = Read-Json (Invoke-WebRequest -Uri "$ApiBaseUrl/api/research?
 $researchRows = @($researchSnapshot.data)
 $researchBasic = $researchRows | Where-Object { $_.researchId -eq "res_basic_prod" } | Select-Object -First 1
 $researchBean = $researchRows | Where-Object { $_.researchId -eq "res_bean_save" } | Select-Object -First 1
-if ($researchRows.Count -ne 3) {
+$researchFinal = $researchRows | Where-Object { $_.researchId -eq "res_espresso" } | Select-Object -First 1
+if ($researchRows.Count -ne 7) {
     throw "Research snapshot full catalog count mismatch."
 }
 if (-not $researchBasic -or -not $researchBasic.isUnlocked) {
@@ -249,6 +250,16 @@ if (-not $researchBean -or $researchBean.isUnlocked) {
 }
 if ([int]$researchBean.cost -ne 150 -or $researchBean.effectType -ne "bean_reduce" -or [int]$researchBean.effectValue -ne 5 -or $researchBean.parentResearchId -ne "res_basic_prod") {
     throw "Research snapshot bean metadata mismatch."
+}
+if (-not $researchFinal -or $researchFinal.isUnlocked -or [int]$researchFinal.cost -ne 500) {
+    throw "Research snapshot final-node metadata mismatch."
+}
+$finalParents = @($researchFinal.parentResearchIds)
+if ($finalParents.Count -ne 3 `
+    -or $finalParents -notcontains "res_extract_2" `
+    -or $finalParents -notcontains "res_roast_2" `
+    -or $finalParents -notcontains "res_ferment_2") {
+    throw "Research snapshot final-node prerequisites mismatch."
 }
 
 $shopPurchase = Read-Json (Invoke-WebRequest `

@@ -201,7 +201,8 @@ public sealed record ResearchStateDto(
     int Cost,
     string EffectType,
     int EffectValue,
-    string? ParentResearchId);
+    string? ParentResearchId,
+    IReadOnlyList<string> ParentResearchIds);
 
 public sealed record ResearchUnlockRequest(string ResearchId);
 

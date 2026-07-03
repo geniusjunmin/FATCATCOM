@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using FatCat.Domain;
@@ -11,6 +12,7 @@ public sealed class FatCatGameService(
 {
     private readonly BalanceConfig balance = balanceConfig ?? BalanceConfig.Default;
     private readonly SocialEventBroker socialEvents = socialEventBroker ?? new SocialEventBroker();
+    private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> ResearchUnlockGates = new();
     private const double InitialCoin = 12_450_000;
     private const double InitialBean = 8_240;
     private const double InitialCatFood = 3_510;
@@ -940,6 +942,23 @@ public sealed class FatCatGameService(
 
     public async Task<ResearchUnlockResponse?> UnlockResearchAsync(Guid playerId, ResearchUnlockRequest request, CancellationToken cancellationToken)
     {
+        var gate = ResearchUnlockGates.GetOrAdd(playerId, _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            return await UnlockResearchCoreAsync(playerId, request, cancellationToken);
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    private async Task<ResearchUnlockResponse?> UnlockResearchCoreAsync(
+        Guid playerId,
+        ResearchUnlockRequest request,
+        CancellationToken cancellationToken)
+    {
         if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
         {
             return null;
@@ -957,10 +976,12 @@ public sealed class FatCatGameService(
             return null;
         }
 
-        if (!string.IsNullOrWhiteSpace(definition.ParentResearchId)
-            && !await IsResearchUnlockedAsync(playerId, definition.ParentResearchId, cancellationToken))
+        foreach (var parentResearchId in definition.GetParentResearchIds())
         {
-            return null;
+            if (!await IsResearchUnlockedAsync(playerId, parentResearchId, cancellationToken))
+            {
+                return null;
+            }
         }
 
         var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
@@ -3221,7 +3242,8 @@ public sealed class FatCatGameService(
             definition.Cost,
             definition.EffectType,
             definition.EffectValue,
-            definition.ParentResearchId);
+            definition.ParentResearchId,
+            definition.GetParentResearchIds());
     }
 
     private const string DefaultCatId = "c_001";

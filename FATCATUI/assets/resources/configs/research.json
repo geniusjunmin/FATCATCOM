@@ -1,7 +1,7 @@
 [
   {
     "id": "res_basic_prod",
-    "name": "基础增产",
+    "name": "咖啡萃取 I",
     "description": "所有猫咪的金币产量提升 10%",
     "icon": "icon_research_prod",
     "cost": 100,
@@ -10,7 +10,7 @@
   },
   {
     "id": "res_bean_save",
-    "name": "节约咖啡豆",
+    "name": "咖啡烘焙 I",
     "description": "猫咪消耗的咖啡豆降低 5%",
     "icon": "icon_research_bean",
     "cost": 150,
@@ -20,12 +20,59 @@
   },
   {
     "id": "res_cheap_upgrade",
-    "name": "廉价培训",
+    "name": "发酵技术 I",
     "description": "猫咪升级所需的金币降低 5%",
     "icon": "icon_research_upgrade",
     "cost": 200,
     "effectType": "upgrade_cost_reduce",
     "effectValue": 5,
     "parentResearchId": "res_basic_prod"
+  },
+  {
+    "id": "res_extract_2",
+    "name": "咖啡萃取 II",
+    "description": "改良萃取工艺，所有猫咪的金币产量再提升 15%",
+    "icon": "icon_research_prod_2",
+    "cost": 300,
+    "effectType": "coin_production_mult",
+    "effectValue": 15,
+    "parentResearchId": "res_bean_save"
+  },
+  {
+    "id": "res_roast_2",
+    "name": "烘焙技术 II",
+    "description": "融合烘焙与发酵经验，咖啡豆消耗再降低 5%",
+    "icon": "icon_research_bean_2",
+    "cost": 325,
+    "effectType": "bean_reduce",
+    "effectValue": 5,
+    "parentResearchIds": [
+      "res_bean_save",
+      "res_cheap_upgrade"
+    ]
+  },
+  {
+    "id": "res_ferment_2",
+    "name": "发酵技术 II",
+    "description": "标准化培训流程，猫咪升级所需金币再降低 5%",
+    "icon": "icon_research_upgrade_2",
+    "cost": 350,
+    "effectType": "upgrade_cost_reduce",
+    "effectValue": 5,
+    "parentResearchId": "res_cheap_upgrade"
+  },
+  {
+    "id": "res_espresso",
+    "name": "浓缩咖啡",
+    "description": "汇聚三条生产研究路线，所有猫咪的金币产量再提升 20%",
+    "icon": "icon_research_espresso",
+    "cost": 500,
+    "effectType": "coin_production_mult",
+    "effectValue": 20,
+    "parentResearchIds": [
+      "res_extract_2",
+      "res_roast_2",
+      "res_ferment_2"
+    ]
   }
 ]

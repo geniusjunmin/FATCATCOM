@@ -12,19 +12,11 @@ export interface FeaturePosition {
     top: number;
 }
 
-export interface ResearchPlaceholderNode {
-    id: string;
-    name: string;
-    tier: number;
-    position: FeaturePosition;
-    effectType?: string;
-    requirement: string;
-}
-
 export interface ResearchNodePresentation {
     displayName: string;
     tier: number;
     level: string;
+    position: FeaturePosition;
 }
 
 export interface InventoryPreviewCard {
@@ -210,48 +202,12 @@ export const INVENTORY_ALL_SLOTS: InventoryAllSlot[] = [
     { key: "preview:dried-fish" },
 ];
 
-export const RESEARCH_NODE_POSITIONS: FeaturePosition[] = [
-    { left: 35, top: 4 },
-    { left: 8, top: 28 },
-    { left: 62, top: 28 },
-];
-
 export const RESEARCH_NODE_PRESENTATIONS: Record<string, ResearchNodePresentation> = {
-    res_basic_prod: { displayName: "咖啡萃取 I", tier: 1, level: "Lv.5/10" },
-    res_bean_save: { displayName: "咖啡烘焙 I", tier: 2, level: "Lv.3/10" },
-    res_cheap_upgrade: { displayName: "发酵技术 I", tier: 2, level: "Lv.3/10" },
+    res_basic_prod: { displayName: "咖啡萃取 I", tier: 1, level: "Lv.5/10", position: { left: 35, top: 4 } },
+    res_bean_save: { displayName: "咖啡烘焙 I", tier: 2, level: "Lv.3/10", position: { left: 8, top: 28 } },
+    res_cheap_upgrade: { displayName: "发酵技术 I", tier: 2, level: "Lv.3/10", position: { left: 62, top: 28 } },
+    res_extract_2: { displayName: "咖啡萃取 II", tier: 3, level: "Lv.0/10", position: { left: 1, top: 54 } },
+    res_roast_2: { displayName: "烘焙技术 II", tier: 3, level: "Lv.0/10", position: { left: 35, top: 54 } },
+    res_ferment_2: { displayName: "发酵技术 II", tier: 3, level: "Lv.0/10", position: { left: 69, top: 54 } },
+    res_espresso: { displayName: "浓缩咖啡", tier: 4, level: "Lv.0/10", position: { left: 35, top: 79 } },
 };
-
-export const RESEARCH_PLACEHOLDER_NODES: ResearchPlaceholderNode[] = [
-    {
-        id: "res_extract_2",
-        name: "咖啡萃取 II",
-        tier: 3,
-        position: { left: 1, top: 54 },
-        effectType: "coin_production_mult",
-        requirement: "完成基础研究",
-    },
-    {
-        id: "res_roast_2",
-        name: "烘焙技术 II",
-        tier: 3,
-        position: { left: 35, top: 54 },
-        effectType: "bean_reduce",
-        requirement: "完成烘焙技术",
-    },
-    {
-        id: "res_ferment_2",
-        name: "发酵技术 II",
-        tier: 3,
-        position: { left: 69, top: 54 },
-        effectType: "upgrade_cost_reduce",
-        requirement: "完成成本优化",
-    },
-    {
-        id: "res_espresso",
-        name: "浓缩咖啡",
-        tier: 4,
-        position: { left: 35, top: 79 },
-        requirement: "完成第三层研究",
-    },
-];

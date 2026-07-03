@@ -15,6 +15,7 @@ export interface ResearchConfig {
     effectType: ResearchEffectType;
     effectValue: number;
     parentResearchId?: string; // For tree structure
+    parentResearchIds?: string[]; // Multi-branch prerequisites
 }
 
 export interface ResearchSaveData {

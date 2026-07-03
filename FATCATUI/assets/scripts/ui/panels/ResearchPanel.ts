@@ -1,5 +1,7 @@
 import { _decorator, Component, Node, Label, instantiate, Button } from 'cc';
 import { ResearchManager } from "../../manager/ResearchManager";
+import { SyncManager } from "../../manager/SyncManager";
+import { NetworkManager } from "../../manager/NetworkManager";
 import { ResearchConfig } from "../../model/ResearchModel";
 
 const { ccclass, property } = _decorator;
@@ -68,8 +70,11 @@ export class ResearchPanel extends Component {
             if (btnLabel) btnLabel.string = "解锁";
             if (btn) {
                 btn.interactable = true;
-                btn.node.on(Node.EventType.TOUCH_END, () => {
-                    if (ResearchManager.unlock(config.id)) {
+                btn.node.on(Node.EventType.TOUCH_END, async () => {
+                    const unlocked = NetworkManager.canUseServer
+                        ? !!await SyncManager.unlockServerResearch(config.id)
+                        : ResearchManager.unlock(config.id);
+                    if (unlocked) {
                         this.refresh();
                     }
                 });

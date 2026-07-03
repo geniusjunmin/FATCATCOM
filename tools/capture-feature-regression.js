@@ -204,22 +204,39 @@ async function isVisible(page, selector) {
                     && tabStates.all.key === "resource:bean"
                     && tabStates.all.activeTabs === 1;
             } else if (panel === "research") {
-                const effects = ["coin_production_mult", "bean_reduce", "upgrade_cost_reduce"];
+                const researchIds = [
+                    "res_basic_prod",
+                    "res_bean_save",
+                    "res_cheap_upgrade",
+                    "res_extract_2",
+                    "res_roast_2",
+                    "res_ferment_2",
+                    "res_espresso",
+                ];
                 const backgrounds = [];
                 const titles = [];
-                for (const effect of effects) {
-                    await page.click(`#fatcat-dom-panel-overlay .node[data-research-art="${effect}"]`);
+                const selectedIds = [];
+                for (const researchId of researchIds) {
+                    await page.click(`#fatcat-dom-panel-overlay .node[data-id="${researchId}"]`);
                     await page.waitForTimeout(120);
                     const selected = await page.evaluate(() => ({
                         title: document.querySelector("#fatcat-dom-panel-overlay .research-hero b")?.textContent?.trim() || "",
                         background: getComputedStyle(document.querySelector("#fatcat-dom-panel-overlay .research-medal-art")).backgroundImage,
+                        selectedId: document.querySelector("#fatcat-dom-panel-overlay .node.selected")?.getAttribute("data-id") || "",
+                        parentText: document.querySelector("#fatcat-dom-panel-overlay .research-parent strong")?.textContent?.trim() || "",
+                        actionText: document.querySelector("#fatcat-dom-panel-overlay .research-condition-card .tag")?.textContent?.trim() || "",
                     }));
                     titles.push(selected.title);
                     backgrounds.push(selected.background);
+                    selectedIds.push(selected.selectedId);
+                    if (researchId === "res_espresso") {
+                        interaction.researchFinalParents = selected.parentText;
+                        interaction.researchFinalAction = selected.actionText;
+                    }
                 }
-                await page.click('#fatcat-dom-panel-overlay .node[data-research-art="coin_production_mult"]');
+                await page.click('#fatcat-dom-panel-overlay .node[data-id="res_basic_prod"]');
                 await page.waitForTimeout(120);
-                interaction.researchEffectSwitches = new Set(backgrounds).size;
+                interaction.researchSelectionSwitches = new Set(selectedIds).size;
                 interaction.researchTitles = new Set(titles).size;
                 interaction.researchEmbeddedSwitches = backgrounds.filter(value => value.startsWith('url("data:image/png;base64,')).length;
             }
@@ -280,6 +297,7 @@ async function isVisible(page, selector) {
                 })(),
                 researchNodeArt: document.querySelectorAll("#fatcat-dom-panel-overlay .node-icon.asset").length,
                 researchNodes: document.querySelectorAll("#fatcat-dom-panel-overlay .tree .node").length,
+                researchSelectableNodes: document.querySelectorAll("#fatcat-dom-panel-overlay .tree button.node[data-action='selectResearch']").length,
                 researchPlaceholders: document.querySelectorAll("#fatcat-dom-panel-overlay [data-research-placeholder]").length,
                 researchPlaceholderActions: document.querySelectorAll("#fatcat-dom-panel-overlay [data-research-placeholder][data-action]").length,
                 researchDisplayNames: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay button.node .node-copy b"))
@@ -400,22 +418,25 @@ async function isVisible(page, selector) {
         if (entry.panel === "research") return !entry.state.researchSideBySide
             || entry.state.researchNodes !== 7
             || entry.state.researchNodeArt !== 7
-            || entry.state.researchPlaceholders !== 4
+            || entry.state.researchSelectableNodes !== 7
+            || entry.state.researchPlaceholders !== 0
             || entry.state.researchPlaceholderActions !== 0
-            || entry.state.researchDisplayNames.join(",") !== "咖啡萃取 I,咖啡烘焙 I,发酵技术 I"
+            || entry.state.researchDisplayNames.join(",") !== "咖啡萃取 I,咖啡烘焙 I,发酵技术 I,咖啡萃取 II,烘焙技术 II,发酵技术 II,浓缩咖啡"
             || entry.state.researchTierCounts.join(",") !== "1,2,3,1"
             || entry.state.researchLayout !== "1-2-3-1"
             || !entry.state.researchNodesInsideTree
             || entry.state.researchNodeOverlaps !== 0
             || entry.state.researchLines !== 12
-            || entry.state.researchArtKinds < 4
+            || entry.state.researchArtKinds < 3
             || entry.state.embeddedResearchArt < 8
             || !entry.state.researchHeroArt
             || !entry.state.researchDetailClearNav
             || !entry.state.researchActionVisible
-            || entry.interaction.researchEffectSwitches !== 3
-            || entry.interaction.researchTitles !== 3
-            || entry.interaction.researchEmbeddedSwitches !== 3;
+            || entry.interaction.researchSelectionSwitches !== 7
+            || entry.interaction.researchTitles !== 7
+            || entry.interaction.researchEmbeddedSwitches !== 7
+            || entry.interaction.researchFinalParents !== "咖啡萃取 II、烘焙技术 II、发酵技术 II"
+            || entry.interaction.researchFinalAction !== "前置未满";
         return false;
     });
     if (failed) process.exit(1);

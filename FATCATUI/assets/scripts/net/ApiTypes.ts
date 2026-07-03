@@ -209,6 +209,7 @@ export type ResearchStateDto = {
     effectType?: string;
     effectValue?: number;
     parentResearchId?: string | null;
+    parentResearchIds?: string[];
 };
 
 export type ResearchUnlockResponse = {

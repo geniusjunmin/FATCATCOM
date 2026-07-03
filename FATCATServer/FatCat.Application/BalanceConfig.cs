@@ -41,9 +41,13 @@ public sealed class BalanceConfig
     public static BalanceConfig Default { get; } = new(
         new Dictionary<string, ResearchDefinition>
         {
-            ["res_basic_prod"] = new("res_basic_prod", 100, "coin_production_mult", 10, null),
-            ["res_bean_save"] = new("res_bean_save", 150, "bean_reduce", 5, "res_basic_prod"),
-            ["res_cheap_upgrade"] = new("res_cheap_upgrade", 200, "upgrade_cost_reduce", 5, "res_basic_prod"),
+            ["res_basic_prod"] = new("res_basic_prod", 100, "coin_production_mult", 10, null, []),
+            ["res_bean_save"] = new("res_bean_save", 150, "bean_reduce", 5, "res_basic_prod", ["res_basic_prod"]),
+            ["res_cheap_upgrade"] = new("res_cheap_upgrade", 200, "upgrade_cost_reduce", 5, "res_basic_prod", ["res_basic_prod"]),
+            ["res_extract_2"] = new("res_extract_2", 300, "coin_production_mult", 15, "res_bean_save", ["res_bean_save"]),
+            ["res_roast_2"] = new("res_roast_2", 325, "bean_reduce", 5, null, ["res_bean_save", "res_cheap_upgrade"]),
+            ["res_ferment_2"] = new("res_ferment_2", 350, "upgrade_cost_reduce", 5, "res_cheap_upgrade", ["res_cheap_upgrade"]),
+            ["res_espresso"] = new("res_espresso", 500, "coin_production_mult", 20, null, ["res_extract_2", "res_roast_2", "res_ferment_2"]),
         },
         new Dictionary<string, EquipmentDefinition>
         {
@@ -134,10 +138,17 @@ public sealed class BalanceConfig
                 throw new InvalidOperationException($"Research config key '{pair.Key}' does not match id '{pair.Value.ResearchId}'.");
             }
 
-            if (!string.IsNullOrWhiteSpace(pair.Value.ParentResearchId)
-                && !ResearchDefinitions.ContainsKey(pair.Value.ParentResearchId))
+            foreach (var parentResearchId in pair.Value.GetParentResearchIds())
             {
-                throw new InvalidOperationException($"Research '{pair.Key}' references missing parent '{pair.Value.ParentResearchId}'.");
+                if (string.Equals(pair.Key, parentResearchId, StringComparison.Ordinal))
+                {
+                    throw new InvalidOperationException($"Research '{pair.Key}' cannot require itself.");
+                }
+
+                if (!ResearchDefinitions.ContainsKey(parentResearchId))
+                {
+                    throw new InvalidOperationException($"Research '{pair.Key}' references missing parent '{parentResearchId}'.");
+                }
             }
         }
 
@@ -206,7 +217,23 @@ public sealed record ResearchDefinition(
     int Cost,
     string EffectType,
     int EffectValue,
-    string? ParentResearchId);
+    string? ParentResearchId,
+    IReadOnlyList<string>? ParentResearchIds = null)
+{
+    public IReadOnlyList<string> GetParentResearchIds()
+    {
+        var parents = new List<string>();
+        if (ParentResearchIds is not null)
+        {
+            parents.AddRange(ParentResearchIds.Where(parentId => !string.IsNullOrWhiteSpace(parentId)));
+        }
+        if (!string.IsNullOrWhiteSpace(ParentResearchId))
+        {
+            parents.Add(ParentResearchId);
+        }
+        return parents.Distinct(StringComparer.Ordinal).ToArray();
+    }
+}
 
 public sealed record EquipmentDefinition(
     string ItemId,

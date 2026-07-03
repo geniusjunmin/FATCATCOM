@@ -82,9 +82,7 @@ import {
     INVENTORY_ALL_SLOTS,
     INVENTORY_PREVIEW_CARDS,
     INVENTORY_TABS,
-    RESEARCH_NODE_POSITIONS,
     RESEARCH_NODE_PRESENTATIONS,
-    RESEARCH_PLACEHOLDER_NODES,
     SETTINGS_PANEL_ITEMS,
     SHOP_PREVIEW_CATALOGS,
     SHOP_TABS,
@@ -2741,7 +2739,7 @@ export class BottomNavUI extends Component {
             this._selectedResearchId = configs[0].id;
         }
         const selected = configs.find(item => item.id === this._selectedResearchId) ?? configs[0];
-        return `<div class="panel-shell research-shell" data-research-node-count="${configs.length + RESEARCH_PLACEHOLDER_NODES.length}"><h2>研究详情</h2><div class="tabs"><button class="tab active">生产研究</button><button class="tab">经营研究</button><button class="tab">猫咪研究</button><button class="tab">特殊研究</button></div><div class="research-point-strip"><span>咖啡实验室</span><b>研究点 ${this.formatNumber(ResourceManager.get("researchPoint"))}</b></div><div class="list research-view"><div class="tree" data-research-layout="1-2-3-1">${this.renderResearchLines(configs)}${configs.map((config, index) => this.renderResearchNode(config.id, index)).join("")}${this.renderResearchPlaceholderNodes()}</div><div class="research-detail">${this.renderResearchDetail(selected.id)}</div></div></div>`;
+        return `<div class="panel-shell research-shell" data-research-node-count="${configs.length}"><h2>研究详情</h2><div class="tabs"><button class="tab active">生产研究</button><button class="tab">经营研究</button><button class="tab">猫咪研究</button><button class="tab">特殊研究</button></div><div class="research-point-strip"><span>咖啡实验室</span><b>研究点 ${this.formatNumber(ResourceManager.get("researchPoint"))}</b></div><div class="list research-view"><div class="tree" data-research-layout="1-2-3-1">${this.renderResearchLines(configs)}${configs.map(config => this.renderResearchNode(config.id)).join("")}</div><div class="research-detail">${this.renderResearchDetail(selected.id)}</div></div></div>`;
     }
 
     private renderResearchLines(configs: ReturnType<typeof ResearchManager.getAllConfigs>): string {
@@ -2766,38 +2764,32 @@ export class BottomNavUI extends Component {
         ).join("");
     }
 
-    private renderResearchNode(id: string, index: number): string {
+    private renderResearchNode(id: string): string {
         const config = ResearchManager.getAllConfigs().find(item => item.id === id);
         if (!config) return "";
-        const pos = RESEARCH_NODE_POSITIONS[index] ?? RESEARCH_NODE_POSITIONS[RESEARCH_NODE_POSITIONS.length - 1];
+        const presentation = RESEARCH_NODE_PRESENTATIONS[id];
+        const pos = presentation?.position ?? { left: 35, top: 79 };
         const done = ResearchManager.isUnlocked(id);
         const canUnlock = ResearchManager.canUnlock(id);
         const selected = id === this._selectedResearchId;
         const cls = `${done ? "done" : ""} ${!done && !canUnlock ? "locked" : ""} ${selected ? "selected" : ""}`;
         const state = done ? "已完成" : canUnlock ? `${config.cost}点` : "未解锁";
-        const presentation = RESEARCH_NODE_PRESENTATIONS[id];
-        const tier = presentation?.tier ?? (index === 0 ? 1 : 2);
+        const tier = presentation?.tier ?? 4;
         const displayName = presentation?.displayName ?? config.name;
         const level = presentation?.level ?? state;
         return `<button class="node ${cls}" style="left:${pos.left}%;top:${pos.top}%" data-action="selectResearch" data-id="${id}" data-research-tier="${tier}" data-research-art="${config.effectType}"><span class="node-icon asset" style="background-image:url('${getResearchMedalAsset(config.effectType)}')"></span><span class="node-copy"><b>${displayName}</b><small>${level}</small><em>${state}</em></span></button>`;
-    }
-
-    private renderResearchPlaceholderNodes(): string {
-        return RESEARCH_PLACEHOLDER_NODES.map(node => {
-            const art = node.effectType ?? "future_research";
-            return `<div class="node locked placeholder" style="left:${node.position.left}%;top:${node.position.top}%" data-id="${node.id}" data-research-placeholder="true" data-research-tier="${node.tier}" data-research-art="${art}" title="${node.requirement}"><span class="node-icon asset" style="background-image:url('${getResearchMedalAsset(node.effectType)}')"></span><span class="node-copy"><b>${node.name}</b><small>未开放</small></span></div>`;
-        }).join("");
     }
 
     private renderResearchDetail(id: string): string {
         const config = ResearchManager.getAllConfigs().find(item => item.id === id);
         if (!config) return `<div class="item">研究节点不存在</div>`;
         const status = ResearchManager.isUnlocked(id) ? "已解锁" : ResearchManager.canUnlock(id) ? "可研究" : "前置未完成";
-        const parentConfig = config.parentResearchId
-            ? ResearchManager.getAllConfigs().find(item => item.id === config.parentResearchId)
-            : undefined;
-        const parent = config.parentResearchId
-            ? RESEARCH_NODE_PRESENTATIONS[config.parentResearchId]?.displayName ?? parentConfig?.name ?? config.parentResearchId
+        const parentIds = ResearchManager.getParentResearchIds(config);
+        const parent = parentIds.length > 0
+            ? parentIds.map(parentId => {
+                const parentConfig = ResearchManager.getAllConfigs().find(item => item.id === parentId);
+                return RESEARCH_NODE_PRESENTATIONS[parentId]?.displayName ?? parentConfig?.name ?? parentId;
+            }).join("、")
             : "无";
         const effectText = `${this.getResearchEffectLabel(config.effectType)} ${config.effectValue > 0 ? "+" : ""}${config.effectValue}%`;
         const owned = ResourceManager.get("researchPoint");

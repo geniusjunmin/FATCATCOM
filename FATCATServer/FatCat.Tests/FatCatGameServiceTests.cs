@@ -467,7 +467,7 @@ public sealed class FatCatGameServiceTests
         Assert.Equal("bean_reduce", beanResearch.EffectType);
         Assert.Equal(5, beanResearch.EffectValue);
         Assert.Equal("res_basic_prod", beanResearch.ParentResearchId);
-        Assert.Equal(3, research.Count);
+        Assert.Equal(7, research.Count);
         Assert.Equal(3, dbContext.ResourceTransactions.Count(item => item.PlayerId == auth.PlayerId));
         Assert.Equal(-200, dbContext.ResourceTransactions.Single(item => item.SourceKey == "res_cheap_upgrade").ResearchPointDelta);
     }
@@ -506,6 +506,60 @@ public sealed class FatCatGameServiceTests
         Assert.Contains(research, item => item.ResearchId == "res_cheap_upgrade" && item.IsUnlocked);
         Assert.Equal(3, dbContext.ResourceTransactions.Count(item => item.PlayerId == auth.PlayerId));
         Assert.DoesNotContain(dbContext.ResourceTransactions, item => item.SourceKey == "blocked");
+    }
+
+    [Fact]
+    public async Task UnlockResearchAsync_RequiresEveryBranchBeforeFinalResearch()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("research-final-device", "FatCat"), CancellationToken.None);
+        var resources = await dbContext.ResourceStates.FindAsync([auth.PlayerId], CancellationToken.None);
+        Assert.NotNull(resources);
+        resources!.ResearchPoint = 2500;
+        await dbContext.SaveChangesAsync();
+
+        Assert.NotNull(await service.UnlockResearchAsync(auth.PlayerId, new ResearchUnlockRequest("res_basic_prod"), CancellationToken.None));
+        Assert.NotNull(await service.UnlockResearchAsync(auth.PlayerId, new ResearchUnlockRequest("res_bean_save"), CancellationToken.None));
+        Assert.NotNull(await service.UnlockResearchAsync(auth.PlayerId, new ResearchUnlockRequest("res_cheap_upgrade"), CancellationToken.None));
+        Assert.NotNull(await service.UnlockResearchAsync(auth.PlayerId, new ResearchUnlockRequest("res_extract_2"), CancellationToken.None));
+        Assert.NotNull(await service.UnlockResearchAsync(auth.PlayerId, new ResearchUnlockRequest("res_roast_2"), CancellationToken.None));
+
+        var blockedFinal = await service.UnlockResearchAsync(
+            auth.PlayerId,
+            new ResearchUnlockRequest("res_espresso"),
+            CancellationToken.None);
+        var ferment = await service.UnlockResearchAsync(
+            auth.PlayerId,
+            new ResearchUnlockRequest("res_ferment_2"),
+            CancellationToken.None);
+        var final = await service.UnlockResearchAsync(
+            auth.PlayerId,
+            new ResearchUnlockRequest("res_espresso"),
+            CancellationToken.None);
+        var upgrade = await service.UpgradeCatAsync(
+            auth.PlayerId,
+            new CatUpgradeRequest("c_001"),
+            CancellationToken.None);
+        var research = await service.GetResearchAsync(auth.PlayerId, CancellationToken.None);
+
+        Assert.Null(blockedFinal);
+        Assert.NotNull(ferment);
+        Assert.NotNull(final);
+        Assert.Equal(500, final!.ResearchPointSpent);
+        Assert.Equal(575, final.ResearchPointBalance);
+        Assert.NotNull(upgrade);
+        Assert.Equal(90, upgrade!.CoinSpent);
+        Assert.Equal(7, research.Count);
+        Assert.All(research, item => Assert.True(item.IsUnlocked));
+        var finalState = Assert.Single(research, item => item.ResearchId == "res_espresso");
+        Assert.Equal(
+            ["res_extract_2", "res_roast_2", "res_ferment_2"],
+            finalState.ParentResearchIds);
+        Assert.Equal(8, dbContext.ResourceTransactions.Count(item => item.PlayerId == auth.PlayerId));
+        Assert.Equal(
+            -500,
+            dbContext.ResourceTransactions.Single(item => item.SourceKey == "res_espresso").ResearchPointDelta);
     }
 
     [Fact]

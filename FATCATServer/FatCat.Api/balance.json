@@ -5,21 +5,71 @@
       "cost": 100,
       "effectType": "coin_production_mult",
       "effectValue": 10,
-      "parentResearchId": null
+      "parentResearchId": null,
+      "parentResearchIds": []
     },
     "res_bean_save": {
       "researchId": "res_bean_save",
       "cost": 150,
       "effectType": "bean_reduce",
       "effectValue": 5,
-      "parentResearchId": "res_basic_prod"
+      "parentResearchId": "res_basic_prod",
+      "parentResearchIds": [
+        "res_basic_prod"
+      ]
     },
     "res_cheap_upgrade": {
       "researchId": "res_cheap_upgrade",
       "cost": 200,
       "effectType": "upgrade_cost_reduce",
       "effectValue": 5,
-      "parentResearchId": "res_basic_prod"
+      "parentResearchId": "res_basic_prod",
+      "parentResearchIds": [
+        "res_basic_prod"
+      ]
+    },
+    "res_extract_2": {
+      "researchId": "res_extract_2",
+      "cost": 300,
+      "effectType": "coin_production_mult",
+      "effectValue": 15,
+      "parentResearchId": "res_bean_save",
+      "parentResearchIds": [
+        "res_bean_save"
+      ]
+    },
+    "res_roast_2": {
+      "researchId": "res_roast_2",
+      "cost": 325,
+      "effectType": "bean_reduce",
+      "effectValue": 5,
+      "parentResearchId": null,
+      "parentResearchIds": [
+        "res_bean_save",
+        "res_cheap_upgrade"
+      ]
+    },
+    "res_ferment_2": {
+      "researchId": "res_ferment_2",
+      "cost": 350,
+      "effectType": "upgrade_cost_reduce",
+      "effectValue": 5,
+      "parentResearchId": "res_cheap_upgrade",
+      "parentResearchIds": [
+        "res_cheap_upgrade"
+      ]
+    },
+    "res_espresso": {
+      "researchId": "res_espresso",
+      "cost": 500,
+      "effectType": "coin_production_mult",
+      "effectValue": 20,
+      "parentResearchId": null,
+      "parentResearchIds": [
+        "res_extract_2",
+        "res_roast_2",
+        "res_ferment_2"
+      ]
     }
   },
   "equipmentDefinitions": {

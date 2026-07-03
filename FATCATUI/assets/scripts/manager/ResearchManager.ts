@@ -29,7 +29,7 @@ export class ResearchManager {
         if (!config) return false;
         if (this.isUnlocked(id)) return false;
 
-        if (config.parentResearchId && !this.isUnlocked(config.parentResearchId)) {
+        if (this.getParentResearchIds(config).some(parentId => !this.isUnlocked(parentId))) {
             return false;
         }
 
@@ -88,6 +88,13 @@ export class ResearchManager {
         return config ? this.applyServerCatalogOverride(config) : undefined;
     }
 
+    public static getParentResearchIds(config: ResearchConfig): string[] {
+        return Array.from(new Set([
+            ...(config.parentResearchIds ?? []),
+            ...(config.parentResearchId ? [config.parentResearchId] : []),
+        ].filter(parentId => !!parentId)));
+    }
+
     private static applyServerCatalogMetadata(serverResearch: ResearchStateDto): void {
         const override: Partial<ResearchConfig> = {};
         if (Number.isFinite(serverResearch.cost)) override.cost = Math.max(0, Math.floor(serverResearch.cost ?? 0));
@@ -95,6 +102,9 @@ export class ResearchManager {
         if (Number.isFinite(serverResearch.effectValue)) override.effectValue = Math.floor(serverResearch.effectValue ?? 0);
         if (serverResearch.parentResearchId !== undefined) {
             override.parentResearchId = serverResearch.parentResearchId ?? undefined;
+        }
+        if (serverResearch.parentResearchIds !== undefined) {
+            override.parentResearchIds = serverResearch.parentResearchIds.filter(parentId => !!parentId);
         }
         if (Object.keys(override).length > 0) {
             this._serverCatalogOverrides[serverResearch.researchId] = {

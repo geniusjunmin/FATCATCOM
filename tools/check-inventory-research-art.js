@@ -91,7 +91,8 @@ assertContains("research screenshot guard", capture, "embeddedResearchArt");
 assertContains("inventory interaction guard", capture, "inventoryDetailSwitch");
 assertContains("inventory tab guard", capture, "inventoryTabs");
 assertContains("inventory order guard", capture, "inventoryAllOrder");
-assertContains("research interaction guard", capture, "researchEffectSwitches");
+assertContains("research seven-node interaction guard", capture, "researchSelectionSwitches");
+assertContains("research final prerequisite guard", capture, "researchFinalParents");
 assertContains("research branch guard", capture, "researchLines");
 assertContains("quick verify registration", quickVerify, "check-inventory-research-art.js");
 for (const relativeAsset of relativeAssets) {

@@ -28,6 +28,7 @@ function buildBalance() {
       effectType: item.effectType,
       effectValue: item.effectValue,
       parentResearchId: item.parentResearchId ?? null,
+      parentResearchIds: item.parentResearchIds ?? (item.parentResearchId ? [item.parentResearchId] : []),
     })),
     equipmentDefinitions: keyed(equipment, (item) => item.id, (item) => ({
       itemId: item.id,

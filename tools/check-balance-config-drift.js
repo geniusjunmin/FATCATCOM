@@ -45,6 +45,13 @@ for (const research of clientResearch) {
   assertEqual(`research.${research.id}.effectType`, serverItem.effectType, research.effectType, failures);
   assertEqual(`research.${research.id}.effectValue`, serverItem.effectValue, research.effectValue, failures);
   assertEqual(`research.${research.id}.parentResearchId`, serverItem.parentResearchId ?? null, research.parentResearchId ?? null, failures);
+  const clientParents = research.parentResearchIds ?? (research.parentResearchId ? [research.parentResearchId] : []);
+  assertEqual(
+    `research.${research.id}.parentResearchIds`,
+    JSON.stringify(serverItem.parentResearchIds ?? []),
+    JSON.stringify(clientParents),
+    failures,
+  );
 }
 
 for (const id of Object.keys(serverResearch)) {

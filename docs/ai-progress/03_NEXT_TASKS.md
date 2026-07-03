@@ -19,20 +19,21 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory and the seven-node production research tree now match their target structures; next make the preview research nodes authoritative before enabling them. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory and the seven-node authoritative research tree match their target structures; next replace static research level labels with real progression. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
 
 ## P0 Now
 
-### 0. Next Visual Batch
+### 0. Next Research Progression Batch
 
-- Preserve the completed inventory, shop, appearance, and seven-node research layouts plus all existing authoritative actions.
-- Design four new research definitions for the three-node third tier and final node, including stable ids, parents, costs, descriptions, and supported effect types.
-- Add the definitions through the client/server balance pipeline and extend server economy/effect tests before making any preview node clickable.
-- Replace presentation placeholders only after `/api/research`, unlock persistence, resource deduction, and client snapshot synchronization cover all seven nodes.
-- Keep the four-size `1-2-3-1` geometry, no-overlap, embedded-medal, real-effect-switch, action visibility, and navigation-clearance guards green.
+- Preserve the completed inventory, shop, appearance, and seven-node research geometry plus all current authoritative unlock behavior.
+- Add a persisted research level with backward migration from binary unlocked saves; existing unlocked nodes must retain their earned effect.
+- Define max level, next-level research-point cost growth, and effect scaling in the shared balance pipeline rather than presentation constants.
+- Extend `/api/research` and the upgrade action to return current/next level, current/next effect, cost, and authoritative balances with concurrency-safe transactions.
+- Replace static `Lv.x/10` labels and current/research-after copy with snapshot values in both DOM and native Cocos panels.
+- Add service/API migration, repeated-level, max-level, insufficient-resource, and cumulative-effect tests plus four-size level/action regression.
 
 ### 1. Shared Config And Economy Coverage
 
@@ -64,7 +65,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - `/api/cats` now returns the full configured cat catalog with locked defaults and saved player state overlaid.
 - `/api/research` now returns the full configured research catalog with locked defaults and saved player state overlaid.
 - Cat snapshots now include rarity, role, base production, base bean cost, base salary, base weight, and skill id.
-- Research snapshots now include cost, effect type, effect value, and parent research id.
+- Research snapshots now include cost, effect type/value, legacy parent id, and the complete parent-id list.
 - `CatManager`, `ResearchManager`, and the Cocos `ResearchPanel` now consume server catalog metadata through manager-level config overlays.
 - Service/API tests now cover multi-step research chains: blocked second-tier unlocks, successful parent-first unlocks, repeated unlock rejection, full snapshot state, and transaction deltas.
 - Keep offline local play compatible with the same local cat data shape.
