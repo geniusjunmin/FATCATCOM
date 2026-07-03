@@ -7,7 +7,7 @@ Updated: 2026-07-03
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Replace static research `Lv.x/10` labels with persisted server-authoritative research levels, cost growth, and level-scaled effects. |
+| Best Next Move | Give all seven research nodes dedicated target-like symbols and visible level-progress rings while preserving authoritative progression. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -26,6 +26,14 @@ Updated: 2026-07-03
 
 ## Client UI
 
+- Latest research-level pass replaces static `Lv.x/10` copy with persisted progression. `PlayerResearchState.Level` is runtime-migrated onto SQLite; legacy `IsUnlocked=true` rows become level 1, and old local saves infer level 1 without losing effects.
+- All seven definitions declare `maxLevel=10`, `costGrowth=1.35`, and `effectStep=1`. Next cost is `floor(baseCost * 1.35^currentLevel)`; level 1 retains the old effect value and every later level adds one percentage point.
+- `/api/research` now returns level/max, base/next cost, cost growth, base/current/next effect, and prerequisites. Upgrade responses return previous/new level, current/next effect, spend, and authoritative resource balances.
+- DOM and native Cocos panels support repeated upgrades through 10/10. Node label, hero level, current/downstream effect, progress bar, action, and cost all come from `ResearchManager`; only max-level nodes stop upgrading.
+- Service tests prove a second `发酵技术 I` level costs 270, changes the effect 5% -> 6%, and lowers real cat-upgrade cost to 94. Another test completes ten root levels, verifies 19%, `nextCost=0`, and rejects level 11.
+- A real old-schema SQLite test creates a binary-only `ResearchStates` table, runs `EnsureRuntimeSchemaAsync`, and verifies its unlocked row migrates to level 1.
+- Four-size regression requires seven `Lv.0/10` labels on a new save and root detail `未生效 -> 金币产量 +10%` with a 100-point action. Online browser regression proves 0 -> 1, 200 -> 100 points, then next cost 135 and effect +10% -> +11%.
+- Verified with Cocos refresh, four-size feature screenshots, 18-step click regression, online progression, API smoke, `quick-verify.ps1`, and 90/90 server tests.
 - Latest research-authority pass promotes all seven `1-2-3-1` production-tree nodes into real client/server balance definitions. The new third tier and final node have stable ids, costs, descriptions, supported effects, persisted unlock state, resource transactions, and API catalog metadata.
 - Research prerequisites now support both legacy `parentResearchId` and `parentResearchIds`. `烘焙技术 II` requires both second-tier branches; `浓缩咖啡` requires all three third-tier branches. Client offline checks, server validation/unlock, API DTOs, generated balance, and drift checks share this rule.
 - The complete tree costs 1925 research points and yields cumulative bonuses of +45% coin production, -10% bean consumption, and -10% cat-upgrade cost. Service/API deep-chain tests prove the final node is blocked until every branch is complete and successful unlocks alone create transactions.

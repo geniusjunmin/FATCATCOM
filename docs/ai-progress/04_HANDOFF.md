@@ -24,14 +24,20 @@ Updated: 2026-07-03
 
 ## Latest UI Note
 
-- Research now has seven real balance/config entries in the target `1-2-3-1` hierarchy; there are no presentation-only placeholder nodes. `RESEARCH_NODE_PRESENTATIONS` owns only display name, tier, static level label, and measured position.
+- Research levels are authoritative. `PlayerResearchState.Level` persists 0-10; runtime SQLite migration maps old unlocked rows to level 1, and legacy client saves infer level 1 when only `isUnlocked` exists.
+- Every definition carries `maxLevel`, `costGrowth`, and `effectStep`. Cost is `floor(base * growth^currentLevel)` and effect is `base + (level - 1) * step`; do not move either formula into presentation constants.
+- `/api/research` returns level/max, next cost, growth, current/next effect, and prerequisites. `ResearchUnlockResponse` returns previous/new level; `SyncManager` applies that level rather than only `isUnlocked`.
+- DOM nodes expose `data-research-level` and `data-research-max-level`. New saves show seven `Lv.0/10` nodes; after online root research the node shows `Lv.1/10`, next cost 135, and +10% -> +11%.
+- Native `ResearchPanel` supports repeated upgrades and max-level disabling. Online calls remain routed through `SyncManager`; offline fallback uses the same formulas through `ResearchManager`.
+- Tests cover real SQLite migration, level-2 cost/economy effect, ten-level max, API metadata, concurrent requests, four-size fresh progression, and online 0 -> 1. Full server count is 90/90.
+- Next visual move is seven dedicated research symbols plus level-progress rings. Preserve node dimensions and all authority/regression hooks.
+- Research has seven real balance/config entries in the target `1-2-3-1` hierarchy; there are no presentation-only placeholders. `RESEARCH_NODE_PRESENTATIONS` owns only display name, tier, and measured position.
 - `ResearchConfig`, `ResearchStateDto`, and `ResearchDefinition` support `parentResearchIds` while retaining `parentResearchId`. The final `res_espresso` requires `res_extract_2`, `res_roast_2`, and `res_ferment_2`; never reduce this to one parent.
 - `renderResearchLines()` emits twelve measured segments. Every node is a selectable real config with `data-research-tier`; locked selection only opens detail and does not bypass `ResearchManager.canUnlock`.
 - Both DOM and native Cocos research actions call `SyncManager.unlockServerResearch` online and use local fallback only offline. Server rejection must never silently unlock locally.
 - `capture-feature-regression.js` checks seven real nodes/detail switches, `1,2,3,1` tiers, twelve connectors, final three-parent copy, locked final action, no overlap, containment, embedded medals, and nav clearance at all four sizes.
 - Research unlock uses a per-player service gate. The concurrent API test requires exactly one success, one rejection, one deduction, and one ledger row for duplicate simultaneous requests.
-- `check-research-tree-contract.js`, API smoke, online root unlock, service/API deep-chain/concurrency tests, and `quick-verify.ps1` are green with 87/87 server tests.
-- Next safe move is persisted research levels. The visible `Lv.x/10` values are still presentation constants and must not be treated as authoritative until the domain/API/balance migration is implemented.
+- `check-research-tree-contract.js`, API smoke, online level progression, service/API deep-chain/concurrency/level tests, and `quick-verify.ps1` are green with 90/90 server tests.
 - `INVENTORY_ALL_SLOTS` is the visual source of truth for the 20-card all-items screen. Do not revert to `Object.values(save.inventory)` ordering or preview slicing. Slot 2 intentionally prefers the real cat-food pack and falls back to `preview:cat-food-small`; category tabs still enumerate all real inventory.
 - New final props are `inventory_cat_food_small_v1.png`, `inventory_cat_food_large_v1.png`, `inventory_super_food_v1.png`, `inventory_factory_voucher_v1.png`, `inventory_accelerator_v1.png`, and `inventory_dried_fish_v1.png` under `textures/generated/items/`. All are 384x384 alpha PNGs with Cocos metadata.
 - The built-in image tool generated one asset per prompt using `其他页面.png` and `inventory_speed_ticket_v1.png` as style references. Prompt intent: one centered warm hand-painted coffee-game prop, thick dark-brown outline, readable mobile silhouette, flat `#ff00ff` key, no text/shadow/UI. The installed chroma helper removed the key; local checks found transparent corners, bounded subjects, and no magenta fringe.

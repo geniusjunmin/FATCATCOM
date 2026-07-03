@@ -19,21 +19,21 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory and the seven-node authoritative research tree match their target structures; next replace static research level labels with real progression. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory and the seven-node leveled research tree match their target structures; next add dedicated node symbols and level-progress treatment. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
 
 ## P0 Now
 
-### 0. Next Research Progression Batch
+### 0. Next Research Visual Batch
 
-- Preserve the completed inventory, shop, appearance, and seven-node research geometry plus all current authoritative unlock behavior.
-- Add a persisted research level with backward migration from binary unlocked saves; existing unlocked nodes must retain their earned effect.
-- Define max level, next-level research-point cost growth, and effect scaling in the shared balance pipeline rather than presentation constants.
-- Extend `/api/research` and the upgrade action to return current/next level, current/next effect, cost, and authoritative balances with concurrency-safe transactions.
-- Replace static `Lv.x/10` labels and current/research-after copy with snapshot values in both DOM and native Cocos panels.
-- Add service/API migration, repeated-level, max-level, insufficient-resource, and cumulative-effect tests plus four-size level/action regression.
+- Preserve all seven ids, `1-2-3-1` geometry, multi-parent rules, level migration, cost/effect formulas, and online/offline action boundaries.
+- Create seven dedicated research symbols in the warm brass/coffee target style, with clear silhouettes around 28-40px and no baked text.
+- Map node art by research id instead of repeating only three effect medals; retain effect medals in detail where useful.
+- Add a compact level ring or progress arc that distinguishes 0/10, partial progress, and 10/10 without changing measured card geometry.
+- Give available, locked, progressing, and maxed nodes distinct restrained treatment matching `其他页面.png`; keep locked detail selectable.
+- Extend asset contracts and four-size screenshots to require seven mapped symbols, stable containment, real level labels, and active/max state hooks.
 
 ### 1. Shared Config And Economy Coverage
 

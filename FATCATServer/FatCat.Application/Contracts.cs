@@ -197,10 +197,17 @@ public sealed record EquipmentUpgradeResponse(
 public sealed record ResearchStateDto(
     string ResearchId,
     bool IsUnlocked,
+    int Level,
+    int MaxLevel,
     long UpdatedAt,
     int Cost,
+    int NextCost,
+    double CostGrowth,
     string EffectType,
     int EffectValue,
+    int EffectStep,
+    int CurrentEffectValue,
+    int NextEffectValue,
     string? ParentResearchId,
     IReadOnlyList<string> ParentResearchIds);
 
@@ -209,7 +216,12 @@ public sealed record ResearchUnlockRequest(string ResearchId);
 public sealed record ResearchUnlockResponse(
     string ResearchId,
     bool IsUnlocked,
+    int PreviousLevel,
+    int Level,
+    int MaxLevel,
     int ResearchPointSpent,
+    int CurrentEffectValue,
+    int NextEffectValue,
     double CoinBalance,
     double BeanBalance,
     double CatFoodBalance,

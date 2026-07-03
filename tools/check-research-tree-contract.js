@@ -32,6 +32,8 @@ const bottomNav = read("FATCATUI/assets/scripts/ui/BottomNavUI.ts");
 const balanceConfig = read("FATCATServer/FatCat.Application/BalanceConfig.cs");
 const contracts = read("FATCATServer/FatCat.Application/Contracts.cs");
 const service = read("FATCATServer/FatCat.Application/FatCatGameService.cs");
+const researchState = read("FATCATServer/FatCat.Domain/PlayerResearchState.cs");
+const dbContext = read("FATCATServer/FatCat.Infrastructure/FatCatDbContext.cs");
 const serviceTests = read("FATCATServer/FatCat.Tests/FatCatGameServiceTests.cs");
 const apiTests = read("FATCATServer/FatCat.Tests/FatCatApiTests.cs");
 const apiSmoke = read("tools/check-server-api.ps1");
@@ -54,6 +56,11 @@ if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) {
 const totalCost = research.reduce((sum, item) => sum + item.cost, 0);
 if (totalCost !== 1925) {
   fail("Research tree total cost changed unexpectedly.", { expected: 1925, actual: totalCost });
+}
+if (research.some((item) => item.maxLevel !== 10 || item.costGrowth !== 1.35 || item.effectStep !== 1)) {
+  fail("Research level progression values drifted.", {
+    expected: { maxLevel: 10, costGrowth: 1.35, effectStep: 1 },
+  });
 }
 
 const finalResearch = research.find((item) => item.id === "res_espresso");
@@ -81,19 +88,31 @@ for (const item of research) {
 
 requireText("client config supports multiple prerequisites", manager, "getParentResearchIds(config)");
 requireText("client checks every prerequisite", manager, ".some(parentId => !this.isUnlocked(parentId))");
+requireText("client computes next-level cost", manager, "getNextCost(config");
+requireText("client computes level-scaled effect", manager, "getNextEffectValue(config");
 requireText("client API carries prerequisite list", apiTypes, "parentResearchIds?: string[]");
+requireText("client API carries research level", apiTypes, "previousLevel: number");
 requireText("native panel uses server unlock", nativePanel, "SyncManager.unlockServerResearch(config.id)");
 requireText("native panel preserves offline fallback", nativePanel, "ResearchManager.unlock(config.id)");
 requireText("server definition carries prerequisite list", balanceConfig, "IReadOnlyList<string>? ParentResearchIds");
+requireText("server definition computes level cost", balanceConfig, "GetNextCost(int currentLevel)");
+requireText("server definition computes level effect", balanceConfig, "GetEffectValue(int level)");
+requireText("domain persists research level", researchState, "public int Level");
+requireText("SQLite adds research level", dbContext, 'ALTER TABLE "ResearchStates" ADD COLUMN "Level"');
+requireText("SQLite migrates binary unlock", dbContext, 'WHERE "IsUnlocked" = 1 AND "Level" = 0');
 requireText("server validates every prerequisite", balanceConfig, "foreach (var parentResearchId in pair.Value.GetParentResearchIds())");
 requireText("server unlock checks every prerequisite", service, "foreach (var parentResearchId in definition.GetParentResearchIds())");
 requireText("server serializes player research unlocks", service, "ResearchUnlockGates.GetOrAdd(playerId");
 requireText("server API returns prerequisite list", contracts, "IReadOnlyList<string> ParentResearchIds");
 requireText("DOM tree only renders real configs", bottomNav, "configs.map(config => this.renderResearchNode(config.id))");
+requireText("DOM renders authoritative level", bottomNav, 'data-research-level="${level}"');
 if (bottomNav.includes("renderResearchPlaceholderNodes")) {
   fail("Presentation-only research placeholders must not return.");
 }
 requireText("service deep-chain coverage", serviceTests, "UnlockResearchAsync_RequiresEveryBranchBeforeFinalResearch");
+requireText("service level progression coverage", serviceTests, "UpgradeResearchAsync_UsesGrowingCostAndScaledEconomyEffect");
+requireText("service max level coverage", serviceTests, "UpgradeResearchAsync_StopsAtConfiguredMaxLevel");
+requireText("SQLite migration coverage", serviceTests, "EnsureRuntimeSchemaAsync_MigratesUnlockedResearchToLevelOne");
 requireText("API deep-chain coverage", apiTests, "ResearchUnlock_RequiresAllFinalBranchesThroughApi");
 requireText("API concurrent unlock coverage", apiTests, "ResearchUnlock_ConcurrentRequestsChargeExactlyOnce");
 requireText("API smoke expects seven research rows", apiSmoke, "$researchRows.Count -ne 7");
@@ -108,7 +127,8 @@ console.log(JSON.stringify({
   checked: [
     "client/server seven-node catalog",
     "multi-parent prerequisite metadata and enforcement",
-    "real-node DOM rendering",
-    "service and API deep-chain coverage",
+    "persisted level migration and shared progression formulas",
+    "authoritative DOM/native level rendering",
+    "service and API deep-chain/level coverage",
   ],
 }, null, 2));

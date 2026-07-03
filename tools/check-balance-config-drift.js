@@ -42,8 +42,11 @@ for (const research of clientResearch) {
 
   assertEqual(`research.${research.id}.researchId`, serverItem.researchId, research.id, failures);
   assertEqual(`research.${research.id}.cost`, serverItem.cost, research.cost, failures);
+  assertEqual(`research.${research.id}.maxLevel`, serverItem.maxLevel, research.maxLevel, failures);
+  assertEqual(`research.${research.id}.costGrowth`, serverItem.costGrowth, research.costGrowth, failures);
   assertEqual(`research.${research.id}.effectType`, serverItem.effectType, research.effectType, failures);
   assertEqual(`research.${research.id}.effectValue`, serverItem.effectValue, research.effectValue, failures);
+  assertEqual(`research.${research.id}.effectStep`, serverItem.effectStep, research.effectStep, failures);
   assertEqual(`research.${research.id}.parentResearchId`, serverItem.parentResearchId ?? null, research.parentResearchId ?? null, failures);
   const clientParents = research.parentResearchIds ?? (research.parentResearchId ? [research.parentResearchId] : []);
   assertEqual(

@@ -204,10 +204,17 @@ export type EquipmentUpgradeResponse = {
 export type ResearchStateDto = {
     researchId: string;
     isUnlocked: boolean;
+    level?: number;
+    maxLevel?: number;
     updatedAt: number;
     cost?: number;
+    nextCost?: number;
+    costGrowth?: number;
     effectType?: string;
     effectValue?: number;
+    effectStep?: number;
+    currentEffectValue?: number;
+    nextEffectValue?: number;
     parentResearchId?: string | null;
     parentResearchIds?: string[];
 };
@@ -215,7 +222,12 @@ export type ResearchStateDto = {
 export type ResearchUnlockResponse = {
     researchId: string;
     isUnlocked: boolean;
+    previousLevel: number;
+    level: number;
+    maxLevel: number;
     researchPointSpent: number;
+    currentEffectValue: number;
+    nextEffectValue: number;
     coinBalance: number;
     beanBalance: number;
     catFoodBalance: number;

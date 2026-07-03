@@ -211,9 +211,20 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
                 "PlayerId" TEXT NOT NULL,
                 "ResearchKey" TEXT NOT NULL,
                 "IsUnlocked" INTEGER NOT NULL,
+                "Level" INTEGER NOT NULL DEFAULT 0,
                 "UpdatedAt" TEXT NOT NULL,
                 CONSTRAINT "FK_ResearchStates_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
             );
+            """, cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "ResearchStates",
+            "Level",
+            """ALTER TABLE "ResearchStates" ADD COLUMN "Level" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            UPDATE "ResearchStates"
+            SET "Level" = 1
+            WHERE "IsUnlocked" = 1 AND "Level" = 0;
             """, cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE UNIQUE INDEX IF NOT EXISTS "IX_ResearchStates_PlayerId_ResearchKey"

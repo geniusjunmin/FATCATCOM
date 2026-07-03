@@ -61,6 +61,7 @@ async function waitForApi() {
             const save = JSON.parse(localStorage.getItem(key) || "{}");
             return {
                 unlocked: !!save.research?.res_basic_prod?.isUnlocked,
+                level: save.research?.res_basic_prod?.level || 0,
                 researchPoint: save.resources?.researchPoint,
             };
         }, saveKey);
@@ -72,6 +73,7 @@ async function waitForApi() {
             const save = JSON.parse(localStorage.getItem(key) || "{}");
             return {
                 unlocked: !!save.research?.res_basic_prod?.isUnlocked,
+                level: save.research?.res_basic_prod?.level || 0,
                 researchPoint: save.resources?.researchPoint,
                 message: document.querySelector("#fatcat-dom-panel-overlay .dom-msg")?.textContent || "",
                 text: document.querySelector("#fatcat-dom-panel-overlay")?.textContent || "",
@@ -83,10 +85,13 @@ async function waitForApi() {
         const ok = authRequests.some((item) => item.status === 200)
             && researchRequests.some((item) => item.status === 200 && item.url.includes("/api/research/res_basic_prod/unlock"))
             && before.unlocked === false
+            && before.level === 0
             && before.researchPoint === 200
             && after.unlocked === true
+            && after.level === 1
             && after.researchPoint === 100
-            && after.text.includes("Research synced")
+            && after.text.includes("研究同步完成")
+            && after.text.includes("Lv.0 → Lv.1")
             && after.text.includes("100")
             && failedRequests.length === 0
             && messages.length === 0;

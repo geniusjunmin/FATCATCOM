@@ -1,6 +1,7 @@
 using FatCat.Application;
 using FatCat.Domain;
 using FatCat.Infrastructure;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace FatCat.Tests;
@@ -560,6 +561,92 @@ public sealed class FatCatGameServiceTests
         Assert.Equal(
             -500,
             dbContext.ResourceTransactions.Single(item => item.SourceKey == "res_espresso").ResearchPointDelta);
+    }
+
+    [Fact]
+    public async Task UpgradeResearchAsync_UsesGrowingCostAndScaledEconomyEffect()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("research-level-device", "FatCat"), CancellationToken.None);
+        var resources = await dbContext.ResourceStates.FindAsync([auth.PlayerId], CancellationToken.None);
+        Assert.NotNull(resources);
+        resources!.ResearchPoint = 2000;
+        await dbContext.SaveChangesAsync();
+
+        var root = await service.UnlockResearchAsync(auth.PlayerId, new ResearchUnlockRequest("res_basic_prod"), CancellationToken.None);
+        var first = await service.UnlockResearchAsync(auth.PlayerId, new ResearchUnlockRequest("res_cheap_upgrade"), CancellationToken.None);
+        var second = await service.UnlockResearchAsync(auth.PlayerId, new ResearchUnlockRequest("res_cheap_upgrade"), CancellationToken.None);
+        var upgrade = await service.UpgradeCatAsync(auth.PlayerId, new CatUpgradeRequest("c_001"), CancellationToken.None);
+        var snapshot = await service.GetResearchAsync(auth.PlayerId, CancellationToken.None);
+
+        Assert.NotNull(root);
+        Assert.Equal(1, root!.Level);
+        Assert.NotNull(first);
+        Assert.Equal(0, first!.PreviousLevel);
+        Assert.Equal(1, first.Level);
+        Assert.Equal(200, first.ResearchPointSpent);
+        Assert.Equal(5, first.CurrentEffectValue);
+        Assert.Equal(6, first.NextEffectValue);
+        Assert.NotNull(second);
+        Assert.Equal(1, second!.PreviousLevel);
+        Assert.Equal(2, second.Level);
+        Assert.Equal(270, second.ResearchPointSpent);
+        Assert.Equal(6, second.CurrentEffectValue);
+        Assert.Equal(7, second.NextEffectValue);
+        Assert.NotNull(upgrade);
+        Assert.Equal(94, upgrade!.CoinSpent);
+        var cheap = Assert.Single(snapshot, item => item.ResearchId == "res_cheap_upgrade");
+        Assert.Equal(2, cheap.Level);
+        Assert.Equal(10, cheap.MaxLevel);
+        Assert.Equal(364, cheap.NextCost);
+        Assert.Equal(6, cheap.CurrentEffectValue);
+        Assert.Equal(7, cheap.NextEffectValue);
+        Assert.Equal(
+            "research_upgrade",
+            dbContext.ResourceTransactions.Single(item => item.SourceKey == "res_cheap_upgrade" && item.ResearchPointDelta == -270).SourceType);
+    }
+
+    [Fact]
+    public async Task UpgradeResearchAsync_StopsAtConfiguredMaxLevel()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("research-max-device", "FatCat"), CancellationToken.None);
+        var resources = await dbContext.ResourceStates.FindAsync([auth.PlayerId], CancellationToken.None);
+        Assert.NotNull(resources);
+        resources!.ResearchPoint = 6000;
+        await dbContext.SaveChangesAsync();
+
+        ResearchUnlockResponse? latest = null;
+        for (var level = 1; level <= 10; level++)
+        {
+            latest = await service.UnlockResearchAsync(
+                auth.PlayerId,
+                new ResearchUnlockRequest("res_basic_prod"),
+                CancellationToken.None);
+            Assert.NotNull(latest);
+            Assert.Equal(level, latest!.Level);
+        }
+        var blocked = await service.UnlockResearchAsync(
+            auth.PlayerId,
+            new ResearchUnlockRequest("res_basic_prod"),
+            CancellationToken.None);
+        var snapshot = await service.GetResearchAsync(auth.PlayerId, CancellationToken.None);
+
+        Assert.Null(blocked);
+        Assert.NotNull(latest);
+        Assert.Equal(10, latest!.Level);
+        Assert.Equal(10, latest.MaxLevel);
+        Assert.Equal(1489, latest.ResearchPointSpent);
+        Assert.Equal(19, latest.CurrentEffectValue);
+        Assert.Equal(19, latest.NextEffectValue);
+        Assert.Equal(543, latest.ResearchPointBalance);
+        var root = Assert.Single(snapshot, item => item.ResearchId == "res_basic_prod");
+        Assert.Equal(10, root.Level);
+        Assert.Equal(0, root.NextCost);
+        Assert.Equal(19, root.CurrentEffectValue);
+        Assert.Equal(10, dbContext.ResourceTransactions.Count(item => item.SourceKey == "res_basic_prod"));
     }
 
     [Fact]
@@ -1555,6 +1642,57 @@ public sealed class FatCatGameServiceTests
         Assert.NotNull(feed);
         Assert.Equal(8, feed!.CatFoodSpent);
         Assert.Equal(3502, feed.CatFoodBalance);
+    }
+
+    [Fact]
+    public async Task EnsureRuntimeSchemaAsync_MigratesUnlockedResearchToLevelOne()
+    {
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync();
+        var playerId = Guid.NewGuid();
+        var researchId = Guid.NewGuid();
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = """
+                CREATE TABLE "Players" (
+                    "Id" TEXT NOT NULL PRIMARY KEY,
+                    "FriendBoostPercent" INTEGER NOT NULL DEFAULT 0,
+                    "FriendBoostUntil" TEXT NULL,
+                    "FriendBoostedBy" TEXT NOT NULL DEFAULT ''
+                );
+                CREATE TABLE "FriendSnapshots" (
+                    "Id" TEXT NOT NULL PRIMARY KEY,
+                    "LastHelpAt" TEXT NULL
+                );
+                CREATE TABLE "ResearchStates" (
+                    "Id" TEXT NOT NULL PRIMARY KEY,
+                    "PlayerId" TEXT NOT NULL,
+                    "ResearchKey" TEXT NOT NULL,
+                    "IsUnlocked" INTEGER NOT NULL,
+                    "UpdatedAt" TEXT NOT NULL
+                );
+                INSERT INTO "Players" ("Id") VALUES ($playerId);
+                INSERT INTO "ResearchStates"
+                    ("Id", "PlayerId", "ResearchKey", "IsUnlocked", "UpdatedAt")
+                VALUES ($researchId, $playerId, 'res_basic_prod', 1, '2026-07-03T00:00:00+00:00');
+                """;
+            command.Parameters.AddWithValue("$playerId", playerId.ToString());
+            command.Parameters.AddWithValue("$researchId", researchId.ToString());
+            await command.ExecuteNonQueryAsync();
+        }
+
+        var options = new DbContextOptionsBuilder<FatCatDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        await using var dbContext = new FatCatDbContext(options);
+        await dbContext.EnsureRuntimeSchemaAsync();
+
+        await using var verify = connection.CreateCommand();
+        verify.CommandText = """SELECT "Level" FROM "ResearchStates" WHERE "Id" = $researchId;""";
+        verify.Parameters.AddWithValue("$researchId", researchId.ToString());
+        var level = Convert.ToInt32(await verify.ExecuteScalarAsync());
+
+        Assert.Equal(1, level);
     }
 
     private static FatCatDbContext CreateDbContext()

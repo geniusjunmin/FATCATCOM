@@ -25,8 +25,11 @@ function buildBalance() {
     researchDefinitions: keyed(research, (item) => item.id, (item) => ({
       researchId: item.id,
       cost: item.cost,
+      maxLevel: item.maxLevel,
+      costGrowth: item.costGrowth,
       effectType: item.effectType,
       effectValue: item.effectValue,
+      effectStep: item.effectStep,
       parentResearchId: item.parentResearchId ?? null,
       parentResearchIds: item.parentResearchIds ?? (item.parentResearchId ? [item.parentResearchId] : []),
     })),

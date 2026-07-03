@@ -12,8 +12,11 @@ export interface ResearchConfig {
     description: string;
     icon: string;
     cost: number; // in researchPoint
+    maxLevel: number;
+    costGrowth: number;
     effectType: ResearchEffectType;
     effectValue: number;
+    effectStep: number;
     parentResearchId?: string; // For tree structure
     parentResearchIds?: string[]; // Multi-branch prerequisites
 }
@@ -21,4 +24,5 @@ export interface ResearchConfig {
 export interface ResearchSaveData {
     id: string;
     isUnlocked: boolean;
+    level?: number;
 }

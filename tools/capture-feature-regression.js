@@ -236,9 +236,17 @@ async function isVisible(page, selector) {
                 }
                 await page.click('#fatcat-dom-panel-overlay .node[data-id="res_basic_prod"]');
                 await page.waitForTimeout(120);
+                const rootProgression = await page.evaluate(() => ({
+                    level: document.querySelector('#fatcat-dom-panel-overlay .node[data-id="res_basic_prod"]')?.getAttribute("data-research-level") || "",
+                    detailLevel: document.querySelector("#fatcat-dom-panel-overlay .research-hero")?.getAttribute("data-research-detail-level") || "",
+                    currentEffect: document.querySelector("#fatcat-dom-panel-overlay .research-effect-stack span strong")?.textContent?.trim() || "",
+                    nextEffect: document.querySelector("#fatcat-dom-panel-overlay .research-effect-stack span.next strong")?.textContent?.trim() || "",
+                    action: document.querySelector("#fatcat-dom-panel-overlay .research-condition-card .tag")?.textContent?.trim() || "",
+                }));
                 interaction.researchSelectionSwitches = new Set(selectedIds).size;
                 interaction.researchTitles = new Set(titles).size;
                 interaction.researchEmbeddedSwitches = backgrounds.filter(value => value.startsWith('url("data:image/png;base64,')).length;
+                interaction.researchRootProgression = rootProgression;
             }
             const file = path.join(outDir, `${panel}-${width}x${height}.png`);
             await page.screenshot({ path: file, fullPage: false });
@@ -301,6 +309,8 @@ async function isVisible(page, selector) {
                 researchPlaceholders: document.querySelectorAll("#fatcat-dom-panel-overlay [data-research-placeholder]").length,
                 researchPlaceholderActions: document.querySelectorAll("#fatcat-dom-panel-overlay [data-research-placeholder][data-action]").length,
                 researchDisplayNames: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay button.node .node-copy b"))
+                    .map(element => element.textContent?.trim() || ""),
+                researchLevelLabels: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay button.node .node-copy small"))
                     .map(element => element.textContent?.trim() || ""),
                 researchTierCounts: [1, 2, 3, 4].map(tier =>
                     document.querySelectorAll(`#fatcat-dom-panel-overlay [data-research-tier="${tier}"]`).length),
@@ -422,6 +432,7 @@ async function isVisible(page, selector) {
             || entry.state.researchPlaceholders !== 0
             || entry.state.researchPlaceholderActions !== 0
             || entry.state.researchDisplayNames.join(",") !== "咖啡萃取 I,咖啡烘焙 I,发酵技术 I,咖啡萃取 II,烘焙技术 II,发酵技术 II,浓缩咖啡"
+            || entry.state.researchLevelLabels.join(",") !== "Lv.0/10,Lv.0/10,Lv.0/10,Lv.0/10,Lv.0/10,Lv.0/10,Lv.0/10"
             || entry.state.researchTierCounts.join(",") !== "1,2,3,1"
             || entry.state.researchLayout !== "1-2-3-1"
             || !entry.state.researchNodesInsideTree
@@ -436,7 +447,12 @@ async function isVisible(page, selector) {
             || entry.interaction.researchTitles !== 7
             || entry.interaction.researchEmbeddedSwitches !== 7
             || entry.interaction.researchFinalParents !== "咖啡萃取 II、烘焙技术 II、发酵技术 II"
-            || entry.interaction.researchFinalAction !== "前置未满";
+            || entry.interaction.researchFinalAction !== "前置未满"
+            || entry.interaction.researchRootProgression.level !== "0"
+            || entry.interaction.researchRootProgression.detailLevel !== "0"
+            || entry.interaction.researchRootProgression.currentEffect !== "未生效"
+            || entry.interaction.researchRootProgression.nextEffect !== "金币产量 +10%"
+            || entry.interaction.researchRootProgression.action !== "研究 100";
         return false;
     });
     if (failed) process.exit(1);

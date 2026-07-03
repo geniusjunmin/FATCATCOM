@@ -6,6 +6,7 @@ public sealed class PlayerResearchState
     public Guid PlayerId { get; set; }
     public string ResearchKey { get; set; } = "";
     public bool IsUnlocked { get; set; }
+    public int Level { get; set; }
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public PlayerProfile? Player { get; set; }
 }

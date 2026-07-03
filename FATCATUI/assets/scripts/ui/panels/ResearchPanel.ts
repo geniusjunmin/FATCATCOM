@@ -52,7 +52,11 @@ export class ResearchPanel extends Component {
         if (descLbl) descLbl.string = config.description;
 
         const costLbl = node.getChildByName("Cost")?.getComponent(Label);
-        if (costLbl) costLbl.string = `${config.cost} 研究点`;
+        const level = ResearchManager.getLevel(config.id);
+        const nextCost = ResearchManager.getNextCost(config, level);
+        if (costLbl) costLbl.string = level >= config.maxLevel
+            ? `Lv.${level}/${config.maxLevel} · MAX`
+            : `Lv.${level}/${config.maxLevel} · ${nextCost} 研究点`;
 
         const isUnlocked = ResearchManager.isUnlocked(config.id);
         const canUnlock = ResearchManager.canUnlock(config.id);
@@ -60,14 +64,14 @@ export class ResearchPanel extends Component {
         const btn = node.getComponent(Button);
         const btnLabel = node.getChildByName("BtnLabel")?.getComponent(Label);
         
-        if (isUnlocked) {
-            if (btnLabel) btnLabel.string = "已解锁";
+        if (level >= config.maxLevel) {
+            if (btnLabel) btnLabel.string = "已满级";
             if (btn) btn.interactable = false;
         } else if (!canUnlock) {
             if (btnLabel) btnLabel.string = "未满足前提";
             if (btn) btn.interactable = false;
         } else {
-            if (btnLabel) btnLabel.string = "解锁";
+            if (btnLabel) btnLabel.string = isUnlocked ? "升级" : "研究";
             if (btn) {
                 btn.interactable = true;
                 btn.node.on(Node.EventType.TOUCH_END, async () => {

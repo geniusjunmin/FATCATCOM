@@ -18,7 +18,13 @@ export class ResearchManager {
      * Check if a research is unlocked
      */
     public static isUnlocked(id: string): boolean {
-        return !!SaveManager.data.research[id]?.isUnlocked;
+        return this.getLevel(id) > 0;
+    }
+
+    public static getLevel(id: string): number {
+        const state = SaveManager.data.research[id];
+        if (!state) return 0;
+        return Math.max(0, Math.floor(state.level ?? (state.isUnlocked ? 1 : 0)));
     }
 
     /**
@@ -27,7 +33,7 @@ export class ResearchManager {
     public static canUnlock(id: string): boolean {
         const config = this.getConfig(id);
         if (!config) return false;
-        if (this.isUnlocked(id)) return false;
+        if (this.getLevel(id) >= config.maxLevel) return false;
 
         if (this.getParentResearchIds(config).some(parentId => !this.isUnlocked(parentId))) {
             return false;
@@ -43,24 +49,26 @@ export class ResearchManager {
         const config = this.getConfig(id);
         if (!config || !this.canUnlock(id)) return false;
 
-        if (!ResourceManager.spend({ researchPoint: config.cost }, `unlock_research_${id}`)) {
+        const nextCost = this.getNextCost(config, this.getLevel(id));
+        if (!ResourceManager.spend({ researchPoint: nextCost }, `unlock_research_${id}`)) {
             return false;
         }
 
         SaveManager.update(data => {
-            data.research[id] = { id, isUnlocked: true };
+            const nextLevel = this.getLevel(id) + 1;
+            data.research[id] = { id, isUnlocked: true, level: nextLevel };
         });
 
         console.info(`[ResearchManager] Unlocked research: ${config.name}`);
         return true;
     }
 
-    public static applyServerUnlock(id: string): boolean {
+    public static applyServerUnlock(id: string, level = 1): boolean {
         const config = this.getConfig(id);
         if (!config) return false;
 
         SaveManager.update(data => {
-            data.research[id] = { id, isUnlocked: true };
+            data.research[id] = { id, isUnlocked: level > 0, level: Math.max(0, Math.floor(level)) };
         });
 
         return true;
@@ -76,6 +84,7 @@ export class ResearchManager {
                 data.research[serverResearch.researchId] = {
                     id: serverResearch.researchId,
                     isUnlocked: !!serverResearch.isUnlocked,
+                    level: Math.max(0, Math.floor(serverResearch.level ?? (serverResearch.isUnlocked ? 1 : 0))),
                 };
                 applied += 1;
             }
@@ -95,11 +104,27 @@ export class ResearchManager {
         ].filter(parentId => !!parentId)));
     }
 
+    public static getNextCost(config: ResearchConfig, level = this.getLevel(config.id)): number {
+        if (level >= config.maxLevel) return 0;
+        return Math.max(1, Math.floor(config.cost * Math.pow(config.costGrowth, Math.max(0, level))));
+    }
+
+    public static getEffectValue(config: ResearchConfig, level = this.getLevel(config.id)): number {
+        return level <= 0 ? 0 : config.effectValue + (level - 1) * config.effectStep;
+    }
+
+    public static getNextEffectValue(config: ResearchConfig, level = this.getLevel(config.id)): number {
+        return this.getEffectValue(config, Math.min(config.maxLevel, level + 1));
+    }
+
     private static applyServerCatalogMetadata(serverResearch: ResearchStateDto): void {
         const override: Partial<ResearchConfig> = {};
         if (Number.isFinite(serverResearch.cost)) override.cost = Math.max(0, Math.floor(serverResearch.cost ?? 0));
+        if (Number.isFinite(serverResearch.maxLevel)) override.maxLevel = Math.max(1, Math.floor(serverResearch.maxLevel ?? 1));
+        if (Number.isFinite(serverResearch.costGrowth)) override.costGrowth = Math.max(1, serverResearch.costGrowth ?? 1);
         if (this.isKnownEffectType(serverResearch.effectType)) override.effectType = serverResearch.effectType;
         if (Number.isFinite(serverResearch.effectValue)) override.effectValue = Math.floor(serverResearch.effectValue ?? 0);
+        if (Number.isFinite(serverResearch.effectStep)) override.effectStep = Math.max(0, Math.floor(serverResearch.effectStep ?? 0));
         if (serverResearch.parentResearchId !== undefined) {
             override.parentResearchId = serverResearch.parentResearchId ?? undefined;
         }
@@ -135,7 +160,7 @@ export class ResearchManager {
         const configs = this.getAllConfigs();
         for (const config of configs) {
             if (config.effectType === type && this.isUnlocked(config.id)) {
-                total += config.effectValue;
+                total += this.getEffectValue(config);
             }
         }
         return total;

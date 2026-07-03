@@ -1037,7 +1037,7 @@ export class BottomNavUI extends Component {
                 ? await SyncManager.unlockServerResearch(id)
                 : null;
             if (serverResearch) {
-                this._domPanelMessage = `Research synced: ${serverResearch.researchId}, -${this.formatNumber(serverResearch.researchPointSpent)} research.`;
+                this._domPanelMessage = `研究同步完成：Lv.${serverResearch.previousLevel} → Lv.${serverResearch.level}，消耗 ${this.formatNumber(serverResearch.researchPointSpent)} 研究点。`;
                 success = true;
             } else {
                 success = NetworkManager.canUseServer ? false : ResearchManager.unlock(id);
@@ -2769,21 +2769,24 @@ export class BottomNavUI extends Component {
         if (!config) return "";
         const presentation = RESEARCH_NODE_PRESENTATIONS[id];
         const pos = presentation?.position ?? { left: 35, top: 79 };
-        const done = ResearchManager.isUnlocked(id);
+        const level = ResearchManager.getLevel(id);
+        const done = level > 0;
+        const maxed = level >= config.maxLevel;
         const canUnlock = ResearchManager.canUnlock(id);
         const selected = id === this._selectedResearchId;
         const cls = `${done ? "done" : ""} ${!done && !canUnlock ? "locked" : ""} ${selected ? "selected" : ""}`;
-        const state = done ? "已完成" : canUnlock ? `${config.cost}点` : "未解锁";
+        const state = maxed ? "已满级" : canUnlock ? `${ResearchManager.getNextCost(config, level)}点` : "未解锁";
         const tier = presentation?.tier ?? 4;
         const displayName = presentation?.displayName ?? config.name;
-        const level = presentation?.level ?? state;
-        return `<button class="node ${cls}" style="left:${pos.left}%;top:${pos.top}%" data-action="selectResearch" data-id="${id}" data-research-tier="${tier}" data-research-art="${config.effectType}"><span class="node-icon asset" style="background-image:url('${getResearchMedalAsset(config.effectType)}')"></span><span class="node-copy"><b>${displayName}</b><small>${level}</small><em>${state}</em></span></button>`;
+        return `<button class="node ${cls}" style="left:${pos.left}%;top:${pos.top}%" data-action="selectResearch" data-id="${id}" data-research-level="${level}" data-research-max-level="${config.maxLevel}" data-research-tier="${tier}" data-research-art="${config.effectType}"><span class="node-icon asset" style="background-image:url('${getResearchMedalAsset(config.effectType)}')"></span><span class="node-copy"><b>${displayName}</b><small>Lv.${level}/${config.maxLevel}</small><em>${state}</em></span></button>`;
     }
 
     private renderResearchDetail(id: string): string {
         const config = ResearchManager.getAllConfigs().find(item => item.id === id);
         if (!config) return `<div class="item">研究节点不存在</div>`;
-        const status = ResearchManager.isUnlocked(id) ? "已解锁" : ResearchManager.canUnlock(id) ? "可研究" : "前置未完成";
+        const level = ResearchManager.getLevel(id);
+        const maxed = level >= config.maxLevel;
+        const status = maxed ? "已满级" : ResearchManager.canUnlock(id) ? (level > 0 ? "可升级" : "可研究") : "前置未完成";
         const parentIds = ResearchManager.getParentResearchIds(config);
         const parent = parentIds.length > 0
             ? parentIds.map(parentId => {
@@ -2791,15 +2794,19 @@ export class BottomNavUI extends Component {
                 return RESEARCH_NODE_PRESENTATIONS[parentId]?.displayName ?? parentConfig?.name ?? parentId;
             }).join("、")
             : "无";
-        const effectText = `${this.getResearchEffectLabel(config.effectType)} ${config.effectValue > 0 ? "+" : ""}${config.effectValue}%`;
+        const currentEffectValue = ResearchManager.getEffectValue(config, level);
+        const nextEffectValue = ResearchManager.getNextEffectValue(config, level);
+        const effectLabel = this.getResearchEffectLabel(config.effectType);
+        const currentEffectText = `${effectLabel} ${currentEffectValue > 0 ? "+" : ""}${currentEffectValue}%`;
+        const nextEffectText = maxed ? "已达最高等级" : `${effectLabel} ${nextEffectValue > 0 ? "+" : ""}${nextEffectValue}%`;
+        const nextCost = ResearchManager.getNextCost(config, level);
         const owned = ResourceManager.get("researchPoint");
-        const progress = Math.min(100, Math.floor((owned / Math.max(1, config.cost)) * 100));
-        const unlocked = ResearchManager.isUnlocked(id);
-        const nextHint = unlocked ? "全局加成已生效" : progress >= 100 ? "资源已备齐" : "继续收集研究点";
-        const currentEffect = unlocked ? effectText : "未生效";
+        const progress = maxed ? 100 : Math.min(100, Math.floor((owned / Math.max(1, nextCost)) * 100));
+        const nextHint = maxed ? "研究已全部完成" : progress >= 100 ? "资源已备齐" : "继续收集研究点";
+        const currentEffect = level > 0 ? currentEffectText : "未生效";
         const presentation = RESEARCH_NODE_PRESENTATIONS[id];
         const displayName = presentation?.displayName ?? config.name;
-        return `<div class="item research-hero" data-research-art="${config.effectType}"><div class="shop-icon asset research-medal-art" style="background-image:url('${getResearchMedalAsset(config.effectType)}')"></div><div><b>${displayName}</b><small class="research-level">${presentation?.level ?? ""}</small><p>${config.description}</p><span class="research-state">${status}</span></div></div><div class="item research-effect-card"><b>研究效果</b><div class="research-effect-stack"><span><small>当前效果</small><strong>${currentEffect}</strong></span><i>›</i><span class="next"><small>研究后效果</small><strong>${effectText}</strong></span></div><div class="research-preview"><span>节点状态<br><b>${status}</b></span><span>研究反馈<br><b>${nextHint}</b></span></div></div><div class="item research-condition-card"><b>研究条件</b><div class="research-parent">前置研究 <strong>${parent}</strong></div><div class="research-cost"><span>研究点 <b>${this.formatNumber(owned)}/${config.cost}</b></span><div class="research-cost-line"><i style="width:${progress}%"></i></div></div>${this.renderResearchButton(config.id, config.cost)}</div>`;
+        return `<div class="item research-hero" data-research-art="${config.effectType}" data-research-detail-level="${level}"><div class="shop-icon asset research-medal-art" style="background-image:url('${getResearchMedalAsset(config.effectType)}')"></div><div><b>${displayName}</b><small class="research-level">Lv.${level}/${config.maxLevel}</small><p>${config.description}</p><span class="research-state">${status}</span></div></div><div class="item research-effect-card"><b>研究效果</b><div class="research-effect-stack"><span><small>当前效果</small><strong>${currentEffect}</strong></span><i>›</i><span class="next"><small>下级效果</small><strong>${nextEffectText}</strong></span></div><div class="research-preview"><span>节点状态<br><b>${status}</b></span><span>研究反馈<br><b>${nextHint}</b></span></div></div><div class="item research-condition-card"><b>研究条件</b><div class="research-parent">前置研究 <strong>${parent}</strong></div><div class="research-cost"><span>研究点 <b>${maxed ? "MAX" : `${this.formatNumber(owned)}/${nextCost}`}</b></span><div class="research-cost-line"><i style="width:${progress}%"></i></div></div>${this.renderResearchButton(config.id)}</div>`;
     }
 
     private getResearchIconClass(effectType: string): string {
@@ -2810,17 +2817,19 @@ export class BottomNavUI extends Component {
         return getResearchEffectLabelText(type);
     }
 
-    private renderResearchButton(id: string, cost: number): string {
-        if (ResearchManager.isUnlocked(id)) {
-            return `<span class="tag">已解锁</span>`;
-        }
+    private renderResearchButton(id: string): string {
+        const config = ResearchManager.getConfig(id);
+        if (!config) return `<span class="tag warn">研究不存在</span>`;
+        const level = ResearchManager.getLevel(id);
+        if (level >= config.maxLevel) return `<span class="tag">已满级</span>`;
         if (!ResearchManager.canUnlock(id)) {
             return `<span class="tag warn">前置未满</span>`;
         }
+        const cost = ResearchManager.getNextCost(config, level);
         if (!ResourceManager.canSpend({ researchPoint: cost })) {
             return `<button class="tag warn" disabled>研究点不足</button>`;
         }
-        return `<button class="tag" data-action="research" data-id="${id}">${this.renderCssIcon("equip")} ${cost} 研究点</button>`;
+        return `<button class="tag" data-action="research" data-id="${id}">${this.renderCssIcon("equip")} ${level > 0 ? "升级" : "研究"} ${cost}</button>`;
     }
 
     private ensureDomHudOverlay(): HTMLElement | null {

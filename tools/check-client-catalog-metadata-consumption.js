@@ -32,7 +32,10 @@ assertContains("research overrides storage", researchManager, "_serverCatalogOve
 assertContains("research getAllConfigs overlay", researchManager, "ConfigManager.research.map(config => this.applyServerCatalogOverride(config))");
 assertContains("research snapshot metadata ingestion", researchManager, "this.applyServerCatalogMetadata(serverResearch)");
 assertContains("research cost metadata field", researchManager, "override.cost");
+assertContains("research max level metadata field", researchManager, "override.maxLevel");
+assertContains("research cost growth metadata field", researchManager, "override.costGrowth");
 assertContains("research effect metadata field", researchManager, "override.effectType");
+assertContains("research effect step metadata field", researchManager, "override.effectStep");
 
 assertContains("research panel uses manager config", researchPanel, "ResearchManager.getAllConfigs()");
 

@@ -416,7 +416,7 @@ export class SyncManager {
             diamond: response.data.diamondBalance,
             researchPoint: response.data.researchPointBalance,
         }, `server_research_${researchId}`);
-        ResearchManager.applyServerUnlock(response.data.researchId);
+        ResearchManager.applyServerUnlock(response.data.researchId, response.data.level);
         this.markReadyAfterServerCall();
         return response.data;
     }

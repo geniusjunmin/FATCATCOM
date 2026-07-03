@@ -971,7 +971,7 @@ public sealed class FatCatGameService(
         }
 
         var state = await EnsureResearchStateAsync(playerId, researchId, cancellationToken);
-        if (state.IsUnlocked)
+        if (state.Level >= definition.MaxLevel)
         {
             return null;
         }
@@ -985,25 +985,28 @@ public sealed class FatCatGameService(
         }
 
         var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
-        if (!CanSpendResource(resources, "researchPoint", definition.Cost))
+        var nextCost = definition.GetNextCost(state.Level);
+        if (!CanSpendResource(resources, "researchPoint", nextCost))
         {
             return null;
         }
 
-        SpendResource(resources, "researchPoint", definition.Cost);
+        var previousLevel = state.Level;
+        SpendResource(resources, "researchPoint", nextCost);
         resources.UpdatedAt = DateTimeOffset.UtcNow;
+        state.Level += 1;
         state.IsUnlocked = true;
         state.UpdatedAt = DateTimeOffset.UtcNow;
         await AddResourceTransactionAsync(
             playerId,
-            "research_unlock",
+            previousLevel == 0 ? "research_unlock" : "research_upgrade",
             state.ResearchKey,
             null,
             0,
             0,
             0,
             0,
-            -definition.Cost,
+            -nextCost,
             resources,
             cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
@@ -1011,7 +1014,12 @@ public sealed class FatCatGameService(
         return new ResearchUnlockResponse(
             state.ResearchKey,
             state.IsUnlocked,
-            definition.Cost,
+            previousLevel,
+            state.Level,
+            definition.MaxLevel,
+            nextCost,
+            definition.GetEffectValue(state.Level),
+            definition.GetEffectValue(Math.Min(state.Level + 1, definition.MaxLevel)),
             resources.Coin,
             resources.Bean,
             resources.CatFood,
@@ -2364,6 +2372,16 @@ public sealed class FatCatGameService(
         var research = await repository.GetResearchStateAsync(playerId, researchId, cancellationToken);
         if (research is not null)
         {
+            if (research.IsUnlocked && research.Level <= 0)
+            {
+                research.Level = 1;
+                await repository.SaveChangesAsync(cancellationToken);
+            }
+            else if (!research.IsUnlocked && research.Level > 0)
+            {
+                research.IsUnlocked = true;
+                await repository.SaveChangesAsync(cancellationToken);
+            }
             return research;
         }
 
@@ -2372,6 +2390,7 @@ public sealed class FatCatGameService(
             PlayerId = playerId,
             ResearchKey = researchId,
             IsUnlocked = false,
+            Level = 0,
             UpdatedAt = DateTimeOffset.UtcNow,
         };
         await repository.AddResearchStateAsync(research, cancellationToken);
@@ -2382,7 +2401,7 @@ public sealed class FatCatGameService(
     private async Task<bool> IsResearchUnlockedAsync(Guid playerId, string researchId, CancellationToken cancellationToken)
     {
         var research = await repository.GetResearchStateAsync(playerId, researchId, cancellationToken);
-        return research?.IsUnlocked == true;
+        return research is not null && (research.Level > 0 || research.IsUnlocked);
     }
 
     private async Task<int> GetResearchBonusAsync(Guid playerId, string effectType, CancellationToken cancellationToken)
@@ -2391,11 +2410,11 @@ public sealed class FatCatGameService(
         var total = 0;
         foreach (var state in unlocked)
         {
-            if (state.IsUnlocked
+            if ((state.Level > 0 || state.IsUnlocked)
                 && balance.ResearchDefinitions.TryGetValue(state.ResearchKey, out var definition)
                 && string.Equals(definition.EffectType, effectType, StringComparison.OrdinalIgnoreCase))
             {
-                total += definition.EffectValue;
+                total += definition.GetEffectValue(Math.Max(1, state.Level));
             }
         }
         return total;
@@ -3237,11 +3256,18 @@ public sealed class FatCatGameService(
             : new ResearchDefinition(research.ResearchKey, 0, "", 0, null);
         return new ResearchStateDto(
             research.ResearchKey,
-            research.IsUnlocked,
+            research.Level > 0 || research.IsUnlocked,
+            research.Level,
+            definition.MaxLevel,
             research.UpdatedAt.ToUnixTimeMilliseconds(),
             definition.Cost,
+            definition.GetNextCost(research.Level),
+            definition.CostGrowth,
             definition.EffectType,
             definition.EffectValue,
+            definition.EffectStep,
+            definition.GetEffectValue(research.Level),
+            definition.GetEffectValue(Math.Min(research.Level + 1, definition.MaxLevel)),
             definition.ParentResearchId,
             definition.GetParentResearchIds());
     }

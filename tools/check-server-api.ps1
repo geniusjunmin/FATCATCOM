@@ -230,6 +230,13 @@ if ($researchUnlock.data.researchId -ne "res_basic_prod" -or -not $researchUnloc
 if ([int]$researchUnlock.data.researchPointSpent -ne 100 -or [double]$researchUnlock.data.researchPointBalance -ne 100) {
     throw "Research unlock resource balance mismatch."
 }
+if ([int]$researchUnlock.data.previousLevel -ne 0 `
+    -or [int]$researchUnlock.data.level -ne 1 `
+    -or [int]$researchUnlock.data.maxLevel -ne 10 `
+    -or [int]$researchUnlock.data.currentEffectValue -ne 10 `
+    -or [int]$researchUnlock.data.nextEffectValue -ne 11) {
+    throw "Research unlock level progression mismatch."
+}
 
 $researchSnapshot = Read-Json (Invoke-WebRequest -Uri "$ApiBaseUrl/api/research?playerId=$playerId" -UseBasicParsing)
 $researchRows = @($researchSnapshot.data)
@@ -244,6 +251,14 @@ if (-not $researchBasic -or -not $researchBasic.isUnlocked) {
 }
 if ([int]$researchBasic.cost -ne 100 -or $researchBasic.effectType -ne "coin_production_mult" -or [int]$researchBasic.effectValue -ne 10) {
     throw "Research snapshot basic metadata mismatch."
+}
+if ([int]$researchBasic.level -ne 1 `
+    -or [int]$researchBasic.maxLevel -ne 10 `
+    -or [int]$researchBasic.nextCost -ne 135 `
+    -or [double]$researchBasic.costGrowth -ne 1.35 `
+    -or [int]$researchBasic.currentEffectValue -ne 10 `
+    -or [int]$researchBasic.nextEffectValue -ne 11) {
+    throw "Research snapshot level metadata mismatch."
 }
 if (-not $researchBean -or $researchBean.isUnlocked) {
     throw "Research snapshot locked bean research mismatch."
@@ -438,8 +453,11 @@ $summary = [ordered]@{
     equipmentUpgradeCoinSpent = $equipmentUpgrade.data.coinSpent
     equipmentUpgradeCoinBalance = $equipmentUpgrade.data.coinBalance
     researchUnlocked = $researchUnlock.data.researchId
+    researchLevel = "$($researchUnlock.data.previousLevel)->$($researchUnlock.data.level)/$($researchUnlock.data.maxLevel)"
     researchPointSpent = $researchUnlock.data.researchPointSpent
     researchPointBalance = $researchUnlock.data.researchPointBalance
+    researchNextCost = $researchBasic.nextCost
+    researchEffect = "$($researchBasic.currentEffectValue)->$($researchBasic.nextEffectValue)"
     researchSnapshotCount = $researchRows.Count
     shopItem = $shopPurchase.data.itemId
     shopPricePaid = $shopPurchase.data.pricePaid

@@ -41,13 +41,13 @@ public sealed class BalanceConfig
     public static BalanceConfig Default { get; } = new(
         new Dictionary<string, ResearchDefinition>
         {
-            ["res_basic_prod"] = new("res_basic_prod", 100, "coin_production_mult", 10, null, []),
-            ["res_bean_save"] = new("res_bean_save", 150, "bean_reduce", 5, "res_basic_prod", ["res_basic_prod"]),
-            ["res_cheap_upgrade"] = new("res_cheap_upgrade", 200, "upgrade_cost_reduce", 5, "res_basic_prod", ["res_basic_prod"]),
-            ["res_extract_2"] = new("res_extract_2", 300, "coin_production_mult", 15, "res_bean_save", ["res_bean_save"]),
-            ["res_roast_2"] = new("res_roast_2", 325, "bean_reduce", 5, null, ["res_bean_save", "res_cheap_upgrade"]),
-            ["res_ferment_2"] = new("res_ferment_2", 350, "upgrade_cost_reduce", 5, "res_cheap_upgrade", ["res_cheap_upgrade"]),
-            ["res_espresso"] = new("res_espresso", 500, "coin_production_mult", 20, null, ["res_extract_2", "res_roast_2", "res_ferment_2"]),
+            ["res_basic_prod"] = new("res_basic_prod", 100, "coin_production_mult", 10, null, [], 10, 1.35, 1),
+            ["res_bean_save"] = new("res_bean_save", 150, "bean_reduce", 5, "res_basic_prod", ["res_basic_prod"], 10, 1.35, 1),
+            ["res_cheap_upgrade"] = new("res_cheap_upgrade", 200, "upgrade_cost_reduce", 5, "res_basic_prod", ["res_basic_prod"], 10, 1.35, 1),
+            ["res_extract_2"] = new("res_extract_2", 300, "coin_production_mult", 15, "res_bean_save", ["res_bean_save"], 10, 1.35, 1),
+            ["res_roast_2"] = new("res_roast_2", 325, "bean_reduce", 5, null, ["res_bean_save", "res_cheap_upgrade"], 10, 1.35, 1),
+            ["res_ferment_2"] = new("res_ferment_2", 350, "upgrade_cost_reduce", 5, "res_cheap_upgrade", ["res_cheap_upgrade"], 10, 1.35, 1),
+            ["res_espresso"] = new("res_espresso", 500, "coin_production_mult", 20, null, ["res_extract_2", "res_roast_2", "res_ferment_2"], 10, 1.35, 1),
         },
         new Dictionary<string, EquipmentDefinition>
         {
@@ -150,6 +150,11 @@ public sealed class BalanceConfig
                     throw new InvalidOperationException($"Research '{pair.Key}' references missing parent '{parentResearchId}'.");
                 }
             }
+
+            if (pair.Value.MaxLevel <= 0 || pair.Value.CostGrowth < 1 || pair.Value.EffectStep < 0)
+            {
+                throw new InvalidOperationException($"Research '{pair.Key}' has invalid level progression values.");
+            }
         }
 
         foreach (var pair in EquipmentDefinitions)
@@ -218,7 +223,10 @@ public sealed record ResearchDefinition(
     string EffectType,
     int EffectValue,
     string? ParentResearchId,
-    IReadOnlyList<string>? ParentResearchIds = null)
+    IReadOnlyList<string>? ParentResearchIds = null,
+    int MaxLevel = 10,
+    double CostGrowth = 1.35,
+    int EffectStep = 1)
 {
     public IReadOnlyList<string> GetParentResearchIds()
     {
@@ -232,6 +240,20 @@ public sealed record ResearchDefinition(
             parents.Add(ParentResearchId);
         }
         return parents.Distinct(StringComparer.Ordinal).ToArray();
+    }
+
+    public int GetNextCost(int currentLevel)
+    {
+        if (currentLevel >= MaxLevel)
+        {
+            return 0;
+        }
+        return Math.Max(1, (int)Math.Floor(Cost * Math.Pow(CostGrowth, Math.Max(0, currentLevel))));
+    }
+
+    public int GetEffectValue(int level)
+    {
+        return level <= 0 ? 0 : EffectValue + (level - 1) * EffectStep;
     }
 }
 

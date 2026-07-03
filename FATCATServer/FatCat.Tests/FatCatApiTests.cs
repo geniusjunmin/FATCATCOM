@@ -1152,6 +1152,11 @@ public sealed class FatCatApiTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("res_basic_prod", data.GetProperty("researchId").GetString());
         Assert.True(data.GetProperty("isUnlocked").GetBoolean());
+        Assert.Equal(0, data.GetProperty("previousLevel").GetInt32());
+        Assert.Equal(1, data.GetProperty("level").GetInt32());
+        Assert.Equal(10, data.GetProperty("maxLevel").GetInt32());
+        Assert.Equal(10, data.GetProperty("currentEffectValue").GetInt32());
+        Assert.Equal(11, data.GetProperty("nextEffectValue").GetInt32());
         Assert.Equal(100, data.GetProperty("researchPointSpent").GetInt32());
         Assert.Equal(100, data.GetProperty("researchPointBalance").GetDouble());
         Assert.Equal(HttpStatusCode.OK, snapshot.StatusCode);
@@ -1159,9 +1164,16 @@ public sealed class FatCatApiTests
         var basic = snapshotData.EnumerateArray().Single(item => item.GetProperty("researchId").GetString() == "res_basic_prod");
         var bean = snapshotData.EnumerateArray().Single(item => item.GetProperty("researchId").GetString() == "res_bean_save");
         Assert.True(basic.GetProperty("isUnlocked").GetBoolean());
+        Assert.Equal(1, basic.GetProperty("level").GetInt32());
+        Assert.Equal(10, basic.GetProperty("maxLevel").GetInt32());
         Assert.Equal(100, basic.GetProperty("cost").GetInt32());
+        Assert.Equal(135, basic.GetProperty("nextCost").GetInt32());
+        Assert.Equal(1.35, basic.GetProperty("costGrowth").GetDouble(), 2);
         Assert.Equal("coin_production_mult", basic.GetProperty("effectType").GetString());
         Assert.Equal(10, basic.GetProperty("effectValue").GetInt32());
+        Assert.Equal(1, basic.GetProperty("effectStep").GetInt32());
+        Assert.Equal(10, basic.GetProperty("currentEffectValue").GetInt32());
+        Assert.Equal(11, basic.GetProperty("nextEffectValue").GetInt32());
         Assert.False(bean.GetProperty("isUnlocked").GetBoolean());
         Assert.Equal(150, bean.GetProperty("cost").GetInt32());
         Assert.Equal("bean_reduce", bean.GetProperty("effectType").GetString());
