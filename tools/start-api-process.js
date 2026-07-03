@@ -7,11 +7,16 @@ function startApiProcess(apiUrl, options = {}) {
     const dllDir = path.join(root, "FATCATServer", "FatCat.Api", "bin", "Debug", "net9.0");
     const dllPath = path.join(dllDir, "FatCat.Api.dll");
     const stdio = options.captureOutput ? ["ignore", "pipe", "pipe"] : "ignore";
+    const env = {
+        ...process.env,
+        ASPNETCORE_ENVIRONMENT: process.env.ASPNETCORE_ENVIRONMENT || "Development",
+    };
     if (fs.existsSync(dllPath)) {
         return spawn("dotnet", ["FatCat.Api.dll", "--urls", apiUrl], {
             cwd: dllDir,
             windowsHide: true,
             stdio,
+            env,
         });
     }
 
@@ -20,6 +25,7 @@ function startApiProcess(apiUrl, options = {}) {
         cwd: root,
         windowsHide: true,
         stdio,
+        env,
     });
 }
 

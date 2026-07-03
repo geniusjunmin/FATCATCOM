@@ -31,12 +31,17 @@ async function waitForApi() {
         const messages = [];
         const failedRequests = [];
         let playerId = "";
+        let accessToken = "";
         page.on("console", (message) => {
             if (message.type() === "error" || message.type() === "warning") {
                 messages.push({ type: message.type(), text: message.text() });
             }
         });
-        page.on("response", (response) => {
+        page.on("response", async (response) => {
+            if (response.url().includes("/api/auth/guest") && response.ok()) {
+                const body = await response.json().catch(() => null);
+                accessToken = body?.data?.token || body?.data?.accessToken || accessToken;
+            }
             if (response.url().includes("/api/decor/collection?playerId=")) {
                 playerId = new URL(response.url()).searchParams.get("playerId") || playerId;
             }
@@ -79,10 +84,12 @@ async function waitForApi() {
             message: document.querySelector("#fatcat-dom-panel-overlay .message")?.textContent || "",
             buttonGone: !document.querySelector('[data-action="claimDecorCollection"][data-id="collector_1"]'),
         }));
-        const server = await page.evaluate(async ({ apiBase, id }) => {
-            const response = await fetch(`${apiBase}/api/decor/collection?playerId=${encodeURIComponent(id)}`);
+        const server = await page.evaluate(async ({ apiBase, id, token }) => {
+            const response = await fetch(`${apiBase}/api/decor/collection?playerId=${encodeURIComponent(id)}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
             return response.json();
-        }, { apiBase: apiUrl, id: playerId });
+        }, { apiBase: apiUrl, id: playerId, token: accessToken });
 
         const apiErrors = apiLogs.filter((line) => line.includes("fail:") || line.includes("Exception")).slice(-8);
         const ok = initial.text.includes("0/6")
@@ -99,6 +106,7 @@ async function waitForApi() {
             && server?.data?.ownedScore === 58
             && server?.data?.tiers?.[0]?.claimed === true
             && playerId.length > 0
+            && accessToken.length > 0
             && messages.length === 0
             && failedRequests.length === 0
             && apiErrors.length === 0;

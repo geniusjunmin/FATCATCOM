@@ -1,6 +1,8 @@
+const { createAuthenticatedApiClient } = require("./authenticated-api-client");
 const { startApiProcess } = require("./start-api-process");
 
 const apiUrl = "http://localhost:5144";
+const apiClient = createAuthenticatedApiClient(apiUrl);
 
 function wait(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -18,19 +20,11 @@ async function waitForApi() {
 }
 
 async function post(path, body) {
-    const response = await fetch(`${apiUrl}${path}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-    });
-    const json = await response.json();
-    return { response, json };
+    return apiClient.post(path, body);
 }
 
 async function get(path) {
-    const response = await fetch(`${apiUrl}${path}`);
-    const json = await response.json();
-    return { response, json };
+    return apiClient.get(path);
 }
 
 (async () => {

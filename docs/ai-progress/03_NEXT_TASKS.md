@@ -18,21 +18,29 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
-| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Daily order/chest and five-launch quota are authoritative; preserve their shared conditional row update. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main HUD/factory materials and six direct floor routes now match the target workflow; preserve them while authority work proceeds. |
+| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Signed player authentication, daily order/chest, and five-launch quota are authoritative; preserve these boundaries. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Resume main factory/HUD and cat-detail visual comparison now that the player API boundary is secured. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
 
 ## P0 Now
 
-### 0. Next Authenticated Player Boundary
+### Completed: Authenticated Player Boundary
 
-- Validate the guest token currently returned by `/api/auth/guest` and bind it to one player id.
-- Add an authenticated request helper/middleware so gameplay routes cannot operate on another query-string `playerId`.
-- Update `ApiClient` to send the token consistently and migrate endpoints in a controlled batch.
-- Keep CORS/local preview behavior explicit; malformed, absent, and mismatched credentials need API coverage.
-- Add dual-player authorization tests proving one client cannot mutate or read another player's private resources, cats, buildings, research, mail, or daily operation state.
+- Guest auth issues a signed, expiring HMAC token bound to one player; private gameplay routes require that token and reject cross-player query ids.
+- Normal client requests use Bearer authentication and social SSE uses a signed `access_token` query parameter.
+- Missing, tampered, expired, and mismatched tokens have explicit 400/401/403 API envelopes; production requires an external signing key.
+- Dual-player tests cover private resources, cats, buildings, research, mail, save, and daily operations; SSE query authentication has dedicated coverage.
+- API smoke, multi-player online tools, full quick verify, four-size main/cat regression, and 99 server tests are green.
+
+### 0. Next Target-UI Fidelity Pass
+
+- Compare current 430x932 main and cat captures directly with `主页面.png` and `所有猫咪页面.png`.
+- Prioritize visible first-screen differences: factory room richness, HUD framing/spacing, cat hero scale, and paper/wood material hierarchy.
+- Reuse existing generated room/cat assets before introducing another full-screen background.
+- Preserve stable layout ratios and online action attributes at 360x800, 414x896, 430x932, and 768x1024.
+- Finish with four-size screenshots, 18-step clicks, focused TypeScript diagnostics, and quick verify.
 
 ### Completed: Daily Launch Quota Authority
 

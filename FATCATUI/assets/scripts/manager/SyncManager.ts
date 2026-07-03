@@ -106,9 +106,7 @@ export class SyncManager {
         }
         this.stopSocialEventStream();
         this._socialEventPlayerId = NetworkManager.playerId;
-        const source = new EventSource(
-            `${ApiClient.baseUrl}/api/social/events?playerId=${encodeURIComponent(NetworkManager.playerId)}`,
-        );
+        const source = new EventSource(ApiClient.socialEventStreamUrl(NetworkManager.playerId));
         source.onmessage = (event) => {
             try {
                 const socialEvent = JSON.parse(event.data) as SocialRealtimeEventDto;

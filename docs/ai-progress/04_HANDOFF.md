@@ -22,6 +22,16 @@ Updated: 2026-07-03
 | Frontend script edit | Refresh Cocos asset-db before trusting preview behavior. |
 | Online script work | Avoid concurrent users of `http://localhost:5144`. |
 
+## Latest Security Note
+
+- Player authentication is complete. `/api/auth/guest` returns a 30-day HMAC-SHA256 token; all private `/api` routes require a matching player id and signed credential.
+- Normal requests send `Authorization: Bearer <token>`. `/api/social/events` uses `access_token` in the query because native browser `EventSource` cannot add request headers.
+- Public routes are limited to guest auth, config version/bootstrap, and production preview without `playerId`. Do not add another exception casually.
+- Production must provide `Authentication:SigningKey`; no key is committed. Local tool-launched APIs use Development explicitly, while Testing-only missing-token compatibility must be opted into by the test factory.
+- Multi-player tool requests should use `tools/authenticated-api-client.js`. It registers each login token and selects credentials by the request's `playerId`.
+- Current gate: auth contract, API smoke, real friends/SSE/help/presence/cooperation/boost, decor online flows, quick verify, four-size main/cat screenshots, 18-step clicks, and 99/99 tests all pass.
+- Best next batch is visual: compare fresh 430x932 captures against the root main/cat references and polish the largest first-screen differences without changing authenticated action routes.
+
 ## Latest UI Note
 
 - Daily launch quota is authoritative on the same row as daily orders. `PlayerDailyOrderState.LaunchCount` defaults/migrates to 0, resets by UTC date, and is exposed as `launchesUsed`, `launchLimit`, and `launchesRemaining`.

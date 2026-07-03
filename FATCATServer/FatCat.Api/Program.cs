@@ -23,10 +23,12 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddScoped<FatCatGameService>();
 builder.Services.AddSingleton<SocialEventBroker>();
+builder.Services.AddSingleton<PlayerTokenService>();
 builder.Services.AddFatCatInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 app.UseCors(CorsPolicyName);
+app.UseMiddleware<PlayerAuthenticationMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -49,10 +51,12 @@ app.MapGet("/health", () => Results.Ok(ApiEnvelope<object>.Success(new
 app.MapPost("/api/auth/guest", async (
     AuthGuestRequest request,
     FatCatGameService service,
+    PlayerTokenService tokenService,
     CancellationToken cancellationToken) =>
 {
     var result = await service.AuthGuestAsync(request, cancellationToken);
-    return Results.Ok(ApiEnvelope<AuthGuestResponse>.Success(result));
+    return Results.Ok(ApiEnvelope<AuthGuestResponse>.Success(
+        result with { Token = tokenService.Issue(result.PlayerId) }));
 });
 
 app.MapGet("/api/config/version", () => Results.Ok(ApiEnvelope<object>.Success(new

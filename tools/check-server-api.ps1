@@ -34,9 +34,15 @@ $auth = Invoke-WebRequest `
 
 $authData = Read-Json $auth
 $playerId = $authData.data.playerId
+$authToken = $authData.data.token
 if ([string]::IsNullOrWhiteSpace($playerId)) {
     throw "Guest auth did not return playerId."
 }
+if ([string]::IsNullOrWhiteSpace($authToken)) {
+    throw "Guest auth did not return token."
+}
+$ownerHeaders = @{ Authorization = "Bearer $authToken" }
+$PSDefaultParameterValues["Invoke-WebRequest:Headers"] = $ownerHeaders
 
 $mail = Read-Json (Invoke-WebRequest -Uri "$ApiBaseUrl/api/mail?playerId=$playerId" -UseBasicParsing)
 $friends = Read-Json (Invoke-WebRequest -Uri "$ApiBaseUrl/api/friends?playerId=$playerId" -UseBasicParsing)
@@ -302,7 +308,10 @@ $limitAuth = Invoke-WebRequest `
     -ContentType "application/json" `
     -Body (@{ deviceId = $limitDeviceId; companyName = "FatCat Limit Smoke" } | ConvertTo-Json) `
     -UseBasicParsing
-$limitPlayerId = (Read-Json $limitAuth).data.playerId
+$limitAuthData = Read-Json $limitAuth
+$limitPlayerId = $limitAuthData.data.playerId
+$limitHeaders = @{ Authorization = "Bearer $($limitAuthData.data.token)" }
+$PSDefaultParameterValues["Invoke-WebRequest:Headers"] = $limitHeaders
 $limitPurchase = Read-Json (Invoke-WebRequest `
     -Uri "$ApiBaseUrl/api/shop/purchase?playerId=$limitPlayerId" `
     -Method Post `
@@ -331,6 +340,7 @@ try {
         throw
     }
 }
+$PSDefaultParameterValues["Invoke-WebRequest:Headers"] = $ownerHeaders
 
 $mailClaim = Read-Json (Invoke-WebRequest `
     -Uri "$ApiBaseUrl/api/mail/welcome/claim?playerId=$playerId" `

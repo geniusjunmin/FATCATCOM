@@ -170,6 +170,10 @@ Invoke-Step "Daily order contract check" {
     node .\tools\check-daily-order-contract.js
 }
 
+Invoke-Step "Player authentication contract check" {
+    node .\tools\check-player-auth-contract.js
+}
+
 Invoke-Step "Friend activity contract check" {
     node .\tools\check-friend-activity-contract.js
 }

@@ -22,6 +22,14 @@ export class ApiClient {
         return this._token.length > 0;
     }
 
+    public static socialEventStreamUrl(playerId: string): string {
+        const query = new URLSearchParams({
+            playerId,
+            access_token: this._token,
+        });
+        return `${this._baseUrl}/api/social/events?${query.toString()}`;
+    }
+
     public static authGuest(request: AuthGuestRequest): Promise<ApiEnvelope<AuthGuestResponse>> {
         return this.post("/api/auth/guest", request);
     }
@@ -255,11 +263,14 @@ export class ApiClient {
             });
             const text = await response.text();
             const parsed = text ? JSON.parse(text) as ApiEnvelope<T> | T : undefined;
+            if (parsed && typeof parsed === "object" && "ok" in parsed) {
+                const envelope = parsed as ApiEnvelope<T>;
+                return response.ok
+                    ? envelope
+                    : { ...envelope, ok: false, error: envelope.error ?? `http_${response.status}` };
+            }
             if (!response.ok) {
                 return { ok: false, error: `http_${response.status}` };
-            }
-            if (parsed && typeof parsed === "object" && "ok" in parsed) {
-                return parsed as ApiEnvelope<T>;
             }
             return { ok: true, data: parsed as T };
         } catch (error) {

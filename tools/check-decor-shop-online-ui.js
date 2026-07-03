@@ -35,12 +35,17 @@ async function waitForApi() {
         const failedRequests = [];
         const purchaseResponses = [];
         let connectedPlayerId = "";
+        let accessToken = "";
         page.on("console", (message) => {
             if (message.type() === "error" || message.type() === "warning") {
                 messages.push({ type: message.type(), text: message.text() });
             }
         });
         page.on("response", async (response) => {
+            if (response.url().includes("/api/auth/guest") && response.ok()) {
+                const body = await response.json().catch(() => null);
+                accessToken = body?.data?.token || body?.data?.accessToken || accessToken;
+            }
             if (response.url().includes("/api/decor/catalog?playerId=")) {
                 connectedPlayerId = new URL(response.url()).searchParams.get("playerId") || "";
             }
@@ -107,9 +112,11 @@ async function waitForApi() {
         });
         await page.click('#fatcat-dom-panel-overlay [data-action="toggleDecorPlacement"][data-id="decor_shop_neon_paw"]');
         await page.waitForTimeout(700);
-        const placed = await page.evaluate(async (playerId) => {
+        const placed = await page.evaluate(async ({ playerId, token }) => {
             const button = document.querySelector('#fatcat-dom-panel-overlay [data-action="toggleDecorPlacement"][data-id="decor_shop_neon_paw"]');
-            const response = await fetch(`http://localhost:5144/api/decor?playerId=${encodeURIComponent(playerId)}`);
+            const response = await fetch(`http://localhost:5144/api/decor?playerId=${encodeURIComponent(playerId)}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
             const payload = await response.json();
             const state = payload.data?.find((item) => item.decorId === "decor_shop_neon_paw");
             return {
@@ -117,7 +124,7 @@ async function waitForApi() {
                 serverPlaced: state?.isPlaced === true,
                 serverBuilding: state?.buildingId || "",
             };
-        }, connectedPlayerId);
+        }, { playerId: connectedPlayerId, token: accessToken });
 
         const purchase = purchaseResponses[0]?.body?.data;
         const ok = before.rows === 6
@@ -141,6 +148,7 @@ async function waitForApi() {
             && placed.serverPlaced
             && placed.serverBuilding === "building_cafe_1f"
             && connectedPlayerId.length > 0
+            && accessToken.length > 0
             && messages.length === 0
             && failedRequests.length === 0
             && apiLogs.every((line) => !line.includes("fail:") && !line.includes("Exception"));

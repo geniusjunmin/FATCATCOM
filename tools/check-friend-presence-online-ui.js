@@ -1,10 +1,12 @@
 const { chromium } = require("playwright-core");
+const { createAuthenticatedApiClient } = require("./authenticated-api-client");
 const { startApiProcess } = require("./start-api-process");
 
 const edgePath = "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
 const apiUrl = "http://localhost:5144";
 const previewUrl = `http://localhost:7456/?api=${encodeURIComponent(apiUrl)}&presenceui=${Date.now()}`;
 const saveKey = "fatcat_company_save_v1";
+const apiClient = createAuthenticatedApiClient(apiUrl);
 
 function wait(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -22,12 +24,7 @@ async function waitForApi() {
 }
 
 async function post(path, body) {
-    const response = await fetch(`${apiUrl}${path}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-    });
-    return { response, json: await response.json() };
+    return apiClient.post(path, body);
 }
 
 (async () => {
@@ -64,6 +61,7 @@ async function post(path, body) {
                 try {
                     const body = await response.json();
                     browserPlayerId = body.data?.playerId || browserPlayerId;
+                    apiClient.registerAuth(body.data);
                 } catch {}
             }
             if (response.status() >= 400) {

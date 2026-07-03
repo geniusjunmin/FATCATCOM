@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FatCat.Infrastructure;
@@ -8,6 +9,109 @@ namespace FatCat.Tests;
 
 public sealed class FatCatApiTests
 {
+    [Fact]
+    public async Task PlayerAuthentication_RejectsMissingInvalidAndCrossPlayerAccess()
+    {
+        await using var factory = new FatCatApiFactory(enforceAuthentication: true);
+        var publicClient = factory.CreateClient();
+        var firstAuthResponse = await publicClient.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-auth-owner-a",
+            companyName = "Owner A",
+        });
+        var secondAuthResponse = await publicClient.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-auth-owner-b",
+            companyName = "Owner B",
+        });
+        var firstAuth = JsonDocument.Parse(await firstAuthResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var secondAuth = JsonDocument.Parse(await secondAuthResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var firstPlayerId = firstAuth.GetProperty("playerId").GetGuid();
+        var secondPlayerId = secondAuth.GetProperty("playerId").GetGuid();
+        var firstToken = firstAuth.GetProperty("token").GetString();
+        var secondToken = secondAuth.GetProperty("token").GetString();
+        Assert.NotNull(firstToken);
+        Assert.NotNull(secondToken);
+        Assert.Equal(4, firstToken!.Split('.').Length);
+
+        var missing = await publicClient.GetAsync($"/api/resources?playerId={firstPlayerId}");
+        using var invalidClient = factory.CreateClient();
+        invalidClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", $"{firstToken}tampered");
+        var invalid = await invalidClient.GetAsync($"/api/resources?playerId={firstPlayerId}");
+        using var firstClient = factory.CreateClient();
+        firstClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", firstToken);
+        var ownResources = await firstClient.GetAsync($"/api/resources?playerId={firstPlayerId}");
+
+        var privatePaths = new[]
+        {
+            "/api/resources",
+            "/api/cats",
+            "/api/buildings",
+            "/api/research",
+            "/api/mail",
+            "/api/save",
+            "/api/daily-order",
+        };
+        foreach (var path in privatePaths)
+        {
+            var response = await firstClient.GetAsync($"{path}?playerId={secondPlayerId}");
+            var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.Equal("player_token_mismatch", body.GetProperty("error").GetString());
+        }
+
+        var crossUpgrade = await firstClient.PostAsJsonAsync(
+            $"/api/cats/c_001/upgrade?playerId={secondPlayerId}",
+            new { });
+        using var secondClient = factory.CreateClient();
+        secondClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", secondToken);
+        var secondResourcesResponse = await secondClient.GetAsync($"/api/resources?playerId={secondPlayerId}");
+        var secondResources = JsonDocument.Parse(await secondResourcesResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var publicBootstrap = await publicClient.GetAsync("/api/config/bootstrap");
+        var publicPreview = await publicClient.PostAsJsonAsync("/api/production/preview", new
+        {
+            grossCoinPerSecond = 10,
+            wageCostPerSecond = 1,
+            beanCostPerSecond = 1,
+        });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, missing.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, invalid.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, ownResources.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, crossUpgrade.StatusCode);
+        Assert.Equal(12_450_000, secondResources.GetProperty("coin").GetDouble());
+        Assert.Equal(HttpStatusCode.OK, publicBootstrap.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, publicPreview.StatusCode);
+    }
+
+    [Fact]
+    public async Task PlayerAuthentication_AllowsSignedTokenForEventStreamQuery()
+    {
+        await using var factory = new FatCatApiFactory(enforceAuthentication: true);
+        var client = factory.CreateClient();
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-auth-sse-owner",
+            companyName = "SSE Owner",
+        });
+        var auth = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var playerId = auth.GetProperty("playerId").GetGuid();
+        var token = auth.GetProperty("token").GetString();
+        Assert.NotNull(token);
+
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"/api/social/events?playerId={playerId}&access_token={Uri.EscapeDataString(token!)}");
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            cancellation.Token);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
+    }
+
     [Fact]
     public async Task Bootstrap_ReturnsServerFeatures()
     {

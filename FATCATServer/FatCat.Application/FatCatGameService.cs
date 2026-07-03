@@ -76,7 +76,7 @@ public sealed class FatCatGameService(
             await EnsureInviteCodeAsync(existing.Id, cancellationToken);
             existing.UpdatedAt = DateTimeOffset.UtcNow;
             await repository.SaveChangesAsync(cancellationToken);
-            return new AuthGuestResponse(existing.Id, CreateDevToken(existing.Id), false);
+            return new AuthGuestResponse(existing.Id, "", false);
         }
 
         var player = new PlayerProfile
@@ -92,7 +92,7 @@ public sealed class FatCatGameService(
         await EnsureDefaultBuildingStatesAsync(player.Id, cancellationToken);
         await EnsureDefaultDecorStatesAsync(player.Id, cancellationToken);
         await EnsureInviteCodeAsync(player.Id, cancellationToken);
-        return new AuthGuestResponse(player.Id, CreateDevToken(player.Id), true);
+        return new AuthGuestResponse(player.Id, "", true);
     }
 
     public async Task<PlayerDto?> GetPlayerAsync(Guid playerId, CancellationToken cancellationToken)
@@ -2042,11 +2042,6 @@ public sealed class FatCatGameService(
     private static string NormalizeDeviceId(string deviceId)
     {
         return string.IsNullOrWhiteSpace(deviceId) ? "unknown-device" : deviceId.Trim();
-    }
-
-    private static string CreateDevToken(Guid playerId)
-    {
-        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"dev:{playerId:N}"));
     }
 
     private static double NonNegative(double value)

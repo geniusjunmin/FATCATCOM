@@ -1,10 +1,12 @@
 const { chromium } = require("playwright-core");
+const { createAuthenticatedApiClient } = require("./authenticated-api-client");
 const { startApiProcess } = require("./start-api-process");
 
 const edgePath = "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
 const apiUrl = "http://localhost:5144";
 const url = `http://localhost:7456/?api=${encodeURIComponent(apiUrl)}&friendhelp=${Date.now()}`;
 const saveKey = "fatcat_company_save_v1";
+const apiClient = createAuthenticatedApiClient(apiUrl);
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function waitForApi() {
@@ -18,12 +20,7 @@ async function waitForApi() {
 }
 
 async function request(path, method = "GET", body = undefined) {
-    const response = await fetch(`${apiUrl}${path}`, {
-        method,
-        headers: body ? { "Content-Type": "application/json" } : undefined,
-        body: body ? JSON.stringify(body) : undefined,
-    });
-    return { response, json: await response.json() };
+    return apiClient.request(path, { method, body });
 }
 
 (async () => {
@@ -53,7 +50,9 @@ async function request(path, method = "GET", body = undefined) {
         page.on("response", async (response) => {
             if (response.url().includes("/api/auth/guest") && response.ok()) {
                 try {
-                    targetId = (await response.json()).data?.playerId || targetId;
+                    const body = await response.json();
+                    targetId = body.data?.playerId || targetId;
+                    apiClient.registerAuth(body.data);
                 } catch {}
             }
             if (response.status() >= 400) {

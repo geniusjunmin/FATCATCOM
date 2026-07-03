@@ -7,7 +7,7 @@ Updated: 2026-07-03
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Add an authenticated player boundary: stop trusting caller-supplied `playerId` without validating the guest token, while preserving local preview and test ergonomics. |
+| Best Next Move | Return to target-UI fidelity: refine the main factory/HUD and cat detail composition without disturbing the now-authenticated online action boundary. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -17,7 +17,7 @@ Updated: 2026-07-03
 | Track | State | Signal |
 | --- | --- | --- |
 | Client UI | Playable and clickable | Main screen, cat page, feature panels, bottom nav, and four-size screenshot regressions exist. |
-| Server Authority | Advanced | Cats, equipment, buildings, research, shop state, friends, launch, daily orders, production preview, resources, and transactions are server-backed. |
+| Server Authority | Advanced | Gameplay state is server-backed and private `/api` routes now bind signed guest tokens to the requested player. |
 | Economy Model | Covered | Production uses assignment, building level, equipment, research, skills, and mood. |
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
@@ -25,6 +25,13 @@ Updated: 2026-07-03
 | Biggest Risk | Frontend size | `BottomNavUI.ts` remains large, but shared, panel, factory-overlay, and cat-overlay styles are extracted. The next code-health work is splitting cohesive factory/cat/feature render responsibilities without disturbing live actions. |
 
 ## Client UI
+
+- Player identity is now authenticated end to end. `/api/auth/guest` issues a 30-day HMAC-SHA256 token; private API requests require the matching Bearer token instead of trusting a query-string `playerId`.
+- `PlayerAuthenticationMiddleware` rejects missing, invalid, expired, and cross-player credentials. Only guest auth, config bootstrap/version, and stateless production preview remain public; SSE uses the same signed token through `access_token` because browser `EventSource` cannot set an Authorization header.
+- `ApiClient` sends Bearer credentials for normal requests and builds authenticated social-stream URLs. Non-2xx API envelopes retain their server error code/data so gameplay limits and authentication failures remain distinguishable.
+- Online regression tools share `authenticated-api-client.js`, which records login tokens per player and attaches the correct credential in multi-player tests. Direct browser fetches in decor checks also send Bearer tokens.
+- Production startup requires `Authentication:SigningKey`. Local online scripts explicitly use the Development environment; tests can opt into their documented Testing-only missing-token compatibility mode.
+- Verification: auth contract, real API smoke, daily launch browser flow, real friend flow, SSE notifications, help/presence/cooperation/boost history, decor collection/shop/placement, 18-step clicks, four-size main/cat captures, full quick verify, and 99/99 tests pass.
 
 - The static `今日剩余次数：5/5` strip is now authoritative. `PlayerDailyOrderState.LaunchCount` is runtime-migrated onto SQLite and resets with the UTC daily order row; DTOs expose used, limit, and remaining counts.
 - `TryAdvanceDailyLaunchAsync` conditionally consumes one of five launches and advances order progress on the same persisted row. `LaunchSettlementGates` serializes each player's settlement, while launch-record lookup happens before quota consumption so a replay after exhaustion still returns the original accepted result.
