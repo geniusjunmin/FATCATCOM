@@ -19,7 +19,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Keep config checks green; shop-state, friend sync, real-friend add, friend rewards, short invite/search, friend requests, relation table, and leaderboard contracts are done. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Factory appearance and shop interaction are done; next align inventory with the target's five-category organization and richer item detail. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Inventory has five categories and richer detail; next replace repeated material art and curate the 20-slot order against the target. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
@@ -28,11 +28,11 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 ### 0. Next Visual Batch
 
-- Preserve the completed shop interaction, factory-appearance selection, research tree, and six building-room heroes.
-- Align inventory with the five target categories: all, resources, items, shards, and other. Move usable owned items out of the mixed other bucket without changing authoritative use actions.
-- Give selected-item detail stronger hierarchy for quantity, source, description, rarity/type, and action state while keeping it above bottom navigation.
-- Reuse current generated item and cat-shard art first; generate only genuinely missing inventory props after visual review.
-- Extend four-size feature regression for all five tabs, stable default selection, usable-item action, embedded art, and detail/nav containment.
+- Preserve the completed five-category inventory model, real use action, selected detail, shop interaction, factory appearance, and research tree.
+- Compare the all-items grid directly with `其他页面.png` and define a deliberate 20-slot presentation order instead of relying on owned-item iteration plus preview slicing.
+- Generate only the missing target-like props: small/large cat-food bags, super food, factory voucher, accelerator, and dried fish. Reuse current resource, ticket, guard, order, cat, and research art.
+- Remove repeated collar/cup placeholders from the first-screen all-items grid while keeping real owned equipment reachable in the other tab.
+- Extend art/feature guards to require the curated order, distinct target prop mappings, five tabs, real use action, and four-size containment.
 
 ### 1. Shared Config And Economy Coverage
 

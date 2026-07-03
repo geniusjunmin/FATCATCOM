@@ -134,6 +134,9 @@ type InventoryDetailView = {
     description: string;
     source: string;
     art: string;
+    kind: string;
+    rarity: string;
+    status: string;
     usableItemId?: string;
 };
 
@@ -1388,7 +1391,7 @@ export class BottomNavUI extends Component {
                 success = true;
             }
         } else if (action === "inventoryTab") {
-            const tab = button.dataset.tab as "all" | "resource" | "shard" | "other" | undefined;
+            const tab = button.dataset.tab as InventoryTabId | undefined;
             if (tab) {
                 this._domInventoryTab = tab;
                 this._selectedInventoryKey = this.getDefaultInventorySelection(tab);
@@ -2591,12 +2594,17 @@ export class BottomNavUI extends Component {
     }
 
     private getDefaultInventorySelection(tab: InventoryTabId): string {
+        if (tab === "item") {
+            const firstOwnedItem = InventoryManager.getOwnedItems()
+                .find(item => this.inventoryItemMatchesTab(item.itemId, tab));
+            return firstOwnedItem ? `item:${firstOwnedItem.itemId}` : "preview:speed-5";
+        }
         if (tab === "shard") {
             return InventoryManager.getItemCount("item_shard_orange") > 0
                 ? "item:item_shard_orange"
                 : "preview:shard-orange";
         }
-        if (tab === "other") return "preview:speed-5";
+        if (tab === "other") return "preview:decor-coin";
         return "resource:bean";
     }
 
@@ -2618,6 +2626,9 @@ export class BottomNavUI extends Component {
                 description: detail.description,
                 source: detail.source,
                 art: this.getGeneratedIconAsset(this.getResourceIconClass(resource)),
+                kind: "公司资源",
+                rarity: "常用",
+                status: "资产栏同步",
             };
         }
         if (key.startsWith("item:")) {
@@ -2636,6 +2647,9 @@ export class BottomNavUI extends Component {
                 art: itemId === "item_shard_orange"
                     ? getInventoryPreviewAsset("catOrange")
                     : this.getGeneratedIconAsset(icon),
+                kind: config?.type === "shard" ? "猫咪碎片" : equipment ? "装备材料" : "可使用道具",
+                rarity: `${config?.rarity ?? equipment?.rarity ?? "B"}级`,
+                status: usable ? "可立即使用" : config?.type === "shard" ? "招募与升星材料" : "背包材料",
                 usableItemId: usable ? itemId : undefined,
             };
         }
@@ -2650,6 +2664,9 @@ export class BottomNavUI extends Component {
                 description: card.description,
                 source: card.source,
                 art: getInventoryPreviewAsset(card.art),
+                kind: card.kind,
+                rarity: `${card.rarity}级`,
+                status: card.category === "item" ? "功能预览" : card.category === "shard" ? "招募与升星材料" : "特殊收藏材料",
             };
         }
         return null;
@@ -2659,20 +2676,21 @@ export class BottomNavUI extends Component {
         const action = detail.usableItemId
             ? `<button class="tag bag-detail-action" data-action="use" data-id="${detail.usableItemId}" ${detail.count > 0 ? "" : "disabled"}>使用</button>`
             : "";
-        return `<div class="bag-detail-target" data-selected-key="${detail.key}"><span class="bag-detail-icon asset" style="background-image:url('${detail.art}')"></span><div class="bag-detail-copy"><div class="bag-detail-head"><b>${detail.name}</b><span><strong>拥有：${this.formatNumber(detail.count)}</strong>${action}</span></div><p>${detail.description}</p><small>主要获取途径：${detail.source}</small></div></div>`;
+        return `<div class="bag-detail-target" data-selected-key="${detail.key}" data-detail-kind="${detail.kind}"><span class="bag-detail-icon asset" style="background-image:url('${detail.art}')"></span><div class="bag-detail-copy"><div class="bag-detail-head"><div><b>${detail.name}</b><span class="bag-detail-badges"><em>${detail.rarity}</em><em>${detail.kind}</em></span></div><span><strong>拥有：${this.formatNumber(detail.count)}</strong>${action}</span></div><p>${detail.description}</p><div class="bag-detail-meta"><span>主要获取：<b>${detail.source}</b></span><em>${detail.status}</em></div></div></div>`;
     }
 
     private getItemIconClass(itemId: string): string {
         return getItemIconClassName(itemId);
     }
 
-    private inventoryItemMatchesTab(itemId: string): boolean {
-        if (this._domInventoryTab === "all") return true;
+    private inventoryItemMatchesTab(itemId: string, tab: InventoryTabId = this._domInventoryTab): boolean {
+        if (tab === "all") return true;
         const config = ConfigManager.items.find(item => item.id === itemId);
-        if (!config) return this._domInventoryTab === "other";
-        if (this._domInventoryTab === "resource") return config.type === "resource";
-        if (this._domInventoryTab === "shard") return config.type === "shard";
-        return config.type !== "resource" && config.type !== "shard";
+        if (!config) return tab === "other";
+        if (tab === "resource") return false;
+        if (tab === "item") return config.type === "resource" || config.type === "consumable";
+        if (tab === "shard") return config.type === "shard";
+        return config.type !== "resource" && config.type !== "consumable" && config.type !== "shard";
     }
 
     private renderResearchPanel(): string {

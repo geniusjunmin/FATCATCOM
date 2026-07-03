@@ -7,7 +7,7 @@ Updated: 2026-07-02
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Match the inventory reference more closely with a fifth item category, clearer grouping, and richer selected-item detail while preserving the verified four-column layout. |
+| Best Next Move | Replace the remaining repeated inventory material icons with target-specific props and curate the 20-slot all-items order to match `其他页面.png`. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts. |
@@ -26,6 +26,11 @@ Updated: 2026-07-02
 
 ## Client UI
 
+- Latest inventory-fidelity pass aligns the backpack with the five target tabs: all, resources, items, shards, and other. Direct balances stay in resources; usable cat-food/coin packs move into items; shards and special materials retain separate categories.
+- `InventoryTabId`, `INVENTORY_TABS`, preview categories, tab defaults, and `inventoryItemMatchesTab()` now share the five-category model. The item tab defaults to a real owned usable item when available, while other defaults to decoration currency instead of a production ticket.
+- Selected detail now exposes rarity, item kind, owned count, description, source, and action/status state. Real usable items still call the existing `use` action; preview-only production tickets are labeled as previews and do not mutate resources.
+- Inventory tabs use a dedicated five-column strip while the all view remains a 4x5 grid. The richer detail card remains above navigation at 360x800, 414x896, 430x932, and 768x1024.
+- Four-size feature regression now visits all five tabs and requires one active tab, correct default kind/key, resource/item/shard/other counts, the real use action, selected-detail switching, embedded art, and nav containment. Full main/cat/utility/appearance/click regression and `quick-verify.ps1` pass; server tests remain 84/84.
 - Latest factory-appearance pass adds the missing building subview from `其他页面.png`. It has four selectable themes, one active default, three locked states, a large scene, four bonus summaries, collection progress, and return navigation.
 - Three new 768x432 JPEG themes live under `FATCATUI/assets/resources/textures/generated/factory_appearances/`: classic wood-and-brass, steam industrial, and bright future eco-lab. The default reuses the existing factory cutaway. Names, bonuses, lock state, and actions remain live DOM text.
 - `GeneratedFactoryAppearanceAssets`, `getFactoryAppearanceAsset()`, `FACTORY_APPEARANCES`, and optional `featureState.factoryAppearanceId` own registry, presentation, and local selection state. Locked themes cannot be applied; advertised bonuses are preview-only until an authoritative server appearance system exists.

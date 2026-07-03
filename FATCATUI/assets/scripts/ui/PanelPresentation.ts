@@ -1384,6 +1384,10 @@ export const DOM_PANEL_STYLES = `
                 flex-direction:column;
                 overflow:hidden;
             }
+            #fatcat-dom-panel-overlay .inventory-shell > .tabs {
+                grid-template-columns:repeat(5,minmax(0,1fr));
+                gap:.7%;
+            }
             #fatcat-dom-panel-overlay .inventory-shell button.bag-card {
                 width:100%;
                 color:#51331f;
@@ -1443,6 +1447,7 @@ export const DOM_PANEL_STYLES = `
                 color:#51331f;
                 box-shadow:inset 0 0 0 2px rgba(255,255,255,.25),0 3px 0 rgba(62,38,22,.2);
                 font-size:1.9%;
+                min-height:108px;
             }
             #fatcat-dom-panel-overlay .bag-detail-icon {
                 width:100%;
@@ -1465,11 +1470,48 @@ export const DOM_PANEL_STYLES = `
                 gap:8px;
                 white-space:nowrap;
             }
+            #fatcat-dom-panel-overlay .bag-detail-head > div {
+                display:flex;
+                min-width:0;
+                align-items:center;
+                gap:8px;
+            }
+            #fatcat-dom-panel-overlay .bag-detail-badges {
+                display:flex;
+                gap:4px;
+            }
+            #fatcat-dom-panel-overlay .bag-detail-badges em,
+            #fatcat-dom-panel-overlay .bag-detail-meta em {
+                padding:3px 6px;
+                border-radius:999px;
+                background:#76553a;
+                color:#fff0cc;
+                font-size:72%;
+                font-style:normal;
+                font-weight:900;
+                white-space:nowrap;
+            }
             #fatcat-dom-panel-overlay .bag-detail-target strong { float:none; }
             #fatcat-dom-panel-overlay .bag-detail-action { margin:0; border:0; cursor:pointer; font:inherit; }
             #fatcat-dom-panel-overlay .bag-detail-action:disabled { opacity:.55; cursor:default; }
             #fatcat-dom-panel-overlay .bag-detail-target p { margin:2% 0; }
             #fatcat-dom-panel-overlay .bag-detail-target small { color:#7b573d; }
+            #fatcat-dom-panel-overlay .bag-detail-meta {
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+                gap:3%;
+                color:#7b573d;
+                font-size:84%;
+            }
+            #fatcat-dom-panel-overlay .bag-detail-meta > span {
+                min-width:0;
+                overflow:hidden;
+                text-overflow:ellipsis;
+                white-space:nowrap;
+            }
+            #fatcat-dom-panel-overlay .bag-detail-meta b { color:#5d3a24; font-size:100%; }
+            #fatcat-dom-panel-overlay .bag-detail-meta em { background:#6b8e3d; }
             #fatcat-dom-panel-overlay .research-point-strip {
                 display:flex;
                 justify-content:space-between;
@@ -1622,11 +1664,17 @@ export const DOM_PANEL_STYLES = `
             }
             #fatcat-dom-panel-overlay.compact .inventory-shell .bag-detail-target {
                 grid-template-columns:14% 1fr;
+                min-height:82px;
                 padding:1.4% 2%;
                 font-size:1.68%;
             }
             #fatcat-dom-panel-overlay.compact .inventory-shell .bag-detail-target p { margin:1% 0; }
             #fatcat-dom-panel-overlay.compact .inventory-shell .bag-detail-target small { display:none; }
+            #fatcat-dom-panel-overlay.compact .inventory-shell > .tabs {
+                gap:.5%;
+                padding:.8%;
+                font-size:92%;
+            }
             #fatcat-dom-panel-overlay.tall .panel-shell { padding-top: 4.8%; padding-bottom: 18.5%; }
             #fatcat-dom-panel-overlay.wide .panel-shell { left: 8%; right: 8%; }
             @media (max-width:390px) {

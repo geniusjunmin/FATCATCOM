@@ -67,13 +67,15 @@ export function getResourceIconClass(resource: string): string {
 
 export function getInventoryTabLabel(tab: string): string {
     if (tab === "resource") return "资源道具";
+    if (tab === "item") return "功能道具";
     if (tab === "shard") return "猫咪碎片";
     if (tab === "other") return "其他物品";
     return "全部物品";
 }
 
 export function getInventoryTabDesc(tab: string): string {
-    if (tab === "resource") return "资源包可直接使用，使用后对应资源会进入顶部资产栏。";
+    if (tab === "resource") return "金币、咖啡豆、猫粮和钻石会与顶部资产栏实时同步。";
+    if (tab === "item") return "资源包和功能券可直接使用，效果由真实背包数据决定。";
     if (tab === "shard") return "碎片用于后续招募和升星玩法，目前先作为材料保存。";
     if (tab === "other") return "活动、装备和装饰类物品会逐步放到这里。";
     return "背包会同时显示资产概览和已拥有道具，方便核对商店购买结果。";

@@ -24,6 +24,11 @@ Updated: 2026-07-02
 
 ## Latest UI Note
 
+- Backpack now follows the target's five categories. `InventoryTabId` includes `item`; `INVENTORY_TABS` renders all/resource/item/shard/other in a dedicated five-column strip. Keep generic four-tab panel styling unchanged for shop and research.
+- `inventoryItemMatchesTab()` intentionally treats configured resource packs as usable items, because direct balances already occupy the resource tab. Unknown/equipment material records stay in other; shard configs stay in shards.
+- `InventoryDetailView` now carries `kind`, `rarity`, and `status`. `.bag-detail-target[data-detail-kind]` renders those with owned count, description, source, and the existing real `use` action. Preview tickets must remain non-actionable until their gameplay exists.
+- `capture-feature-regression.js` opens all five tabs at all four supported sizes. Current expected snapshots are resource 4, item at least 4 (normally 6), shard at least 4, other at least 5 (currently 11), and all exactly 20; each tab must expose one active button and a valid detail kind.
+- The all-items grid still contains repeated equipment-material art because it is assembled from live owned items before preview cards. The next visual batch should define a curated 20-slot order and generate only the six missing target props listed in `03_NEXT_TASKS.md`, without hiding real items from their category views.
 - Factory appearance is a dedicated mode inside the building panel, opened by `openFactoryAppearance` and returned with `closeFactoryAppearance`. `_buildingPanelMode` keeps it separate from the existing floor upgrade view; do not replace or duplicate that panel.
 - `FACTORY_APPEARANCES` defines simple/classic/steam/future. The default reuses `factory_cutaway_bg_640.jpg`; three generated 768x432 JPEGs are under `textures/generated/factory_appearances/`. They contain no UI text and are embedded through `GeneratedFactoryAppearanceAssets` plus `getFactoryAppearanceAsset()`.
 - Only the default theme is unlocked. `featureState.factoryAppearanceId` persists an enabled unlocked theme locally, while locked buttons remain disabled. Bonus values are previews and must not alter production until the server owns unlocks, activation, and economy effects.

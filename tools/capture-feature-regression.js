@@ -127,14 +127,18 @@ async function isVisible(page, selector) {
                 interaction.shopRealPurchaseAction = afterState.realPurchaseActions === 1;
             } else if (panel === "inventory") {
                 const tabStates = {};
-                for (const tab of ["resource", "shard", "other", "all"]) {
+                for (const tab of ["resource", "item", "shard", "other", "all"]) {
                     await page.click(`#fatcat-dom-panel-overlay [data-action="inventoryTab"][data-tab="${tab}"]`);
                     await page.waitForTimeout(100);
                     tabStates[tab] = await page.evaluate(() => ({
                         cards: document.querySelectorAll("#fatcat-dom-panel-overlay .bag-card").length,
                         key: document.querySelector("#fatcat-dom-panel-overlay .bag-detail-target")?.getAttribute("data-selected-key") || "",
+                        activeTabs: document.querySelectorAll("#fatcat-dom-panel-overlay .inventory-shell > .tabs .tab.active").length,
+                        kind: document.querySelector("#fatcat-dom-panel-overlay .bag-detail-target")?.getAttribute("data-detail-kind") || "",
                     }));
                 }
+                await page.click('#fatcat-dom-panel-overlay [data-action="inventoryTab"][data-tab="all"]');
+                await page.waitForTimeout(100);
                 const initialKey = await page.locator("#fatcat-dom-panel-overlay .bag-detail-target").getAttribute("data-selected-key");
                 await page.click('#fatcat-dom-panel-overlay [data-id="preview:order-refresh"]');
                 await page.waitForTimeout(120);
@@ -154,14 +158,22 @@ async function isVisible(page, selector) {
                     && previewState.selectedCount === 1;
                 interaction.inventoryUseAction = usableActionVisible;
                 interaction.inventoryTabStates = tabStates;
-                interaction.inventoryTabs = tabStates.resource.cards >= 6
+                interaction.inventoryTabs = tabStates.resource.cards === 4
                     && tabStates.resource.key === "resource:bean"
+                    && tabStates.resource.activeTabs === 1
+                    && tabStates.resource.kind === "公司资源"
+                    && tabStates.item.cards >= 4
+                    && tabStates.item.key.startsWith("item:")
+                    && tabStates.item.activeTabs === 1
                     && tabStates.shard.cards >= 4
                     && (tabStates.shard.key === "item:item_shard_orange" || tabStates.shard.key === "preview:shard-orange")
-                    && tabStates.other.cards >= 9
-                    && tabStates.other.key === "preview:speed-5"
+                    && tabStates.shard.activeTabs === 1
+                    && tabStates.other.cards >= 5
+                    && tabStates.other.key === "preview:decor-coin"
+                    && tabStates.other.activeTabs === 1
                     && tabStates.all.cards === 20
-                    && tabStates.all.key === "resource:bean";
+                    && tabStates.all.key === "resource:bean"
+                    && tabStates.all.activeTabs === 1;
             } else if (panel === "research") {
                 const effects = ["coin_production_mult", "bean_reduce", "upgrade_cost_reduce"];
                 const backgrounds = [];
