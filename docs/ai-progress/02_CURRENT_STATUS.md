@@ -1,13 +1,13 @@
 # Current Status
 
-Updated: 2026-07-03
+Updated: 2026-07-04
 
 ## Control Panel
 
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Return to target-UI fidelity: refine the main factory/HUD and cat detail composition without disturbing the now-authenticated online action boundary. |
+| Best Next Move | Continue target-UI fidelity with a focused high-resolution factory-art and side-tool pass; preserve the newly guarded HUD/floor/bonus text fit. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -26,6 +26,10 @@ Updated: 2026-07-03
 
 ## Client UI
 
+- Latest target-readability pass replaces inherited percentage typography with bounded viewport-aware sizing across the main HUD, factory cards, operation strip, navigation, and compact cat detail. The 430x932 main screen now carries clearer company/resource hierarchy, complete floor names, stronger production values, heavier navigation labels, and a larger launch command without changing measured geometry.
+- The cat detail keeps the verified grid but raises the center cat from 70% to 84% stage width, improves speech/status/production hierarchy, brightens the paper material, strengthens the active roster frame, and enlarges roster art. Information, equipment, skin, story, and roster content remain visible at 360x800.
+- `capture-main-regression.js` now explicitly fails when any company/resource value, floor name, or bonus card overflows horizontally. The pass found real 430/tablet clipping in `12.45M`, four-character floor names, and long `224/秒`/`8.24K` values; responsive caps now keep all of them complete.
+- Verification: Cocos UI refresh, focused TypeScript diagnostics, four-size main screenshots plus 24 floor routes, four-size cat information/equipment/skin screenshots, 18-step click navigation, full quick verify, and 99/99 server tests pass with clean browser logs.
 - Player identity is now authenticated end to end. `/api/auth/guest` issues a 30-day HMAC-SHA256 token; private API requests require the matching Bearer token instead of trusting a query-string `playerId`.
 - `PlayerAuthenticationMiddleware` rejects missing, invalid, expired, and cross-player credentials. Only guest auth, config bootstrap/version, and stateless production preview remain public; SSE uses the same signed token through `access_token` because browser `EventSource` cannot set an Authorization header.
 - `ApiClient` sends Bearer credentials for normal requests and builds authenticated social-stream URLs. Non-2xx API envelopes retain their server error code/data so gameplay limits and authentication failures remain distinguishable.

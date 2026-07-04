@@ -8,4 +8,28 @@ export const DOM_NAV_TARGET_STYLES = `
             #fatcat-dom-nav.compact .nav-bar {
                 height:6.1%;
             }
+            #fatcat-dom-nav .nav-item,
+            #fatcat-dom-nav.compact .nav-item {
+                font-size:clamp(10px,2.65vw,15px);
+                line-height:1;
+            }
+            #fatcat-dom-nav .nav-icon.asset,
+            #fatcat-dom-nav.compact .nav-icon.asset {
+                width:62%;
+                filter:
+                    drop-shadow(0 3px 0 rgba(39,24,15,.34))
+                    drop-shadow(0 0 2px rgba(255,231,176,.16));
+            }
+            #fatcat-dom-nav .badge {
+                font-size:clamp(9px,2.25vw,12px);
+            }
+            @media (max-width:390px) {
+                #fatcat-dom-nav .nav-item,
+                #fatcat-dom-nav.compact .nav-item {
+                    font-size:clamp(9px,2.5vw,11px);
+                }
+                #fatcat-dom-nav.compact .nav-icon.asset {
+                    width:54%;
+                }
+            }
 `;

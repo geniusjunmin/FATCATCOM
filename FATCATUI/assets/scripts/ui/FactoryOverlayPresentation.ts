@@ -673,5 +673,98 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
                     font-size:2.7%;
                 }
             }
+            #fatcat-dom-factory .floor-no,
+            #fatcat-dom-factory.compact .floor-no {
+                font-size:clamp(16px,4.3vw,24px);
+                line-height:.95;
+                text-shadow:0 2px 0 rgba(45,28,17,.42);
+            }
+            #fatcat-dom-factory .floor-name,
+            #fatcat-dom-factory.compact .floor-name {
+                min-width:0;
+                overflow:hidden;
+                font-size:clamp(8px,2.15vw,9px);
+                line-height:1.08;
+                letter-spacing:0;
+            }
+            #fatcat-dom-factory .floor-name span,
+            #fatcat-dom-factory.compact .floor-name span {
+                margin-top:1%;
+                font-size:clamp(7px,1.8vw,9px);
+                line-height:1;
+            }
+            #fatcat-dom-factory .bonus,
+            #fatcat-dom-factory.compact .bonus {
+                font-size:clamp(8px,2.1vw,12px);
+                border-color:#b6925b;
+            }
+            #fatcat-dom-factory .bonus strong {
+                min-width:0;
+                overflow:hidden;
+                font-size:clamp(11px,2.9vw,14px);
+            }
+            #fatcat-dom-factory .bonus span {
+                min-width:0;
+                overflow:hidden;
+                font-size:clamp(7px,1.7vw,9px);
+            }
+            #fatcat-dom-factory .bonus b {
+                min-width:0;
+                overflow:hidden;
+                font-size:clamp(10px,2.8vw,14px);
+            }
+            #fatcat-dom-factory .side-btn,
+            #fatcat-dom-factory.compact .side-btn {
+                font-size:clamp(9px,2.35vw,13px);
+                line-height:1;
+            }
+            #fatcat-dom-factory .order {
+                font-size:clamp(9px,2.35vw,13px);
+            }
+            #fatcat-dom-factory .order strong {
+                font-size:clamp(20px,5.2vw,29px);
+            }
+            #fatcat-dom-factory .claim {
+                font-size:clamp(8px,2.05vw,11px);
+            }
+            #fatcat-dom-factory .launch,
+            #fatcat-dom-factory.compact .launch {
+                font-size:clamp(18px,4.8vw,28px);
+                text-shadow:0 2px 0 rgba(117,53,15,.45);
+            }
+            #fatcat-dom-factory .gift,
+            #fatcat-dom-factory.compact .gift {
+                font-size:clamp(8px,2.1vw,12px);
+                line-height:1.12;
+            }
+            #fatcat-dom-factory .launch-count {
+                font-size:clamp(8px,2vw,11px);
+            }
+            @media (max-width:390px) {
+                #fatcat-dom-factory .floor-name,
+                #fatcat-dom-factory.compact .floor-name {
+                    font-size:clamp(8px,2.1vw,9px);
+                }
+                #fatcat-dom-factory .bonus strong {
+                    font-size:clamp(10px,2.85vw,12px);
+                }
+                #fatcat-dom-factory .bonus b {
+                    font-size:clamp(9px,2.7vw,11px);
+                }
+                #fatcat-dom-factory .side-btn,
+                #fatcat-dom-factory.compact .side-btn {
+                    font-size:clamp(8px,2.2vw,10px);
+                }
+                #fatcat-dom-factory .launch,
+                #fatcat-dom-factory.compact .launch {
+                    font-size:clamp(16px,4.45vw,19px);
+                }
+                #fatcat-dom-factory .gift,
+                #fatcat-dom-factory.compact .gift {
+                    font-size:clamp(7px,1.85vw,9px);
+                }
+            }
+            #fatcat-dom-factory.wide .floor-name { font-size:9px; }
+            #fatcat-dom-factory.wide .floor-name span { font-size:8px; }
         `;
 }

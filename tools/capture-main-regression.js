@@ -89,6 +89,8 @@ const floorRoutes = [
             const ratio = (part, whole) => part && whole
                 ? Math.round(part / whole * 10000) / 10000
                 : null;
+            const allTextFits = (selector) => Array.from(document.querySelectorAll(selector))
+                .every(element => element.scrollWidth <= element.clientWidth + 1);
 
             return {
                 resourceCount: document.querySelectorAll("#fatcat-dom-hud .res").length,
@@ -144,6 +146,9 @@ const floorRoutes = [
                 giftTextFits: gift
                     ? gift.scrollWidth <= gift.clientWidth + 1 && gift.scrollHeight <= gift.clientHeight + 1
                     : false,
+                floorNameTextFits: allTextFits("#fatcat-dom-factory .floor-name"),
+                bonusTextFits: allTextFits("#fatcat-dom-factory .bonus"),
+                hudTextFits: allTextFits("#fatcat-dom-hud .company, #fatcat-dom-hud .value"),
             };
         });
 
@@ -235,6 +240,9 @@ const floorRoutes = [
         || !entry.state.chestTextFits
         || !entry.state.launchTextFits
         || !entry.state.giftTextFits
+        || !entry.state.floorNameTextFits
+        || !entry.state.bonusTextFits
+        || !entry.state.hudTextFits
         || entry.interaction.floorRouteResults.length !== floorRoutes.length
         || entry.interaction.floorRouteResults.some(result =>
             result.selected.id !== result.expected.id

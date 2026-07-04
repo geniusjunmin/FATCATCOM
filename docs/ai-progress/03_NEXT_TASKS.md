@@ -1,6 +1,6 @@
 # Next Tasks
 
-Updated: 2026-07-03
+Updated: 2026-07-04
 
 ## Round Contract
 
@@ -19,7 +19,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Signed player authentication, daily order/chest, and five-launch quota are authoritative; preserve these boundaries. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Resume main factory/HUD and cat-detail visual comparison now that the player API boundary is secured. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Typography/material alignment is complete; next improve factory illustration and side-tool source art without changing guarded geometry. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
@@ -34,13 +34,20 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - Dual-player tests cover private resources, cats, buildings, research, mail, save, and daily operations; SSE query authentication has dedicated coverage.
 - API smoke, multi-player online tools, full quick verify, four-size main/cat regression, and 99 server tests are green.
 
-### 0. Next Target-UI Fidelity Pass
+### Completed: Target Readability And Material Pass
 
-- Compare current 430x932 main and cat captures directly with `主页面.png` and `所有猫咪页面.png`.
-- Prioritize visible first-screen differences: factory room richness, HUD framing/spacing, cat hero scale, and paper/wood material hierarchy.
-- Reuse existing generated room/cat assets before introducing another full-screen background.
-- Preserve stable layout ratios and online action attributes at 360x800, 414x896, 430x932, and 768x1024.
-- Finish with four-size screenshots, 18-step clicks, focused TypeScript diagnostics, and quick verify.
+- HUD company/resource values now use bounded readable sizes; the diamond remains exact `2580`.
+- Six floor names, six bonus cards, side tools, operation controls, and bottom navigation have stronger target-like hierarchy.
+- Cat detail has a larger center cat, brighter paper/wood material, clearer status/stat/story copy, and stronger active roster art.
+- Main regression now guards company/resource, floor-name, and bonus-card horizontal containment at all four target sizes.
+- Four-size main/cat screenshots, 24 floor routes, 18-step clicks, quick verify, and 99 tests are green.
+
+### 0. Next Target-UI Asset Pass
+
+- Compare the clean 430x932 capture against `主页面.png`, concentrating on factory illustration sharpness, roof silhouette, and side-tool artwork rather than changing layout bands.
+- Reuse the existing cutaway and generated icons first; only generate a replacement bitmap when the current source cannot carry the missing detail.
+- Keep the new text-fit assertions and exact company/resource/floor/bonus strings green at all four sizes.
+- Preserve authenticated action attributes and the verified cat information/equipment/skin routes.
 
 ### Completed: Daily Launch Quota Authority
 

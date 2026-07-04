@@ -281,4 +281,67 @@ export const DOM_HUD_STYLES = `            #fatcat-dom-hud { position: fixed; z-
                     width:72%;
                     font-size:1.45%;
                 }
-            }`;
+            }
+
+            /* Final target pass: use viewport-aware type instead of tiny
+               inherited percentage sizes while preserving measured geometry. */
+            #fatcat-dom-hud .company {
+                font-size:clamp(12px,3.35vw,18px);
+                line-height:1.05;
+                letter-spacing:0;
+            }
+            #fatcat-dom-hud .value {
+                font-size:clamp(12px,3.05vw,17px);
+                line-height:1;
+            }
+            #fatcat-dom-hud .level {
+                font-size:clamp(12px,3.1vw,17px);
+            }
+            #fatcat-dom-hud .exp-text {
+                font-size:clamp(8px,2.2vw,12px);
+                line-height:1;
+            }
+            #fatcat-dom-hud .plus {
+                font-size:clamp(15px,4vw,22px);
+                line-height:1;
+            }
+            #fatcat-dom-hud.compact .company,
+            #fatcat-dom-hud.compact.tall .company {
+                font-size:clamp(9px,2.55vw,13px);
+            }
+            #fatcat-dom-hud.compact .value,
+            #fatcat-dom-hud.compact.tall .res .value {
+                font-size:clamp(7px,1.9vw,8px);
+            }
+            #fatcat-dom-hud.compact .level,
+            #fatcat-dom-hud.compact.tall .level {
+                font-size:clamp(9px,2.4vw,12px);
+            }
+            #fatcat-dom-hud.compact .exp-text,
+            #fatcat-dom-hud.compact.tall .exp-text {
+                font-size:clamp(7px,1.75vw,9px);
+            }
+            #fatcat-dom-hud.compact .plus,
+            #fatcat-dom-hud.compact.tall .plus {
+                font-size:clamp(12px,3vw,16px);
+            }
+            #fatcat-dom-hud .res {
+                border-width:2px;
+            }
+            #fatcat-dom-hud .icon.asset {
+                transform:scale(1.08);
+                transform-origin:center;
+            }
+            @media (max-width:390px) {
+                #fatcat-dom-hud.compact.tall .company {
+                    font-size:clamp(8px,2.35vw,10px);
+                }
+                #fatcat-dom-hud.compact.tall .res .value {
+                    font-size:clamp(7px,1.85vw,8px);
+                }
+            }
+            #fatcat-dom-hud.wide .company { font-size:10px; }
+            #fatcat-dom-hud.wide .value { font-size:8px; }
+            #fatcat-dom-hud.wide .level { font-size:11px; }
+            #fatcat-dom-hud.wide .exp-text { font-size:8px; }
+            #fatcat-dom-hud.wide .plus { font-size:14px; }`;

@@ -1135,6 +1135,99 @@ export function getDomCatStyles(catWorkshopDataUri: string): string {
                 font-size:1.42%;
                 gap:.75%;
             }
+
+            /* Target fidelity pass: stronger paper hierarchy, readable labels,
+               and a more dominant center cat without changing the layout grid. */
+            #fatcat-dom-cat-overlay .cat-card,
+            #fatcat-dom-cat-overlay .cat-portrait,
+            #fatcat-dom-cat-overlay .cat-power,
+            #fatcat-dom-cat-overlay .cat-stats,
+            #fatcat-dom-cat-overlay .cat-weight,
+            #fatcat-dom-cat-overlay .cat-grid > div,
+            #fatcat-dom-cat-overlay .cat-list,
+            #fatcat-dom-cat-overlay .cat-story {
+                background:
+                    radial-gradient(circle at 16% 9%,rgba(255,255,255,.5),transparent 19%),
+                    repeating-linear-gradient(92deg,rgba(117,78,41,.025) 0 1px,transparent 1px 7px),
+                    linear-gradient(rgba(255,248,226,.98),rgba(231,204,163,.97));
+                border-color:#765033;
+                box-shadow:
+                    inset 0 0 0 2px rgba(255,252,232,.54),
+                    inset 0 -10px 18px rgba(123,77,37,.08),
+                    0 4px 0 rgba(0,0,0,.28);
+            }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud {
+                font-size:clamp(9px,2.4vw,12px);
+            }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .player {
+                font-size:clamp(8px,2.15vw,11px);
+            }
+            #fatcat-dom-cat-overlay.compact .cat-page-hud .res {
+                font-size:clamp(8px,2.05vw,11px);
+            }
+            #fatcat-dom-cat-overlay .back,
+            #fatcat-dom-cat-overlay .side-tab,
+            #fatcat-dom-cat-overlay.compact .back,
+            #fatcat-dom-cat-overlay.compact .side-tab {
+                font-size:clamp(10px,2.6vw,14px);
+                line-height:1;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-card.info {
+                font-size:clamp(10px,2.65vw,14px);
+                line-height:1.08;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-card.info strong {
+                font-size:clamp(13px,3.4vw,18px);
+            }
+            #fatcat-dom-cat-overlay.compact .cat-card.info .rank {
+                font-size:clamp(22px,5.8vw,31px);
+            }
+            #fatcat-dom-cat-overlay.compact .portrait-cat.img {
+                width:84%;
+                min-width:205px;
+                margin-top:2%;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-portrait .cat-talk {
+                font-size:clamp(10px,2.55vw,14px);
+                line-height:1.28;
+            }
+            #fatcat-dom-cat-overlay.compact .mood,
+            #fatcat-dom-cat-overlay.compact .feed {
+                font-size:clamp(10px,2.55vw,14px);
+            }
+            #fatcat-dom-cat-overlay.compact .cat-power {
+                font-size:clamp(15px,3.85vw,21px);
+                line-height:1;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-stats {
+                font-size:clamp(9px,2.25vw,12px);
+            }
+            #fatcat-dom-cat-overlay.compact .cat-weight {
+                font-size:clamp(10px,2.55vw,14px);
+            }
+            #fatcat-dom-cat-overlay.compact .cat-grid > div {
+                font-size:clamp(9px,2.3vw,12px);
+                line-height:1.2;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-story {
+                font-size:clamp(9px,2.25vw,12px);
+                line-height:1.22;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-list {
+                font-size:clamp(8px,2.05vw,11px);
+            }
+            #fatcat-dom-cat-overlay.compact .cat-list .cat-thumb {
+                width:82%;
+                margin-top:0;
+                background-size:172%;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-list button.active {
+                border-color:#e8a52e;
+                box-shadow:
+                    0 4px 0 rgba(38,24,16,.3),
+                    0 0 0 2px rgba(255,201,74,.42),
+                    inset 0 0 0 2px rgba(255,250,224,.34);
+            }
             @media (max-width:390px) {
                 #fatcat-dom-cat-overlay.compact .equip-bag { display:none; }
                 #fatcat-dom-cat-overlay.compact .cat-grid:has(.equip-layout.detail-mode) {
@@ -1156,7 +1249,8 @@ export function getDomCatStyles(catWorkshopDataUri: string): string {
                     min-height:clamp(194px,54vw,211px);
                 }
                 #fatcat-dom-cat-overlay.compact .portrait-cat.img {
-                    min-width:clamp(150px,42vw,164px);
+                    width:82%;
+                    min-width:clamp(172px,47vw,188px);
                 }
                 #fatcat-dom-cat-overlay.compact .cat-stats div {
                     min-height:clamp(54px,15vw,59px);

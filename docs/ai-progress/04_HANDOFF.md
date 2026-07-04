@@ -1,6 +1,6 @@
 # Handoff
 
-Updated: 2026-07-03
+Updated: 2026-07-04
 
 ## 90-Second Boot
 
@@ -21,6 +21,15 @@ Updated: 2026-07-03
 | Server/economy work | Run `dotnet test`, `check-server-api.ps1`, balance generation, drift, and effect coverage checks. |
 | Frontend script edit | Refresh Cocos asset-db before trusting preview behavior. |
 | Online script work | Avoid concurrent users of `http://localhost:5144`. |
+
+## Latest Visual Note
+
+- `HudPresentation.ts`, `FactoryOverlayPresentation.ts`, `NavPresentation.ts`, and `CatOverlayPresentation.ts` contain the latest target-readability pass. Keep these responsibilities out of `BottomNavUI.ts`.
+- The main HUD, all six floor cards, six bonus cards, side tools, operation strip, and bottom navigation use bounded `clamp()` typography. Compact values deliberately cap `12.45M` at 8px because each live resource value cell is only 33px wide.
+- `capture-main-regression.js` now requires `floorNameTextFits`, `bonusTextFits`, and `hudTextFits` at 414x896, 430x932, 360x800, and 768x1024. Do not remove these checks to make a larger font pass.
+- The compact cat stage uses an 84% center cat, brighter paper material, readable status/stat/story text, and stronger selected-roster treatment. The 360px override reduces the art to 82%/172-188px to keep speech and status rails clear.
+- Current green evidence: focused TypeScript diagnostics, Cocos UI refresh, four-size main/cat captures, 24 floor routes, 18 UI click steps, full quick verify, and 99/99 server tests.
+- Best next visual batch is source-art quality: improve factory cutaway sharpness/roof richness and side-tool art while preserving the guarded layout and text containment.
 
 ## Latest Security Note
 
