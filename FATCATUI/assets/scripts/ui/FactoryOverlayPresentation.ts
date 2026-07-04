@@ -605,7 +605,7 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
             #fatcat-dom-factory.compact .launch { font-size:3.4%; }
             #fatcat-dom-factory.compact .rocket-shape { width:22%; margin-right:3%; }
             #fatcat-dom-factory.compact .rocket-shape.asset { width:32%; margin-right:0; }
-            #fatcat-dom-factory.compact .side-btn i.asset { width:62%; margin-bottom:4%; }
+            #fatcat-dom-factory.compact .side-btn i.asset { width:80%; margin-bottom:2%; }
             #fatcat-dom-factory .side-btn {
                 border-color:#4b3424;
                 background:
@@ -637,7 +637,7 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
                     margin-bottom:2%;
                 }
                 #fatcat-dom-factory.compact .side-btn i.asset {
-                    width:50%;
+                    width:72%;
                     margin-bottom:2%;
                 }
                 #fatcat-dom-factory .bottom-widgets,
@@ -697,21 +697,24 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
             #fatcat-dom-factory.compact .bonus {
                 font-size:clamp(8px,2.1vw,12px);
                 border-color:#b6925b;
+                grid-template-columns:14px minmax(0,1fr);
+                column-gap:2px;
+                padding:0 2px;
             }
             #fatcat-dom-factory .bonus strong {
                 min-width:0;
-                overflow:hidden;
-                font-size:clamp(11px,2.9vw,14px);
+                overflow:visible;
+                font-size:clamp(10px,2.55vw,11px);
             }
             #fatcat-dom-factory .bonus span {
                 min-width:0;
-                overflow:hidden;
-                font-size:clamp(7px,1.7vw,9px);
+                overflow:visible;
+                font-size:clamp(7px,1.6vw,8px);
             }
             #fatcat-dom-factory .bonus b {
                 min-width:0;
-                overflow:hidden;
-                font-size:clamp(10px,2.8vw,14px);
+                overflow:visible;
+                font-size:clamp(9px,2.35vw,10px);
             }
             #fatcat-dom-factory .side-btn,
             #fatcat-dom-factory.compact .side-btn {
@@ -746,10 +749,10 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
                     font-size:clamp(8px,2.1vw,9px);
                 }
                 #fatcat-dom-factory .bonus strong {
-                    font-size:clamp(10px,2.85vw,12px);
+                    font-size:clamp(9px,2.5vw,10px);
                 }
                 #fatcat-dom-factory .bonus b {
-                    font-size:clamp(9px,2.7vw,11px);
+                    font-size:clamp(8px,2.3vw,9px);
                 }
                 #fatcat-dom-factory .side-btn,
                 #fatcat-dom-factory.compact .side-btn {

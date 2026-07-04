@@ -104,6 +104,8 @@ const floorRoutes = [
                 roomDecorCount: document.querySelectorAll("#fatcat-dom-factory .room-decor").length,
                 sideButtonCount: document.querySelectorAll("#fatcat-dom-factory .side-btn").length,
                 sideButtonIconCount: document.querySelectorAll("#fatcat-dom-factory .side-btn i.asset").length,
+                sideButtonArtKeys: Array.from(document.querySelectorAll("#fatcat-dom-factory .side-btn i.asset"))
+                    .map(element => element.getAttribute("data-art-key")),
                 sideButton: rect("#fatcat-dom-factory .side-btn"),
                 factoryFilter: factoryIllustration ? getComputedStyle(factoryIllustration).filter : "",
                 floorCardMaterial: firstFloorCard ? getComputedStyle(firstFloorCard).backgroundImage : "",
@@ -148,6 +150,9 @@ const floorRoutes = [
                     : false,
                 floorNameTextFits: allTextFits("#fatcat-dom-factory .floor-name"),
                 bonusTextFits: allTextFits("#fatcat-dom-factory .bonus"),
+                bonusChildTextFits: allTextFits(
+                    "#fatcat-dom-factory .bonus strong, #fatcat-dom-factory .bonus span, #fatcat-dom-factory .bonus b"
+                ),
                 hudTextFits: allTextFits("#fatcat-dom-hud .company, #fatcat-dom-hud .value"),
             };
         });
@@ -201,6 +206,7 @@ const floorRoutes = [
         || entry.state.floorCount < 6
         || entry.state.sideButtonCount !== 5
         || entry.state.sideButtonIconCount !== 5
+        || entry.state.sideButtonArtKeys.join(",") !== "task-board,achievement-trophy-v2,mail-envelope-v2,friend-cat-v2,settings-gear-v2"
         || !entry.state.sideButton
         || entry.state.sideButton.width < 28
         || entry.state.sideButton.height < 48
@@ -242,6 +248,7 @@ const floorRoutes = [
         || !entry.state.giftTextFits
         || !entry.state.floorNameTextFits
         || !entry.state.bonusTextFits
+        || !entry.state.bonusChildTextFits
         || !entry.state.hudTextFits
         || entry.interaction.floorRouteResults.length !== floorRoutes.length
         || entry.interaction.floorRouteResults.some(result =>

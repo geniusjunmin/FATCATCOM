@@ -5,7 +5,7 @@ $generatedRoot = Join-Path $root "FATCATUI/assets/resources/textures/generated"
 $outFile = Join-Path $root "FATCATUI/assets/scripts/ui/DomAssetDataUris.ts"
 
 $relativeAssets = @(
-    "factory_cutaway_bg_640.jpg",
+    "factory_cutaway_bg_852_v2.jpg",
     "cat_detail_workshop_bg_640.jpg",
     "backgrounds/friend_factory_visit_bg_640_v1.jpg",
     "building_rooms/room_office_v1.jpg",
@@ -59,10 +59,10 @@ $relativeAssets = @(
     "shop/shop_cat_food_pouch_v1.png",
     "shop/shop_coin_pouch_v1.png",
     "shop/shop_diamond_chest_v1.png",
-    "ui/icon_mail.png",
-    "ui/icon_friend.png",
-    "ui/icon_achievement.png",
-    "ui/icon_settings.png",
+    "ui/icon_mail_envelope_v2.png",
+    "ui/icon_friend_cat_v2.png",
+    "ui/icon_achievement_trophy_v2.png",
+    "ui/icon_settings_gear_v2.png",
     "ui/icon_task_clipboard.png",
     "ui/icon_reward_chest.png",
     "ui/icon_launch_rocket.png",

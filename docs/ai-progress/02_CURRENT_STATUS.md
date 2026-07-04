@@ -7,7 +7,7 @@ Updated: 2026-07-04
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Continue target-UI fidelity with a focused high-resolution factory-art and side-tool pass; preserve the newly guarded HUD/floor/bonus text fit. |
+| Best Next Move | Continue target-UI fidelity on cat equipment/skin thumbnails and remaining flat feature art; preserve the high-resolution factory and guarded text fit. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -26,6 +26,11 @@ Updated: 2026-07-04
 
 ## Client UI
 
+- Latest source-art pass replaces the 640px factory runtime JPEG with `factory_cutaway_bg_852_v2.jpg` (852x1514, quality 91) derived from the existing 942x1672 project master. The composition is unchanged, but room machinery, cats, roof sign, pipes, and town backdrop are noticeably cleaner at phone and tablet density.
+- Four flat side-tool placeholders are replaced by generated 384px transparent illustrations: `icon_achievement_trophy_v2.png`, `icon_mail_envelope_v2.png`, `icon_friend_cat_v2.png`, and `icon_settings_gear_v2.png`. Alpha QC found transparent corners, bounded subjects, and no meaningful magenta fringe.
+- `GeneratedBackgroundAssets`, `GeneratedFactoryAppearanceAssets`, and `GeneratedFeatureIconAssets` now select the new files; the Data URI bridge embeds them for web preview. Stable `data-art-key` markers prove the task/trophy/mail/friend/settings sequence in all four main captures.
+- The asset pass exposed hidden clipping inside production cards. Percentage padding was consuming the text column, so bonus cards now use a fixed 14px icon track and 2px padding; regression separately requires every strong/title/value child to fit, including `224/秒`, `8.24K`, and `+25%`.
+- `tools/check-main-ui-art.js` validates dimensions, signatures, file size, registry/generator wiring, markers, screenshot coverage, and quick-verify registration. Four-size main/cat captures, 24 floor routes, 18-step navigation, full quick verify, and 99/99 server tests pass.
 - Latest target-readability pass replaces inherited percentage typography with bounded viewport-aware sizing across the main HUD, factory cards, operation strip, navigation, and compact cat detail. The 430x932 main screen now carries clearer company/resource hierarchy, complete floor names, stronger production values, heavier navigation labels, and a larger launch command without changing measured geometry.
 - The cat detail keeps the verified grid but raises the center cat from 70% to 84% stage width, improves speech/status/production hierarchy, brightens the paper material, strengthens the active roster frame, and enlarges roster art. Information, equipment, skin, story, and roster content remain visible at 360x800.
 - `capture-main-regression.js` now explicitly fails when any company/resource value, floor name, or bonus card overflows horizontally. The pass found real 430/tablet clipping in `12.45M`, four-character floor names, and long `224/秒`/`8.24K` values; responsive caps now keep all of them complete.

@@ -24,6 +24,12 @@ Updated: 2026-07-04
 
 ## Latest Visual Note
 
+- The latest source-art batch lives at `FATCATUI/assets/resources/textures/generated/factory_cutaway_bg_852_v2.jpg` and `ui/icon_{achievement_trophy,mail_envelope,friend_cat,settings_gear}_v2.png`. Cocos `.meta` files are committed beside every asset.
+- The factory JPEG was not regenerated: it is an 852x1514, quality-91 derivative of the existing 942x1672 `factory_cutaway_bg.png` master, preserving the verified composition while improving runtime sharpness.
+- The four side icons used built-in image generation with `主页面.png` and `icon_task_clipboard.png` as references. Prompt intent: one centered cozy hand-painted mobile-game object, bold 32px silhouette, warm brown outline, no text/frame/shadow, flat `#ff00ff` key. The installed chroma helper produced alpha PNGs; all four are 384x384 with transparent corners and negligible key fringe.
+- `UiAssetRegistry.ts` is the source of truth, and `generate-dom-asset-data-uris.ps1` embeds the same versioned paths. Run the generator after changing any of these files.
+- Main side icons expose `task-board,achievement-trophy-v2,mail-envelope-v2,friend-cat-v2,settings-gear-v2`. `capture-main-regression.js` requires this exact sequence and separately checks every bonus-card child for horizontal fit.
+- `tools/check-main-ui-art.js` runs in quick verify. Do not point the registry back to `icon_achievement.png`, `icon_mail.png`, `icon_friend.png`, `icon_settings.png`, or the 640px factory JPEG.
 - `HudPresentation.ts`, `FactoryOverlayPresentation.ts`, `NavPresentation.ts`, and `CatOverlayPresentation.ts` contain the latest target-readability pass. Keep these responsibilities out of `BottomNavUI.ts`.
 - The main HUD, all six floor cards, six bonus cards, side tools, operation strip, and bottom navigation use bounded `clamp()` typography. Compact values deliberately cap `12.45M` at 8px because each live resource value cell is only 33px wide.
 - `capture-main-regression.js` now requires `floorNameTextFits`, `bonusTextFits`, and `hudTextFits` at 414x896, 430x932, 360x800, and 768x1024. Do not remove these checks to make a larger font pass.

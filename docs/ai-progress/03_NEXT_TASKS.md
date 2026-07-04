@@ -19,7 +19,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Signed player authentication, daily order/chest, and five-launch quota are authoritative; preserve these boundaries. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Typography/material alignment is complete; next improve factory illustration and side-tool source art without changing guarded geometry. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Factory and side-tool source art are complete; next replace CSS-only cat skin/equipment thumbnails where bitmap depth is still missing. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
@@ -42,12 +42,20 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - Main regression now guards company/resource, floor-name, and bonus-card horizontal containment at all four target sizes.
 - Four-size main/cat screenshots, 24 floor routes, 18-step clicks, quick verify, and 99 tests are green.
 
-### 0. Next Target-UI Asset Pass
+### Completed: Main Target-UI Asset Pass
 
-- Compare the clean 430x932 capture against `主页面.png`, concentrating on factory illustration sharpness, roof silhouette, and side-tool artwork rather than changing layout bands.
-- Reuse the existing cutaway and generated icons first; only generate a replacement bitmap when the current source cannot carry the missing detail.
-- Keep the new text-fit assertions and exact company/resource/floor/bonus strings green at all four sizes.
-- Preserve authenticated action attributes and the verified cat information/equipment/skin routes.
+- Main runtime art now uses an 852x1514 high-quality JPEG derived from the existing factory master.
+- Achievement, mail, friend, and settings use new 384px transparent hand-painted icons instead of flat placeholders.
+- New art is Cocos-managed, registered, embedded for DOM preview, and guarded by `check-main-ui-art.js`.
+- Side-tool art ids and each bonus-card child are asserted in all four main captures.
+- Four-size main/cat screenshots, 24 floor routes, 18-step clicks, quick verify, and 99 tests are green.
+
+### 0. Next Cat Asset Pass
+
+- Compare `cat-430x932-edge.png` against `所有猫咪页面.png`, focusing on the CSS-only skin cards and small equipment/recruit thumbnails.
+- Generate only the missing bitmap illustrations; retain current cat hero, workshop backdrop, real equipment data, and click routes.
+- Add stable art ids and alpha/dimension contracts for every new thumbnail.
+- Preserve 360px information/equipment/skin containment and roster clickability.
 
 ### Completed: Daily Launch Quota Authority
 

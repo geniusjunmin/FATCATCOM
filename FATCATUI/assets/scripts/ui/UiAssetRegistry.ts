@@ -1,7 +1,7 @@
 const GENERATED_ROOT = "assets/resources/textures/generated";
 
 export const GeneratedBackgroundAssets = {
-    factoryCutaway: `${GENERATED_ROOT}/factory_cutaway_bg_640.jpg`,
+    factoryCutaway: `${GENERATED_ROOT}/factory_cutaway_bg_852_v2.jpg`,
     catDetailWorkshop: `${GENERATED_ROOT}/cat_detail_workshop_bg_640.jpg`,
     friendFactoryVisit: `${GENERATED_ROOT}/backgrounds/friend_factory_visit_bg_640_v1.jpg`,
 };
@@ -40,7 +40,7 @@ export const GeneratedBuildingRoomAssets: Record<string, string> = {
 };
 
 export const GeneratedFactoryAppearanceAssets: Record<string, string> = {
-    simple: `${GENERATED_ROOT}/factory_cutaway_bg_640.jpg`,
+    simple: `${GENERATED_ROOT}/factory_cutaway_bg_852_v2.jpg`,
     classic: `${GENERATED_ROOT}/factory_appearances/appearance_classic_v1.jpg`,
     steam: `${GENERATED_ROOT}/factory_appearances/appearance_steam_v1.jpg`,
     future: `${GENERATED_ROOT}/factory_appearances/appearance_future_v1.jpg`,
@@ -95,16 +95,16 @@ export const GeneratedResearchArtAssets = {
 };
 
 export const GeneratedFeatureIconAssets: Record<string, string> = {
-    achievement: `${GENERATED_ROOT}/ui/icon_achievement.png`,
+    achievement: `${GENERATED_ROOT}/ui/icon_achievement_trophy_v2.png`,
     buildings: `${GENERATED_ROOT}/ui/nav_buildings.png`,
     factory: `${GENERATED_ROOT}/ui/nav_factory.png`,
-    friend: `${GENERATED_ROOT}/ui/icon_friend.png`,
+    friend: `${GENERATED_ROOT}/ui/icon_friend_cat_v2.png`,
     inventory: `${GENERATED_ROOT}/ui/nav_inventory.png`,
     launch: `${GENERATED_ROOT}/ui/icon_launch_rocket.png`,
-    mail: `${GENERATED_ROOT}/ui/icon_mail.png`,
+    mail: `${GENERATED_ROOT}/ui/icon_mail_envelope_v2.png`,
     research: `${GENERATED_ROOT}/ui/nav_research.png`,
     rewardChest: `${GENERATED_ROOT}/ui/icon_reward_chest.png`,
-    settings: `${GENERATED_ROOT}/ui/icon_settings.png`,
+    settings: `${GENERATED_ROOT}/ui/icon_settings_gear_v2.png`,
     shop: `${GENERATED_ROOT}/ui/nav_shop.png`,
     task: `${GENERATED_ROOT}/ui/icon_task_clipboard.png`,
 };

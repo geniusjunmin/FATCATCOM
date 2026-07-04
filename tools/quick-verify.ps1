@@ -69,6 +69,10 @@ Invoke-Step "Factory overlay presentation contract check" {
     node .\tools\check-factory-overlay-presentation-contract.js
 }
 
+Invoke-Step "Main UI art contract check" {
+    node .\tools\check-main-ui-art.js
+}
+
 Invoke-Step "Feature panel presentation contract check" {
     node .\tools\check-feature-panel-presentation-contract.js
 }
