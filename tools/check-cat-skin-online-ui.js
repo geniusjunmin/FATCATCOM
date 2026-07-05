@@ -60,6 +60,7 @@ async function openWardrobe(page) {
         const initial = await page.evaluate((key) => {
             const save = JSON.parse(localStorage.getItem(key) || "{}");
             return {
+                coin: save.resources?.coin,
                 owned: save.cats?.c_001?.ownedSkinIds ?? [],
                 equipped: save.cats?.c_001?.equippedSkinId ?? "",
                 ownedMarkers: Array.from(document.querySelectorAll(".skin-card-target"))
@@ -92,19 +93,41 @@ async function openWardrobe(page) {
             };
         }, saveKey);
 
-        const requestsBeforeLockedPreview = skinRequests.length;
         await page.click('.skin-card-target[data-skin-id="manager"]');
-        const locked = await page.evaluate((key) => {
-            const save = JSON.parse(localStorage.getItem(key) || "{}");
+        const purchasePreview = await page.evaluate(() => {
             const action = document.querySelector(".skin-preview-action");
             return {
                 actionDisabled: action?.hasAttribute("disabled") ?? false,
-                selected: document.querySelector(".skin-card-target.selected")?.getAttribute("data-skin-id") ?? "",
+                action: action?.getAttribute("data-action") ?? "",
+                priceType: action?.getAttribute("data-price-type") ?? "",
+                priceAmount: action?.getAttribute("data-price-amount") ?? "",
                 managerOwned: document.querySelector('.skin-card-target[data-skin-id="manager"]')?.getAttribute("data-skin-owned"),
+            };
+        });
+        await page.click(".skin-preview-action");
+        await page.waitForTimeout(1200);
+        const purchased = await page.evaluate((key) => {
+            const save = JSON.parse(localStorage.getItem(key) || "{}");
+            return {
+                coin: save.resources?.coin,
+                owned: save.cats?.c_001?.ownedSkinIds ?? [],
                 equipped: save.cats?.c_001?.equippedSkinId ?? "",
+                hero: document.querySelector(".portrait-cat")?.getAttribute("data-equipped-skin") ?? "",
+                managerOwned: document.querySelector('.skin-card-target[data-skin-id="manager"]')?.getAttribute("data-skin-owned"),
             };
         }, saveKey);
-        await page.waitForTimeout(300);
+        await page.reload({ waitUntil: "load", timeout: 20000 });
+        await page.waitForTimeout(2500);
+        await openWardrobe(page);
+        const purchasePersistedAfterReload = await page.evaluate((key) => {
+            const save = JSON.parse(localStorage.getItem(key) || "{}");
+            return {
+                equipped: save.cats?.c_001?.equippedSkinId ?? "",
+                hero: document.querySelector(".portrait-cat")?.getAttribute("data-equipped-skin") ?? "",
+                managerOwned: document.querySelector('.skin-card-target[data-skin-id="manager"]')?.getAttribute("data-skin-owned"),
+                equippedCard: document.querySelector(".skin-card-target.equipped")?.getAttribute("data-skin-id") ?? "",
+            };
+        }, saveKey);
 
         const ok = initial.owned.join(",") === "default,apron"
             && initial.equipped === "default"
@@ -115,12 +138,23 @@ async function openWardrobe(page) {
             && persistedAfterReload.equipped === "apron"
             && persistedAfterReload.hero === "apron"
             && persistedAfterReload.equippedCard === "apron"
-            && locked.actionDisabled
-            && locked.selected === "manager"
-            && locked.managerOwned === "false"
-            && locked.equipped === "apron"
-            && skinRequests.length === requestsBeforeLockedPreview
+            && !purchasePreview.actionDisabled
+            && purchasePreview.action === "unlockCatSkin"
+            && purchasePreview.priceType === "coin"
+            && purchasePreview.priceAmount === "75000"
+            && purchasePreview.managerOwned === "false"
+            && purchased.coin < initial.coin - 70000
+            && purchased.coin >= initial.coin - 76000
+            && purchased.owned.join(",") === "default,apron,manager"
+            && purchased.equipped === "manager"
+            && purchased.hero === "manager"
+            && purchased.managerOwned === "true"
+            && purchasePersistedAfterReload.equipped === "manager"
+            && purchasePersistedAfterReload.hero === "manager"
+            && purchasePersistedAfterReload.managerOwned === "true"
+            && purchasePersistedAfterReload.equippedCard === "manager"
             && skinRequests.some((item) => item.status === 200 && item.url.includes("/cats/c_001/skins/apron/equip"))
+            && skinRequests.some((item) => item.status === 200 && item.url.includes("/cats/c_001/skins/manager/unlock"))
             && failedRequests.length === 0
             && messages.length === 0;
 
@@ -129,7 +163,9 @@ async function openWardrobe(page) {
             initial,
             applied,
             persistedAfterReload,
-            locked,
+            purchasePreview,
+            purchased,
+            purchasePersistedAfterReload,
             skinRequests,
             failedRequests,
             messages,

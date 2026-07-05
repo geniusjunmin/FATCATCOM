@@ -9,12 +9,18 @@ import { ResearchEffectType } from "../model/ResearchModel";
 import { SkillManager } from "./SkillManager";
 import { EquipmentConfig, EquipmentEffect } from "../model/ItemModel";
 import { InventoryManager } from "./InventoryManager";
-import { CatStateDto } from "../net/ApiTypes";
+import { CatSkinCatalogItemDto, CatStateDto } from "../net/ApiTypes";
 
 export class CatManager {
     public static readonly DEFAULT_BUILDING_ID = "building_cafe_1f";
     private static readonly KNOWN_SKIN_IDS = ["default", "apron", "manager", "festival"];
     private static _serverCatalogOverrides: Record<string, Partial<CatConfig>> = {};
+    private static _skinCatalog: CatSkinCatalogItemDto[] = [
+        { skinId: "default", name: "默认工作服", description: "肥猫咖啡公司的经典制服", priceType: "", priceAmount: 0, owned: true, purchasable: false },
+        { skinId: "apron", name: "烘焙围裙", description: "适合烘焙车间的耐热围裙", priceType: "", priceAmount: 0, owned: true, purchasable: false },
+        { skinId: "manager", name: "店长披肩", description: "象征管理岗位的青绿色披肩", priceType: "coin", priceAmount: 75000, owned: false, purchasable: true },
+        { skinId: "festival", name: "节日礼服", description: "庆典期间限定的紫金礼服", priceType: "diamond", priceAmount: 80, owned: false, purchasable: true },
+    ];
 
     /**
      * Get all cat configs
@@ -261,6 +267,26 @@ export class CatManager {
 
     public static getOwnedSkinIds(catId: string): string[] {
         return this.normalizeSkinIds(this.getCatData(catId).ownedSkinIds, catId);
+    }
+
+    public static applyServerSkinCatalog(catalog: CatSkinCatalogItemDto[]): void {
+        const normalized = catalog.filter(item => this.KNOWN_SKIN_IDS.includes(item.skinId));
+        if (normalized.length > 0) {
+            this._skinCatalog = normalized.map(item => ({ ...item }));
+        }
+    }
+
+    public static getSkinCatalog(catId: string): CatSkinCatalogItemDto[] {
+        const ownedSkinIds = this.getOwnedSkinIds(catId);
+        return this._skinCatalog.map(item => ({
+            ...item,
+            owned: ownedSkinIds.includes(item.skinId),
+            purchasable: catId === "c_001" && item.purchasable,
+        }));
+    }
+
+    public static getSkinCatalogItem(catId: string, skinId: string): CatSkinCatalogItemDto | undefined {
+        return this.getSkinCatalog(catId).find(item => item.skinId === skinId);
     }
 
     public static getEquippedSkinId(catId: string): string {

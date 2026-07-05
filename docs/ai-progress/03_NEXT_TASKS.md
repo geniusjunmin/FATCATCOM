@@ -64,7 +64,15 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - Cat snapshots and the equip endpoint now own server truth; locked, unknown, or unavailable skins are rejected.
 - Client save migration, DTO/API/sync wiring, offline fallback, and per-cat wardrobe state restore ownership and equipment after reload.
 - The online Playwright gate proves apron equip/reload persistence and locked manager behavior; quick verify includes the full contract and 101 tests.
-- Next server batch: define how manager/festival skins are earned or purchased, including idempotent unlock transactions and UI acquisition feedback.
+- Manager/festival acquisition is now complete through the authoritative skin catalog and purchase endpoint.
+
+### Completed: Cat Skin Acquisition
+
+- Added a server catalog with initial/free states, 75,000-coin manager pricing, and 80-diamond festival pricing.
+- Per-player purchase gates prevent concurrent double-spend; duplicate ownership is rejected and successful purchases write one `cat_skin_unlock` transaction.
+- Purchases update balances, ownership, equipped art, and catalog state immediately, then restore after login/reload.
+- Four-size wardrobe regression guards price/action markers; the online browser gate buys manager and verifies auto-equip plus persistence.
+- Full quick verify and 103 tests are green. Next cat batch is bitmap equipment/recruit art, followed by final target-proportion review.
 
 ### Completed: Daily Launch Quota Authority
 

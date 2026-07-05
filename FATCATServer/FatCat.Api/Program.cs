@@ -406,6 +406,31 @@ app.MapPost("/api/cats/{catId}/skins/{skinId}/equip", async (
         : Results.Ok(ApiEnvelope<CatSkinEquipResponse>.Success(result));
 });
 
+app.MapGet("/api/cats/{catId}/skins/catalog", async (
+    Guid playerId,
+    string catId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.GetCatSkinCatalogAsync(playerId, catId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<IReadOnlyList<CatSkinCatalogItemDto>>.Fail("cat_skin_catalog_not_found"))
+        : Results.Ok(ApiEnvelope<IReadOnlyList<CatSkinCatalogItemDto>>.Success(result));
+});
+
+app.MapPost("/api/cats/{catId}/skins/{skinId}/unlock", async (
+    Guid playerId,
+    string catId,
+    string skinId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.UnlockCatSkinAsync(playerId, catId, skinId, cancellationToken);
+    return result is null
+        ? Results.BadRequest(ApiEnvelope<CatSkinUnlockResponse>.Fail("cat_skin_unlock_failed"))
+        : Results.Ok(ApiEnvelope<CatSkinUnlockResponse>.Success(result));
+});
+
 app.MapPost("/api/cats/{catId}/assignment", async (
     Guid playerId,
     string catId,

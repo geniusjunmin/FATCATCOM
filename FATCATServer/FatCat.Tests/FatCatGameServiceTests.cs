@@ -373,6 +373,41 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task UnlockCatSkinAsync_DeductsResourcesOnceAndReturnsCatalogOwnership()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("cat-skin-unlock-device", "FatCat"), CancellationToken.None);
+
+        var initialCatalog = await service.GetCatSkinCatalogAsync(auth.PlayerId, "c_001", CancellationToken.None);
+        var manager = await service.UnlockCatSkinAsync(auth.PlayerId, "c_001", "manager", CancellationToken.None);
+        var duplicate = await service.UnlockCatSkinAsync(auth.PlayerId, "c_001", "manager", CancellationToken.None);
+        var festival = await service.UnlockCatSkinAsync(auth.PlayerId, "c_001", "festival", CancellationToken.None);
+        var refreshedCatalog = await service.GetCatSkinCatalogAsync(auth.PlayerId, "c_001", CancellationToken.None);
+
+        Assert.NotNull(initialCatalog);
+        var initialManager = Assert.Single(initialCatalog!, item => item.SkinId == "manager");
+        Assert.False(initialManager.Owned);
+        Assert.True(initialManager.Purchasable);
+        Assert.Equal("coin", initialManager.PriceType);
+        Assert.Equal(75_000, initialManager.PriceAmount);
+        Assert.NotNull(manager);
+        Assert.Equal("manager", manager!.EquippedSkinId);
+        Assert.Equal(12_375_000, manager.CoinBalance);
+        Assert.Null(duplicate);
+        Assert.NotNull(festival);
+        Assert.Equal("festival", festival!.EquippedSkinId);
+        Assert.Equal(2_500, festival.DiamondBalance);
+        Assert.NotNull(refreshedCatalog);
+        Assert.True(Assert.Single(refreshedCatalog!, item => item.SkinId == "manager").Owned);
+        Assert.True(Assert.Single(refreshedCatalog!, item => item.SkinId == "festival").Owned);
+        Assert.Equal(2, dbContext.ResourceTransactions.Count(item =>
+            item.PlayerId == auth.PlayerId && item.SourceType == "cat_skin_unlock"));
+        Assert.Equal(-75_000, dbContext.ResourceTransactions.Single(item => item.SourceKey == "manager").CoinDelta);
+        Assert.Equal(-80, dbContext.ResourceTransactions.Single(item => item.SourceKey == "festival").DiamondDelta);
+    }
+
+    [Fact]
     public async Task AssignCatAsync_UpdatesAuthoritativeBuildingSchedule()
     {
         await using var dbContext = CreateDbContext();

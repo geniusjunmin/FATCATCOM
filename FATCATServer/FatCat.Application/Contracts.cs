@@ -155,6 +155,29 @@ public sealed record CatSkinEquipResponse(
     IReadOnlyList<string> OwnedSkinIds,
     long ServerTime);
 
+public sealed record CatSkinCatalogItemDto(
+    string SkinId,
+    string Name,
+    string Description,
+    string PriceType,
+    int PriceAmount,
+    bool Owned,
+    bool Purchasable);
+
+public sealed record CatSkinUnlockResponse(
+    string CatId,
+    string SkinId,
+    string EquippedSkinId,
+    IReadOnlyList<string> OwnedSkinIds,
+    string PriceType,
+    int PricePaid,
+    double CoinBalance,
+    double BeanBalance,
+    double CatFoodBalance,
+    double DiamondBalance,
+    double ResearchPointBalance,
+    long ServerTime);
+
 public sealed record CatAssignmentRequest(string? BuildingId);
 
 public sealed record CatAssignmentResponse(

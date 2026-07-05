@@ -16,7 +16,7 @@ import { SyncManager } from "../manager/SyncManager";
 import { FriendBoostManager } from "../manager/FriendBoostManager";
 import { FriendCoopManager } from "../manager/FriendCoopManager";
 import { DailyOrderManager } from "../manager/DailyOrderManager";
-import { DecorCatalogItemDto, DecorCollectionDto, DecorCollectionTierDto, DecorStateDto, FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { CatSkinCatalogItemDto, DecorCatalogItemDto, DecorCollectionDto, DecorCollectionTierDto, DecorStateDto, FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
 import { GeneratedBackgroundAssets } from "./UiAssetRegistry";
@@ -3245,6 +3245,23 @@ export class BottomNavUI extends Component {
                     ? `已启用${theme.name}。`
                     : "皮肤启用失败，请检查网络或拥有状态。";
             }
+        } else if (action === "unlockCatSkin") {
+            this._domCatTab = "skin";
+            const skinId = (button.dataset.skinId as CatSkinId) || this._selectedDomCatSkinId;
+            const theme = CAT_SKIN_THEMES.find(item => item.id === skinId) ?? CAT_SKIN_THEMES[0];
+            const catalogItem = CatManager.getSkinCatalogItem(id, skinId);
+            if (!catalogItem?.purchasable) {
+                this._domCatMessage = `${theme.name}当前无法获取。`;
+            } else if (!this.canAffordCatSkin(catalogItem)) {
+                this._domCatMessage = `${this.getCatSkinPriceLabel(catalogItem)}不足，暂时无法解锁。`;
+            } else {
+                const unlockedSkin = NetworkManager.canUseServer
+                    ? await SyncManager.unlockServerCatSkin(id, skinId)
+                    : null;
+                this._domCatMessage = unlockedSkin
+                    ? `已解锁并启用${theme.name}，消耗${this.getCatSkinPriceLabel(catalogItem)}。`
+                    : "皮肤购买需要连接服务器，或服务器拒绝了本次购买。";
+            }
         } else if (action === "storyWall") {
             this._domCatMessage = "故事墙会收录猫咪传记、照片和公司事件。";
         }
@@ -3372,17 +3389,31 @@ export class BottomNavUI extends Component {
             const equippedSkinId = CatManager.getEquippedSkinId(catId) as CatSkinId;
             const equippedTheme = CAT_SKIN_THEMES.find(item => item.id === equippedSkinId) ?? CAT_SKIN_THEMES[0];
             const ownedSkinIds = CatManager.getOwnedSkinIds(catId);
+            const skinCatalog = CatManager.getSkinCatalog(catId);
             const previewArt = this.getCatSkinAsset(selectedTheme.artKey);
             const cards = CAT_SKIN_THEMES.map(item => {
                 const selected = item.id === selectedTheme.id ? "selected" : "";
                 const equipped = item.id === equippedTheme.id ? "equipped" : "";
                 const locked = !ownedSkinIds.includes(item.id);
-                const state = item.id === equippedTheme.id ? "已启用" : locked ? "待开放" : item.state;
-                return `<button class="skin-card-target has-art ${item.className} ${selected} ${equipped} ${locked ? "locked" : ""}" data-action="selectCatSkin" data-skin-id="${item.id}" data-skin-art="${item.artKey}" data-skin-owned="${locked ? "false" : "true"}" style="--skin-a:${item.colorA};--skin-b:${item.colorB}"><i style="background-image:url('${this.getCatSkinAsset(item.artKey)}')"></i><div><b>${item.name}</b><span>${item.desc}</span><strong class="skin-style-badge">${item.style}</strong><div class="skin-swatches">${item.swatches.map(color => `<s style="--swatch:${color}"></s>`).join("")}</div><em>${state}</em></div></button>`;
+                const catalogItem = skinCatalog.find(entry => entry.skinId === item.id);
+                const state = item.id === equippedTheme.id
+                    ? "已启用"
+                    : locked && catalogItem?.purchasable
+                        ? this.getCatSkinPriceLabel(catalogItem)
+                        : locked ? "待开放" : item.state;
+                return `<button class="skin-card-target has-art ${item.className} ${selected} ${equipped} ${locked ? "locked" : ""}" data-action="selectCatSkin" data-skin-id="${item.id}" data-skin-art="${item.artKey}" data-skin-owned="${locked ? "false" : "true"}" data-skin-price="${catalogItem?.priceAmount ?? 0}" style="--skin-a:${item.colorA};--skin-b:${item.colorB}"><i style="background-image:url('${this.getCatSkinAsset(item.artKey)}')"></i><div><b>${item.name}</b><span>${item.desc}</span><strong class="skin-style-badge">${item.style}</strong><div class="skin-swatches">${item.swatches.map(color => `<s style="--swatch:${color}"></s>`).join("")}</div><em>${state}</em></div></button>`;
             }).join("");
             const locked = !ownedSkinIds.includes(selectedTheme.id);
-            const actionLabel = selectedTheme.id === equippedTheme.id ? "当前启用" : locked ? "尚未解锁" : "启用皮肤";
-            return `<div class="skin-wardrobe"><div class="skin-preview-card"><span class="skin-preview-art" data-skin-art="${selectedTheme.artKey}" style="background-image:url('${previewArt}')"></span><strong>${selectedTheme.name}</strong><small>当前启用：${equippedTheme.name}</small><button class="skin-preview-action" data-action="applyCatSkin" data-skin-id="${selectedTheme.id}" ${locked || selectedTheme.id === equippedTheme.id ? "disabled" : ""}>${actionLabel}</button></div><div class="skin-list-target">${cards}</div></div>`;
+            const selectedCatalogItem = skinCatalog.find(item => item.skinId === selectedTheme.id);
+            const purchasable = locked && !!selectedCatalogItem?.purchasable;
+            const canPurchase = purchasable && this.canAffordCatSkin(selectedCatalogItem);
+            const actionLabel = selectedTheme.id === equippedTheme.id
+                ? "当前启用"
+                : purchasable ? `${this.getCatSkinPriceLabel(selectedCatalogItem)} 解锁`
+                    : locked ? "尚未开放" : "启用皮肤";
+            const action = purchasable ? "unlockCatSkin" : "applyCatSkin";
+            const disabled = selectedTheme.id === equippedTheme.id || (locked && !canPurchase);
+            return `<div class="skin-wardrobe"><div class="skin-preview-card"><span class="skin-preview-art" data-skin-art="${selectedTheme.artKey}" style="background-image:url('${previewArt}')"></span><strong>${selectedTheme.name}</strong><small>当前启用：${equippedTheme.name}</small><button class="skin-preview-action" data-action="${action}" data-skin-id="${selectedTheme.id}" data-price-type="${selectedCatalogItem?.priceType ?? ""}" data-price-amount="${selectedCatalogItem?.priceAmount ?? 0}" ${disabled ? "disabled" : ""}>${actionLabel}</button></div><div class="skin-list-target">${cards}</div></div>`;
         }
         const skillLevel = Math.max(1, Math.floor(data.level / 10) + 1);
         const nextSkillLevel = Math.min(3, skillLevel + 1);
@@ -3455,6 +3486,17 @@ export class BottomNavUI extends Component {
 
     private getCatSkinAsset(skinId: CatSkinId): string {
         return getCatSkinAsset(skinId);
+    }
+
+    private canAffordCatSkin(item: CatSkinCatalogItemDto): boolean {
+        if (item.priceType === "coin") return ResourceManager.canSpend({ coin: item.priceAmount });
+        if (item.priceType === "diamond") return ResourceManager.canSpend({ diamond: item.priceAmount });
+        return false;
+    }
+
+    private getCatSkinPriceLabel(item: CatSkinCatalogItemDto): string {
+        const unit = item.priceType === "diamond" ? "钻石" : item.priceType === "coin" ? "金币" : "";
+        return `${this.formatNumber(item.priceAmount)}${unit}`;
     }
 
     private getEquipIconAsset(kind: string): string {

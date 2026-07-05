@@ -1168,6 +1168,51 @@ public sealed class FatCatApiTests
     }
 
     [Fact]
+    public async Task CatSkinUnlock_IsAtomicAndUpdatesCatalogBalanceAndSnapshot()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-cat-skin-unlock-device",
+            companyName = "FatCat",
+        });
+        var authBody = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync());
+        var playerId = authBody.RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+
+        var catalogResponse = await client.GetAsync($"/api/cats/c_001/skins/catalog?playerId={playerId}");
+        var catalog = JsonDocument.Parse(await catalogResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var managerCatalog = catalog.EnumerateArray().Single(item => item.GetProperty("skinId").GetString() == "manager");
+        var purchases = await Task.WhenAll(
+            client.PostAsJsonAsync($"/api/cats/c_001/skins/manager/unlock?playerId={playerId}", new {}),
+            client.PostAsJsonAsync($"/api/cats/c_001/skins/manager/unlock?playerId={playerId}", new {}));
+        var success = Assert.Single(purchases, response => response.StatusCode == HttpStatusCode.OK);
+        Assert.Single(purchases, response => response.StatusCode == HttpStatusCode.BadRequest);
+        var purchase = JsonDocument.Parse(await success.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var resourcesResponse = await client.GetAsync($"/api/resources?playerId={playerId}");
+        var resources = JsonDocument.Parse(await resourcesResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var catsResponse = await client.GetAsync($"/api/cats?playerId={playerId}");
+        var cats = JsonDocument.Parse(await catsResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var orange = cats.EnumerateArray().Single(item => item.GetProperty("catId").GetString() == "c_001");
+        var transactionsResponse = await client.GetAsync($"/api/resources/transactions?playerId={playerId}&limit=10");
+        var transactions = JsonDocument.Parse(await transactionsResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+
+        Assert.Equal(HttpStatusCode.OK, catalogResponse.StatusCode);
+        Assert.False(managerCatalog.GetProperty("owned").GetBoolean());
+        Assert.True(managerCatalog.GetProperty("purchasable").GetBoolean());
+        Assert.Equal(75_000, managerCatalog.GetProperty("priceAmount").GetInt32());
+        Assert.Equal("manager", purchase.GetProperty("equippedSkinId").GetString());
+        Assert.Equal(75_000, purchase.GetProperty("pricePaid").GetInt32());
+        Assert.Equal(12_375_000, resources.GetProperty("coin").GetDouble());
+        Assert.Equal("manager", orange.GetProperty("equippedSkinId").GetString());
+        var skinTransactions = transactions.EnumerateArray()
+            .Where(item => item.GetProperty("sourceType").GetString() == "cat_skin_unlock")
+            .ToArray();
+        Assert.Single(skinTransactions);
+        Assert.Equal(-75_000, skinTransactions[0].GetProperty("coinDelta").GetDouble());
+    }
+
+    [Fact]
     public async Task BuildingUpgrade_DeductsCoinAndReturnsLevelContract()
     {
         await using var factory = new FatCatApiFactory();

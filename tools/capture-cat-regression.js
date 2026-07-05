@@ -160,6 +160,9 @@ async function isVisible(page, selector) {
             selectedSkinId: document.querySelector("#fatcat-dom-cat-overlay .skin-card-target.selected")?.getAttribute("data-skin-id") ?? "",
             previewSkinArt: document.querySelector("#fatcat-dom-cat-overlay .skin-preview-art")?.getAttribute("data-skin-art") ?? "",
             applyDisabled: document.querySelector("#fatcat-dom-cat-overlay .skin-preview-action")?.hasAttribute("disabled") ?? false,
+            action: document.querySelector("#fatcat-dom-cat-overlay .skin-preview-action")?.getAttribute("data-action") ?? "",
+            priceAmount: document.querySelector("#fatcat-dom-cat-overlay .skin-preview-action")?.getAttribute("data-price-amount") ?? "",
+            managerOwned: document.querySelector('#fatcat-dom-cat-overlay .skin-card-target[data-skin-id="manager"]')?.getAttribute("data-skin-owned") ?? "",
             equippedSkinId: document.querySelector("#fatcat-dom-cat-overlay .skin-card-target.equipped")?.getAttribute("data-skin-id") ?? "",
         }));
 
@@ -211,7 +214,10 @@ async function isVisible(page, selector) {
         || entry.skinState.themedCards < 3
         || entry.lockedSkinState.selectedSkinId !== "manager"
         || entry.lockedSkinState.previewSkinArt !== "manager"
-        || !entry.lockedSkinState.applyDisabled
+        || entry.lockedSkinState.applyDisabled
+        || entry.lockedSkinState.action !== "unlockCatSkin"
+        || entry.lockedSkinState.priceAmount !== "75000"
+        || entry.lockedSkinState.managerOwned !== "false"
         || entry.lockedSkinState.equippedSkinId !== "apron"
     )) {
         process.exit(1);

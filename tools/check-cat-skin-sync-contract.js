@@ -62,6 +62,6 @@ console.log(JSON.stringify({
         "authoritative owned/equipped snapshot and equip route",
         "client save migration, API, sync, and offline fallback",
         "wardrobe ownership markers and online action routing",
-        "service, API, migration, and reload browser coverage",
+        "service, API, migration, equip, purchase, and reload browser coverage",
     ],
 }, null, 2));

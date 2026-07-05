@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatSkinEquipResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatSkinCatalogItemDto, CatSkinEquipResponse, CatSkinUnlockResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -81,6 +81,7 @@ export class SyncManager {
         this.emitSyncChanged();
         void this.fetchServerResources();
         void this.fetchServerCats();
+        void this.fetchServerCatSkinCatalog();
         void this.fetchServerBuildings();
         void this.fetchServerResearch();
         void this.fetchServerShopState();
@@ -195,6 +196,7 @@ export class SyncManager {
         this._snapshot.lastSyncAt = Date.now();
         await this.fetchServerResources();
         await this.fetchServerCats();
+        await this.fetchServerCatSkinCatalog();
         await this.fetchServerBuildings();
         await this.fetchServerResearch();
         await this.fetchServerShopState();
@@ -272,6 +274,18 @@ export class SyncManager {
             return [];
         }
         CatManager.applyServerSnapshot(response.data);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerCatSkinCatalog(catId = "c_001"): Promise<CatSkinCatalogItemDto[]> {
+        if (!this.canCallServer()) return [];
+        const response = await ApiClient.getCatSkinCatalog(NetworkManager.playerId, catId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "cat_skin_catalog_fetch_failed");
+            return [];
+        }
+        CatManager.applyServerSkinCatalog(response.data);
         this.markReadyAfterServerCall();
         return response.data;
     }
@@ -501,6 +515,33 @@ export class SyncManager {
             return null;
         }
         CatManager.applyServerSkin(response.data.catId, response.data.equippedSkinId, response.data.ownedSkinIds);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async unlockServerCatSkin(catId: string, skinId: string): Promise<CatSkinUnlockResponse | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.unlockCatSkin(NetworkManager.playerId, catId, skinId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "cat_skin_unlock_failed");
+            return null;
+        }
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, `server_cat_skin_${skinId}`);
+        CatManager.applyServerSkin(response.data.catId, response.data.equippedSkinId, response.data.ownedSkinIds);
+        await this.fetchServerCatSkinCatalog(catId);
         this.markReadyAfterServerCall();
         return response.data;
     }

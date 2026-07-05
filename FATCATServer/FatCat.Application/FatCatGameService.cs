@@ -14,7 +14,15 @@ public sealed class FatCatGameService(
     private readonly SocialEventBroker socialEvents = socialEventBroker ?? new SocialEventBroker();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> ResearchUnlockGates = new();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> LaunchSettlementGates = new();
+    private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> CatSkinUnlockGates = new();
     private static readonly HashSet<string> CatSkinIds = ["default", "apron", "manager", "festival"];
+    private static readonly CatSkinCatalogDefinition[] CatSkinCatalog =
+    [
+        new("default", "默认工作服", "肥猫咖啡公司的经典制服", "", 0, false),
+        new("apron", "烘焙围裙", "适合烘焙车间的耐热围裙", "", 0, false),
+        new("manager", "店长披肩", "象征管理岗位的青绿色披肩", "coin", 75_000, true),
+        new("festival", "节日礼服", "庆典期间限定的紫金礼服", "diamond", 80, true),
+    ];
     private const double InitialCoin = 12_450_000;
     private const double InitialBean = 8_240;
     private const double InitialCatFood = 3_510;
@@ -123,7 +131,7 @@ public sealed class FatCatGameService(
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "friend-coop-tiers", "daily-order", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "cat-skin-equip", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "friend-coop-tiers", "daily-order", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "cat-skin-equip", "cat-skin-unlock", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -963,6 +971,109 @@ public sealed class FatCatGameService(
             cat.EquippedSkinKey,
             ownedSkinIds,
             cat.UpdatedAt.ToUnixTimeMilliseconds());
+    }
+
+    public async Task<IReadOnlyList<CatSkinCatalogItemDto>?> GetCatSkinCatalogAsync(
+        Guid playerId,
+        string catId,
+        CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null
+            || !balance.CatDefinitions.ContainsKey(catId))
+        {
+            return null;
+        }
+
+        var cat = await EnsureCatStateAsync(playerId, catId, cancellationToken);
+        var ownedSkinIds = EnsureCatSkinDefaults(cat);
+        return CatSkinCatalog
+            .Select(item => new CatSkinCatalogItemDto(
+                item.SkinId,
+                item.Name,
+                item.Description,
+                item.PriceType,
+                item.PriceAmount,
+                ownedSkinIds.Contains(item.SkinId, StringComparer.Ordinal),
+                catId == DefaultCatId && item.Purchasable))
+            .ToArray();
+    }
+
+    public async Task<CatSkinUnlockResponse?> UnlockCatSkinAsync(
+        Guid playerId,
+        string catId,
+        string skinId,
+        CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        catId = string.IsNullOrWhiteSpace(catId) ? "" : catId.Trim();
+        skinId = string.IsNullOrWhiteSpace(skinId) ? "" : skinId.Trim().ToLowerInvariant();
+        var definition = CatSkinCatalog.FirstOrDefault(item =>
+            string.Equals(item.SkinId, skinId, StringComparison.Ordinal));
+        if (catId != DefaultCatId || definition is null || !definition.Purchasable)
+        {
+            return null;
+        }
+
+        var gate = CatSkinUnlockGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            var cat = await EnsureCatStateAsync(playerId, catId, cancellationToken);
+            var ownedSkinIds = EnsureCatSkinDefaults(cat).ToList();
+            if (!cat.IsUnlocked || ownedSkinIds.Contains(skinId, StringComparer.Ordinal))
+            {
+                return null;
+            }
+
+            var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
+            if (!CanSpendResource(resources, definition.PriceType, definition.PriceAmount))
+            {
+                return null;
+            }
+
+            var now = DateTimeOffset.UtcNow;
+            SpendResource(resources, definition.PriceType, definition.PriceAmount);
+            resources.UpdatedAt = now;
+            ownedSkinIds.Add(skinId);
+            cat.OwnedSkinsJson = JsonSerializer.Serialize(ownedSkinIds);
+            cat.EquippedSkinKey = skinId;
+            cat.UpdatedAt = now;
+            await AddResourceTransactionAsync(
+                playerId,
+                "cat_skin_unlock",
+                skinId,
+                catId,
+                definition.PriceType == "coin" ? -definition.PriceAmount : 0,
+                definition.PriceType == "bean" ? -definition.PriceAmount : 0,
+                definition.PriceType == "catFood" ? -definition.PriceAmount : 0,
+                definition.PriceType == "diamond" ? -definition.PriceAmount : 0,
+                definition.PriceType == "researchPoint" ? -definition.PriceAmount : 0,
+                resources,
+                cancellationToken);
+            await repository.SaveChangesAsync(cancellationToken);
+
+            return new CatSkinUnlockResponse(
+                cat.CatKey,
+                skinId,
+                cat.EquippedSkinKey,
+                ownedSkinIds,
+                definition.PriceType,
+                definition.PriceAmount,
+                resources.Coin,
+                resources.Bean,
+                resources.CatFood,
+                resources.Diamond,
+                resources.ResearchPoint,
+                now.ToUnixTimeMilliseconds());
+        }
+        finally
+        {
+            gate.Release();
+        }
     }
 
     public async Task<CatAssignmentResponse?> AssignCatAsync(Guid playerId, string catId, CatAssignmentRequest request, CancellationToken cancellationToken)
@@ -3521,6 +3632,14 @@ public sealed class FatCatGameService(
         int Score,
         string PriceType,
         int PriceAmount);
+
+    private sealed record CatSkinCatalogDefinition(
+        string SkinId,
+        string Name,
+        string Description,
+        string PriceType,
+        int PriceAmount,
+        bool Purchasable);
     private sealed record DecorCollectionTierDefinition(
         string TierId,
         int TargetCount,

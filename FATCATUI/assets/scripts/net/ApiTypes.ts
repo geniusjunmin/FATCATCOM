@@ -187,6 +187,31 @@ export type CatSkinEquipResponse = {
     serverTime: number;
 };
 
+export type CatSkinCatalogItemDto = {
+    skinId: string;
+    name: string;
+    description: string;
+    priceType: string;
+    priceAmount: number;
+    owned: boolean;
+    purchasable: boolean;
+};
+
+export type CatSkinUnlockResponse = {
+    catId: string;
+    skinId: string;
+    equippedSkinId: string;
+    ownedSkinIds: string[];
+    priceType: string;
+    pricePaid: number;
+    coinBalance: number;
+    beanBalance: number;
+    catFoodBalance: number;
+    diamondBalance: number;
+    researchPointBalance: number;
+    serverTime: number;
+};
+
 export type CatAssignmentResponse = {
     catId: string;
     assignedBuildingId: string;
