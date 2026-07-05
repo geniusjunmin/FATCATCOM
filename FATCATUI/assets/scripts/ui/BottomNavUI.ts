@@ -23,6 +23,7 @@ import { GeneratedBackgroundAssets } from "./UiAssetRegistry";
 import {
     getBuildingRoomAsset,
     getCatFullArtAsset,
+    getCatSkinAsset,
     getDomAssetDataUri,
     getEquipIconAsset,
     getFactoryAppearanceAsset,
@@ -99,6 +100,7 @@ import {
     CAT_SIDE_TABS,
     CAT_SKIN_THEMES,
     type CatEquipmentSlotName,
+    type CatSkinId,
     type CatTabId,
 } from "./CatPresentation";
 import { getDomCatStyles } from "./CatOverlayPresentation";
@@ -209,6 +211,8 @@ export class BottomNavUI extends Component {
     private _latestSocialEvent: SocialRealtimeEventDto | null = null;
     private _selectedDomCatId = "";
     private _domCatTab: CatTabId = "info";
+    private _selectedDomCatSkinId: CatSkinId = "default";
+    private _equippedDomCatSkinId: CatSkinId = "default";
     private _domCatMessage = "";
     private _selectedEquipSlot: CatEquipmentSlotName = "项圈";
     private _selectedDomBuildingId = "building_cafe_1f";
@@ -3213,6 +3217,23 @@ export class BottomNavUI extends Component {
             } else {
                 this._domCatMessage = "Equipment upgrade failed: server rejected the request.";
             }
+        } else if (action === "selectCatSkin") {
+            this._domCatTab = "skin";
+            const skinId = (button.dataset.skinId as CatSkinId) || "default";
+            const theme = CAT_SKIN_THEMES.find(item => item.id === skinId) ?? CAT_SKIN_THEMES[0];
+            this._selectedDomCatSkinId = theme.id;
+            this._domCatMessage = theme.className.includes("locked")
+                ? `${theme.name}尚未解锁，可先预览服装效果。`
+                : `正在预览${theme.name}。`;
+        } else if (action === "applyCatSkin") {
+            this._domCatTab = "skin";
+            const theme = CAT_SKIN_THEMES.find(item => item.id === this._selectedDomCatSkinId) ?? CAT_SKIN_THEMES[0];
+            if (theme.className.includes("locked")) {
+                this._domCatMessage = `${theme.name}尚未解锁。`;
+            } else {
+                this._equippedDomCatSkinId = theme.id;
+                this._domCatMessage = `已启用${theme.name}。`;
+            }
         } else if (action === "storyWall") {
             this._domCatMessage = "故事墙会收录猫咪传记、照片和公司事件。";
         }
@@ -3238,6 +3259,9 @@ export class BottomNavUI extends Component {
 
         const config = CatManager.getConfig(this._selectedDomCatId) ?? configs[0];
         const data = CatManager.getCatData(config.id);
+        const selectedCatArt = config.id === "c_001"
+            ? this.getCatSkinAsset(this._equippedDomCatSkinId)
+            : this.getCatFullArtAsset(config.id, config.portrait);
         const unlocked = data.isUnlocked;
         const production = Math.floor(CatManager.getCatProduction(config.id));
         const weightStage = CatModel.getWeightStage(data.weight);
@@ -3280,7 +3304,7 @@ export class BottomNavUI extends Component {
                 </div>
                 <div class="cat-hero">
                     <div class="cat-card info"><strong>${config.name}</strong><br><span class="rank">${config.rarity}</span> <span class="type">${roleLabel}</span><br>${unlocked ? `Lv.${data.level}/30` : "未招募"}<br>${stars}</div>
-                    <div class="cat-portrait"><div class="cat-index">${selectedIndex + 1}/${configs.length}</div><button class="cat-switch prev" data-action="prevCat">‹</button><button class="cat-switch next" data-action="nextCat">›</button><div class="portrait-cat img" style="background-image:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"></div><div class="portrait-name">${config.name}</div><span class="cat-talk">${this.getCatBubble(config.personality, unlocked)}</span><div class="cat-profile-row"><em>${config.rarity}级</em><em>${roleLabel}</em><em>${assignedName}</em></div></div>
+                    <div class="cat-portrait"><div class="cat-index">${selectedIndex + 1}/${configs.length}</div><button class="cat-switch prev" data-action="prevCat">‹</button><button class="cat-switch next" data-action="nextCat">›</button><div class="portrait-cat img" data-equipped-skin="${config.id === "c_001" ? this._equippedDomCatSkinId : "default"}" style="background-image:url('${selectedCatArt}')"></div><div class="portrait-name">${config.name}</div><span class="cat-talk">${this.getCatBubble(config.personality, unlocked)}</span><div class="cat-profile-row"><em>${config.rarity}级</em><em>${roleLabel}</em><em>${assignedName}</em></div></div>
                     <div>
                         <div class="cat-card mood">心情<br><strong>${mood}%</strong></div>
                         <div class="cat-card feed">喂猫粮<br><strong>${feedCost}</strong><br><button data-action="feedCat" data-id="${config.id}" ${canFeed ? "" : "disabled"}>喂食</button></div>
@@ -3288,12 +3312,12 @@ export class BottomNavUI extends Component {
                 </div>
                 <div class="cat-power">生产力：${this.formatNumber(production)}/秒</div>
                 <div class="cat-stats"><div><i class="stat-icon asset" style="background-image:url('${this.getGeneratedIconAsset("bean")}')"></i>咖啡豆消耗<br><b>${this.formatNumber(config.baseBeanCost)}/秒</b></div><div><i class="stat-icon asset" style="background-image:url('${this.getGeneratedIconAsset("food")}')"></i>原料产量<br><b>${this.formatNumber(production)}/秒</b></div><div><i class="stat-icon asset" style="background-image:url('${this.getGeneratedIconAsset("coin")}')"></i>工资<br><b>${this.formatNumber(wageCost)}/分钟</b></div><div><i class="stat-icon weight"></i>体重<br><b>${weightLabel}</b></div><div><i class="stat-icon paw"></i>品种<br><b>${config.breed}</b></div></div>
-                <div class="cat-weight"><b>体重阶段</b><div class="weight-row"><span class="stage-art normal ${weightStage === WeightStage.NORMAL ? "selected" : ""}" style="--stage-art:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"><b>正常</b></span><span class="stage-art fat ${weightStage === WeightStage.FAT ? "selected" : ""}" style="--stage-art:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"><b>胖猫</b></span><span class="stage-art super ${weightStage === WeightStage.SUPER_FAT ? "selected" : ""}" style="--stage-art:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"><b>巨胖</b></span><div class="bar"><i style="width:${Math.min(100, data.weight)}%"></i></div><em>${data.weight}/100</em></div></div>
-                <div class="cat-grid">
+                <div class="cat-weight"><b>体重阶段</b><div class="weight-row"><span class="stage-art normal ${weightStage === WeightStage.NORMAL ? "selected" : ""}" style="--stage-art:url('${selectedCatArt}')"><b>正常</b></span><span class="stage-art fat ${weightStage === WeightStage.FAT ? "selected" : ""}" style="--stage-art:url('${selectedCatArt}')"><b>胖猫</b></span><span class="stage-art super ${weightStage === WeightStage.SUPER_FAT ? "selected" : ""}" style="--stage-art:url('${selectedCatArt}')"><b>巨胖</b></span><div class="bar"><i style="width:${Math.min(100, data.weight)}%"></i></div><em>${data.weight}/100</em></div></div>
+                <div class="cat-grid ${this._domCatTab === "skin" ? "skin-mode" : ""}">
                     <div class="focus-panel"><b>${this.getCatTabTitle()}</b>${this.renderCatFocusContent(config.id, unlocked, upgradeCost, unlockCost, canUpgrade)}</div>
                     <div class="equipment-panel"><b>装备</b>${this.renderCatEquipPanel(config.id)}</div>
                 </div>
-                <div class="cat-story"><div class="story-copy"><b>猫咪故事</b><p>${this.getCatStory(config.name, config.personality, config.breed, assignedName)}</p><div class="story-tags"><span>${roleLabel}</span><span>${assignedName}</span><span>${weightLabel}</span></div></div><div class="story-photo" style="--story-cat:url('${this.getCatFullArtAsset(config.id, config.portrait)}')"></div><button class="story-button" data-action="storyWall" data-id="${config.id}"><span class="story-book">▰</span>故事墙</button></div>
+                <div class="cat-story"><div class="story-copy"><b>猫咪故事</b><p>${this.getCatStory(config.name, config.personality, config.breed, assignedName)}</p><div class="story-tags"><span>${roleLabel}</span><span>${assignedName}</span><span>${weightLabel}</span></div></div><div class="story-photo" style="--story-cat:url('${selectedCatArt}')"></div><button class="story-button" data-action="storyWall" data-id="${config.id}"><span class="story-book">▰</span>故事墙</button></div>
                 <div class="cat-actions"><button class="dismiss" data-action="dismissCat" data-id="${config.id}">解雇</button><button class="change" data-action="changeCat" data-id="${config.id}">更换</button><button class="level" data-action="upgradeCat" data-id="${config.id}" ${canUpgrade ? "" : "disabled"}>升级1级 ${this.formatNumber(upgradeCost)}</button></div>
                 <div class="cat-roster-label">猫咪队伍</div>
                 <div class="cat-list">${configs.map(item => this.renderCatListButton(item.id)).join("")}<button class="recruit" data-action="unlockCat" data-id="${config.id}"><span class="recruit-art" style="background-image:url('${this.getCatFullArtAsset("c_005")}')"></span><b>招募猫咪</b><small>${this.formatNumber(unlockCost)} 金币</small></button></div>
@@ -3332,9 +3356,18 @@ export class BottomNavUI extends Component {
             return `<div class="focus-card"><span class="focus-icon" style="background-image:url('${this.getEquipIconAsset("collar")}')"></span><div><strong>当前装备加成</strong><br>${this.renderEquipmentEffectSummary(catId)}<br><span class="focus-tag">项圈</span><span class="focus-tag">杯子</span><span class="focus-tag">坐垫</span><div class="focus-actions"><button class="mini-action green" data-action="equipItem" data-slot="项圈" data-id="${catId}">更换项圈</button><button class="mini-action" data-action="equipItem" data-slot="杯子" data-id="${catId}">装备背包</button></div></div></div>`;
         }
         if (this._domCatTab === "skin") {
-            const catArt = this.getCatFullArtAsset(config.id, config.portrait);
-            const cards = CAT_SKIN_THEMES.map(item => `<div class="skin-card-target ${item.className}" style="--skin-a:${item.colorA};--skin-b:${item.colorB}"><i style="background-image:url('${catArt}')"></i><div><b>${item.name}</b><span>${item.desc}</span><strong class="skin-style-badge">${item.style}</strong><div class="skin-swatches">${item.swatches.map(color => `<s style="--swatch:${color}"></s>`).join("")}</div><em>${item.state}</em></div></div>`).join("");
-            return `<div class="skin-wardrobe"><div class="skin-preview-card"><span class="skin-preview-art" style="background-image:url('${catArt}')"></span><strong>皮肤衣柜</strong><small>当前启用：默认工作服</small></div><div class="skin-list-target">${cards}</div></div>`;
+            const selectedTheme = CAT_SKIN_THEMES.find(item => item.id === this._selectedDomCatSkinId) ?? CAT_SKIN_THEMES[0];
+            const equippedTheme = CAT_SKIN_THEMES.find(item => item.id === this._equippedDomCatSkinId) ?? CAT_SKIN_THEMES[0];
+            const previewArt = this.getCatSkinAsset(selectedTheme.artKey);
+            const cards = CAT_SKIN_THEMES.map(item => {
+                const selected = item.id === selectedTheme.id ? "selected" : "";
+                const equipped = item.id === equippedTheme.id ? "equipped" : "";
+                const state = item.id === equippedTheme.id ? "已启用" : item.state;
+                return `<button class="skin-card-target has-art ${item.className} ${selected} ${equipped}" data-action="selectCatSkin" data-skin-id="${item.id}" data-skin-art="${item.artKey}" style="--skin-a:${item.colorA};--skin-b:${item.colorB}"><i style="background-image:url('${this.getCatSkinAsset(item.artKey)}')"></i><div><b>${item.name}</b><span>${item.desc}</span><strong class="skin-style-badge">${item.style}</strong><div class="skin-swatches">${item.swatches.map(color => `<s style="--swatch:${color}"></s>`).join("")}</div><em>${state}</em></div></button>`;
+            }).join("");
+            const locked = selectedTheme.className.includes("locked");
+            const actionLabel = selectedTheme.id === equippedTheme.id ? "当前启用" : locked ? "尚未解锁" : "启用皮肤";
+            return `<div class="skin-wardrobe"><div class="skin-preview-card"><span class="skin-preview-art" data-skin-art="${selectedTheme.artKey}" style="background-image:url('${previewArt}')"></span><strong>${selectedTheme.name}</strong><small>当前启用：${equippedTheme.name}</small><button class="skin-preview-action" data-action="applyCatSkin" data-skin-id="${selectedTheme.id}" ${locked || selectedTheme.id === equippedTheme.id ? "disabled" : ""}>${actionLabel}</button></div><div class="skin-list-target">${cards}</div></div>`;
         }
         const skillLevel = Math.max(1, Math.floor(data.level / 10) + 1);
         const nextSkillLevel = Math.min(3, skillLevel + 1);
@@ -3403,6 +3436,10 @@ export class BottomNavUI extends Component {
 
     private getCatFullArtAsset(catId: string, portrait?: string): string {
         return getCatFullArtAsset(catId, portrait);
+    }
+
+    private getCatSkinAsset(skinId: CatSkinId): string {
+        return getCatSkinAsset(skinId);
     }
 
     private getEquipIconAsset(kind: string): string {

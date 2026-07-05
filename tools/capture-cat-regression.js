@@ -121,19 +121,49 @@ async function isVisible(page, selector) {
 
         await page.click('#fatcat-dom-cat-overlay [data-action="tab"][data-tab="skin"]');
         await page.waitForTimeout(350);
+        await page.click('#fatcat-dom-cat-overlay .skin-card-target[data-skin-id="apron"]');
+        await page.click('#fatcat-dom-cat-overlay .skin-preview-action[data-action="applyCatSkin"]');
+        await page.waitForTimeout(250);
         const skinFile = path.join(outDir, `cat-skin-${width}x${height}-edge.png`);
         await page.screenshot({ path: skinFile, fullPage: false });
         const skinState = await page.evaluate(() => ({
             wardrobeVisible: !!document.querySelector("#fatcat-dom-cat-overlay .skin-wardrobe"),
             skinCards: document.querySelectorAll("#fatcat-dom-cat-overlay .skin-card-target").length,
             selectedCards: document.querySelectorAll("#fatcat-dom-cat-overlay .skin-card-target.selected").length,
+            equippedCards: document.querySelectorAll("#fatcat-dom-cat-overlay .skin-card-target.equipped").length,
+            selectedSkinId: document.querySelector("#fatcat-dom-cat-overlay .skin-card-target.selected")?.getAttribute("data-skin-id") ?? "",
+            previewSkinArt: document.querySelector("#fatcat-dom-cat-overlay .skin-preview-art")?.getAttribute("data-skin-art") ?? "",
+            skinArtKeys: Array.from(document.querySelectorAll("#fatcat-dom-cat-overlay .skin-card-target"))
+                .map(element => element.getAttribute("data-skin-art")),
+            embeddedSkinArt: Array.from(document.querySelectorAll("#fatcat-dom-cat-overlay .skin-card-target i"))
+                .filter(element => getComputedStyle(element).backgroundImage.startsWith('url("data:image/png;base64,')).length,
+            applyDisabled: document.querySelector("#fatcat-dom-cat-overlay .skin-preview-action")?.hasAttribute("disabled") ?? false,
+            skinMode: document.querySelector("#fatcat-dom-cat-overlay .cat-grid")?.classList.contains("skin-mode") ?? false,
+            equippedHeroSkin: document.querySelector("#fatcat-dom-cat-overlay .portrait-cat")?.getAttribute("data-equipped-skin") ?? "",
+            heroMatchesSkinPreview: (() => {
+                const hero = document.querySelector("#fatcat-dom-cat-overlay .portrait-cat");
+                const preview = document.querySelector("#fatcat-dom-cat-overlay .skin-preview-art");
+                return !!hero && !!preview && getComputedStyle(hero).backgroundImage === getComputedStyle(preview).backgroundImage;
+            })(),
+            wardrobeWidthRatio: (() => {
+                const wardrobe = document.querySelector("#fatcat-dom-cat-overlay .skin-wardrobe")?.getBoundingClientRect();
+                const grid = document.querySelector("#fatcat-dom-cat-overlay .cat-grid")?.getBoundingClientRect();
+                return wardrobe && grid ? Math.round(wardrobe.width / grid.width * 1000) / 1000 : 0;
+            })(),
             styleBadges: document.querySelectorAll("#fatcat-dom-cat-overlay .skin-style-badge").length,
             swatches: document.querySelectorAll("#fatcat-dom-cat-overlay .skin-swatches s").length,
             themedCards: document.querySelectorAll("#fatcat-dom-cat-overlay .skin-card-target.apron, #fatcat-dom-cat-overlay .skin-card-target.manager, #fatcat-dom-cat-overlay .skin-card-target.festival").length,
         }));
         skinState.wardrobeVisible = await isVisible(page, "#fatcat-dom-cat-overlay .skin-wardrobe");
+        await page.click('#fatcat-dom-cat-overlay .skin-card-target[data-skin-id="manager"]');
+        const lockedSkinState = await page.evaluate(() => ({
+            selectedSkinId: document.querySelector("#fatcat-dom-cat-overlay .skin-card-target.selected")?.getAttribute("data-skin-id") ?? "",
+            previewSkinArt: document.querySelector("#fatcat-dom-cat-overlay .skin-preview-art")?.getAttribute("data-skin-art") ?? "",
+            applyDisabled: document.querySelector("#fatcat-dom-cat-overlay .skin-preview-action")?.hasAttribute("disabled") ?? false,
+            equippedSkinId: document.querySelector("#fatcat-dom-cat-overlay .skin-card-target.equipped")?.getAttribute("data-skin-id") ?? "",
+        }));
 
-        results.push({ size: `${width}x${height}`, file, equipFile, skinFile, messages, failedRequests, state, equipState, skinState });
+        results.push({ size: `${width}x${height}`, file, equipFile, skinFile, messages, failedRequests, state, equipState, skinState, lockedSkinState });
         await page.close();
     }
 
@@ -166,9 +196,23 @@ async function isVisible(page, selector) {
         || !entry.skinState.wardrobeVisible
         || entry.skinState.skinCards < 4
         || entry.skinState.selectedCards < 1
+        || entry.skinState.equippedCards !== 1
+        || entry.skinState.selectedSkinId !== "apron"
+        || entry.skinState.previewSkinArt !== "apron"
+        || entry.skinState.skinArtKeys.join(",") !== "default,apron,manager,festival"
+        || entry.skinState.embeddedSkinArt !== 4
+        || !entry.skinState.applyDisabled
+        || !entry.skinState.skinMode
+        || entry.skinState.equippedHeroSkin !== "apron"
+        || !entry.skinState.heroMatchesSkinPreview
+        || entry.skinState.wardrobeWidthRatio < 0.95
         || entry.skinState.styleBadges < 4
         || entry.skinState.swatches < 12
         || entry.skinState.themedCards < 3
+        || entry.lockedSkinState.selectedSkinId !== "manager"
+        || entry.lockedSkinState.previewSkinArt !== "manager"
+        || !entry.lockedSkinState.applyDisabled
+        || entry.lockedSkinState.equippedSkinId !== "apron"
     )) {
         process.exit(1);
     }

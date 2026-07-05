@@ -21,6 +21,13 @@ export const GeneratedCatFullArtAssets: Record<string, string> = {
     white: `${GENERATED_ROOT}/cats/cat_full_white.png`,
 };
 
+export const GeneratedCatSkinAssets: Record<string, string> = {
+    default: `${GENERATED_ROOT}/cats/cat_hero_orange_v2.png`,
+    apron: `${GENERATED_ROOT}/cats/cat_skin_apron_v1.png`,
+    manager: `${GENERATED_ROOT}/cats/cat_skin_manager_v1.png`,
+    festival: `${GENERATED_ROOT}/cats/cat_skin_festival_v1.png`,
+};
+
 export const GeneratedFactoryAssets: Record<string, string> = {
     office: `${GENERATED_ROOT}/factory/prop_office.png`,
     roast: `${GENERATED_ROOT}/factory/prop_roaster.png`,

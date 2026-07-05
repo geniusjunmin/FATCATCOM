@@ -1,6 +1,6 @@
 # Next Tasks
 
-Updated: 2026-07-04
+Updated: 2026-07-05
 
 ## Round Contract
 
@@ -19,7 +19,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Signed player authentication, daily order/chest, and five-launch quota are authoritative; preserve these boundaries. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Factory and side-tool source art are complete; next replace CSS-only cat skin/equipment thumbnails where bitmap depth is still missing. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Factory, side-tool, and cat-skin source art are complete; next improve equipment/recruit thumbnails without changing verified geometry. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
@@ -50,12 +50,13 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - Side-tool art ids and each bonus-card child are asserted in all four main captures.
 - Four-size main/cat screenshots, 24 floor routes, 18-step clicks, quick verify, and 99 tests are green.
 
-### 0. Next Cat Asset Pass
+### Completed: Cat Wardrobe Bitmap Pass
 
-- Compare `cat-430x932-edge.png` against `所有猫咪页面.png`, focusing on the CSS-only skin cards and small equipment/recruit thumbnails.
-- Generate only the missing bitmap illustrations; retain current cat hero, workshop backdrop, real equipment data, and click routes.
-- Add stable art ids and alpha/dimension contracts for every new thumbnail.
-- Preserve 360px information/equipment/skin containment and roster clickability.
+- Generated three 768px transparent outfit illustrations for apron, manager, and festival themes; default reuses the orange cafe hero.
+- Added stable skin/art ids, registry/resolver/Data URI wiring, and a dedicated alpha/dimension/action contract.
+- Implemented select, preview, apply, equipped, and locked states. Applied art follows the center hero, weight-stage card, and story photo.
+- Skin mode now uses the full lower content width at 360x800, 414x896, 430x932, and 768x1024.
+- Next cat batch: add server-authoritative skin inventory/equipped persistence, then replace the remaining small equipment/recruit placeholders with bitmap art.
 
 ### Completed: Daily Launch Quota Authority
 

@@ -3,6 +3,7 @@ import { FactoryPropDataUris } from "./FactoryPropDataUris";
 import {
     GeneratedBuildingRoomAssets,
     GeneratedCatFullArtAssets,
+    GeneratedCatSkinAssets,
     GeneratedFactoryAppearanceAssets,
     GeneratedFeatureIconAssets,
     GeneratedInventoryArtAssets,
@@ -82,6 +83,10 @@ export function getCatFullArtAsset(catId: string, portrait?: string): string {
     if (portrait?.includes("black")) return getDomAssetDataUri(GeneratedCatFullArtAssets.black);
     if (portrait?.includes("white")) return getDomAssetDataUri(GeneratedCatFullArtAssets.white);
     return getDomAssetDataUri(GeneratedCatFullArtAssets.orange);
+}
+
+export function getCatSkinAsset(skinId: string): string {
+    return getDomAssetDataUri(GeneratedCatSkinAssets[skinId] ?? GeneratedCatSkinAssets.default);
 }
 
 export function getEquipIconAsset(kind: string): string {

@@ -120,10 +120,13 @@ export function getDomCatStyles(catWorkshopDataUri: string): string {
             #fatcat-dom-cat-overlay .skin-preview-art { display:block; width:66%; aspect-ratio:1; margin:0 auto 1%; background:center/contain no-repeat; filter:drop-shadow(0 5px 0 rgba(76,48,28,.2)); }
             #fatcat-dom-cat-overlay .skin-preview-card strong { display:block; color:#513019; font-size:118%; text-align:center; }
             #fatcat-dom-cat-overlay .skin-preview-card small { display:block; color:#7a5638; text-align:center; font-weight:900; }
+            #fatcat-dom-cat-overlay .skin-preview-action { display:block; width:88%; min-height:24px; margin:5% auto 0; border:0; border-radius:999px; background:linear-gradient(#82b94d,#4f8e32); color:#fff; font-weight:900; box-shadow:0 3px 0 rgba(39,74,24,.4); }
+            #fatcat-dom-cat-overlay .skin-preview-action:disabled { background:linear-gradient(#b9aa94,#806d58); opacity:.72; box-shadow:none; }
             #fatcat-dom-cat-overlay .skin-list-target { display:grid; grid-template-columns:repeat(2,1fr); gap:2%; }
-            #fatcat-dom-cat-overlay .skin-card-target { position:relative; display:grid; grid-template-columns:30% 1fr; align-items:center; gap:3%; min-height:49px; padding:2.2%; border-radius:12px; background:linear-gradient(#fff6dc,#dfbd83); color:#4a2f1f; border:2px solid rgba(111,78,45,.24); box-shadow:inset 0 0 0 2px rgba(255,250,224,.26), 0 3px 0 rgba(76,45,24,.13); overflow:hidden; }
+            #fatcat-dom-cat-overlay .skin-card-target { position:relative; display:grid; grid-template-columns:36% 1fr; align-items:center; gap:3%; min-height:49px; padding:2.2%; border-radius:12px; background:linear-gradient(#fff6dc,#dfbd83); color:#4a2f1f; border:2px solid rgba(111,78,45,.24); box-shadow:inset 0 0 0 2px rgba(255,250,224,.26), 0 3px 0 rgba(76,45,24,.13); overflow:hidden; font:inherit; text-align:left; cursor:pointer; }
             #fatcat-dom-cat-overlay .skin-card-target:after { content:""; position:absolute; left:7%; right:7%; top:7%; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.62),transparent); }
             #fatcat-dom-cat-overlay .skin-card-target.selected { background:linear-gradient(#ffe69a,#df9c34); box-shadow:inset 0 0 0 3px rgba(255,250,190,.55), 0 0 12px rgba(237,169,44,.42); }
+            #fatcat-dom-cat-overlay .skin-card-target.equipped { border-color:#6e9b45; }
             #fatcat-dom-cat-overlay .skin-card-target.locked { filter:grayscale(.45); opacity:.76; }
             #fatcat-dom-cat-overlay .skin-card-target i { position:relative; width:100%; aspect-ratio:1; border-radius:10px; background:center/contain no-repeat, linear-gradient(#f8deb1,#b88956); box-shadow:inset 0 0 0 2px rgba(92,60,34,.18); overflow:hidden; }
             #fatcat-dom-cat-overlay .skin-card-target i:before { content:""; position:absolute; left:18%; right:18%; bottom:8%; height:28%; border-radius:42% 42% 18% 18%; background:linear-gradient(135deg,var(--skin-a,#557448),var(--skin-b,#31482f)); box-shadow:inset 0 0 0 2px rgba(255,237,188,.28), 0 2px 0 rgba(65,39,22,.18); opacity:.92; }
@@ -134,6 +137,9 @@ export function getDomCatStyles(catWorkshopDataUri: string): string {
             #fatcat-dom-cat-overlay .skin-card-target.manager i:after { border-radius:5px; transform:rotate(12deg); background:linear-gradient(#d9b06a,#8d5c2d); }
             #fatcat-dom-cat-overlay .skin-card-target.festival i:before { left:12%; right:12%; bottom:8%; height:36%; border-radius:50% 50% 18px 18px; background:radial-gradient(circle at 35% 35%,#fff3b2 0 9%,transparent 10%), linear-gradient(135deg,var(--skin-a,#7b4bc0),var(--skin-b,#cf6a9a)); }
             #fatcat-dom-cat-overlay .skin-card-target.festival i:after { background:radial-gradient(circle,#fff2a0 0 28%,#e35f65 30% 60%,transparent 61%); box-shadow:none; }
+            #fatcat-dom-cat-overlay .skin-card-target.has-art i { background-size:170%; background-position:center 29%; }
+            #fatcat-dom-cat-overlay .skin-card-target.has-art i:before,
+            #fatcat-dom-cat-overlay .skin-card-target.has-art i:after { display:none; }
             #fatcat-dom-cat-overlay .skin-card-target b { display:block; color:#442915; line-height:1.08; }
             #fatcat-dom-cat-overlay .skin-card-target span { display:block; color:#735034; font-size:82%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
             #fatcat-dom-cat-overlay .skin-card-target em { display:inline-flex; width:max-content; margin-top:2%; padding:1.2% 8%; border-radius:999px; background:rgba(76,48,27,.82); color:#fff1c7; font-size:78%; font-style:normal; }
@@ -141,6 +147,10 @@ export function getDomCatStyles(catWorkshopDataUri: string): string {
             #fatcat-dom-cat-overlay .skin-style-badge { display:inline-flex; width:max-content; margin:1.5% 0 0; padding:.9% 6%; border-radius:999px; background:linear-gradient(#72513a,#4c3324); color:#ffe5ad; font-size:72%; font-weight:1000; box-shadow:0 2px 0 rgba(62,39,22,.16); }
             #fatcat-dom-cat-overlay .skin-swatches { display:flex; gap:4%; margin-top:2%; }
             #fatcat-dom-cat-overlay .skin-swatches s { width:16%; max-width:16px; aspect-ratio:1; border-radius:50%; background:var(--swatch,#8f6a44); box-shadow:inset 0 0 0 2px rgba(255,240,200,.34), 0 1px 0 rgba(71,45,25,.22); text-decoration:none; }
+            #fatcat-dom-cat-overlay .cat-grid.skin-mode { grid-template-columns:1fr; }
+            #fatcat-dom-cat-overlay .cat-grid.skin-mode .equipment-panel { display:none; }
+            #fatcat-dom-cat-overlay .cat-grid.skin-mode .focus-panel { min-height:clamp(166px,46vw,198px); }
+            #fatcat-dom-cat-overlay .cat-grid.skin-mode .skin-preview-art { width:88%; }
             #fatcat-dom-cat-overlay .equip-row { display:grid; grid-template-columns: repeat(4,1fr); gap:1.4%; margin-top:2%; text-align:center; }
             #fatcat-dom-cat-overlay .equip-slot { position:relative; min-height: 88px; border-radius:12px; background:radial-gradient(circle at 50% 12%, rgba(255,255,255,.34), transparent 28%), linear-gradient(#f5dfbc,#d4a86f); border:2px solid rgba(111,78,45,.28); display:flex; align-items:center; justify-content:center; flex-direction:column; font-weight:900; color:#4a2f1f; box-shadow:inset 0 0 0 2px rgba(255,250,224,.28), 0 4px 0 rgba(73,44,24,.16); overflow:hidden; }
             #fatcat-dom-cat-overlay .equip-slot:after { content:""; position:absolute; left:11%; right:11%; bottom:7%; height:10%; border-radius:999px; background:rgba(83,54,29,.12); }
@@ -1269,6 +1279,29 @@ export function getDomCatStyles(catWorkshopDataUri: string): string {
                 }
                 #fatcat-dom-cat-overlay.compact .story-photo { min-height:76px; }
                 #fatcat-dom-cat-overlay.compact .cat-list { height:10.6%; bottom:.5%; }
+            }
+            #fatcat-dom-cat-overlay .cat-grid.skin-mode,
+            #fatcat-dom-cat-overlay.compact .cat-grid.skin-mode,
+            #fatcat-dom-cat-overlay.tablet .cat-grid.skin-mode {
+                grid-template-columns:minmax(0,1fr);
+            }
+            #fatcat-dom-cat-overlay .cat-grid.skin-mode .focus-panel {
+                min-height:clamp(166px,46vw,205px);
+            }
+            #fatcat-dom-cat-overlay .cat-grid.skin-mode .skin-wardrobe {
+                grid-template-columns:31% minmax(0,1fr);
+                min-height:150px;
+            }
+            #fatcat-dom-cat-overlay .cat-grid.skin-mode .skin-preview-card {
+                min-height:146px;
+                padding:3% 4%;
+            }
+            #fatcat-dom-cat-overlay .cat-grid.skin-mode .skin-preview-art {
+                width:84%;
+                max-height:92px;
+            }
+            #fatcat-dom-cat-overlay .cat-grid.skin-mode .skin-card-target {
+                min-height:70px;
             }
         `;
 }

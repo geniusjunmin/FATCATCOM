@@ -1,13 +1,13 @@
 # Current Status
 
-Updated: 2026-07-04
+Updated: 2026-07-05
 
 ## Control Panel
 
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Continue target-UI fidelity on cat equipment/skin thumbnails and remaining flat feature art; preserve the high-resolution factory and guarded text fit. |
+| Best Next Move | Persist cat skin ownership/equipment on the server, then continue bitmap equipment/recruit art while preserving the verified wardrobe geometry. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -21,11 +21,16 @@ Updated: 2026-07-04
 | Economy Model | Covered | Production uses assignment, building level, equipment, research, skills, and mood. |
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
-| Biggest Gap | Visual fidelity | Main factory and cat page are closer to target, but icon consistency, generated illustration depth, and final target-proportion tuning still need work. |
+| Biggest Gap | Visual fidelity | Main factory and cat page are closer to target; remaining gaps are equipment/recruit illustration depth and final target-proportion tuning. |
 | Biggest Risk | Frontend size | `BottomNavUI.ts` remains large, but shared, panel, factory-overlay, and cat-overlay styles are extracted. The next code-health work is splitting cohesive factory/cat/feature render responsibilities without disturbing live actions. |
 
 ## Client UI
 
+- Latest cat wardrobe asset pass replaces the CSS-only outfits with three generated 768x768 transparent illustrations: `cat_skin_apron_v1.png`, `cat_skin_manager_v1.png`, and `cat_skin_festival_v1.png`. They preserve the orange cafe-cat identity while giving each theme a distinct target-style outfit.
+- The skin tab now supports real select, preview, and apply actions. Default/apron are usable; manager/festival remain visibly locked. Equipping apron updates the center hero, weight-stage art, and story photo in the current UI session.
+- `GeneratedCatSkinAssets` and `getCatSkinAsset()` own skin resolution, while `DomAssetDataUris.ts` embeds all four variants. `tools/check-cat-skin-art.js` guards PNG dimensions/alpha, registry wiring, action states, responsive CSS, and screenshot coverage.
+- The wardrobe becomes a full-width single-column surface in skin mode, removing the stale empty equipment column. Four-size regression applies apron, proves matching hero/preview art, then previews locked manager without replacing the equipped skin.
+- Verification: Cocos asset refresh, focused TypeScript diagnostics, four-size cat/main screenshots, 24 floor routes, 18-step click navigation, full quick verify, and 99/99 server tests pass with clean browser logs.
 - Latest source-art pass replaces the 640px factory runtime JPEG with `factory_cutaway_bg_852_v2.jpg` (852x1514, quality 91) derived from the existing 942x1672 project master. The composition is unchanged, but room machinery, cats, roof sign, pipes, and town backdrop are noticeably cleaner at phone and tablet density.
 - Four flat side-tool placeholders are replaced by generated 384px transparent illustrations: `icon_achievement_trophy_v2.png`, `icon_mail_envelope_v2.png`, `icon_friend_cat_v2.png`, and `icon_settings_gear_v2.png`. Alpha QC found transparent corners, bounded subjects, and no meaningful magenta fringe.
 - `GeneratedBackgroundAssets`, `GeneratedFactoryAppearanceAssets`, and `GeneratedFeatureIconAssets` now select the new files; the Data URI bridge embeds them for web preview. Stable `data-art-key` markers prove the task/trophy/mail/friend/settings sequence in all four main captures.
@@ -195,7 +200,7 @@ Updated: 2026-07-04
 - Latest HUD presentation code-health pass extracts top-HUD CSS, company/level/exp constants, and four resource item definitions into `HudPresentation.ts`. `BottomNavUI.ts` keeps live resource values and layout refresh local, guarded by `tools/check-hud-presentation-contract.js`.
 - Latest nav presentation code-health pass extracts bottom DOM navigation CSS into `NavPresentation.ts`. `BottomNavUI.ts` still renders shared nav items and click handling locally, guarded by `tools/check-nav-presentation-contract.js`.
 - Latest panel presentation pass extracts the shared building/shop/inventory/research/task/social/settings overlay CSS into `PanelPresentation.ts`, removing roughly 83K characters from `BottomNavUI.ts` without moving actions or live rendering. `tools/check-panel-presentation-contract.js` guards ownership boundaries, and `quick-verify.ps1` now fails on non-zero Node/.NET exit codes instead of printing a false green.
-- Remaining visual gap: generated art depth where CSS still looks flat, final main/cat target proportions, future true bitmap skin/outfit illustrations, and larger Cocos-managed illustration assets.
+- Remaining visual gap: final main/cat target proportions, true bitmap equipment/recruit illustrations, and larger Cocos-managed illustration assets. Skin equipment is currently presentation-local and still needs authoritative ownership/equipped persistence.
 
 Latest verified UI commands:
 

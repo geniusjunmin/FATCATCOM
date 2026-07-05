@@ -1,5 +1,6 @@
 export type CatTabId = "info" | "upgrade" | "skill" | "equip" | "skin";
 export type CatEquipmentSlotName = "项圈" | "杯子" | "坐垫";
+export type CatSkinId = "default" | "apron" | "manager" | "festival";
 
 export interface CatSideTabItem {
     id: CatTabId;
@@ -7,6 +8,8 @@ export interface CatSideTabItem {
 }
 
 export interface CatSkinTheme {
+    id: CatSkinId;
+    artKey: CatSkinId;
     name: string;
     desc: string;
     state: string;
@@ -49,10 +52,10 @@ export const CAT_SIDE_TABS: CatSideTabItem[] = [
 ];
 
 export const CAT_SKIN_THEMES: CatSkinTheme[] = [
-    { name: "默认工作服", desc: "原料产量稳定", state: "已启用", style: "咖啡绿", className: "selected cafe", colorA: "#567648", colorB: "#2f4b32", swatches: ["#567648", "#e8c178", "#5b3924"] },
-    { name: "烘焙围裙", desc: "咖啡价值 +2%", state: "活动", style: "烘焙师", className: "apron", colorA: "#c46b34", colorB: "#fff0d0", swatches: ["#c46b34", "#fff0d0", "#8a5631"] },
-    { name: "店长披肩", desc: "金币加成 +1%", state: "待开放", style: "店长装", className: "manager locked", colorA: "#2f6f69", colorB: "#173d44", swatches: ["#2f6f69", "#d9b06a", "#173d44"] },
-    { name: "节日礼服", desc: "心情上限 +3", state: "待开放", style: "节日", className: "festival locked", colorA: "#7b4bc0", colorB: "#cf6a9a", swatches: ["#7b4bc0", "#cf6a9a", "#fff2a0"] },
+    { id: "default", artKey: "default", name: "默认工作服", desc: "原料产量稳定", state: "可使用", style: "咖啡绿", className: "cafe", colorA: "#567648", colorB: "#2f4b32", swatches: ["#567648", "#e8c178", "#5b3924"] },
+    { id: "apron", artKey: "apron", name: "烘焙围裙", desc: "咖啡价值 +2%", state: "可使用", style: "烘焙师", className: "apron", colorA: "#c46b34", colorB: "#fff0d0", swatches: ["#c46b34", "#fff0d0", "#8a5631"] },
+    { id: "manager", artKey: "manager", name: "店长披肩", desc: "金币加成 +1%", state: "待开放", style: "店长装", className: "manager locked", colorA: "#2f6f69", colorB: "#173d44", swatches: ["#2f6f69", "#d9b06a", "#173d44"] },
+    { id: "festival", artKey: "festival", name: "节日礼服", desc: "心情上限 +3", state: "待开放", style: "节日", className: "festival locked", colorA: "#7b4bc0", colorB: "#cf6a9a", swatches: ["#7b4bc0", "#cf6a9a", "#fff2a0"] },
 ];
 
 export const CAT_EQUIPMENT_SLOTS: CatEquipmentSlot[] = [

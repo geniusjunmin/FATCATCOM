@@ -1,6 +1,6 @@
 # Handoff
 
-Updated: 2026-07-04
+Updated: 2026-07-05
 
 ## 90-Second Boot
 
@@ -24,6 +24,13 @@ Updated: 2026-07-04
 
 ## Latest Visual Note
 
+- The newest asset batch is the cat wardrobe: `cats/cat_skin_apron_v1.png`, `cat_skin_manager_v1.png`, and `cat_skin_festival_v1.png`, each a 768x768 transparent PNG with its Cocos `.meta`.
+- Built-in image generation used `cat_hero_orange_v2.png` and the target cat-page references. Prompt intent: the same chubby orange-and-white cafe cat and seated pose, wearing respectively terracotta baker workwear, a teal manager vest, or a plum festival outfit; warm hand-painted mobile-game rendering, no text/UI/shadow, flat `#ff00ff` key.
+- The installed chroma helper removed the key. QC found transparent corners, bounded subjects, and no meaningful fringe. Final files alone belong in the asset tree; do not commit `tmp/imagegen`.
+- `GeneratedCatSkinAssets` in `UiAssetRegistry.ts` maps all four themes. `DomAssetResolver.getCatSkinAsset()` and the generated Data URI bridge are the only DOM lookup path.
+- Skin selection is currently local presentation state in `BottomNavUI.ts`. Default/apron can be applied; manager/festival are locked previews. The next server batch should persist owned/equipped skin ids and restore them through cat snapshots.
+- `capture-cat-regression.js` applies apron at all four target sizes, requires preview/hero art equality and full-width wardrobe geometry, then previews locked manager and proves apron remains equipped. `tools/check-cat-skin-art.js` is part of quick verify.
+- Current green evidence: TypeScript diagnostics, four-size cat/main screenshots, 24 floor routes, 18 UI click steps, full quick verify, and 99/99 server tests.
 - The latest source-art batch lives at `FATCATUI/assets/resources/textures/generated/factory_cutaway_bg_852_v2.jpg` and `ui/icon_{achievement_trophy,mail_envelope,friend_cat,settings_gear}_v2.png`. Cocos `.meta` files are committed beside every asset.
 - The factory JPEG was not regenerated: it is an 852x1514, quality-91 derivative of the existing 942x1672 `factory_cutaway_bg.png` master, preserving the verified composition while improving runtime sharpness.
 - The four side icons used built-in image generation with `主页面.png` and `icon_task_clipboard.png` as references. Prompt intent: one centered cozy hand-painted mobile-game object, bold 32px silhouette, warm brown outline, no text/frame/shadow, flat `#ff00ff` key. The installed chroma helper produced alpha PNGs; all four are 384x384 with transparent corners and negligible key fringe.
