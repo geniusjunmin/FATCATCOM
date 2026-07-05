@@ -14,6 +14,7 @@ public sealed class FatCatGameService(
     private readonly SocialEventBroker socialEvents = socialEventBroker ?? new SocialEventBroker();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> ResearchUnlockGates = new();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> LaunchSettlementGates = new();
+    private static readonly HashSet<string> CatSkinIds = ["default", "apron", "manager", "festival"];
     private const double InitialCoin = 12_450_000;
     private const double InitialBean = 8_240;
     private const double InitialCatFood = 3_510;
@@ -122,7 +123,7 @@ public sealed class FatCatGameService(
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "friend-coop-tiers", "daily-order", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "friend-coop-tiers", "daily-order", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "cat-skin-equip", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -927,6 +928,41 @@ public sealed class FatCatGameService(
             cats.Add(ToCatStateDto(cat));
         }
         return cats;
+    }
+
+    public async Task<CatSkinEquipResponse?> EquipCatSkinAsync(
+        Guid playerId,
+        string catId,
+        string skinId,
+        CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        catId = string.IsNullOrWhiteSpace(catId) ? "" : catId.Trim();
+        skinId = string.IsNullOrWhiteSpace(skinId) ? "" : skinId.Trim().ToLowerInvariant();
+        if (!balance.CatDefinitions.ContainsKey(catId) || !CatSkinIds.Contains(skinId))
+        {
+            return null;
+        }
+
+        var cat = await EnsureCatStateAsync(playerId, catId, cancellationToken);
+        var ownedSkinIds = EnsureCatSkinDefaults(cat);
+        if (!cat.IsUnlocked || !ownedSkinIds.Contains(skinId, StringComparer.Ordinal))
+        {
+            return null;
+        }
+
+        cat.EquippedSkinKey = skinId;
+        cat.UpdatedAt = DateTimeOffset.UtcNow;
+        await repository.SaveChangesAsync(cancellationToken);
+        return new CatSkinEquipResponse(
+            cat.CatKey,
+            cat.EquippedSkinKey,
+            ownedSkinIds,
+            cat.UpdatedAt.ToUnixTimeMilliseconds());
     }
 
     public async Task<CatAssignmentResponse?> AssignCatAsync(Guid playerId, string catId, CatAssignmentRequest request, CancellationToken cancellationToken)
@@ -2299,6 +2335,37 @@ public sealed class FatCatGameService(
         return balance.DefaultEquipment.Values.ToDictionary(itemId => itemId, _ => 1);
     }
 
+    private static IReadOnlyList<string> GetDefaultCatSkins(string catId)
+    {
+        return catId == DefaultCatId ? ["default", "apron"] : ["default"];
+    }
+
+    private static IReadOnlyList<string> EnsureCatSkinDefaults(PlayerCatState cat)
+    {
+        var owned = string.IsNullOrWhiteSpace(cat.OwnedSkinsJson)
+            ? []
+            : JsonSerializer.Deserialize<List<string>>(cat.OwnedSkinsJson) ?? [];
+        var normalized = owned
+            .Select(item => item.Trim().ToLowerInvariant())
+            .Where(CatSkinIds.Contains)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+        foreach (var skinId in GetDefaultCatSkins(cat.CatKey))
+        {
+            if (!normalized.Contains(skinId, StringComparer.Ordinal))
+            {
+                normalized.Add(skinId);
+            }
+        }
+
+        if (!normalized.Contains(cat.EquippedSkinKey, StringComparer.Ordinal))
+        {
+            cat.EquippedSkinKey = "default";
+        }
+        cat.OwnedSkinsJson = JsonSerializer.Serialize(normalized);
+        return normalized;
+    }
+
     private int GetEquipmentEffectTotal(PlayerCatState cat, string effectType)
     {
         EnsureCatEquipmentDefaults(cat);
@@ -2440,7 +2507,12 @@ public sealed class FatCatGameService(
         var cat = await repository.GetCatStateAsync(playerId, catId, cancellationToken);
         if (cat is not null)
         {
-            if (EnsureCatEquipmentDefaults(cat))
+            var ownedSkinsBefore = cat.OwnedSkinsJson;
+            var equippedSkinBefore = cat.EquippedSkinKey;
+            EnsureCatSkinDefaults(cat);
+            var skinChanged = ownedSkinsBefore != cat.OwnedSkinsJson
+                || equippedSkinBefore != cat.EquippedSkinKey;
+            if (EnsureCatEquipmentDefaults(cat) || skinChanged)
             {
                 cat.UpdatedAt = DateTimeOffset.UtcNow;
                 await repository.SaveChangesAsync(cancellationToken);
@@ -2458,6 +2530,8 @@ public sealed class FatCatGameService(
             AssignedBuildingKey = catId == DefaultCatId ? DefaultBuildingId : "",
             EquipmentJson = JsonSerializer.Serialize(GetDefaultEquipment()),
             EquipmentLevelsJson = JsonSerializer.Serialize(GetDefaultEquipmentLevels()),
+            OwnedSkinsJson = JsonSerializer.Serialize(GetDefaultCatSkins(catId)),
+            EquippedSkinKey = "default",
             UpdatedAt = DateTimeOffset.UtcNow,
         };
         await repository.AddCatStateAsync(cat, cancellationToken);
@@ -3364,6 +3438,7 @@ public sealed class FatCatGameService(
     private CatStateDto ToCatStateDto(PlayerCatState cat)
     {
         EnsureCatEquipmentDefaults(cat);
+        var ownedSkinIds = EnsureCatSkinDefaults(cat);
         var definition = balance.CatDefinitions.TryGetValue(cat.CatKey, out var configured)
             ? configured
             : new CatDefinition(cat.CatKey, "B", "producer", 0, 0, 0, cat.Weight, "");
@@ -3375,6 +3450,8 @@ public sealed class FatCatGameService(
             NormalizeExistingBuildingId(cat.AssignedBuildingKey),
             ReadStringMap(cat.EquipmentJson),
             ReadIntMap(cat.EquipmentLevelsJson),
+            ownedSkinIds,
+            cat.EquippedSkinKey,
             cat.UpdatedAt.ToUnixTimeMilliseconds(),
             definition.Rarity,
             definition.Role,

@@ -393,6 +393,19 @@ app.MapPost("/api/cats/{catId}/equipment/{itemId}/upgrade", async (
         : Results.Ok(ApiEnvelope<EquipmentUpgradeResponse>.Success(result));
 });
 
+app.MapPost("/api/cats/{catId}/skins/{skinId}/equip", async (
+    Guid playerId,
+    string catId,
+    string skinId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.EquipCatSkinAsync(playerId, catId, skinId, cancellationToken);
+    return result is null
+        ? Results.BadRequest(ApiEnvelope<CatSkinEquipResponse>.Fail("cat_skin_equip_failed"))
+        : Results.Ok(ApiEnvelope<CatSkinEquipResponse>.Success(result));
+});
+
 app.MapPost("/api/cats/{catId}/assignment", async (
     Guid playerId,
     string catId,

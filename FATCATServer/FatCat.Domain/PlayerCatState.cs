@@ -11,6 +11,8 @@ public sealed class PlayerCatState
     public string AssignedBuildingKey { get; set; } = "building_cafe_1f";
     public string EquipmentJson { get; set; } = "{}";
     public string EquipmentLevelsJson { get; set; } = "{}";
+    public string OwnedSkinsJson { get; set; } = "[\"default\"]";
+    public string EquippedSkinKey { get; set; } = "default";
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public PlayerProfile? Player { get; set; }
 }

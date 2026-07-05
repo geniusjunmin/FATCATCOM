@@ -113,6 +113,10 @@ Invoke-Step "Cat skin art contract check" {
     node .\tools\check-cat-skin-art.js
 }
 
+Invoke-Step "Cat skin sync contract check" {
+    node .\tools\check-cat-skin-sync-contract.js
+}
+
 Invoke-Step "HUD presentation contract check" {
     node .\tools\check-hud-presentation-contract.js
 }

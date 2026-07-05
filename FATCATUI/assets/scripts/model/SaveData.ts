@@ -20,6 +20,8 @@ export interface CatSaveData {
     assignedBuildingId?: string;
     equipment?: Record<string, string>;
     equipmentLevels?: Record<string, number>;
+    ownedSkinIds?: string[];
+    equippedSkinId?: string;
 }
 
 export interface BuildingSaveData {

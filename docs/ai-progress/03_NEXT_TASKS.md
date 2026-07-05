@@ -56,7 +56,15 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - Added stable skin/art ids, registry/resolver/Data URI wiring, and a dedicated alpha/dimension/action contract.
 - Implemented select, preview, apply, equipped, and locked states. Applied art follows the center hero, weight-stage card, and story photo.
 - Skin mode now uses the full lower content width at 360x800, 414x896, 430x932, and 768x1024.
-- Next cat batch: add server-authoritative skin inventory/equipped persistence, then replace the remaining small equipment/recruit placeholders with bitmap art.
+- Server-authoritative skin ownership/equipped persistence is now complete; the next visual batch can replace the remaining small equipment/recruit placeholders with bitmap art.
+
+### Completed: Authoritative Cat Skin State
+
+- Added per-cat `OwnedSkinsJson` and `EquippedSkinKey` persistence with runtime migration for existing SQLite databases.
+- Cat snapshots and the equip endpoint now own server truth; locked, unknown, or unavailable skins are rejected.
+- Client save migration, DTO/API/sync wiring, offline fallback, and per-cat wardrobe state restore ownership and equipment after reload.
+- The online Playwright gate proves apron equip/reload persistence and locked manager behavior; quick verify includes the full contract and 101 tests.
+- Next server batch: define how manager/festival skins are earned or purchased, including idempotent unlock transactions and UI acquisition feedback.
 
 ### Completed: Daily Launch Quota Authority
 

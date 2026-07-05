@@ -1135,6 +1135,39 @@ public sealed class FatCatApiTests
     }
 
     [Fact]
+    public async Task CatSkinEquip_PersistsOwnedSkinAndRejectsLockedSkin()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-cat-skin-device",
+            companyName = "FatCat",
+        });
+        var authBody = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync());
+        var playerId = authBody.RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+
+        var initialResponse = await client.GetAsync($"/api/cats?playerId={playerId}");
+        var initialData = JsonDocument.Parse(await initialResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var initialOrange = initialData.EnumerateArray().Single(item => item.GetProperty("catId").GetString() == "c_001");
+        var equipResponse = await client.PostAsJsonAsync($"/api/cats/c_001/skins/apron/equip?playerId={playerId}", new {});
+        var equipData = JsonDocument.Parse(await equipResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var lockedResponse = await client.PostAsJsonAsync($"/api/cats/c_001/skins/manager/equip?playerId={playerId}", new {});
+        var refreshedResponse = await client.GetAsync($"/api/cats?playerId={playerId}");
+        var refreshedData = JsonDocument.Parse(await refreshedResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var refreshedOrange = refreshedData.EnumerateArray().Single(item => item.GetProperty("catId").GetString() == "c_001");
+
+        Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
+        Assert.Equal("default", initialOrange.GetProperty("equippedSkinId").GetString());
+        Assert.Equal(["default", "apron"], initialOrange.GetProperty("ownedSkinIds").EnumerateArray().Select(item => item.GetString()));
+        Assert.Equal(HttpStatusCode.OK, equipResponse.StatusCode);
+        Assert.Equal("apron", equipData.GetProperty("equippedSkinId").GetString());
+        Assert.Equal(HttpStatusCode.BadRequest, lockedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, refreshedResponse.StatusCode);
+        Assert.Equal("apron", refreshedOrange.GetProperty("equippedSkinId").GetString());
+    }
+
+    [Fact]
     public async Task BuildingUpgrade_DeductsCoinAndReturnsLevelContract()
     {
         await using var factory = new FatCatApiFactory();

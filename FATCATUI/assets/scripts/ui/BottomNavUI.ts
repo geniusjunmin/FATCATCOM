@@ -212,7 +212,6 @@ export class BottomNavUI extends Component {
     private _selectedDomCatId = "";
     private _domCatTab: CatTabId = "info";
     private _selectedDomCatSkinId: CatSkinId = "default";
-    private _equippedDomCatSkinId: CatSkinId = "default";
     private _domCatMessage = "";
     private _selectedEquipSlot: CatEquipmentSlotName = "项圈";
     private _selectedDomBuildingId = "building_cafe_1f";
@@ -3138,9 +3137,13 @@ export class BottomNavUI extends Component {
         }
         if (action === "tab") {
             this._domCatTab = (button.dataset.tab as CatTabId) || "info";
+            if (this._domCatTab === "skin") {
+                this._selectedDomCatSkinId = CatManager.getEquippedSkinId(this._selectedDomCatId) as CatSkinId;
+            }
             this._domCatMessage = `已切换到${button.textContent ?? "信息"}页`;
         } else if (action === "selectCat") {
             this._selectedDomCatId = id;
+            this._selectedDomCatSkinId = CatManager.getEquippedSkinId(id) as CatSkinId;
             this._domCatMessage = "";
         } else if (action === "prevCat" || action === "nextCat") {
             const configs = CatManager.getAllConfigs();
@@ -3149,6 +3152,7 @@ export class BottomNavUI extends Component {
             const next = configs[(index + offset + configs.length) % configs.length];
             if (next) {
                 this._selectedDomCatId = next.id;
+                this._selectedDomCatSkinId = CatManager.getEquippedSkinId(next.id) as CatSkinId;
                 this._domCatMessage = "";
             }
         } else if (action === "feedCat") {
@@ -3222,17 +3226,24 @@ export class BottomNavUI extends Component {
             const skinId = (button.dataset.skinId as CatSkinId) || "default";
             const theme = CAT_SKIN_THEMES.find(item => item.id === skinId) ?? CAT_SKIN_THEMES[0];
             this._selectedDomCatSkinId = theme.id;
-            this._domCatMessage = theme.className.includes("locked")
+            this._domCatMessage = !CatManager.getOwnedSkinIds(id).includes(theme.id)
                 ? `${theme.name}尚未解锁，可先预览服装效果。`
                 : `正在预览${theme.name}。`;
         } else if (action === "applyCatSkin") {
             this._domCatTab = "skin";
             const theme = CAT_SKIN_THEMES.find(item => item.id === this._selectedDomCatSkinId) ?? CAT_SKIN_THEMES[0];
-            if (theme.className.includes("locked")) {
+            if (!CatManager.getOwnedSkinIds(id).includes(theme.id)) {
                 this._domCatMessage = `${theme.name}尚未解锁。`;
             } else {
-                this._equippedDomCatSkinId = theme.id;
-                this._domCatMessage = `已启用${theme.name}。`;
+                const serverSkin = NetworkManager.canUseServer
+                    ? await SyncManager.equipServerCatSkin(id, theme.id)
+                    : null;
+                const applied = serverSkin
+                    ? CatManager.getEquippedSkinId(id) === theme.id
+                    : !NetworkManager.canUseServer && CatManager.equipSkin(id, theme.id);
+                this._domCatMessage = applied
+                    ? `已启用${theme.name}。`
+                    : "皮肤启用失败，请检查网络或拥有状态。";
             }
         } else if (action === "storyWall") {
             this._domCatMessage = "故事墙会收录猫咪传记、照片和公司事件。";
@@ -3259,8 +3270,9 @@ export class BottomNavUI extends Component {
 
         const config = CatManager.getConfig(this._selectedDomCatId) ?? configs[0];
         const data = CatManager.getCatData(config.id);
+        const equippedSkinId = CatManager.getEquippedSkinId(config.id) as CatSkinId;
         const selectedCatArt = config.id === "c_001"
-            ? this.getCatSkinAsset(this._equippedDomCatSkinId)
+            ? this.getCatSkinAsset(equippedSkinId)
             : this.getCatFullArtAsset(config.id, config.portrait);
         const unlocked = data.isUnlocked;
         const production = Math.floor(CatManager.getCatProduction(config.id));
@@ -3304,7 +3316,7 @@ export class BottomNavUI extends Component {
                 </div>
                 <div class="cat-hero">
                     <div class="cat-card info"><strong>${config.name}</strong><br><span class="rank">${config.rarity}</span> <span class="type">${roleLabel}</span><br>${unlocked ? `Lv.${data.level}/30` : "未招募"}<br>${stars}</div>
-                    <div class="cat-portrait"><div class="cat-index">${selectedIndex + 1}/${configs.length}</div><button class="cat-switch prev" data-action="prevCat">‹</button><button class="cat-switch next" data-action="nextCat">›</button><div class="portrait-cat img" data-equipped-skin="${config.id === "c_001" ? this._equippedDomCatSkinId : "default"}" style="background-image:url('${selectedCatArt}')"></div><div class="portrait-name">${config.name}</div><span class="cat-talk">${this.getCatBubble(config.personality, unlocked)}</span><div class="cat-profile-row"><em>${config.rarity}级</em><em>${roleLabel}</em><em>${assignedName}</em></div></div>
+                    <div class="cat-portrait"><div class="cat-index">${selectedIndex + 1}/${configs.length}</div><button class="cat-switch prev" data-action="prevCat">‹</button><button class="cat-switch next" data-action="nextCat">›</button><div class="portrait-cat img" data-equipped-skin="${config.id === "c_001" ? equippedSkinId : "default"}" style="background-image:url('${selectedCatArt}')"></div><div class="portrait-name">${config.name}</div><span class="cat-talk">${this.getCatBubble(config.personality, unlocked)}</span><div class="cat-profile-row"><em>${config.rarity}级</em><em>${roleLabel}</em><em>${assignedName}</em></div></div>
                     <div>
                         <div class="cat-card mood">心情<br><strong>${mood}%</strong></div>
                         <div class="cat-card feed">喂猫粮<br><strong>${feedCost}</strong><br><button data-action="feedCat" data-id="${config.id}" ${canFeed ? "" : "disabled"}>喂食</button></div>
@@ -3357,15 +3369,18 @@ export class BottomNavUI extends Component {
         }
         if (this._domCatTab === "skin") {
             const selectedTheme = CAT_SKIN_THEMES.find(item => item.id === this._selectedDomCatSkinId) ?? CAT_SKIN_THEMES[0];
-            const equippedTheme = CAT_SKIN_THEMES.find(item => item.id === this._equippedDomCatSkinId) ?? CAT_SKIN_THEMES[0];
+            const equippedSkinId = CatManager.getEquippedSkinId(catId) as CatSkinId;
+            const equippedTheme = CAT_SKIN_THEMES.find(item => item.id === equippedSkinId) ?? CAT_SKIN_THEMES[0];
+            const ownedSkinIds = CatManager.getOwnedSkinIds(catId);
             const previewArt = this.getCatSkinAsset(selectedTheme.artKey);
             const cards = CAT_SKIN_THEMES.map(item => {
                 const selected = item.id === selectedTheme.id ? "selected" : "";
                 const equipped = item.id === equippedTheme.id ? "equipped" : "";
-                const state = item.id === equippedTheme.id ? "已启用" : item.state;
-                return `<button class="skin-card-target has-art ${item.className} ${selected} ${equipped}" data-action="selectCatSkin" data-skin-id="${item.id}" data-skin-art="${item.artKey}" style="--skin-a:${item.colorA};--skin-b:${item.colorB}"><i style="background-image:url('${this.getCatSkinAsset(item.artKey)}')"></i><div><b>${item.name}</b><span>${item.desc}</span><strong class="skin-style-badge">${item.style}</strong><div class="skin-swatches">${item.swatches.map(color => `<s style="--swatch:${color}"></s>`).join("")}</div><em>${state}</em></div></button>`;
+                const locked = !ownedSkinIds.includes(item.id);
+                const state = item.id === equippedTheme.id ? "已启用" : locked ? "待开放" : item.state;
+                return `<button class="skin-card-target has-art ${item.className} ${selected} ${equipped} ${locked ? "locked" : ""}" data-action="selectCatSkin" data-skin-id="${item.id}" data-skin-art="${item.artKey}" data-skin-owned="${locked ? "false" : "true"}" style="--skin-a:${item.colorA};--skin-b:${item.colorB}"><i style="background-image:url('${this.getCatSkinAsset(item.artKey)}')"></i><div><b>${item.name}</b><span>${item.desc}</span><strong class="skin-style-badge">${item.style}</strong><div class="skin-swatches">${item.swatches.map(color => `<s style="--swatch:${color}"></s>`).join("")}</div><em>${state}</em></div></button>`;
             }).join("");
-            const locked = selectedTheme.className.includes("locked");
+            const locked = !ownedSkinIds.includes(selectedTheme.id);
             const actionLabel = selectedTheme.id === equippedTheme.id ? "当前启用" : locked ? "尚未解锁" : "启用皮肤";
             return `<div class="skin-wardrobe"><div class="skin-preview-card"><span class="skin-preview-art" data-skin-art="${selectedTheme.artKey}" style="background-image:url('${previewArt}')"></span><strong>${selectedTheme.name}</strong><small>当前启用：${equippedTheme.name}</small><button class="skin-preview-action" data-action="applyCatSkin" data-skin-id="${selectedTheme.id}" ${locked || selectedTheme.id === equippedTheme.id ? "disabled" : ""}>${actionLabel}</button></div><div class="skin-list-target">${cards}</div></div>`;
         }

@@ -138,6 +138,8 @@ public sealed record CatStateDto(
     string AssignedBuildingId,
     IReadOnlyDictionary<string, string> Equipment,
     IReadOnlyDictionary<string, int> EquipmentLevels,
+    IReadOnlyList<string> OwnedSkinIds,
+    string EquippedSkinId,
     long UpdatedAt,
     string Rarity,
     string Role,
@@ -146,6 +148,12 @@ public sealed record CatStateDto(
     int BaseSalary,
     int BaseWeight,
     string SkillId);
+
+public sealed record CatSkinEquipResponse(
+    string CatId,
+    string EquippedSkinId,
+    IReadOnlyList<string> OwnedSkinIds,
+    long ServerTime);
 
 public sealed record CatAssignmentRequest(string? BuildingId);
 

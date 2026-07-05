@@ -90,6 +90,8 @@ export class SaveManager {
                 }
                 cat.equipment = cat.equipment ?? {};
                 cat.equipmentLevels = cat.equipmentLevels ?? {};
+                cat.ownedSkinIds = cat.ownedSkinIds ?? (catId === "c_001" ? ["default", "apron"] : ["default"]);
+                cat.equippedSkinId = cat.ownedSkinIds.includes(cat.equippedSkinId ?? "") ? cat.equippedSkinId : "default";
             }
             return parsed;
         } catch (error) {
@@ -120,6 +122,8 @@ export class SaveManager {
         for (const cat of Object.values(save.cats)) {
             cat.equipment = cat.equipment ?? {};
             cat.equipmentLevels = cat.equipmentLevels ?? {};
+            cat.ownedSkinIds = cat.ownedSkinIds ?? (cat.id === "c_001" ? ["default", "apron"] : ["default"]);
+            cat.equippedSkinId = cat.ownedSkinIds.includes(cat.equippedSkinId ?? "") ? cat.equippedSkinId : "default";
         }
         return save;
     }

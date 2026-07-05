@@ -7,7 +7,7 @@ Updated: 2026-07-05
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Persist cat skin ownership/equipment on the server, then continue bitmap equipment/recruit art while preserving the verified wardrobe geometry. |
+| Best Next Move | Define server-authoritative skin acquisition/unlock rules, then continue bitmap equipment/recruit art while preserving the verified wardrobe geometry. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -26,6 +26,11 @@ Updated: 2026-07-05
 
 ## Client UI
 
+- Latest cat-skin authority pass persists `ownedSkinIds` and `equippedSkinId` per cat on both server and local saves. The wardrobe derives locked/equipped markers from real ownership instead of CSS class names, and switching cats no longer shares one global equipped-skin variable.
+- `POST /api/cats/{catId}/skins/{skinId}/equip` validates the player, cat, catalog id, unlock state, and ownership. `c_001` currently owns `default` plus `apron`; manager/festival stay locked. Online failures never fall through to a local success.
+- Existing SQLite databases receive `OwnedSkinsJson` and `EquippedSkinKey` through runtime schema migration. Cat snapshots restore both values after login/reload; old local saves migrate to the same defaults while retaining offline equipment behavior.
+- `tools/check-cat-skin-sync-contract.js` guards the full server/client path. `tools/check-cat-skin-online-ui.js` proves default -> apron, page reload persistence, server request success, and locked manager preview without an equip request.
+- Verification: Cocos script refresh, focused TypeScript diagnostics, four-size cat screenshots, 18-step UI clicks, online reload persistence, full quick verify, and 101/101 server tests pass.
 - Latest cat wardrobe asset pass replaces the CSS-only outfits with three generated 768x768 transparent illustrations: `cat_skin_apron_v1.png`, `cat_skin_manager_v1.png`, and `cat_skin_festival_v1.png`. They preserve the orange cafe-cat identity while giving each theme a distinct target-style outfit.
 - The skin tab now supports real select, preview, and apply actions. Default/apron are usable; manager/festival remain visibly locked. Equipping apron updates the center hero, weight-stage art, and story photo in the current UI session.
 - `GeneratedCatSkinAssets` and `getCatSkinAsset()` own skin resolution, while `DomAssetDataUris.ts` embeds all four variants. `tools/check-cat-skin-art.js` guards PNG dimensions/alpha, registry wiring, action states, responsive CSS, and screenshot coverage.
@@ -200,7 +205,7 @@ Updated: 2026-07-05
 - Latest HUD presentation code-health pass extracts top-HUD CSS, company/level/exp constants, and four resource item definitions into `HudPresentation.ts`. `BottomNavUI.ts` keeps live resource values and layout refresh local, guarded by `tools/check-hud-presentation-contract.js`.
 - Latest nav presentation code-health pass extracts bottom DOM navigation CSS into `NavPresentation.ts`. `BottomNavUI.ts` still renders shared nav items and click handling locally, guarded by `tools/check-nav-presentation-contract.js`.
 - Latest panel presentation pass extracts the shared building/shop/inventory/research/task/social/settings overlay CSS into `PanelPresentation.ts`, removing roughly 83K characters from `BottomNavUI.ts` without moving actions or live rendering. `tools/check-panel-presentation-contract.js` guards ownership boundaries, and `quick-verify.ps1` now fails on non-zero Node/.NET exit codes instead of printing a false green.
-- Remaining visual gap: final main/cat target proportions, true bitmap equipment/recruit illustrations, and larger Cocos-managed illustration assets. Skin equipment is currently presentation-local and still needs authoritative ownership/equipped persistence.
+- Remaining visual gap: final main/cat target proportions, true bitmap equipment/recruit illustrations, and larger Cocos-managed illustration assets. Skin ownership/equipment is authoritative; acquisition rules for the two locked skins remain future work.
 
 Latest verified UI commands:
 

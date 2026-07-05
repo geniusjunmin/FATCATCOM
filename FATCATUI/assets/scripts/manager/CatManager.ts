@@ -13,6 +13,7 @@ import { CatStateDto } from "../net/ApiTypes";
 
 export class CatManager {
     public static readonly DEFAULT_BUILDING_ID = "building_cafe_1f";
+    private static readonly KNOWN_SKIN_IDS = ["default", "apron", "manager", "festival"];
     private static _serverCatalogOverrides: Record<string, Partial<CatConfig>> = {};
 
     /**
@@ -49,6 +50,8 @@ export class CatManager {
             assignedBuildingId: this.DEFAULT_BUILDING_ID,
             equipment: {},
             equipmentLevels: {},
+            ownedSkinIds: id === "c_001" ? ["default", "apron"] : ["default"],
+            equippedSkinId: "default",
         };
     }
 
@@ -82,6 +85,8 @@ export class CatManager {
                     assignedBuildingId: this.DEFAULT_BUILDING_ID,
                     equipment: this.getDefaultEquipment(),
                     equipmentLevels: {},
+                    ownedSkinIds: id === "c_001" ? ["default", "apron"] : ["default"],
+                    equippedSkinId: "default",
                 };
                 success = true;
             } else if (!data.cats[id].isUnlocked) {
@@ -89,6 +94,8 @@ export class CatManager {
                 data.cats[id].assignedBuildingId = data.cats[id].assignedBuildingId ?? this.DEFAULT_BUILDING_ID;
                 data.cats[id].equipment = data.cats[id].equipment ?? this.getDefaultEquipment();
                 data.cats[id].equipmentLevels = data.cats[id].equipmentLevels ?? {};
+                data.cats[id].ownedSkinIds = data.cats[id].ownedSkinIds ?? (id === "c_001" ? ["default", "apron"] : ["default"]);
+                data.cats[id].equippedSkinId = data.cats[id].equippedSkinId ?? "default";
                 success = true;
             }
         });
@@ -240,11 +247,69 @@ export class CatManager {
                         ...(current.equipmentLevels ?? {}),
                         ...(serverCat.equipmentLevels ?? {}),
                     },
+                    ownedSkinIds: this.normalizeSkinIds(serverCat.ownedSkinIds, serverCat.catId),
+                    equippedSkinId: this.normalizeEquippedSkin(
+                        serverCat.equippedSkinId,
+                        this.normalizeSkinIds(serverCat.ownedSkinIds, serverCat.catId),
+                    ),
                 };
                 applied += 1;
             }
         });
         return applied;
+    }
+
+    public static getOwnedSkinIds(catId: string): string[] {
+        return this.normalizeSkinIds(this.getCatData(catId).ownedSkinIds, catId);
+    }
+
+    public static getEquippedSkinId(catId: string): string {
+        const ownedSkinIds = this.getOwnedSkinIds(catId);
+        return this.normalizeEquippedSkin(this.getCatData(catId).equippedSkinId, ownedSkinIds);
+    }
+
+    public static equipSkin(catId: string, skinId: string): boolean {
+        const cat = this.getCatData(catId);
+        const ownedSkinIds = this.getOwnedSkinIds(catId);
+        if (!cat.isUnlocked || !ownedSkinIds.includes(skinId)) {
+            return false;
+        }
+        SaveManager.update(data => {
+            const current = data.cats[catId] ?? cat;
+            data.cats[catId] = {
+                ...current,
+                ownedSkinIds,
+                equippedSkinId: skinId,
+            };
+        });
+        return true;
+    }
+
+    public static applyServerSkin(catId: string, equippedSkinId: string, ownedSkinIds: string[]): boolean {
+        const config = this.getConfig(catId);
+        const cat = this.getCatData(catId);
+        const normalizedOwned = this.normalizeSkinIds(ownedSkinIds, catId);
+        if (!config || !cat.isUnlocked || !normalizedOwned.includes(equippedSkinId)) {
+            return false;
+        }
+        SaveManager.update(data => {
+            data.cats[catId] = {
+                ...(data.cats[catId] ?? cat),
+                ownedSkinIds: normalizedOwned,
+                equippedSkinId,
+            };
+        });
+        return true;
+    }
+
+    private static normalizeSkinIds(skinIds: string[] | undefined, catId: string): string[] {
+        const defaults = catId === "c_001" ? ["default", "apron"] : ["default"];
+        return [...new Set([...(skinIds ?? []), ...defaults])]
+            .filter(skinId => this.KNOWN_SKIN_IDS.includes(skinId));
+    }
+
+    private static normalizeEquippedSkin(skinId: string | undefined, ownedSkinIds: string[]): string {
+        return skinId && ownedSkinIds.includes(skinId) ? skinId : "default";
     }
 
     private static applyServerCatalogMetadata(serverCat: CatStateDto): void {

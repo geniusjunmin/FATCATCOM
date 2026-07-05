@@ -168,6 +168,8 @@ export type CatStateDto = {
     assignedBuildingId?: string;
     equipment?: Record<string, string>;
     equipmentLevels?: Record<string, number>;
+    ownedSkinIds?: string[];
+    equippedSkinId?: string;
     updatedAt: number;
     rarity?: string;
     role?: string;
@@ -176,6 +178,13 @@ export type CatStateDto = {
     baseSalary?: number;
     baseWeight?: number;
     skillId?: string;
+};
+
+export type CatSkinEquipResponse = {
+    catId: string;
+    equippedSkinId: string;
+    ownedSkinIds: string[];
+    serverTime: number;
 };
 
 export type CatAssignmentResponse = {

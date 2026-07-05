@@ -135,6 +135,8 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
                 "AssignedBuildingKey" TEXT NOT NULL DEFAULT 'building_cafe_1f',
                 "EquipmentJson" TEXT NOT NULL DEFAULT '{{}}',
                 "EquipmentLevelsJson" TEXT NOT NULL DEFAULT '{{}}',
+                "OwnedSkinsJson" TEXT NOT NULL DEFAULT '["default"]',
+                "EquippedSkinKey" TEXT NOT NULL DEFAULT 'default',
                 "UpdatedAt" TEXT NOT NULL,
                 CONSTRAINT "FK_CatStates_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
             );
@@ -158,6 +160,16 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             "CatStates",
             "EquipmentLevelsJson",
             """ALTER TABLE "CatStates" ADD COLUMN "EquipmentLevelsJson" TEXT NOT NULL DEFAULT '{{}}';""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "CatStates",
+            "OwnedSkinsJson",
+            """ALTER TABLE "CatStates" ADD COLUMN "OwnedSkinsJson" TEXT NOT NULL DEFAULT '["default"]';""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "CatStates",
+            "EquippedSkinKey",
+            """ALTER TABLE "CatStates" ADD COLUMN "EquippedSkinKey" TEXT NOT NULL DEFAULT 'default';""",
             cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE UNIQUE INDEX IF NOT EXISTS "IX_CatStates_PlayerId_CatKey"
@@ -547,6 +559,8 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.Property(cat => cat.AssignedBuildingKey).HasMaxLength(120).HasDefaultValue("building_cafe_1f");
             entity.Property(cat => cat.EquipmentJson).HasColumnType("TEXT");
             entity.Property(cat => cat.EquipmentLevelsJson).HasColumnType("TEXT");
+            entity.Property(cat => cat.OwnedSkinsJson).HasColumnType("TEXT");
+            entity.Property(cat => cat.EquippedSkinKey).HasMaxLength(80).HasDefaultValue("default");
             entity.HasOne(cat => cat.Player)
                 .WithMany()
                 .HasForeignKey(cat => cat.PlayerId)

@@ -345,6 +345,34 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task EquipCatSkinAsync_PersistsOwnedSkinAndRejectsLockedSkin()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("cat-skin-device", "FatCat"), CancellationToken.None);
+
+        var initial = await service.GetCatsAsync(auth.PlayerId, CancellationToken.None);
+        var equipped = await service.EquipCatSkinAsync(auth.PlayerId, "c_001", "apron", CancellationToken.None);
+        var locked = await service.EquipCatSkinAsync(auth.PlayerId, "c_001", "manager", CancellationToken.None);
+        var unknown = await service.EquipCatSkinAsync(auth.PlayerId, "c_001", "missing", CancellationToken.None);
+        var refreshed = await service.GetCatsAsync(auth.PlayerId, CancellationToken.None);
+
+        var initialOrange = Assert.Single(initial, cat => cat.CatId == "c_001");
+        Assert.Equal(["default", "apron"], initialOrange.OwnedSkinIds);
+        Assert.Equal("default", initialOrange.EquippedSkinId);
+        Assert.NotNull(equipped);
+        Assert.Equal("apron", equipped!.EquippedSkinId);
+        Assert.Equal(["default", "apron"], equipped.OwnedSkinIds);
+        Assert.Null(locked);
+        Assert.Null(unknown);
+        var orange = Assert.Single(refreshed, cat => cat.CatId == "c_001");
+        Assert.Equal("apron", orange.EquippedSkinId);
+        var saved = Assert.Single(dbContext.CatStates.Where(cat => cat.PlayerId == auth.PlayerId && cat.CatKey == "c_001"));
+        Assert.Equal("apron", saved.EquippedSkinKey);
+        Assert.Contains("\"apron\"", saved.OwnedSkinsJson);
+    }
+
+    [Fact]
     public async Task AssignCatAsync_UpdatesAuthoritativeBuildingSchedule()
     {
         await using var dbContext = CreateDbContext();
@@ -1805,6 +1833,18 @@ public sealed class FatCatGameServiceTests
                     "IsClaimed" INTEGER NOT NULL,
                     "UpdatedAt" TEXT NOT NULL
                 );
+                CREATE TABLE "CatStates" (
+                    "Id" TEXT NOT NULL PRIMARY KEY,
+                    "PlayerId" TEXT NOT NULL,
+                    "CatKey" TEXT NOT NULL,
+                    "Level" INTEGER NOT NULL,
+                    "Weight" INTEGER NOT NULL DEFAULT 20,
+                    "IsUnlocked" INTEGER NOT NULL,
+                    "AssignedBuildingKey" TEXT NOT NULL DEFAULT 'building_cafe_1f',
+                    "EquipmentJson" TEXT NOT NULL DEFAULT '{}',
+                    "EquipmentLevelsJson" TEXT NOT NULL DEFAULT '{}',
+                    "UpdatedAt" TEXT NOT NULL
+                );
                 INSERT INTO "Players" ("Id") VALUES ($playerId);
                 INSERT INTO "ResearchStates"
                     ("Id", "PlayerId", "ResearchKey", "IsUnlocked", "UpdatedAt")
@@ -1812,9 +1852,13 @@ public sealed class FatCatGameServiceTests
                 INSERT INTO "DailyOrderStates"
                     ("PlayerId", "OrderDate", "Progress", "IsClaimed", "UpdatedAt")
                 VALUES ($playerId, 20260703, 58, 0, '2026-07-03T00:00:00+00:00');
+                INSERT INTO "CatStates"
+                    ("Id", "PlayerId", "CatKey", "Level", "Weight", "IsUnlocked", "UpdatedAt")
+                VALUES ($catId, $playerId, 'c_001', 1, 20, 1, '2026-07-03T00:00:00+00:00');
                 """;
             command.Parameters.AddWithValue("$playerId", playerId.ToString());
             command.Parameters.AddWithValue("$researchId", researchId.ToString());
+            command.Parameters.AddWithValue("$catId", Guid.NewGuid().ToString());
             await command.ExecuteNonQueryAsync();
         }
 
@@ -1832,9 +1876,16 @@ public sealed class FatCatGameServiceTests
         verifyDailyOrder.CommandText = """SELECT "LaunchCount" FROM "DailyOrderStates" WHERE "PlayerId" = $playerId;""";
         verifyDailyOrder.Parameters.AddWithValue("$playerId", playerId.ToString());
         var launchCount = Convert.ToInt32(await verifyDailyOrder.ExecuteScalarAsync());
+        await using var verifyCatSkin = connection.CreateCommand();
+        verifyCatSkin.CommandText = """SELECT "OwnedSkinsJson", "EquippedSkinKey" FROM "CatStates" WHERE "PlayerId" = $playerId;""";
+        verifyCatSkin.Parameters.AddWithValue("$playerId", playerId.ToString());
+        await using var skinReader = await verifyCatSkin.ExecuteReaderAsync();
+        Assert.True(await skinReader.ReadAsync());
 
         Assert.Equal(1, level);
         Assert.Equal(0, launchCount);
+        Assert.Equal("[\"default\"]", skinReader.GetString(0));
+        Assert.Equal("default", skinReader.GetString(1));
     }
 
     private static FatCatDbContext CreateDbContext()

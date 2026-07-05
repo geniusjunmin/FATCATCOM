@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatSkinEquipResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -482,6 +482,25 @@ export class SyncManager {
             researchPoint: response.data.researchPointBalance,
         }, `server_equipment_upgrade_${response.data.itemId}`);
         CatManager.applyServerEquipmentUpgrade(response.data.catId, response.data.itemId, response.data.level);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async equipServerCatSkin(catId: string, skinId: string): Promise<CatSkinEquipResponse | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.equipCatSkin(NetworkManager.playerId, catId, skinId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "cat_skin_equip_failed");
+            return null;
+        }
+        CatManager.applyServerSkin(response.data.catId, response.data.equippedSkinId, response.data.ownedSkinIds);
         this.markReadyAfterServerCall();
         return response.data;
     }
