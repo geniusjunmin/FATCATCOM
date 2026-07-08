@@ -26,6 +26,10 @@ Updated: 2026-07-08
 
 ## Client UI
 
+- Latest utility-panel material pass makes the side-tool panels closer to the target UI language. Task, achievement, mail, friend, and settings overlays now share a carved wood title plaque, framed hero icons, paper-card pin details, mini-stat medallions, and settings toggle knobs while preserving existing DOM actions.
+- `capture-utility-regression.js` now verifies `utilityTitlePins`, `utilityHeroIconFramed`, `utilityCardPins`, `utilityMiniMedallions`, and `settingsToggleKnobs` across 430x932, 414x896, 360x800, and 768x1024. `check-panel-presentation-contract.js` statically guards the new selectors and compact rules.
+- Verification: Cocos UI script refresh, focused TypeScript diagnostics, panel presentation contract, four-size utility regression, 18-step UI click navigation, full `quick-verify.ps1`, and 103/103 server tests pass.
+
 - Latest friend visit-scene polish pass pushes the social visit panel closer to the target UI: the cafe sign now has a dark roof cap, floor rows expose small production-meter accents, the primary visit action is a warm orange command button, and compact 360px guards preserve the layout.
 - `capture-utility-regression.js` now requires the sign roof pseudo-element, at least three floor meters, and the highlighted primary action across the utility/friends capture path. `check-friend-visit-scene-contract.js` statically guards the new selectors so future CSS cleanup does not flatten the scene.
 - Verification: Cocos UI script refresh, focused TypeScript diagnostics, friend visit-scene contract, four-size utility regression, 18-step UI click navigation, full `quick-verify.ps1`, and 103/103 server tests pass.

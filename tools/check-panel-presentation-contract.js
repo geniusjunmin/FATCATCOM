@@ -38,7 +38,13 @@ for (const selector of [
   ".research-shell",
   ".friends-shell",
   ".settings-shell",
+  ".utility-shell h2:before",
+  ".utility-shell .feature-card:before",
+  ".utility-shell .feature-mini span:before",
+  ".toggle-pill:before",
   ".compact .panel-shell",
+  ".compact .utility-shell h2",
+  ".compact .settings-shell .toggle-pill:before",
 ]) {
   assertContains(`panel styles include ${selector}`, presentation, selector);
 }
@@ -58,12 +64,18 @@ assertNotContains("BottomNavUI no inline panel CSS", bottomNav, "#fatcat-dom-pan
 assertContains("BottomNavUI retains panel event handling", bottomNav, "onDomPanelPointerDown");
 assertContains("BottomNavUI retains panel rendering", bottomNav, "private renderDomPanel");
 assertContains("quick verify includes contract", quickVerify, "check-panel-presentation-contract.js");
+assertContains("utility regression guards title pins", read("tools/capture-utility-regression.js"), "utilityTitlePins");
+assertContains("utility regression guards hero icon frame", read("tools/capture-utility-regression.js"), "utilityHeroIconFramed");
+assertContains("utility regression guards feature card pins", read("tools/capture-utility-regression.js"), "utilityCardPins");
+assertContains("utility regression guards mini medallions", read("tools/capture-utility-regression.js"), "utilityMiniMedallions");
+assertContains("utility regression guards setting toggles", read("tools/capture-utility-regression.js"), "settingsToggleKnobs");
 
 console.log(JSON.stringify({
   ok: true,
   checked: [
     "DOM panel style export",
     "panel style ownership boundaries",
+    "utility panel target material hooks",
     "BottomNavUI panel style delegation",
     "panel behavior retention",
     "quick verify registration",

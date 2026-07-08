@@ -74,6 +74,20 @@ async function isVisible(page, selector) {
                     heroCount: document.querySelectorAll("#fatcat-dom-panel-overlay .feature-hero").length,
                     miniCount: document.querySelectorAll("#fatcat-dom-panel-overlay .feature-mini span").length,
                     cardCount: document.querySelectorAll("#fatcat-dom-panel-overlay .feature-card").length,
+                    utilityTitlePins: (() => {
+                        const title = document.querySelector("#fatcat-dom-panel-overlay .utility-shell h2");
+                        return !!title && getComputedStyle(title, "::before").content !== "none" && getComputedStyle(title, "::after").content !== "none";
+                    })(),
+                    utilityHeroIconFramed: (() => {
+                        const icon = document.querySelector("#fatcat-dom-panel-overlay .utility-shell .feature-hero .feature-icon");
+                        return !!icon && getComputedStyle(icon).borderStyle !== "none" && getComputedStyle(icon).boxShadow !== "none";
+                    })(),
+                    utilityCardPins: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay .utility-shell .feature-card"))
+                        .filter(node => getComputedStyle(node, "::before").content !== "none").length,
+                    utilityMiniMedallions: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay .utility-shell .feature-mini span"))
+                        .filter(node => getComputedStyle(node, "::before").content !== "none").length,
+                    settingsToggleKnobs: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay .settings-shell .toggle-pill"))
+                        .filter(node => getComputedStyle(node, "::before").content !== "none").length,
                     taskBoard: !!document.querySelector("#fatcat-dom-panel-overlay .task-board"),
                     taskRows: document.querySelectorAll("#fatcat-dom-panel-overlay .task-row").length,
                     friendCards: document.querySelectorAll("#fatcat-dom-panel-overlay .friend-card").length,
@@ -165,10 +179,11 @@ async function isVisible(page, selector) {
             return entry.messages.length > 0 || entry.failedRequests.length > 0;
         }
         if (!entry.visible || !entry.state.domCanvasHidden || entry.state.shellCount !== 1 || !entry.state.title || !entry.state.hasExpectedShell || !entry.state.hasUtilityShell) return true;
-        if (entry.panel === "tasks") return !entry.state.taskBoard || entry.state.taskRows < 1;
-        if (entry.panel === "friends") return entry.state.heroCount !== 1 || entry.state.friendCards < 3 || entry.state.friendIncomeBars < 3 || entry.state.friendActionButtons < 9 || entry.state.friendHelpButtons < 6 || !entry.state.friendCoopCard || entry.state.friendCoopHeight < 95 || entry.state.friendCoopHeight > 165 || entry.state.friendCoopTiers !== 3 || !entry.state.friendBoostHistory || !entry.state.friendBoostHistoryContained || entry.state.friendProfileGroups < 5 || entry.state.friendProfileChips < 15 || entry.state.realFriendProfiles + entry.state.systemFriendProfiles < 5 || entry.state.friendPresenceStates < 5 || !entry.state.friendSnapshotCard || entry.state.friendSnapshotStats < 3 || entry.state.friendSnapshotActions < 3 || entry.state.friendSnapshotFloors < 3 || !entry.state.friendVisitReport || entry.state.friendVisitReportStats < 2 || entry.state.friendVisitReportFloors < 3 || entry.state.friendVisitReportActions < 3 || !entry.state.friendVisitScene || !entry.state.friendVisitSceneSignRoof || entry.state.friendVisitSceneFloors < 3 || entry.state.friendVisitSceneStats < 5 || entry.state.friendVisitSceneActions < 5 || !entry.state.friendVisitScenePrimaryAction || entry.state.friendVisitSceneThumbs < 3 || entry.state.friendVisitSceneFloorMeters < 3 || entry.state.friendVisitSceneCats < 3 || !entry.state.friendVisitSceneMascot || entry.state.friendVisitSceneRewards < 3 || !entry.state.friendVisitSceneSign || !entry.state.friendVisitSceneBackdrop.includes("data:image/jpeg") || !entry.state.friendFactoryDetail || entry.state.friendFactoryDetailStats < 3 || entry.state.friendFactoryRoomRows < 3 || !entry.state.friendFactoryRoomMeta || entry.state.friendDecorGroups < 6 || entry.state.friendDecorItems < 12 || !entry.state.friendRequestCard || !entry.state.friendLeaderboardCard || !entry.state.friendActivityCard || !entry.state.friendSearchCard;
-        if (entry.panel === "settings") return entry.state.heroCount !== 1 || entry.state.miniCount < 3 || entry.state.cardCount < 4;
-        return entry.state.heroCount !== 1 || entry.state.cardCount < 1;
+        if (entry.panel === "tasks") return !entry.state.utilityTitlePins || !entry.state.taskBoard || entry.state.taskRows < 1;
+        const lacksUtilityMaterial = !entry.state.utilityTitlePins || !entry.state.utilityHeroIconFramed || (entry.state.cardCount > 0 && entry.state.utilityCardPins < entry.state.cardCount) || (entry.state.miniCount > 0 && entry.state.utilityMiniMedallions < entry.state.miniCount);
+        if (entry.panel === "friends") return lacksUtilityMaterial || entry.state.heroCount !== 1 || entry.state.friendCards < 3 || entry.state.friendIncomeBars < 3 || entry.state.friendActionButtons < 9 || entry.state.friendHelpButtons < 6 || !entry.state.friendCoopCard || entry.state.friendCoopHeight < 95 || entry.state.friendCoopHeight > 165 || entry.state.friendCoopTiers !== 3 || !entry.state.friendBoostHistory || !entry.state.friendBoostHistoryContained || entry.state.friendProfileGroups < 5 || entry.state.friendProfileChips < 15 || entry.state.realFriendProfiles + entry.state.systemFriendProfiles < 5 || entry.state.friendPresenceStates < 5 || !entry.state.friendSnapshotCard || entry.state.friendSnapshotStats < 3 || entry.state.friendSnapshotActions < 3 || entry.state.friendSnapshotFloors < 3 || !entry.state.friendVisitReport || entry.state.friendVisitReportStats < 2 || entry.state.friendVisitReportFloors < 3 || entry.state.friendVisitReportActions < 3 || !entry.state.friendVisitScene || !entry.state.friendVisitSceneSignRoof || entry.state.friendVisitSceneFloors < 3 || entry.state.friendVisitSceneStats < 5 || entry.state.friendVisitSceneActions < 5 || !entry.state.friendVisitScenePrimaryAction || entry.state.friendVisitSceneThumbs < 3 || entry.state.friendVisitSceneFloorMeters < 3 || entry.state.friendVisitSceneCats < 3 || !entry.state.friendVisitSceneMascot || entry.state.friendVisitSceneRewards < 3 || !entry.state.friendVisitSceneSign || !entry.state.friendVisitSceneBackdrop.includes("data:image/jpeg") || !entry.state.friendFactoryDetail || entry.state.friendFactoryDetailStats < 3 || entry.state.friendFactoryRoomRows < 3 || !entry.state.friendFactoryRoomMeta || entry.state.friendDecorGroups < 6 || entry.state.friendDecorItems < 12 || !entry.state.friendRequestCard || !entry.state.friendLeaderboardCard || !entry.state.friendActivityCard || !entry.state.friendSearchCard;
+        if (entry.panel === "settings") return lacksUtilityMaterial || entry.state.heroCount !== 1 || entry.state.miniCount < 3 || entry.state.cardCount < 4 || entry.state.settingsToggleKnobs < 3;
+        return lacksUtilityMaterial || entry.state.heroCount !== 1 || entry.state.cardCount < 1;
     });
     if (failed) process.exit(1);
 })().catch((error) => {

@@ -24,6 +24,9 @@ Updated: 2026-07-08
 
 ## Latest Visual Note
 
+- Latest utility-panel material pass is CSS-only in `PanelPresentation.ts`. Preserve `.utility-shell h2:before/:after`, `.utility-shell .feature-card:before`, `.utility-shell .feature-mini span:before`, `.toggle-pill:before`, and the compact overrides; these are the target-style title rivets, paper pins, mini-stat medallions, and settings switch knobs.
+- `capture-utility-regression.js` guards `utilityTitlePins`, `utilityHeroIconFramed`, `utilityCardPins`, `utilityMiniMedallions`, and `settingsToggleKnobs` across task/achievement/mail/friend/settings panels. `check-panel-presentation-contract.js` mirrors the static selector coverage.
+- Current green evidence: Cocos refresh for `db://assets/scripts/ui`, focused TypeScript diagnostics, panel presentation contract, four-size utility regression, 18 UI click steps, full quick verify, and 103/103 server tests.
 - Latest social polish is CSS-only inside `PanelPresentation.ts`: preserve `.friend-scene-sign:before`, `.friend-scene-sign:after`, `.friend-scene-floor b:after`, and `.friend-scene-actions .tag:nth-child(2)`. These add the roof cap, sign connectors, floor production meters, and orange primary visit action for the friend visit scene.
 - `capture-utility-regression.js` now requires `friendVisitSceneSignRoof`, `friendVisitSceneFloorMeters >= 3`, and `friendVisitScenePrimaryAction`; `check-friend-visit-scene-contract.js` mirrors those static selectors. If the friend visit scene is redesigned, update both gates with equivalent target-style affordances instead of removing coverage.
 - Current green evidence: Cocos refresh for `db://assets/scripts/ui`, focused TypeScript diagnostics, friend visit-scene contract, four-size utility regression, 18 UI click steps, full quick verify, and 103/103 server tests.
