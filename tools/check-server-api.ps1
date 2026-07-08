@@ -14,6 +14,26 @@ if ($health.StatusCode -ne 200) {
     throw "Health check failed with status $($health.StatusCode)."
 }
 
+$serverStatus = Read-Json (Invoke-WebRequest -Uri "$ApiBaseUrl/api/server/status" -UseBasicParsing)
+if ($serverStatus.data.service -ne "FatCat.Api" -or $serverStatus.data.status -ne "ok") {
+    throw "Server status response mismatch."
+}
+if ($serverStatus.data.configVersion -ne "fatcat-config-2026-06-13" -or [int]$serverStatus.data.minClientVersion -ne 1) {
+    throw "Server status config metadata mismatch."
+}
+if (-not $serverStatus.data.requiresPlayerToken) {
+    throw "Server status should declare player-token requirement."
+}
+$serverStatusFeatures = @($serverStatus.data.multiplayerFeatures)
+foreach ($feature in @("signed-guest-auth", "real-friends", "friend-requests", "cooperative-goals", "leaderboard", "social-events")) {
+    if ($serverStatusFeatures -notcontains $feature) {
+        throw "Server status missing multiplayer feature '$feature'."
+    }
+}
+if (-not $serverStatus.data.realtime.socialEvents -or $serverStatus.data.realtime.transport -ne "server-sent-events") {
+    throw "Server status realtime metadata mismatch."
+}
+
 $bootstrap = Invoke-WebRequest -Uri "$ApiBaseUrl/api/config/bootstrap" -Headers @{ Origin = $Origin } -UseBasicParsing
 if ($bootstrap.StatusCode -ne 200) {
     throw "Bootstrap check failed with status $($bootstrap.StatusCode)."
@@ -435,6 +455,8 @@ if ($settings.data.settings) {
 $summary = [ordered]@{
     api = $ApiBaseUrl
     origin = $Origin
+    apiVersion = $serverStatus.data.apiVersion
+    multiplayerFeatures = $serverStatusFeatures -join ","
     playerId = $playerId
     mailCount = @($mail.data).Count
     friendCount = @($friends.data).Count

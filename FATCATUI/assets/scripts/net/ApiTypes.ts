@@ -645,3 +645,19 @@ export type BootstrapDto = {
     minClientVersion: number;
     serverFeatures: string[];
 };
+
+export type ServerStatusDto = {
+    service: string;
+    status: string;
+    environment: string;
+    apiVersion: string;
+    configVersion: string;
+    minClientVersion: number;
+    serverTime: number;
+    requiresPlayerToken: boolean;
+    realtime: {
+        socialEvents: boolean;
+        transport: string;
+    };
+    multiplayerFeatures: string[];
+};

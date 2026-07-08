@@ -59,6 +59,7 @@ public sealed class PlayerAuthenticationMiddleware(
             return false;
         }
         if (request.Path == "/api/auth/guest"
+            || request.Path == "/api/server/status"
             || request.Path == "/api/config/version"
             || request.Path == "/api/config/bootstrap")
         {

@@ -68,6 +68,11 @@ Updated: 2026-07-08
 
 ## Latest Security Note
 
+- Latest server readiness addition: preserve public `GET /api/server/status`, `ApiClient.fetchServerStatus()`, `ServerStatusDto`, and the matching public-route exception in `PlayerAuthenticationMiddleware`. This route is meant for client startup/deployment diagnostics and must remain read-only.
+- Current status contract values are `apiVersion = fatcat-api-2026-07-08`, `configVersion = fatcat-config-2026-06-13`, `minClientVersion = 1`, `requiresPlayerToken = true`, and realtime transport `server-sent-events`. Keep the declared feature list aligned with real implemented online systems.
+- `tools/check-server-status-contract.js` is part of quick verify and statically guards route registration, middleware access, client DTO/helper wiring, API smoke coverage, and multiplayer feature declarations. `tools/check-server-api.ps1` also calls the real endpoint when doing server smoke checks.
+- Current green evidence: Cocos refresh for `db://assets/scripts/net`, focused TypeScript diagnostics, server-status contract, full quick verify, and 104/104 server tests.
+
 - Player authentication is complete. `/api/auth/guest` returns a 30-day HMAC-SHA256 token; all private `/api` routes require a matching player id and signed credential.
 - Normal requests send `Authorization: Bearer <token>`. `/api/social/events` uses `access_token` in the query because native browser `EventSource` cannot add request headers.
 - Public routes are limited to guest auth, config version/bootstrap, and production preview without `playerId`. Do not add another exception casually.

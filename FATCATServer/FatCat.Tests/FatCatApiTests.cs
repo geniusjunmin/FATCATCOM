@@ -128,6 +128,38 @@ public sealed class FatCatApiTests
     }
 
     [Fact]
+    public async Task ServerStatus_ReturnsPublicMultiplayerReadiness()
+    {
+        await using var factory = new FatCatApiFactory(enforceAuthentication: true);
+        var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/api/server/status");
+        var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
+        var data = body.GetProperty("data");
+        var features = data.GetProperty("multiplayerFeatures").EnumerateArray()
+            .Select(item => item.GetString())
+            .ToArray();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.True(body.GetProperty("ok").GetBoolean());
+        Assert.Equal("FatCat.Api", data.GetProperty("service").GetString());
+        Assert.Equal("ok", data.GetProperty("status").GetString());
+        Assert.Equal("fatcat-api-2026-07-08", data.GetProperty("apiVersion").GetString());
+        Assert.Equal("fatcat-config-2026-06-13", data.GetProperty("configVersion").GetString());
+        Assert.Equal(1, data.GetProperty("minClientVersion").GetInt32());
+        Assert.True(data.GetProperty("requiresPlayerToken").GetBoolean());
+        Assert.True(data.GetProperty("serverTime").GetInt64() > 0);
+        Assert.True(data.GetProperty("realtime").GetProperty("socialEvents").GetBoolean());
+        Assert.Equal("server-sent-events", data.GetProperty("realtime").GetProperty("transport").GetString());
+        Assert.Contains("signed-guest-auth", features);
+        Assert.Contains("real-friends", features);
+        Assert.Contains("friend-requests", features);
+        Assert.Contains("cooperative-goals", features);
+        Assert.Contains("leaderboard", features);
+        Assert.Contains("social-events", features);
+    }
+
+    [Fact]
     public async Task Cors_AllowsCocosPreviewOrigin()
     {
         await using var factory = new FatCatApiFactory();

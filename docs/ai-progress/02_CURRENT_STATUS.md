@@ -26,6 +26,11 @@ Updated: 2026-07-08
 
 ## Client UI
 
+- Latest server-status readiness pass adds public `GET /api/server/status` for deployment and online diagnostics. It declares API/config versions, minimum client version, signed-token requirement, SSE realtime availability, and current multiplayer feature flags.
+- `ApiClient.fetchServerStatus()` and `ServerStatusDto` expose the same envelope to the Cocos client for future startup/settings diagnostics. The middleware now keeps only this status route, guest auth, config bootstrap/version, and stateless preview as public surfaces.
+- `tools/check-server-status-contract.js`, `tools/check-server-api.ps1`, quick verify, and API tests guard the route, public middleware exception, client helper, version strings, SSE transport, and feature list.
+- Verification: Cocos refresh for `db://assets/scripts/net`, focused TypeScript diagnostics, server-status contract, full `quick-verify.ps1`, and 104/104 server tests pass.
+
 - Latest cat-detail material polish adds target-style micro-affordances to the cat page without changing interaction ownership: speech bubble pin, bean medal on the production strip, top glints on all five stat cards, a weight-stage badge, and a story-paper corner pin.
 - `capture-cat-regression.js` now requires `catTalkPin`, `catPowerBeanMedal`, `catStatTopGlints >= 5`, `catWeightBadge`, and `storyCornerPin` at 414x896, 430x932, 360x800, and 768x1024 across the info/equipment/skin pass. `check-cat-overlay-presentation-contract.js` statically guards the selectors.
 - Verification: Cocos UI script refresh, focused TypeScript diagnostics, cat overlay contract, four-size cat regression, 18-step UI click navigation, full `quick-verify.ps1`, and 103/103 server tests pass.

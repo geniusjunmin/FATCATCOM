@@ -34,6 +34,14 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - Dual-player tests cover private resources, cats, buildings, research, mail, save, and daily operations; SSE query authentication has dedicated coverage.
 - API smoke, multi-player online tools, full quick verify, four-size main/cat regression, and 99 server tests are green.
 
+### Completed: Public Server Status Endpoint
+
+- `GET /api/server/status` is now a public readiness contract for client startup, deployment smoke checks, and future online diagnostics.
+- The response reports `apiVersion`, `configVersion`, `minClientVersion`, signed-token requirement, server time, SSE transport, and multiplayer feature flags.
+- The Cocos client has `ServerStatusDto` plus `ApiClient.fetchServerStatus()` so UI/startup flows can consume the endpoint without ad hoc fetch code.
+- `tools/check-server-status-contract.js`, `tools/check-server-api.ps1`, and `quick-verify.ps1` guard route registration, middleware public access, client wiring, and feature coverage.
+- Verified with Cocos net refresh, TypeScript diagnostics, status contract, full quick verify, and 104/104 server tests.
+
 ### Completed: Target Readability And Material Pass
 
 - HUD company/resource values now use bounded readable sizes; the diamond remains exact `2580`.

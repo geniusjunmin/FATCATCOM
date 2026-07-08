@@ -65,6 +65,36 @@ app.MapGet("/api/config/version", () => Results.Ok(ApiEnvelope<object>.Success(n
     minClientVersion = 1,
 })));
 
+app.MapGet("/api/server/status", (IHostEnvironment environment) => Results.Ok(ApiEnvelope<object>.Success(new
+{
+    service = "FatCat.Api",
+    status = "ok",
+    environment = environment.EnvironmentName,
+    apiVersion = "fatcat-api-2026-07-08",
+    configVersion = "fatcat-config-2026-06-13",
+    minClientVersion = 1,
+    serverTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+    requiresPlayerToken = true,
+    realtime = new
+    {
+        socialEvents = true,
+        transport = "server-sent-events",
+    },
+    multiplayerFeatures = new[]
+    {
+        "signed-guest-auth",
+        "presence",
+        "real-friends",
+        "friend-requests",
+        "visits",
+        "gifts",
+        "cooperative-boosts",
+        "cooperative-goals",
+        "leaderboard",
+        "social-events",
+    },
+})));
+
 app.MapGet("/api/config/bootstrap", (FatCatGameService service) =>
 {
     return Results.Ok(ApiEnvelope<BootstrapDto>.Success(service.GetBootstrap()));
