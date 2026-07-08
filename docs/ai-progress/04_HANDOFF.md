@@ -24,6 +24,9 @@ Updated: 2026-07-08
 
 ## Latest Visual Note
 
+- Latest social polish is CSS-only inside `PanelPresentation.ts`: preserve `.friend-scene-sign:before`, `.friend-scene-sign:after`, `.friend-scene-floor b:after`, and `.friend-scene-actions .tag:nth-child(2)`. These add the roof cap, sign connectors, floor production meters, and orange primary visit action for the friend visit scene.
+- `capture-utility-regression.js` now requires `friendVisitSceneSignRoof`, `friendVisitSceneFloorMeters >= 3`, and `friendVisitScenePrimaryAction`; `check-friend-visit-scene-contract.js` mirrors those static selectors. If the friend visit scene is redesigned, update both gates with equivalent target-style affordances instead of removing coverage.
+- Current green evidence: Cocos refresh for `db://assets/scripts/ui`, focused TypeScript diagnostics, friend visit-scene contract, four-size utility regression, 18 UI click steps, full quick verify, and 103/103 server tests.
 - The newest asset batch is cat equipment and recruit art: `items/equip_collar_v2.png`, `items/equip_cup_v2.png`, `items/equip_cushion_v2.png`, and `items/recruit_badge_v1.png`, each a 384x384 transparent PNG with committed Cocos `.meta`.
 - Built-in image generation produced a 2x2 sprite sheet on a flat `#ff00ff` chroma key, then local chroma removal and quadrant slicing created final alpha PNGs. Prompt intent: warm hand-painted mobile-game prop icons matching the target cat UI, thick dark-brown outline, cream highlights, brass accents, no text/UI/shadow.
 - `GeneratedItemIconAssets.equipCollar/equipCup/equipCushion` point at the v2 files. `GeneratedItemIconAssets.recruitBadge` plus `DomAssetResolver.getRecruitBadgeAsset()` feed the cat roster recruit button.

@@ -26,6 +26,10 @@ Updated: 2026-07-08
 
 ## Client UI
 
+- Latest friend visit-scene polish pass pushes the social visit panel closer to the target UI: the cafe sign now has a dark roof cap, floor rows expose small production-meter accents, the primary visit action is a warm orange command button, and compact 360px guards preserve the layout.
+- `capture-utility-regression.js` now requires the sign roof pseudo-element, at least three floor meters, and the highlighted primary action across the utility/friends capture path. `check-friend-visit-scene-contract.js` statically guards the new selectors so future CSS cleanup does not flatten the scene.
+- Verification: Cocos UI script refresh, focused TypeScript diagnostics, friend visit-scene contract, four-size utility regression, 18-step UI click navigation, full `quick-verify.ps1`, and 103/103 server tests pass.
+
 - Latest cat equipment/recruit art pass replaces the remaining small equipment placeholders with four generated 384x384 transparent illustrations: `equip_collar_v2.png`, `equip_cup_v2.png`, `equip_cushion_v2.png`, and `recruit_badge_v1.png`.
 - `GeneratedItemIconAssets` now points the existing equipment keys at the v2 art, and `getRecruitBadgeAsset()` gives the cat roster recruit button a dedicated gold badge instead of reusing a cat portrait.
 - The DOM Data URI bridge embeds the new files for the Cocos web preview. `capture-cat-regression.js` now requires embedded equipment art, embedded backpack icons, and `data-art-key="recruit-badge-v1"` at 414x896, 430x932, 360x800, and 768x1024.

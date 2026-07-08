@@ -399,6 +399,8 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .friend-scene-head .friend-profile-meta.real-player span:first-child { background:#64993e; color:#fff; }
             #fatcat-dom-panel-overlay .friend-scene-close { min-width:34px; aspect-ratio:1; border-radius:50%; border:2px solid rgba(255,236,184,.36); background:#765137; color:#fff4d8; font-weight:1000; cursor:pointer; }
             #fatcat-dom-panel-overlay .friend-scene-sign { position:relative; z-index:1; width:47%; margin:-.5% auto 1.5%; min-height:34px; border:2px solid #8b603a; border-radius:10px 10px 4px 4px; background:linear-gradient(#d4a960,#9b6837); color:#fff5d6; display:flex; align-items:center; justify-content:center; flex-direction:column; box-shadow:inset 0 0 0 2px rgba(255,236,183,.2),0 3px 0 rgba(55,35,23,.4); text-align:center; }
+            #fatcat-dom-panel-overlay .friend-scene-sign:before { content:""; position:absolute; left:-13%; right:-13%; top:-48%; height:56%; border:2px solid #5c3a24; border-bottom:0; border-radius:12px 12px 3px 3px; background:linear-gradient(#7a5130,#3e2a1c); box-shadow:0 3px 0 rgba(31,21,15,.34), inset 0 0 0 2px rgba(255,229,164,.12); }
+            #fatcat-dom-panel-overlay .friend-scene-sign:after { content:""; position:absolute; left:18%; right:18%; top:-1px; height:8px; border-radius:0 0 5px 5px; background:linear-gradient(90deg,#4e3322 0 11px,transparent 11px calc(100% - 11px),#4e3322 calc(100% - 11px)); pointer-events:none; }
             #fatcat-dom-panel-overlay .friend-scene-sign span { font-size:114%; font-weight:1000; }
             #fatcat-dom-panel-overlay .friend-scene-sign small { color:#4e321f; font-weight:1000; font-size:74%; }
             #fatcat-dom-panel-overlay .friend-scene-stage { min-height:272px; display:grid; grid-template-columns:1fr 25%; gap:2%; align-items:stretch; }
@@ -408,6 +410,7 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .friend-scene-floor .room-thumb { width:100%; aspect-ratio:1.18; border-radius:8px; background:center/118% no-repeat #6d4a31; box-shadow:inset 0 0 0 2px rgba(255,238,190,.2), 0 2px 0 rgba(76,45,24,.18); }
             #fatcat-dom-panel-overlay .friend-scene-floor b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-panel-overlay .friend-scene-floor small { display:block; color:#745133; font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .friend-scene-floor b:after { content:""; display:block; width:78%; height:5px; margin:3px 0 1px; border-radius:999px; background:linear-gradient(90deg,#7daa44,#f1c257); box-shadow:0 0 5px rgba(241,194,87,.38), inset 0 0 0 1px rgba(80,49,27,.12); opacity:.92; }
             #fatcat-dom-panel-overlay .friend-scene-floor .room-cats { display:flex; gap:3px; margin-top:2px; }
             #fatcat-dom-panel-overlay .friend-scene-floor .room-cats span { width:13px; height:13px; border-radius:50%; background:center 22%/150% no-repeat #d99a56; box-shadow:inset 0 0 0 1px rgba(80,49,27,.22), 0 1px 0 rgba(255,255,255,.25); }
             #fatcat-dom-panel-overlay .room-decor-tags { display:flex; gap:3px; min-width:0; margin-top:2px; overflow:hidden; }
@@ -425,6 +428,9 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .friend-scene-reward b { color:#995119; }
             #fatcat-dom-panel-overlay .friend-scene-actions { margin-top:2%; display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:1.1%; }
             #fatcat-dom-panel-overlay .friend-scene-actions .tag { margin:0; min-height:30px; }
+            #fatcat-dom-panel-overlay .friend-scene-actions .tag:nth-child(2) { background:linear-gradient(#ffca55,#d97822); border-color:#8b4c1d; color:#fff8dc; text-shadow:0 2px #8c4618; box-shadow:0 3px 0 rgba(52,31,18,.34), inset 0 0 0 2px rgba(255,239,190,.26); }
+            #fatcat-dom-panel-overlay .friend-scene-actions .tag:first-child,
+            #fatcat-dom-panel-overlay .friend-scene-actions .tag:last-child { background:linear-gradient(#735039,#4b3325); color:#ffe5b1; }
             #fatcat-dom-panel-overlay .friend-factory-detail { margin-bottom:2%; padding:2.4%; border-radius:16px; background:linear-gradient(#6a4930,#3f2a20); border:2px solid #9a6d42; color:#ffe9bd; box-shadow:inset 0 0 0 2px rgba(255,231,180,.12), 0 4px 0 rgba(48,32,22,.24); font-size:2.0%; }
             #fatcat-dom-panel-overlay .factory-detail-head { display:grid; grid-template-columns:1fr auto; gap:2%; align-items:center; }
             #fatcat-dom-panel-overlay .factory-detail-head b { display:block; color:#fff7dd; font-size:116%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -470,6 +476,7 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay.compact .friend-scene-floor { min-height:33px; grid-template-columns:13% 16% 1fr 25%; font-size:78%; padding:.6% 1.2%; }
             #fatcat-dom-panel-overlay.compact .friend-scene-floor i { min-height:20px; }
             #fatcat-dom-panel-overlay.compact .friend-scene-floor .room-cats span { width:10px; height:10px; }
+            #fatcat-dom-panel-overlay.compact .friend-scene-floor b:after { height:3px; margin:1px 0; }
             #fatcat-dom-panel-overlay.compact .friend-scene-mascot { min-height:34px; }
             #fatcat-dom-panel-overlay.compact .friend-scene-mascot small { display:none; }
             #fatcat-dom-panel-overlay.compact .friend-scene-side { gap:2px; }

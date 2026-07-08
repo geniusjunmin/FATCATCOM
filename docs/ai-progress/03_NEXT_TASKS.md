@@ -82,6 +82,14 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - `tools/check-cat-equipment-art.js` and `capture-cat-regression.js` guard static wiring plus four-size embedded rendering across info/equipment/skin states.
 - Verified with Cocos asset refresh, focused TypeScript diagnostics, four-size cat screenshots, 18-step clicks, full quick verify, and 103/103 server tests. Next visual batch should be final target-proportion review or social/visit UI polish.
 
+### Completed: Friend Visit Scene Polish
+
+- Added target-style sign roof and connector details through `.friend-scene-sign:before/:after`.
+- Added compact production-meter accents to friend visit floor rows without changing the existing room/action markup.
+- Highlighted the primary visit action while keeping utility actions visually secondary.
+- Extended the static contract and utility regression to guard roof, meter, and primary-action CSS at supported sizes.
+- Verified with Cocos UI refresh, TypeScript diagnostics, friend visit contract, four-size utility screenshots, 18-step clicks, full quick verify, and 103/103 tests.
+
 ### Completed: Daily Launch Quota Authority
 
 - `LaunchCount` is stored on the UTC daily order row and runtime-migrated for existing SQLite databases.
