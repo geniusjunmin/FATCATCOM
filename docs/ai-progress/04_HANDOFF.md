@@ -24,6 +24,9 @@ Updated: 2026-07-08
 
 ## Latest Visual Note
 
+- Latest cat-detail polish is CSS-only in `CatOverlayPresentation.ts`. Preserve `.cat-portrait .cat-talk:before`, `.cat-power:before`, `.cat-stats div:before`, `.cat-weight > b:before`, and `.story-copy:after`; these are the target-style speech pin, production bean medal, stat glints, weight badge, and story-paper pin.
+- `capture-cat-regression.js` guards `catTalkPin`, `catPowerBeanMedal`, `catStatTopGlints`, `catWeightBadge`, and `storyCornerPin` across 414x896, 430x932, 360x800, and 768x1024. `check-cat-overlay-presentation-contract.js` mirrors the static selector coverage.
+- Current green evidence: Cocos refresh for `db://assets/scripts/ui`, focused TypeScript diagnostics, cat overlay contract, four-size cat regression, 18 UI click steps, full quick verify, and 103/103 server tests.
 - Latest utility-panel material pass is CSS-only in `PanelPresentation.ts`. Preserve `.utility-shell h2:before/:after`, `.utility-shell .feature-card:before`, `.utility-shell .feature-mini span:before`, `.toggle-pill:before`, and the compact overrides; these are the target-style title rivets, paper pins, mini-stat medallions, and settings switch knobs.
 - `capture-utility-regression.js` guards `utilityTitlePins`, `utilityHeroIconFramed`, `utilityCardPins`, `utilityMiniMedallions`, and `settingsToggleKnobs` across task/achievement/mail/friend/settings panels. `check-panel-presentation-contract.js` mirrors the static selector coverage.
 - Current green evidence: Cocos refresh for `db://assets/scripts/ui`, focused TypeScript diagnostics, panel presentation contract, four-size utility regression, 18 UI click steps, full quick verify, and 103/103 server tests.

@@ -87,6 +87,24 @@ async function isVisible(page, selector) {
                 statCards: document.querySelectorAll("#fatcat-dom-cat-overlay .cat-stats > div").length,
                 rosterCards: document.querySelectorAll("#fatcat-dom-cat-overlay .cat-list button").length,
                 hasPortrait: !!document.querySelector("#fatcat-dom-cat-overlay .portrait-cat.img"),
+                catTalkPin: (() => {
+                    const element = document.querySelector("#fatcat-dom-cat-overlay .cat-talk");
+                    return !!element && getComputedStyle(element, "::before").content !== "none";
+                })(),
+                catPowerBeanMedal: (() => {
+                    const element = document.querySelector("#fatcat-dom-cat-overlay .cat-power");
+                    return !!element && getComputedStyle(element, "::before").content !== "none";
+                })(),
+                catStatTopGlints: Array.from(document.querySelectorAll("#fatcat-dom-cat-overlay .cat-stats > div"))
+                    .filter(element => getComputedStyle(element, "::before").content !== "none").length,
+                catWeightBadge: (() => {
+                    const element = document.querySelector("#fatcat-dom-cat-overlay .cat-weight > b");
+                    return !!element && getComputedStyle(element, "::before").content !== "none";
+                })(),
+                storyCornerPin: (() => {
+                    const element = document.querySelector("#fatcat-dom-cat-overlay .story-copy");
+                    return !!element && getComputedStyle(element, "::after").content !== "none";
+                })(),
                 hasEquipCards: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-slot").length,
                 equipRarityBadges: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-rarity").length,
                 equipSlotTags: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-slot-tag").length,
@@ -188,6 +206,11 @@ async function isVisible(page, selector) {
         || !entry.state.overlayVisible
         || !entry.state.domCanvasHidden
         || !entry.state.hasPortrait
+        || !entry.state.catTalkPin
+        || !entry.state.catPowerBeanMedal
+        || entry.state.catStatTopGlints < 5
+        || !entry.state.catWeightBadge
+        || !entry.state.storyCornerPin
         || !entry.state.hasStoryPhoto
         || entry.state.diamondValue !== "2580"
         || !entry.state.storyVisible

@@ -1238,6 +1238,99 @@ export function getDomCatStyles(catWorkshopDataUri: string): string {
                     0 0 0 2px rgba(255,201,74,.42),
                     inset 0 0 0 2px rgba(255,250,224,.34);
             }
+            #fatcat-dom-cat-overlay .cat-portrait .cat-talk:before {
+                content:"";
+                position:absolute;
+                left:12px;
+                top:-8px;
+                width:18px;
+                height:18px;
+                border-radius:50%;
+                background:linear-gradient(#ffd76a,#c98225);
+                box-shadow:0 2px 0 rgba(92,55,24,.22), inset 0 0 0 2px rgba(255,247,213,.28);
+            }
+            #fatcat-dom-cat-overlay .cat-power {
+                position:relative;
+                overflow:hidden;
+                box-shadow:0 4px 0 rgba(0,0,0,.3), inset 0 0 0 2px rgba(255,232,178,.12), inset 0 -10px 18px rgba(0,0,0,.18);
+            }
+            #fatcat-dom-cat-overlay .cat-power:before {
+                content:"";
+                display:inline-block;
+                width:24px;
+                height:24px;
+                margin-right:8px;
+                vertical-align:-6px;
+                border-radius:52% 48% 50% 50%;
+                background:linear-gradient(135deg,#9b5a2b,#4c2816);
+                box-shadow:inset 0 0 0 3px rgba(255,223,156,.18), 0 2px 0 rgba(0,0,0,.28);
+                transform:rotate(24deg);
+            }
+            #fatcat-dom-cat-overlay .cat-stats div {
+                position:relative;
+                padding-top:2px;
+            }
+            #fatcat-dom-cat-overlay .cat-stats div:before {
+                content:"";
+                position:absolute;
+                left:12%;
+                right:12%;
+                top:4px;
+                height:4px;
+                border-radius:999px;
+                background:linear-gradient(90deg,transparent,#f0c65b,transparent);
+                box-shadow:0 0 6px rgba(240,198,91,.36);
+            }
+            #fatcat-dom-cat-overlay .cat-weight > b {
+                display:inline-flex;
+                align-items:center;
+                gap:7px;
+            }
+            #fatcat-dom-cat-overlay .cat-weight > b:before {
+                content:"";
+                width:18px;
+                height:18px;
+                border-radius:50%;
+                background:radial-gradient(circle at 50% 56%,transparent 0 38%,#91b35d 39% 63%,#5b7a35 64%);
+                box-shadow:0 2px 0 rgba(92,57,28,.18), inset 0 0 0 2px rgba(255,246,210,.24);
+            }
+            #fatcat-dom-cat-overlay .story-copy:after {
+                content:"";
+                position:absolute;
+                right:10px;
+                top:9px;
+                width:16px;
+                height:16px;
+                border-radius:50%;
+                background:radial-gradient(circle,#fff0b2 0 42%,#c98b37 45% 100%);
+                box-shadow:0 2px 0 rgba(82,49,24,.2), inset 0 0 0 2px rgba(104,65,32,.14);
+            }
+            #fatcat-dom-cat-overlay.compact .cat-portrait .cat-talk:before,
+            #fatcat-dom-cat-overlay.tablet .cat-portrait .cat-talk:before {
+                width:14px;
+                height:14px;
+                left:8px;
+                top:-6px;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-power:before,
+            #fatcat-dom-cat-overlay.tablet .cat-power:before {
+                width:18px;
+                height:18px;
+                margin-right:5px;
+                vertical-align:-4px;
+            }
+            #fatcat-dom-cat-overlay.compact .cat-stats div:before,
+            #fatcat-dom-cat-overlay.tablet .cat-stats div:before {
+                top:3px;
+                height:3px;
+            }
+            #fatcat-dom-cat-overlay.compact .story-copy:after,
+            #fatcat-dom-cat-overlay.tablet .story-copy:after {
+                width:12px;
+                height:12px;
+                right:7px;
+                top:7px;
+            }
             @media (max-width:390px) {
                 #fatcat-dom-cat-overlay.compact .equip-bag { display:none; }
                 #fatcat-dom-cat-overlay.compact .cat-grid:has(.equip-layout.detail-mode) {

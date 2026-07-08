@@ -49,6 +49,11 @@ for (const selector of [
   ".skin-wardrobe",
   ".cat-story",
   ".cat-list",
+  ".cat-portrait .cat-talk:before",
+  ".cat-power:before",
+  ".cat-stats div:before",
+  ".cat-weight > b:before",
+  ".story-copy:after",
   ".tablet .cat-bg",
   "@media (max-width:390px)",
 ]) {
@@ -76,6 +81,11 @@ assertContains("BottomNavUI retains cat rendering", bottomNav, "private renderDo
 assertContains("BottomNavUI renders accessible back arrow", bottomNav, "aria-label=\"返回\">←</button>");
 assertContains("compact side rail target width", presentation, "width: 9.8%");
 assertContains("compact side icon target scale", presentation, ".compact .side-tab i.asset { width:68%; }");
+assertContains("cat regression guards talk pin", read("tools/capture-cat-regression.js"), "catTalkPin");
+assertContains("cat regression guards power medal", read("tools/capture-cat-regression.js"), "catPowerBeanMedal");
+assertContains("cat regression guards stat glints", read("tools/capture-cat-regression.js"), "catStatTopGlints");
+assertContains("cat regression guards weight badge", read("tools/capture-cat-regression.js"), "catWeightBadge");
+assertContains("cat regression guards story pin", read("tools/capture-cat-regression.js"), "storyCornerPin");
 assertContains("quick verify includes contract", quickVerify, "check-cat-overlay-presentation-contract.js");
 
 console.log(JSON.stringify({
@@ -83,6 +93,7 @@ console.log(JSON.stringify({
   checked: [
     "cat style builder and workshop parameter",
     "cat responsive style ownership",
+    "target cat-page material hooks",
     "BottomNavUI cat style delegation",
     "cat behavior retention",
     "quick verify registration",

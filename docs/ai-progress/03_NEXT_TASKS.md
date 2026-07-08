@@ -98,6 +98,14 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - Extended utility screenshot regression to require the new material hooks at 430x932, 414x896, 360x800, and 768x1024.
 - Verified with Cocos UI refresh, TypeScript diagnostics, panel contract, four-size utility screenshots, 18-step clicks, full quick verify, and 103/103 tests.
 
+### Completed: Cat Detail Material Polish
+
+- Added a pinned speech bubble treatment to the center cat stage.
+- Added a bean medal to the production strip and top glints to all five stat cards.
+- Added a weight-stage badge and story-card corner pin while keeping existing page geometry.
+- Extended cat screenshot regression to require those five hooks at 414x896, 430x932, 360x800, and 768x1024.
+- Verified with Cocos UI refresh, TypeScript diagnostics, cat overlay contract, four-size cat screenshots, 18-step clicks, full quick verify, and 103/103 tests.
+
 ### Completed: Daily Launch Quota Authority
 
 - `LaunchCount` is stored on the UTC daily order row and runtime-migrated for existing SQLite databases.

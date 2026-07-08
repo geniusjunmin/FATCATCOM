@@ -26,6 +26,10 @@ Updated: 2026-07-08
 
 ## Client UI
 
+- Latest cat-detail material polish adds target-style micro-affordances to the cat page without changing interaction ownership: speech bubble pin, bean medal on the production strip, top glints on all five stat cards, a weight-stage badge, and a story-paper corner pin.
+- `capture-cat-regression.js` now requires `catTalkPin`, `catPowerBeanMedal`, `catStatTopGlints >= 5`, `catWeightBadge`, and `storyCornerPin` at 414x896, 430x932, 360x800, and 768x1024 across the info/equipment/skin pass. `check-cat-overlay-presentation-contract.js` statically guards the selectors.
+- Verification: Cocos UI script refresh, focused TypeScript diagnostics, cat overlay contract, four-size cat regression, 18-step UI click navigation, full `quick-verify.ps1`, and 103/103 server tests pass.
+
 - Latest utility-panel material pass makes the side-tool panels closer to the target UI language. Task, achievement, mail, friend, and settings overlays now share a carved wood title plaque, framed hero icons, paper-card pin details, mini-stat medallions, and settings toggle knobs while preserving existing DOM actions.
 - `capture-utility-regression.js` now verifies `utilityTitlePins`, `utilityHeroIconFramed`, `utilityCardPins`, `utilityMiniMedallions`, and `settingsToggleKnobs` across 430x932, 414x896, 360x800, and 768x1024. `check-panel-presentation-contract.js` statically guards the new selectors and compact rules.
 - Verification: Cocos UI script refresh, focused TypeScript diagnostics, panel presentation contract, four-size utility regression, 18-step UI click navigation, full `quick-verify.ps1`, and 103/103 server tests pass.
