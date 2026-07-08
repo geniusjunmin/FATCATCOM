@@ -24,6 +24,10 @@ Updated: 2026-07-08
 
 ## Latest Visual Note
 
+- Latest friend-report polish: `_friendVisitReport` now requires a `timeline` array, `renderFriendVisitReport()` renders `.visit-report-timeline`, and `PanelPresentation.ts` owns its desktop and compact styles. Preserve the reward/status, context, and record/progress structure for visit, gift, and help results.
+- `capture-utility-regression.js` now requires `friendVisitReportTimeline >= 3` and `friendVisitReportTimelineBadges >= 3`; `check-friend-visit-scene-contract.js` mirrors the data/render/CSS/regression hooks. If the report UI is redesigned, update both gates with equivalent visible feedback instead of dropping coverage.
+- Current green evidence: Cocos refresh for `db://assets/scripts`, focused TypeScript diagnostics, friend visit-scene contract, settings-status contract, full quick verify, four-size utility regression, and 104/104 server tests.
+
 - Latest cat-detail polish is CSS-only in `CatOverlayPresentation.ts`. Preserve `.cat-portrait .cat-talk:before`, `.cat-power:before`, `.cat-stats div:before`, `.cat-weight > b:before`, and `.story-copy:after`; these are the target-style speech pin, production bean medal, stat glints, weight badge, and story-paper pin.
 - `capture-cat-regression.js` guards `catTalkPin`, `catPowerBeanMedal`, `catStatTopGlints`, `catWeightBadge`, and `storyCornerPin` across 414x896, 430x932, 360x800, and 768x1024. `check-cat-overlay-presentation-contract.js` mirrors the static selector coverage.
 - Current green evidence: Cocos refresh for `db://assets/scripts/ui`, focused TypeScript diagnostics, cat overlay contract, four-size cat regression, 18 UI click steps, full quick verify, and 103/103 server tests.

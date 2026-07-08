@@ -26,6 +26,11 @@ Updated: 2026-07-08
 
 ## Client UI
 
+- Latest friend interaction report pass turns visit, gift, and help results into a compact three-step event timeline. Each report now carries explicit timeline data for reward/status, friend or factory context, and record/progress feedback while preserving the existing server-backed visit, gift, and help actions.
+- `PanelPresentation.ts` adds target-style `.visit-report-timeline` badges with compact guards, and `capture-utility-regression.js` now requires three timeline rows plus three numbered badges across 430x932, 414x896, 360x800, and 768x1024.
+- `tools/check-friend-visit-scene-contract.js` guards the timeline data, render markup, CSS, compact styling, and screenshot-regression hooks.
+- Verification: Cocos refresh for `db://assets/scripts`, focused TypeScript diagnostics, friend visit-scene contract, settings-status contract, full `quick-verify.ps1`, four-size utility screenshot regression, and 104/104 server tests pass.
+
 - Latest settings diagnostics pass connects the public server status endpoint to the client UI. `SyncManager.fetchServerStatus()` caches the readiness payload, the settings panel auto-refreshes it on open, and a manual `刷新状态` action rechecks API/config versions, token requirement, realtime transport, and multiplayer feature flags.
 - The new `.server-status-card` uses compact-safe grid/chip styling in `PanelPresentation.ts`; `capture-utility-regression.js` now guards the card, refresh action, and containment at 430x932, 414x896, 360x800, and 768x1024.
 - `tools/check-settings-server-status-contract.js` is part of quick verify and guards the endpoint-to-UI chain through SyncManager, BottomNavUI, settings CSS, and utility regression assertions.

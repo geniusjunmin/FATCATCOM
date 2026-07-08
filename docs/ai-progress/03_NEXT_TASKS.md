@@ -50,6 +50,14 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - `PanelPresentation.ts` includes compact-safe `.server-status-card` styling; utility screenshots guard the card and containment at 430x932, 414x896, 360x800, and 768x1024.
 - Verified with Cocos script refresh, TypeScript diagnostics, status contracts, full quick verify, four-size utility screenshots, and 104/104 tests.
 
+### Completed: Friend Interaction Report Timeline
+
+- Visit, gift, and help reports now include a three-step event timeline instead of a single flat status line.
+- The timeline shows reward/status, friend or factory context, and visit/gift/help record or cooperation progress feedback.
+- `PanelPresentation.ts` owns desktop and compact `.visit-report-timeline` badge styling without changing the existing action buttons.
+- Utility screenshots and the friend visit-scene contract now require three timeline rows plus three numbered badges at all supported sizes.
+- Verified with Cocos script refresh, TypeScript diagnostics, friend visit-scene contract, settings-status contract, full quick verify, four-size utility screenshots, and 104/104 tests.
+
 ### Completed: Target Readability And Material Pass
 
 - HUD company/resource values now use bounded readable sizes; the diamond remains exact `2580`.

@@ -398,6 +398,10 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .visit-report-grid { margin-top:2%; display:grid; grid-template-columns:1fr 1fr; gap:1.4%; }
             #fatcat-dom-panel-overlay .visit-report-grid span { min-height:42px; border-radius:11px; background:rgba(255,238,196,.12); display:flex; align-items:center; justify-content:center; flex-direction:column; font-weight:900; text-align:center; }
             #fatcat-dom-panel-overlay .visit-report-grid b { color:#ffe08a; }
+            #fatcat-dom-panel-overlay .visit-report-timeline { margin-top:2%; display:grid; grid-template-columns:repeat(3,1fr); gap:1.2%; }
+            #fatcat-dom-panel-overlay .visit-report-timeline span { min-height:38px; display:grid; grid-template-columns:22px 1fr; gap:6px; align-items:center; padding:5px 7px; border-radius:10px; background:linear-gradient(135deg,rgba(255,226,156,.18),rgba(74,49,32,.42)); box-shadow:inset 0 0 0 1px rgba(255,226,170,.16); }
+            #fatcat-dom-panel-overlay .visit-report-timeline i { width:22px; height:22px; border-radius:50%; background:linear-gradient(#f8d76d,#b9722e); color:#4a2c18; display:flex; align-items:center; justify-content:center; font-style:normal; font-weight:1000; box-shadow:inset 0 0 0 2px rgba(255,248,214,.22); }
+            #fatcat-dom-panel-overlay .visit-report-timeline b { min-width:0; color:#fff1bf; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-panel-overlay .visit-report-floors { margin-top:2%; display:grid; grid-template-columns:repeat(3,1fr); gap:1.2%; }
             #fatcat-dom-panel-overlay .visit-report-floors span { min-height:40px; border-radius:10px; background:rgba(255,246,215,.88); color:#4a2f1f; display:flex; align-items:center; justify-content:center; flex-direction:column; font-weight:1000; box-shadow:inset 0 0 0 1px rgba(97,61,32,.22); }
             #fatcat-dom-panel-overlay .visit-report-floors em { color:#7c5432; font-style:normal; font-size:86%; }
@@ -484,6 +488,9 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay.compact .snapshot-floor { grid-template-columns:18% 1fr 28%; min-height:28px; font-size:84%; }
             #fatcat-dom-panel-overlay.compact .visit-report-head { grid-template-columns:15% 1fr auto; }
             #fatcat-dom-panel-overlay.compact .visit-report-grid span { min-height:34px; font-size:84%; }
+            #fatcat-dom-panel-overlay.compact .visit-report-timeline { gap:1%; }
+            #fatcat-dom-panel-overlay.compact .visit-report-timeline span { min-height:31px; grid-template-columns:18px 1fr; gap:4px; padding:4px 5px; font-size:76%; }
+            #fatcat-dom-panel-overlay.compact .visit-report-timeline i { width:18px; height:18px; }
             #fatcat-dom-panel-overlay.compact .visit-report-floors span { min-height:34px; font-size:82%; }
             #fatcat-dom-panel-overlay.compact .friend-scene-head { grid-template-columns:15% 1fr auto; }
             #fatcat-dom-panel-overlay.compact .friend-scene-sign { width:54%; min-height:25px; margin-bottom:1.2%; }

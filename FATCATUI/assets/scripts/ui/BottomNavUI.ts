@@ -238,7 +238,7 @@ export class BottomNavUI extends Component {
     private _serverLeaderboard: LeaderboardDto | null = null;
     private _selectedFriendSnapshotId = "";
     private _friendVisitSceneId = "";
-    private _friendVisitReport: { friendId: string; kind: "visit" | "gift" | "help"; rewardText: string; statusText: string; updatedAt: number } | null = null;
+    private _friendVisitReport: { friendId: string; kind: "visit" | "gift" | "help"; rewardText: string; statusText: string; updatedAt: number; timeline: string[] } | null = null;
     private _friendRefreshInFlight = false;
     private _friendProfileRefreshInFlight = false;
     private _friendActivityRefreshInFlight = false;
@@ -1192,6 +1192,11 @@ export class BottomNavUI extends Component {
                     rewardText: serverFriend.rewarded ? `+${this.formatNumber(serverFriend.rewardCoin)} 金币` : "今日已领取",
                     statusText: serverFriend.rewarded ? "访问奖励已到账" : "今日访问奖励已领取",
                     updatedAt: Date.now(),
+                    timeline: [
+                        serverFriend.rewarded ? `金币 +${this.formatNumber(serverFriend.rewardCoin)}` : "今日访问奖励已领取",
+                        `好友收益 ${this.formatNumber(serverFriend.friend.incomePerSecond)}/秒`,
+                        `访问记录 ${serverFriend.friend.lastVisitedAt ? this.formatFriendReportTime(serverFriend.friend.lastVisitedAt) : "刚刚"}`,
+                    ],
                 };
                 this._domPanelMessage = serverFriend.rewarded
                     ? `Friend visit reward: +${this.formatNumber(serverFriend.rewardCoin)} coin.`
@@ -1208,6 +1213,11 @@ export class BottomNavUI extends Component {
                     rewardText: "+62 金币",
                     statusText: "本地访问预览已记录",
                     updatedAt: Date.now(),
+                    timeline: [
+                        "本地预览 +62 金币",
+                        "联网后可领取真实访问奖励",
+                        "访问场景已打开",
+                    ],
                 };
                 success = true;
             }
@@ -1225,6 +1235,11 @@ export class BottomNavUI extends Component {
                     rewardText: serverFriend.rewarded ? `+${this.formatNumber(serverFriend.rewardCatFood)} 猫粮` : "今日已送礼",
                     statusText: serverFriend.rewarded ? "礼物回赠已到账" : "今日礼物奖励已领取",
                     updatedAt: Date.now(),
+                    timeline: [
+                        serverFriend.rewarded ? `猫粮 +${this.formatNumber(serverFriend.rewardCatFood)}` : "今日礼物奖励已领取",
+                        `礼物目标 ${serverFriend.friend.name}`,
+                        `送礼记录 ${serverFriend.friend.lastGiftAt ? this.formatFriendReportTime(serverFriend.friend.lastGiftAt) : "刚刚"}`,
+                    ],
                 };
                 this._domPanelMessage = serverFriend.rewarded
                     ? `Friend gift reward: +${this.formatNumber(serverFriend.rewardCatFood)} cat food.`
@@ -1241,6 +1256,11 @@ export class BottomNavUI extends Component {
                     rewardText: "+12 猫粮",
                     statusText: "本地送礼预览已记录",
                     updatedAt: Date.now(),
+                    timeline: [
+                        "本地预览 +12 猫粮",
+                        "联网后可同步真实礼物",
+                        "礼物状态已写入本地",
+                    ],
                 };
                 success = true;
             }
@@ -1260,6 +1280,11 @@ export class BottomNavUI extends Component {
                         ? `助力生效 30 分钟`
                         : response.limitedReason === "real_friend_required" ? "仅真实玩家好友可助力" : "今日助力次数已使用",
                     updatedAt: Date.now(),
+                    timeline: [
+                        response.applied ? `生产效率 +${response.boost.boostPercent}%` : "助力未重复生效",
+                        response.applied ? `持续到 ${this.formatFriendReportTime(response.boost.boostEndsAt ?? Date.now())}` : response.limitedReason === "real_friend_required" ? "需要真实玩家好友" : "今日已助力过该好友",
+                        `协作进度 ${FriendCoopManager.getState().progress}/${FriendCoopManager.getState().target}`,
+                    ],
                 };
                 this._domPanelMessage = response.applied
                     ? `好友助力成功：对方生产效率 +${response.boost.boostPercent}%。`
@@ -1691,7 +1716,11 @@ export class BottomNavUI extends Component {
         const floorRows = this.getFriendRoomRows(friend).slice(0, 3)
             .map(room => `<span>${room.floor}<em>${this.formatNumber(room.production)}/秒</em></span>`)
             .join("");
-        return `<div class="friend-visit-report"><div class="visit-report-head"><span class="visit-report-badge">${report.kind === "help" ? "助" : report.kind === "gift" ? "礼" : "访"}</span><div class="visit-report-copy"><b>${friend.name} ${actionLabel}</b><em>${report.statusText} · ${this.formatFriendReportTime(report.updatedAt)}</em></div><button class="visit-report-close" data-action="closeFriendVisitReport">×</button></div><div class="visit-report-grid"><span>互动奖励<b>${report.rewardText}</b></span><span>好友收益<b>${this.formatNumber(friend.income)}/秒</b></span></div><div class="visit-report-floors">${floorRows}</div><div class="visit-report-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">再次访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button><button class="tag boost" data-action="helpFriend" data-id="${friend.id}" ${friend.profile?.isRealPlayer ? "" : "disabled"}>生产助力</button></div></div>`;
+        const timeline = (report.timeline.length > 0 ? report.timeline : [report.statusText, report.rewardText, `${this.formatNumber(friend.income)}/秒`])
+            .slice(0, 3)
+            .map((item, index) => `<span><i>${index + 1}</i><b>${item}</b></span>`)
+            .join("");
+        return `<div class="friend-visit-report"><div class="visit-report-head"><span class="visit-report-badge">${report.kind === "help" ? "助" : report.kind === "gift" ? "礼" : "访"}</span><div class="visit-report-copy"><b>${friend.name} ${actionLabel}</b><em>${report.statusText} · ${this.formatFriendReportTime(report.updatedAt)}</em></div><button class="visit-report-close" data-action="closeFriendVisitReport">×</button></div><div class="visit-report-grid"><span>互动奖励<b>${report.rewardText}</b></span><span>好友收益<b>${this.formatNumber(friend.income)}/秒</b></span></div><div class="visit-report-timeline">${timeline}</div><div class="visit-report-floors">${floorRows}</div><div class="visit-report-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">再次访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button><button class="tag boost" data-action="helpFriend" data-id="${friend.id}" ${friend.profile?.isRealPlayer ? "" : "disabled"}>生产助力</button></div></div>`;
     }
 
     private renderFriendFactoryDetail(friends: FriendPanelRow[]): string {
