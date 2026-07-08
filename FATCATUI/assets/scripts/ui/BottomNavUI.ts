@@ -32,6 +32,7 @@ import {
     getGeneratedIconAsset,
     getInventoryPreviewAsset,
     getResearchNodeAsset,
+    getRecruitBadgeAsset,
     getShopProductAsset,
     getSkillIconAsset,
 } from "./DomAssetResolver";
@@ -3349,7 +3350,7 @@ export class BottomNavUI extends Component {
                 <div class="cat-story"><div class="story-copy"><b>猫咪故事</b><p>${this.getCatStory(config.name, config.personality, config.breed, assignedName)}</p><div class="story-tags"><span>${roleLabel}</span><span>${assignedName}</span><span>${weightLabel}</span></div></div><div class="story-photo" style="--story-cat:url('${selectedCatArt}')"></div><button class="story-button" data-action="storyWall" data-id="${config.id}"><span class="story-book">▰</span>故事墙</button></div>
                 <div class="cat-actions"><button class="dismiss" data-action="dismissCat" data-id="${config.id}">解雇</button><button class="change" data-action="changeCat" data-id="${config.id}">更换</button><button class="level" data-action="upgradeCat" data-id="${config.id}" ${canUpgrade ? "" : "disabled"}>升级1级 ${this.formatNumber(upgradeCost)}</button></div>
                 <div class="cat-roster-label">猫咪队伍</div>
-                <div class="cat-list">${configs.map(item => this.renderCatListButton(item.id)).join("")}<button class="recruit" data-action="unlockCat" data-id="${config.id}"><span class="recruit-art" style="background-image:url('${this.getCatFullArtAsset("c_005")}')"></span><b>招募猫咪</b><small>${this.formatNumber(unlockCost)} 金币</small></button></div>
+                <div class="cat-list">${configs.map(item => this.renderCatListButton(item.id)).join("")}<button class="recruit" data-action="unlockCat" data-id="${config.id}"><span class="recruit-art" data-art-key="recruit-badge-v1" style="background-image:url('${this.getRecruitBadgeAsset()}')"></span><b>招募猫咪</b><small>${this.formatNumber(unlockCost)} 金币</small></button></div>
                 <div class="cat-msg ${this._domCatMessage ? "" : "empty"}">${this._domCatMessage}</div>
             </div>`;
     }
@@ -3501,6 +3502,10 @@ export class BottomNavUI extends Component {
 
     private getEquipIconAsset(kind: string): string {
         return getEquipIconAsset(kind);
+    }
+
+    private getRecruitBadgeAsset(): string {
+        return getRecruitBadgeAsset();
     }
 
     private getSkillIconAsset(role: string): string {

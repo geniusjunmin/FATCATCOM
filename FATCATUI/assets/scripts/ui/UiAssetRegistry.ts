@@ -57,12 +57,13 @@ export const GeneratedItemIconAssets: Record<string, string> = {
     bean: `${GENERATED_ROOT}/items/icon_coffee_bean.png`,
     coin: `${GENERATED_ROOT}/items/icon_coin_pack.png`,
     diamond: `${GENERATED_ROOT}/items/icon_diamond.png`,
-    equipCollar: `${GENERATED_ROOT}/items/equip_collar.png`,
-    equipCup: `${GENERATED_ROOT}/items/equip_cup.png`,
-    equipCushion: `${GENERATED_ROOT}/items/equip_cushion.png`,
+    equipCollar: `${GENERATED_ROOT}/items/equip_collar_v2.png`,
+    equipCup: `${GENERATED_ROOT}/items/equip_cup_v2.png`,
+    equipCushion: `${GENERATED_ROOT}/items/equip_cushion_v2.png`,
     equipLocked: `${GENERATED_ROOT}/items/equip_locked.png`,
     food: `${GENERATED_ROOT}/items/icon_cat_food.png`,
     gift: `${GENERATED_ROOT}/items/icon_cat_food.png`,
+    recruitBadge: `${GENERATED_ROOT}/items/recruit_badge_v1.png`,
     shard: `${GENERATED_ROOT}/items/icon_diamond.png`,
 };
 

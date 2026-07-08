@@ -1,13 +1,13 @@
 # Current Status
 
-Updated: 2026-07-05
+Updated: 2026-07-08
 
 ## Control Panel
 
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Replace remaining small equipment/recruit placeholders with target-style bitmap art, preserving the authoritative wardrobe and verified geometry. |
+| Best Next Move | Preserve the new cat equipment/recruit bitmap pass, then move to final main/cat micro-alignment or richer social/visit UI polish. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -25,6 +25,12 @@ Updated: 2026-07-05
 | Biggest Risk | Frontend size | `BottomNavUI.ts` remains large, but shared, panel, factory-overlay, and cat-overlay styles are extracted. The next code-health work is splitting cohesive factory/cat/feature render responsibilities without disturbing live actions. |
 
 ## Client UI
+
+- Latest cat equipment/recruit art pass replaces the remaining small equipment placeholders with four generated 384x384 transparent illustrations: `equip_collar_v2.png`, `equip_cup_v2.png`, `equip_cushion_v2.png`, and `recruit_badge_v1.png`.
+- `GeneratedItemIconAssets` now points the existing equipment keys at the v2 art, and `getRecruitBadgeAsset()` gives the cat roster recruit button a dedicated gold badge instead of reusing a cat portrait.
+- The DOM Data URI bridge embeds the new files for the Cocos web preview. `capture-cat-regression.js` now requires embedded equipment art, embedded backpack icons, and `data-art-key="recruit-badge-v1"` at 414x896, 430x932, 360x800, and 768x1024.
+- `tools/check-cat-equipment-art.js` is registered in quick verify and guards PNG dimensions, alpha format, `.meta` files, registry/resolver/generator wiring, recruit action preservation, screenshot hooks, and Data URI presence.
+- Verification: Cocos refresh for generated items and UI scripts, focused TypeScript diagnostics, static cat-equipment art contract, four-size cat screenshots, 18-step UI click navigation, full `quick-verify.ps1`, and 103/103 server tests pass.
 
 - Latest skin-acquisition pass turns manager/festival cards into real server-backed purchases. The catalog prices manager at 75,000 coin and festival at 80 diamonds; default/apron remain initial ownership and cannot be repurchased.
 - `GET /api/cats/{catId}/skins/catalog` returns price, ownership, and purchasability. `POST /api/cats/{catId}/skins/{skinId}/unlock` serializes purchases per player, deducts the authoritative resource once, writes `cat_skin_unlock`, adds ownership, and auto-equips the new skin.

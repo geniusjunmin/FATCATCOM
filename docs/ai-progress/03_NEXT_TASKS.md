@@ -1,6 +1,6 @@
 # Next Tasks
 
-Updated: 2026-07-05
+Updated: 2026-07-08
 
 ## Round Contract
 
@@ -19,7 +19,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Signed player authentication, daily order/chest, and five-launch quota are authoritative; preserve these boundaries. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Factory, side-tool, and cat-skin source art are complete; next improve equipment/recruit thumbnails without changing verified geometry. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Equipment/recruit bitmap thumbnails are complete; next preserve geometry while doing final main/cat micro-alignment or richer social/visit UI polish. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
@@ -72,7 +72,15 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - Per-player purchase gates prevent concurrent double-spend; duplicate ownership is rejected and successful purchases write one `cat_skin_unlock` transaction.
 - Purchases update balances, ownership, equipped art, and catalog state immediately, then restore after login/reload.
 - Four-size wardrobe regression guards price/action markers; the online browser gate buys manager and verifies auto-equip plus persistence.
-- Full quick verify and 103 tests are green. Next cat batch is bitmap equipment/recruit art, followed by final target-proportion review.
+- Full quick verify and 103 tests are green.
+
+### Completed: Cat Equipment And Recruit Art
+
+- Generated four target-style 384px transparent assets: green collar, paw coffee mug, cat cushion, and gold recruit badge.
+- Existing `equipCollar`, `equipCup`, and `equipCushion` registry keys now resolve to v2 art, so all current equipment UI paths inherit the upgrade without gameplay rewiring.
+- The recruit roster action now uses `recruit_badge_v1.png` with `data-art-key="recruit-badge-v1"` while preserving `data-action="unlockCat"` and unlock cost copy.
+- `tools/check-cat-equipment-art.js` and `capture-cat-regression.js` guard static wiring plus four-size embedded rendering across info/equipment/skin states.
+- Verified with Cocos asset refresh, focused TypeScript diagnostics, four-size cat screenshots, 18-step clicks, full quick verify, and 103/103 server tests. Next visual batch should be final target-proportion review or social/visit UI polish.
 
 ### Completed: Daily Launch Quota Authority
 

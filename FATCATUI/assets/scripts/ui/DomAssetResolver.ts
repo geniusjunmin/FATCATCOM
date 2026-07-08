@@ -96,6 +96,10 @@ export function getEquipIconAsset(kind: string): string {
     return getDomAssetDataUri(GeneratedItemIconAssets.equipLocked);
 }
 
+export function getRecruitBadgeAsset(): string {
+    return getDomAssetDataUri(GeneratedItemIconAssets.recruitBadge);
+}
+
 export function getSkillIconAsset(role: string): string {
     return getDomAssetDataUri(GeneratedSkillIconAssets[role] ?? GeneratedSkillIconAssets.support);
 }

@@ -1,6 +1,6 @@
 # Handoff
 
-Updated: 2026-07-05
+Updated: 2026-07-08
 
 ## 90-Second Boot
 
@@ -24,6 +24,12 @@ Updated: 2026-07-05
 
 ## Latest Visual Note
 
+- The newest asset batch is cat equipment and recruit art: `items/equip_collar_v2.png`, `items/equip_cup_v2.png`, `items/equip_cushion_v2.png`, and `items/recruit_badge_v1.png`, each a 384x384 transparent PNG with committed Cocos `.meta`.
+- Built-in image generation produced a 2x2 sprite sheet on a flat `#ff00ff` chroma key, then local chroma removal and quadrant slicing created final alpha PNGs. Prompt intent: warm hand-painted mobile-game prop icons matching the target cat UI, thick dark-brown outline, cream highlights, brass accents, no text/UI/shadow.
+- `GeneratedItemIconAssets.equipCollar/equipCup/equipCushion` point at the v2 files. `GeneratedItemIconAssets.recruitBadge` plus `DomAssetResolver.getRecruitBadgeAsset()` feed the cat roster recruit button.
+- `generate-dom-asset-data-uris.ps1` embeds the new assets. `capture-cat-regression.js` now requires embedded equipment icons, embedded backpack icons, and the recruit badge key at 414x896, 430x932, 360x800, and 768x1024.
+- Keep `tools/check-cat-equipment-art.js` in quick verify; it guards asset dimensions, `.meta`, registry/resolver/generator wiring, Data URI presence, and preserved recruit action behavior.
+- Current green evidence: Cocos refresh for `db://assets/resources/textures/generated/items` and `db://assets/scripts/ui`, TypeScript diagnostics, cat-equipment contract, four-size cat screenshots, 18 UI click steps, full quick verify, and 103/103 server tests.
 - The newest asset batch is the cat wardrobe: `cats/cat_skin_apron_v1.png`, `cat_skin_manager_v1.png`, and `cat_skin_festival_v1.png`, each a 768x768 transparent PNG with its Cocos `.meta`.
 - Built-in image generation used `cat_hero_orange_v2.png` and the target cat-page references. Prompt intent: the same chubby orange-and-white cafe cat and seated pose, wearing respectively terracotta baker workwear, a teal manager vest, or a plum festival outfit; warm hand-painted mobile-game rendering, no text/UI/shadow, flat `#ff00ff` key.
 - The installed chroma helper removed the key. QC found transparent corners, bounded subjects, and no meaningful fringe. Final files alone belong in the asset tree; do not commit `tmp/imagegen`.

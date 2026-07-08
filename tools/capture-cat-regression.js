@@ -91,9 +91,16 @@ async function isVisible(page, selector) {
                 equipRarityBadges: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-rarity").length,
                 equipSlotTags: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-slot-tag").length,
                 equipBonusPills: document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-bonus-pill").length,
+                embeddedEquipIconArt: Array.from(document.querySelectorAll("#fatcat-dom-cat-overlay .equip-row .equip-icon"))
+                    .filter(element => getComputedStyle(element).backgroundImage.startsWith('url("data:image/png;base64,')).length,
                 hasStoryPhoto: !!document.querySelector("#fatcat-dom-cat-overlay .story-photo"),
                 diamondValue,
                 storyTags: document.querySelectorAll("#fatcat-dom-cat-overlay .story-tags span").length,
+                recruitBadgeKey: document.querySelector("#fatcat-dom-cat-overlay .recruit-art")?.getAttribute("data-art-key") ?? "",
+                recruitBadgeEmbedded: (() => {
+                    const element = document.querySelector("#fatcat-dom-cat-overlay .recruit-art");
+                    return !!element && getComputedStyle(element).backgroundImage.startsWith('url("data:image/png;base64,');
+                })(),
                 backText: document.querySelector("#fatcat-dom-cat-overlay .back")?.textContent?.trim() || "",
                 overlay,
                 sideRail,
@@ -117,6 +124,9 @@ async function isVisible(page, selector) {
             upgradeVisible: await isVisible(page, "#fatcat-dom-cat-overlay .equip-upgrade"),
             packRarityBadges: await page.locator("#fatcat-dom-cat-overlay .equip-pack .equip-rarity").count(),
             packBonusPills: await page.locator("#fatcat-dom-cat-overlay .equip-pack .equip-bonus-pill").count(),
+            embeddedPackIconArt: await page.locator("#fatcat-dom-cat-overlay .equip-pack .equip-icon").evaluateAll((elements) =>
+                elements.filter(element => getComputedStyle(element).backgroundImage.startsWith('url("data:image/png;base64,')).length
+            ),
         };
 
         await page.click('#fatcat-dom-cat-overlay [data-action="tab"][data-tab="skin"]');
@@ -192,10 +202,14 @@ async function isVisible(page, selector) {
         || entry.state.equipRarityBadges < 4
         || entry.state.equipSlotTags < 4
         || entry.state.equipBonusPills < 4
+        || entry.state.embeddedEquipIconArt < 4
+        || entry.state.recruitBadgeKey !== "recruit-badge-v1"
+        || !entry.state.recruitBadgeEmbedded
         || !entry.equipState.bagVisible
         || !entry.equipState.upgradeVisible
         || entry.equipState.packRarityBadges < 2
         || entry.equipState.packBonusPills < 2
+        || entry.equipState.embeddedPackIconArt < 2
         || !entry.skinState.wardrobeVisible
         || entry.skinState.skinCards < 4
         || entry.skinState.selectedCards < 1
