@@ -26,6 +26,11 @@ Updated: 2026-07-08
 
 ## Client UI
 
+- Latest settings diagnostics pass connects the public server status endpoint to the client UI. `SyncManager.fetchServerStatus()` caches the readiness payload, the settings panel auto-refreshes it on open, and a manual `刷新状态` action rechecks API/config versions, token requirement, realtime transport, and multiplayer feature flags.
+- The new `.server-status-card` uses compact-safe grid/chip styling in `PanelPresentation.ts`; `capture-utility-regression.js` now guards the card, refresh action, and containment at 430x932, 414x896, 360x800, and 768x1024.
+- `tools/check-settings-server-status-contract.js` is part of quick verify and guards the endpoint-to-UI chain through SyncManager, BottomNavUI, settings CSS, and utility regression assertions.
+- Verification: Cocos refresh for `db://assets/scripts`, focused TypeScript diagnostics, server-status contract, settings-status contract, full `quick-verify.ps1`, four-size utility screenshot regression, and 104/104 server tests pass.
+
 - Latest server-status readiness pass adds public `GET /api/server/status` for deployment and online diagnostics. It declares API/config versions, minimum client version, signed-token requirement, SSE realtime availability, and current multiplayer feature flags.
 - `ApiClient.fetchServerStatus()` and `ServerStatusDto` expose the same envelope to the Cocos client for future startup/settings diagnostics. The middleware now keeps only this status route, guest auth, config bootstrap/version, and stateless preview as public surfaces.
 - `tools/check-server-status-contract.js`, `tools/check-server-api.ps1`, quick verify, and API tests guard the route, public middleware exception, client helper, version strings, SSE transport, and feature list.

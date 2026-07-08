@@ -68,6 +68,10 @@ Updated: 2026-07-08
 
 ## Latest Security Note
 
+- Latest settings diagnostics addition: `SyncManager.fetchServerStatus()` caches the public readiness payload, `BottomNavUI.renderServerStatusCard()` renders it in the settings panel, and `PanelPresentation.ts` owns `.server-status-card`, `.server-status-grid`, and `.server-status-features`. Opening settings refreshes automatically; `data-action="refreshServerStatus"` is the manual route.
+- Preserve `tools/check-settings-server-status-contract.js` in quick verify and the utility-regression fields `settingsServerStatusCard`, `settingsServerStatusRefresh`, and `settingsServerStatusContained`. These guard that the public `/api/server/status` contract is actually visible in-game, not just reachable through API smoke.
+- Current green evidence: Cocos refresh for `db://assets/scripts`, focused TypeScript diagnostics, server-status contract, settings-status contract, full quick verify, four-size utility screenshot regression, and 104/104 server tests.
+
 - Latest server readiness addition: preserve public `GET /api/server/status`, `ApiClient.fetchServerStatus()`, `ServerStatusDto`, and the matching public-route exception in `PlayerAuthenticationMiddleware`. This route is meant for client startup/deployment diagnostics and must remain read-only.
 - Current status contract values are `apiVersion = fatcat-api-2026-07-08`, `configVersion = fatcat-config-2026-06-13`, `minClientVersion = 1`, `requiresPlayerToken = true`, and realtime transport `server-sent-events`. Keep the declared feature list aligned with real implemented online systems.
 - `tools/check-server-status-contract.js` is part of quick verify and statically guards route registration, middleware access, client DTO/helper wiring, API smoke coverage, and multiplayer feature declarations. `tools/check-server-api.ps1` also calls the real endpoint when doing server smoke checks.

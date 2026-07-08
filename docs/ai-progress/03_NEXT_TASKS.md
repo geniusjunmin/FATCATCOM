@@ -42,6 +42,14 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - `tools/check-server-status-contract.js`, `tools/check-server-api.ps1`, and `quick-verify.ps1` guard route registration, middleware public access, client wiring, and feature coverage.
 - Verified with Cocos net refresh, TypeScript diagnostics, status contract, full quick verify, and 104/104 server tests.
 
+### Completed: Settings Server Diagnostics Card
+
+- `SyncManager.fetchServerStatus()` now reads the public readiness endpoint without requiring a player id and caches the latest payload plus checked time.
+- Opening settings auto-refreshes the server status, and the account card exposes a manual `刷新状态` action.
+- The settings panel renders API/config versions, minimum client version, token requirement, SSE transport, environment, and multiplayer capability chips.
+- `PanelPresentation.ts` includes compact-safe `.server-status-card` styling; utility screenshots guard the card and containment at 430x932, 414x896, 360x800, and 768x1024.
+- Verified with Cocos script refresh, TypeScript diagnostics, status contracts, full quick verify, four-size utility screenshots, and 104/104 tests.
+
 ### Completed: Target Readability And Material Pass
 
 - HUD company/resource values now use bounded readable sizes; the diamond remains exact `2580`.

@@ -149,6 +149,15 @@ async function isVisible(page, selector) {
                     friendFactoryRoomMeta: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay .factory-room-row small")).some((node) => (node.textContent || "").includes("猫") && (node.textContent || "").includes("装饰")),
                     friendDecorGroups: document.querySelectorAll("#fatcat-dom-panel-overlay .room-decor-tags").length,
                     friendDecorItems: document.querySelectorAll("#fatcat-dom-panel-overlay .room-decor-tags s").length,
+                    settingsServerStatusCard: !!document.querySelector("#fatcat-dom-panel-overlay .server-status-card"),
+                    settingsServerStatusGrid: document.querySelectorAll("#fatcat-dom-panel-overlay .server-status-grid span").length,
+                    settingsServerStatusFeatures: document.querySelectorAll("#fatcat-dom-panel-overlay .server-status-features span").length,
+                    settingsServerStatusRefresh: !!document.querySelector('#fatcat-dom-panel-overlay [data-action="refreshServerStatus"]'),
+                    settingsServerStatusContained: (() => {
+                        const card = document.querySelector("#fatcat-dom-panel-overlay .server-status-card");
+                        const rect = card?.getBoundingClientRect();
+                        return !!rect && rect.left >= -1 && rect.right <= window.innerWidth + 1;
+                    })(),
                     visibleHeight: shell ? Math.round(shell.getBoundingClientRect().height) : 0,
                 };
             }, shellClass);
@@ -182,7 +191,7 @@ async function isVisible(page, selector) {
         if (entry.panel === "tasks") return !entry.state.utilityTitlePins || !entry.state.taskBoard || entry.state.taskRows < 1;
         const lacksUtilityMaterial = !entry.state.utilityTitlePins || !entry.state.utilityHeroIconFramed || (entry.state.cardCount > 0 && entry.state.utilityCardPins < entry.state.cardCount) || (entry.state.miniCount > 0 && entry.state.utilityMiniMedallions < entry.state.miniCount);
         if (entry.panel === "friends") return lacksUtilityMaterial || entry.state.heroCount !== 1 || entry.state.friendCards < 3 || entry.state.friendIncomeBars < 3 || entry.state.friendActionButtons < 9 || entry.state.friendHelpButtons < 6 || !entry.state.friendCoopCard || entry.state.friendCoopHeight < 95 || entry.state.friendCoopHeight > 165 || entry.state.friendCoopTiers !== 3 || !entry.state.friendBoostHistory || !entry.state.friendBoostHistoryContained || entry.state.friendProfileGroups < 5 || entry.state.friendProfileChips < 15 || entry.state.realFriendProfiles + entry.state.systemFriendProfiles < 5 || entry.state.friendPresenceStates < 5 || !entry.state.friendSnapshotCard || entry.state.friendSnapshotStats < 3 || entry.state.friendSnapshotActions < 3 || entry.state.friendSnapshotFloors < 3 || !entry.state.friendVisitReport || entry.state.friendVisitReportStats < 2 || entry.state.friendVisitReportFloors < 3 || entry.state.friendVisitReportActions < 3 || !entry.state.friendVisitScene || !entry.state.friendVisitSceneSignRoof || entry.state.friendVisitSceneFloors < 3 || entry.state.friendVisitSceneStats < 5 || entry.state.friendVisitSceneActions < 5 || !entry.state.friendVisitScenePrimaryAction || entry.state.friendVisitSceneThumbs < 3 || entry.state.friendVisitSceneFloorMeters < 3 || entry.state.friendVisitSceneCats < 3 || !entry.state.friendVisitSceneMascot || entry.state.friendVisitSceneRewards < 3 || !entry.state.friendVisitSceneSign || !entry.state.friendVisitSceneBackdrop.includes("data:image/jpeg") || !entry.state.friendFactoryDetail || entry.state.friendFactoryDetailStats < 3 || entry.state.friendFactoryRoomRows < 3 || !entry.state.friendFactoryRoomMeta || entry.state.friendDecorGroups < 6 || entry.state.friendDecorItems < 12 || !entry.state.friendRequestCard || !entry.state.friendLeaderboardCard || !entry.state.friendActivityCard || !entry.state.friendSearchCard;
-        if (entry.panel === "settings") return lacksUtilityMaterial || entry.state.heroCount !== 1 || entry.state.miniCount < 3 || entry.state.cardCount < 4 || entry.state.settingsToggleKnobs < 3;
+        if (entry.panel === "settings") return lacksUtilityMaterial || entry.state.heroCount !== 1 || entry.state.miniCount < 3 || entry.state.cardCount < 5 || entry.state.settingsToggleKnobs < 3 || !entry.state.settingsServerStatusCard || !entry.state.settingsServerStatusRefresh || !entry.state.settingsServerStatusContained;
         return lacksUtilityMaterial || entry.state.heroCount !== 1 || entry.state.cardCount < 1;
     });
     if (failed) process.exit(1);

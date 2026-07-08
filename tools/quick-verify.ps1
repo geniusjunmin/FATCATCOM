@@ -198,6 +198,10 @@ Invoke-Step "Server status contract check" {
     node .\tools\check-server-status-contract.js
 }
 
+Invoke-Step "Settings server status contract check" {
+    node .\tools\check-settings-server-status-contract.js
+}
+
 Invoke-Step "Friend activity contract check" {
     node .\tools\check-friend-activity-contract.js
 }

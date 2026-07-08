@@ -180,6 +180,17 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .friends-shell .friend-search-card {
                 border-radius:12px;
             }
+            #fatcat-dom-panel-overlay .settings-shell .server-status-card { display:grid; gap:8px; background:linear-gradient(135deg,#6d4a33,#3d291f); color:#ffe5ad; border-color:#9a6b3d; }
+            #fatcat-dom-panel-overlay .settings-shell .server-status-card.ready { box-shadow:0 0 0 3px rgba(112,177,74,.18), inset 0 0 0 2px rgba(255,234,178,.12), 0 3px 0 rgba(72,43,25,.22); }
+            #fatcat-dom-panel-overlay .settings-shell .server-status-card.offline { opacity:.9; }
+            #fatcat-dom-panel-overlay .settings-shell .server-status-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+            #fatcat-dom-panel-overlay .settings-shell .server-status-head em { padding:3px 10px; border-radius:999px; font-style:normal; font-weight:900; color:#fff; background:linear-gradient(#6eb651,#3b7d31); box-shadow:inset 0 0 0 2px rgba(255,255,255,.16); }
+            #fatcat-dom-panel-overlay .settings-shell .server-status-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+            #fatcat-dom-panel-overlay .settings-shell .server-status-grid span { min-height:44px; padding:6px; border-radius:9px; background:rgba(36,25,19,.48); color:#e8c88d; font-size:1.75%; font-weight:800; overflow:hidden; }
+            #fatcat-dom-panel-overlay .settings-shell .server-status-grid b { display:block; color:#fff7d8; font-size:1.85%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .settings-shell .server-status-features { display:flex; flex-wrap:wrap; gap:5px; }
+            #fatcat-dom-panel-overlay .settings-shell .server-status-features span { padding:3px 8px; border-radius:999px; background:rgba(246,209,117,.18); color:#fff4d0; font-size:1.65%; font-weight:900; box-shadow:inset 0 0 0 1px rgba(255,232,166,.18); }
+            #fatcat-dom-panel-overlay .settings-shell .server-status-card small { color:#f3d49b; font-weight:800; }
             #fatcat-dom-panel-overlay .friends-shell .feature-mini {
                 grid-template-columns:repeat(3,1fr);
             }
@@ -1751,6 +1762,10 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay.compact .settings-shell .feature-mini { grid-template-columns:repeat(3,1fr); }
             #fatcat-dom-panel-overlay.compact .settings-shell .feature-mini span { min-height:48px; font-size:1.75%; }
             #fatcat-dom-panel-overlay.compact .settings-shell .feature-card { min-height:62px; font-size:1.92%; }
+            #fatcat-dom-panel-overlay.compact .settings-shell .server-status-grid { grid-template-columns:repeat(2,1fr); }
+            #fatcat-dom-panel-overlay.compact .settings-shell .server-status-grid span { min-height:36px; font-size:1.8%; }
+            #fatcat-dom-panel-overlay.compact .settings-shell .server-status-grid b { font-size:1.9%; }
+            #fatcat-dom-panel-overlay.compact .settings-shell .server-status-features span { font-size:1.72%; padding:3px 6px; }
             #fatcat-dom-panel-overlay.compact .settings-shell .toggle-pill { min-width:64px; padding:5% 8% 5% 26%; }
             #fatcat-dom-panel-overlay.compact .settings-shell .toggle-pill:before { width:13px; height:13px; left:6px; }
             #fatcat-dom-panel-overlay.compact .feature-card.with-icon { grid-template-columns:18% 1fr; }

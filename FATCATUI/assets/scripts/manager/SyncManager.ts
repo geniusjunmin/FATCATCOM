@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatSkinCatalogItemDto, CatSkinEquipResponse, CatSkinUnlockResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatSkinCatalogItemDto, CatSkinEquipResponse, CatSkinUnlockResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, ServerStatusDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -33,6 +33,8 @@ export class SyncManager {
     private static _lastPresence: PlayerPresenceDto | null = null;
     private static _lastPresenceAt = 0;
     private static _lastPresencePlayerId = "";
+    private static _serverStatus: ServerStatusDto | null = null;
+    private static _serverStatusCheckedAt = 0;
     private static _socialEventSource: EventSource | null = null;
     private static _socialEventPlayerId = "";
 
@@ -51,6 +53,13 @@ export class SyncManager {
         return { ...this._snapshot };
     }
 
+    public static getServerStatus(): { status: ServerStatusDto | null; checkedAt: number } {
+        return {
+            status: this._serverStatus,
+            checkedAt: this._serverStatusCheckedAt,
+        };
+    }
+
     public static getFeatureStateDto(): FeatureSaveData {
         const featureState = SaveManager.isInitialized() ? SaveManager.data.featureState : undefined;
         return {
@@ -66,6 +75,7 @@ export class SyncManager {
             this.setOffline();
             return false;
         }
+        void this.fetchServerStatus();
         const response = await ApiClient.authGuest({
             deviceId: NetworkManager.createGuestDeviceId(),
             companyName: SaveManager.data.player.companyName,
@@ -96,6 +106,27 @@ export class SyncManager {
         void this.fetchServerDailyOrder();
         this.startSocialEventStream();
         return true;
+    }
+
+    public static async fetchServerStatus(): Promise<ServerStatusDto | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        const response = await ApiClient.fetchServerStatus();
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "server_status_failed");
+            return null;
+        }
+        this._serverStatus = response.data;
+        this._serverStatusCheckedAt = Date.now();
+        NetworkManager.markReady();
+        this._snapshot.mode = this._snapshot.mode === "syncing" ? "syncing" : "ready";
+        this._snapshot.lastError = "";
+        this._snapshot.lastSyncAt = this._serverStatusCheckedAt;
+        this.refreshPendingFeatureChanges();
+        this.emitSyncChanged();
+        return response.data;
     }
 
     public static startSocialEventStream(): void {
