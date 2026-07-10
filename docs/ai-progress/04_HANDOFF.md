@@ -24,6 +24,11 @@ Updated: 2026-07-10
 
 ## Latest Visual Note
 
+- Latest settings note: `SettingsAccountCard.ts` owns the account/sync diagnostic card and escapes all dynamic strings before markup insertion. Keep `BottomNavUI.ts` limited to assembling the view model from `NetworkManager` and `SyncManager`.
+- The card must remain immediately after `SettingsStatusCard` and before preference toggles. Preserve `.settings-account-card`, `.settings-account-grid`, `.settings-account-actions`, all five `data-action` names, and the compact three-column action layout.
+- `capture-utility-regression.js` requires four fields, five readable actions, and horizontal plus vertical containment. The extra bottom padding is intentional: without it, the second action row overlapped the following music card by about 8px.
+- Current green evidence: Cocos reimport/refresh for `db://assets/scripts/ui/SettingsAccountCard.ts`, focused TypeScript diagnostics, live card geometry with a positive gap to the next card, inspected 430px screenshot, four-size utility regression, 18 UI click steps, full quick verify, and 104/104 server tests.
+
 - Latest code-health note: `FriendFactoryCards.ts` now owns the friend snapshot, factory detail, and visit-scene HTML, including decoration tags, assigned-cat portraits, and visit/gift/help/refresh/close action markers. `BottomNavUI.ts` should remain the state/data/asset adapter through `getFriendFactoryRoomViews()`.
 - `check-friend-visit-scene-contract.js`, `check-friend-decor-contract.js`, and `check-real-friend-contract.js` read the helper directly. Preserve `renderFriendSnapshotCard`, `renderFriendFactoryDetailCard`, `renderFriendVisitSceneCard`, and the existing `data-action` names when changing the social UI.
 - Current green evidence: Cocos reimport/refresh for `db://assets/scripts/ui/FriendFactoryCards.ts`, focused TypeScript diagnostics, clean live preview with 3 floors/6 cat portraits/6 decor tags, four-size utility regression, 18 UI click steps, full quick verify, and 104/104 server tests.

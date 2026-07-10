@@ -191,6 +191,23 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .settings-shell .server-status-features { display:flex; flex-wrap:wrap; gap:5px; }
             #fatcat-dom-panel-overlay .settings-shell .server-status-features span { padding:3px 8px; border-radius:999px; background:rgba(246,209,117,.18); color:#fff4d0; font-size:1.65%; font-weight:900; box-shadow:inset 0 0 0 1px rgba(255,232,166,.18); }
             #fatcat-dom-panel-overlay .settings-shell .server-status-card small { color:#f3d49b; font-weight:800; }
+            #fatcat-dom-panel-overlay .settings-account-card { display:grid; gap:8px; min-height:0; padding:2.4% 2.4% calc(2.4% + 14px); background:linear-gradient(145deg,#fff1cf,#ddb77e); border-color:#8f6037; color:#4b301e; box-shadow:inset 0 0 0 2px rgba(255,250,224,.42), 0 3px 0 rgba(72,43,25,.22); }
+            #fatcat-dom-panel-overlay .settings-account-card.connected { box-shadow:inset 0 0 0 2px rgba(255,250,224,.42), 0 0 0 3px rgba(103,157,64,.15), 0 3px 0 rgba(72,43,25,.22); }
+            #fatcat-dom-panel-overlay .settings-account-head { display:grid; grid-template-columns:34px 1fr auto; gap:8px; align-items:center; min-width:0; }
+            #fatcat-dom-panel-overlay .account-connection-dot { width:28px; height:28px; border-radius:50%; background:linear-gradient(#a38a73,#684b37); box-shadow:inset 0 0 0 5px rgba(255,245,214,.34), 0 2px 0 rgba(66,40,24,.25); }
+            #fatcat-dom-panel-overlay .settings-account-card.connected .account-connection-dot { background:linear-gradient(#8dc65b,#4d842e); }
+            #fatcat-dom-panel-overlay .settings-account-head div { min-width:0; }
+            #fatcat-dom-panel-overlay .settings-account-head b { display:block; color:#4b2d1b; font-size:13px; }
+            #fatcat-dom-panel-overlay .settings-account-head em { display:block; color:#866044; font-size:10px; font-style:normal; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .settings-account-head strong { padding:4px 10px; border-radius:999px; color:#fff8db; background:linear-gradient(#8d6b4e,#5f412f); box-shadow:inset 0 0 0 2px rgba(255,240,202,.16); font-size:10px; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .settings-account-card.connected .settings-account-head strong { background:linear-gradient(#78ad46,#477b2d); }
+            #fatcat-dom-panel-overlay .settings-account-grid { display:grid; grid-template-columns:1.35fr 1fr .7fr; gap:6px; min-width:0; }
+            #fatcat-dom-panel-overlay .settings-account-grid span { min-width:0; min-height:42px; padding:6px 8px; border-radius:8px; background:rgba(101,66,39,.11); color:#8a6244; font-size:9px; font-weight:900; }
+            #fatcat-dom-panel-overlay .settings-account-grid b { display:block; margin-top:2px; color:#4a2d1c; font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            #fatcat-dom-panel-overlay .settings-account-grid .account-error { grid-column:1 / -1; min-height:36px; }
+            #fatcat-dom-panel-overlay .settings-account-actions { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; }
+            #fatcat-dom-panel-overlay .settings-account-actions .tag { min-width:0; min-height:32px; padding:5px 3px; font-size:9px; white-space:normal; line-height:1.12; }
+            #fatcat-dom-panel-overlay .settings-account-actions .primary { background:linear-gradient(#80b94c,#4b7d2d); color:#fff; }
             #fatcat-dom-panel-overlay .friends-shell .feature-mini {
                 grid-template-columns:repeat(3,1fr);
             }
@@ -1773,6 +1790,18 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay.compact .settings-shell .server-status-grid span { min-height:36px; font-size:1.8%; }
             #fatcat-dom-panel-overlay.compact .settings-shell .server-status-grid b { font-size:1.9%; }
             #fatcat-dom-panel-overlay.compact .settings-shell .server-status-features span { font-size:1.72%; padding:3px 6px; }
+            #fatcat-dom-panel-overlay.compact .settings-account-card { gap:5px; padding:2.2% 2.2% calc(2.2% + 14px); }
+            #fatcat-dom-panel-overlay.compact .settings-account-head { grid-template-columns:26px 1fr auto; gap:5px; }
+            #fatcat-dom-panel-overlay.compact .account-connection-dot { width:22px; height:22px; }
+            #fatcat-dom-panel-overlay.compact .settings-account-head b { font-size:11px; }
+            #fatcat-dom-panel-overlay.compact .settings-account-head em { font-size:8px; }
+            #fatcat-dom-panel-overlay.compact .settings-account-head strong { padding:3px 7px; font-size:8px; }
+            #fatcat-dom-panel-overlay.compact .settings-account-grid { grid-template-columns:1.2fr 1fr .7fr; gap:4px; }
+            #fatcat-dom-panel-overlay.compact .settings-account-grid span { min-height:34px; padding:4px 6px; font-size:8px; }
+            #fatcat-dom-panel-overlay.compact .settings-account-grid b { font-size:9px; }
+            #fatcat-dom-panel-overlay.compact .settings-account-grid .account-error { min-height:30px; }
+            #fatcat-dom-panel-overlay.compact .settings-account-actions { grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; }
+            #fatcat-dom-panel-overlay.compact .settings-account-actions .tag { min-height:25px; padding:4px 2px; font-size:8px; }
             #fatcat-dom-panel-overlay.compact .settings-shell .toggle-pill { min-width:64px; padding:5% 8% 5% 26%; }
             #fatcat-dom-panel-overlay.compact .settings-shell .toggle-pill:before { width:13px; height:13px; left:6px; }
             #fatcat-dom-panel-overlay.compact .feature-card.with-icon { grid-template-columns:18% 1fr; }

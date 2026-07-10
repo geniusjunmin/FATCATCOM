@@ -123,6 +123,7 @@ import {
     type FriendFactoryRoomView,
 } from "./FriendFactoryCards";
 import { renderFriendVisitReportCard } from "./FriendVisitReportCard";
+import { renderSettingsAccountCard } from "./SettingsAccountCard";
 import { renderServerStatusCard } from "./SettingsStatusCard";
 
 const { ccclass, property } = _decorator;
@@ -2168,7 +2169,16 @@ export class BottomNavUI extends Component {
         const syncLabel = this.getSyncModeLabel(sync.mode);
         const settings = SETTINGS_PANEL_ITEMS.map(item => ({ ...item, on: this.getSettingValue(item.id) }));
         const rows = settings.map(item => `<div class="feature-card setting-row"><div><b>${item.name}</b><br>${item.desc}</div><button class="toggle-pill ${item.on ? "" : "off"}" data-action="toggleSetting" data-id="${item.id}">${item.on ? "开启" : "关闭"}</button></div>`).join("");
-        return `<div class="panel-shell utility-shell settings-shell"><h2>设置</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("settings")}')"></span><div><b>公司设置</b><br>当前支持本地离线和 .NET Core 服务端联调。URL 可用 ?api=http://localhost:5144 临时指定。</div><span class="feature-badge">存档<br>${created}</span></div><div class="feature-mini"><span>服务器<b>${serverLabel}</b></span><span>同步<b>${syncLabel}</b></span><span>待同步<b>${sync.pendingFeatureChanges}</b></span></div><div class="feature-list">${renderServerStatusCard(serverStatus.status, serverStatus.checkedAt)}${rows}<div class="feature-card"><b>账号状态</b><br>API：${apiBase}<br>玩家：${playerId}<br>最近错误：${sync.lastError || network.lastError || "无"}<br><button class="tag" data-action="connectServer">连接服务器</button> <button class="tag" data-action="syncSave">同步存档</button> <button class="tag warn" data-action="pushSettings">推送设置</button> <button class="tag" data-action="previewProduction">结算预览</button> <button class="tag" data-action="refreshServerStatus">刷新状态</button></div></div></div>`;
+        const accountCard = renderSettingsAccountCard({
+            apiBase,
+            playerId,
+            networkMode: serverLabel,
+            syncMode: syncLabel,
+            pendingChanges: sync.pendingFeatureChanges,
+            lastError: sync.lastError || network.lastError || "",
+            connected: NetworkManager.canUseServer,
+        });
+        return `<div class="panel-shell utility-shell settings-shell"><h2>设置</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("settings")}')"></span><div><b>公司设置</b><br>当前支持本地离线和 .NET Core 服务端联调。URL 可用 ?api=http://localhost:5144 临时指定。</div><span class="feature-badge">存档<br>${created}</span></div><div class="feature-mini"><span>服务器<b>${serverLabel}</b></span><span>同步<b>${syncLabel}</b></span><span>待同步<b>${sync.pendingFeatureChanges}</b></span></div><div class="feature-list">${renderServerStatusCard(serverStatus.status, serverStatus.checkedAt)}${accountCard}${rows}</div></div>`;
     }
 
     private renderFeatureProgressCard(icon: string, title: string, desc: string, current: number, goal: number, reward: string, action: string): string {

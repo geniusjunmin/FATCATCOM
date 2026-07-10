@@ -7,7 +7,7 @@ Updated: 2026-07-10
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Continue splitting cohesive friend/settings render cards from `BottomNavUI.ts`, or return to final main/cat micro-alignment against the root references. |
+| Best Next Move | Return to final main/cat visual micro-alignment, or extract the remaining friend list/search/activity render cards from `BottomNavUI.ts`. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -25,6 +25,10 @@ Updated: 2026-07-10
 | Biggest Risk | Frontend size | `BottomNavUI.ts` is down to roughly 226K characters after extracting friend factory cards, but still owns too many feature render adapters. |
 
 ## Client UI
+
+- Latest settings pass replaces the plain line-broken account block with `SettingsAccountCard.ts`. The typed helper owns escaped API/player/error text, connected/offline state, four diagnostic fields, and the five existing connect/sync/push/preview/status actions.
+- The account card now appears directly after server status, ahead of preference toggles. `PanelPresentation.ts` gives it a target-style paper/wood treatment, stable readable pixel typography, responsive three-column actions on compact screens, and enough bottom space to contain wrapped actions without overlapping the next card.
+- Utility regression now requires the account card, four fields, five readable actions, and full horizontal/vertical containment at 430x932, 414x896, 360x800, and 768x1024. Verification includes Cocos reimport/refresh, clean live preview geometry, inspected screenshots, 18-step navigation, full quick verify, and 104/104 tests.
 
 - Latest code-health pass extracts the friend factory snapshot, factory detail, and full visit-scene renderers into `FriendFactoryCards.ts`. `BottomNavUI.ts` now selects the friend, resolves authoritative/offline rooms, formats values, and supplies asset URLs through typed view models.
 - The helper owns snapshot/detail/scene markup, room decoration tags, assigned-cat mini portraits, and all existing visit/gift/help/refresh/close action markers. The main UI file dropped about 10.5K characters without changing action dispatch or responsive CSS.

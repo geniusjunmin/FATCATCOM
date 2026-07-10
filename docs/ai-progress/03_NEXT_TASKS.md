@@ -26,6 +26,14 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 ## P0 Now
 
+### Completed: Settings Account Diagnostics Card
+
+- Added `SettingsAccountCard.ts` with a typed view model and HTML escaping for API, player, network, sync, and error text.
+- Promoted account diagnostics directly below server readiness and preserved all five existing settings actions.
+- Added warm paper/wood styling, connection-state treatment, compact three-column actions, stable pixel typography, and vertical spacing for wrapped buttons.
+- Utility regression now guards four diagnostic cells, five readable buttons, and four-edge containment at every supported viewport.
+- Verified with Cocos reimport/refresh, TypeScript diagnostics, settings contract, live geometry inspection, four-size utility screenshots, 18-step clicks, full quick verify, and 104/104 tests.
+
 ### Completed: Friend Factory Card Extraction
 
 - Added `FriendFactoryCards.ts` with typed render models for the friend snapshot, factory detail, and full visit scene.
