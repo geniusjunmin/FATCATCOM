@@ -19,6 +19,7 @@ function assertContains(label, source, pattern) {
 }
 
 const bottomNav = read("FATCATUI/assets/scripts/ui/BottomNavUI.ts");
+const friendVisitReportCard = read("FATCATUI/assets/scripts/ui/FriendVisitReportCard.ts");
 const panelPresentation = read("FATCATUI/assets/scripts/ui/PanelPresentation.ts");
 const utilityRegression = read("tools/capture-utility-regression.js");
 const nextTasks = read("docs/ai-progress/03_NEXT_TASKS.md");
@@ -39,8 +40,19 @@ assertContains("assigned cat mini portraits", bottomNav, "renderFriendRoomCats")
 assertContains("visitor cat card", bottomNav, "friend-scene-mascot");
 assertContains("reward status strip", bottomNav, "friend-scene-reward");
 assertContains("visit report timeline data", bottomNav, "timeline:");
-assertContains("visit report timeline render", bottomNav, "visit-report-timeline");
+assertContains("visit report card import", bottomNav, "./FriendVisitReportCard");
+assertContains("visit report card delegation", bottomNav, "renderFriendVisitReportCard({");
+assertContains("visit report model income", bottomNav, "friendIncomeText");
+assertContains("visit report model floors", bottomNav, "productionText");
 assertContains("panel presentation import", bottomNav, "from \"./PanelPresentation\"");
+
+assertContains("visit report card exports renderer", friendVisitReportCard, "export function renderFriendVisitReportCard");
+assertContains("visit report timeline render", friendVisitReportCard, "visit-report-timeline");
+assertContains("visit report action close", friendVisitReportCard, "closeFriendVisitReport");
+assertContains("visit report action visit", friendVisitReportCard, "visitFriend");
+assertContains("visit report action gift", friendVisitReportCard, "sendFriendGift");
+assertContains("visit report action help", friendVisitReportCard, "helpFriend");
+assertContains("visit report help disabled guard", friendVisitReportCard, "report.canHelp");
 assertContains("compact scene guard", panelPresentation, "compact .friend-scene-stage");
 assertContains("target roof pseudo style", panelPresentation, "friend-scene-sign:before");
 assertContains("compact sign guard", panelPresentation, "compact .friend-scene-sign");

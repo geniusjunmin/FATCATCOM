@@ -26,6 +26,10 @@ Updated: 2026-07-10
 
 ## Client UI
 
+- Latest code-health pass extracts friend interaction report rendering from `BottomNavUI.ts` into `FriendVisitReportCard.ts`. The main UI class now adapts friend/report data into a pure view model, while the helper owns badge labels, timeline fallback, floor rows, close/visit/gift/help actions, and help disabled state.
+- `tools/check-friend-visit-scene-contract.js` now reads the extracted helper directly and verifies report delegation, timeline markup, action markers, and help gating. This continues the gradual split of cohesive render responsibilities out of `BottomNavUI.ts` without changing social action ownership.
+- Verification: Cocos refresh/reimport for the new helper, focused TypeScript diagnostics, friend visit-scene contract, clean preview runtime probe, four-size utility screenshot regression, full `quick-verify.ps1`, and 104/104 server tests pass.
+
 - Latest code-health pass extracts the settings server-status card from `BottomNavUI.ts` into `SettingsStatusCard.ts`. `BottomNavUI` now only reads `SyncManager.getServerStatus()` and embeds the helper output, while the helper owns status DTO formatting, feature chips, data markers, and refresh action markup.
 - `tools/check-settings-server-status-contract.js` now reads the extracted helper directly and fails if `private renderServerStatusCard` returns to `BottomNavUI.ts`. Cocos reimport/refresh for the new script was required to clear preview `__unresolved_*` chunk errors.
 - Verification: Cocos reimport for `db://assets/scripts/ui/SettingsStatusCard.ts`, scripts refresh, focused TypeScript diagnostics, settings-status contract, preview runtime probe, four-size utility screenshot regression, full `quick-verify.ps1`, and 104/104 server tests pass.

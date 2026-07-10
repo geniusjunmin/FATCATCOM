@@ -116,6 +116,7 @@ import {
 } from "./HudPresentation";
 import { DOM_NAV_STYLES, DOM_NAV_TARGET_STYLES } from "./NavPresentation";
 import { DOM_PANEL_STYLES } from "./PanelPresentation";
+import { renderFriendVisitReportCard } from "./FriendVisitReportCard";
 import { renderServerStatusCard } from "./SettingsStatusCard";
 
 const { ccclass, property } = _decorator;
@@ -1713,15 +1714,22 @@ export class BottomNavUI extends Component {
         if (!report) return "";
         const friend = friends.find(item => item.id === report.friendId);
         if (!friend) return "";
-        const actionLabel = report.kind === "help" ? "助力报告" : report.kind === "gift" ? "送礼报告" : "访问报告";
-        const floorRows = this.getFriendRoomRows(friend).slice(0, 3)
-            .map(room => `<span>${room.floor}<em>${this.formatNumber(room.production)}/秒</em></span>`)
-            .join("");
-        const timeline = (report.timeline.length > 0 ? report.timeline : [report.statusText, report.rewardText, `${this.formatNumber(friend.income)}/秒`])
-            .slice(0, 3)
-            .map((item, index) => `<span><i>${index + 1}</i><b>${item}</b></span>`)
-            .join("");
-        return `<div class="friend-visit-report"><div class="visit-report-head"><span class="visit-report-badge">${report.kind === "help" ? "助" : report.kind === "gift" ? "礼" : "访"}</span><div class="visit-report-copy"><b>${friend.name} ${actionLabel}</b><em>${report.statusText} · ${this.formatFriendReportTime(report.updatedAt)}</em></div><button class="visit-report-close" data-action="closeFriendVisitReport">×</button></div><div class="visit-report-grid"><span>互动奖励<b>${report.rewardText}</b></span><span>好友收益<b>${this.formatNumber(friend.income)}/秒</b></span></div><div class="visit-report-timeline">${timeline}</div><div class="visit-report-floors">${floorRows}</div><div class="visit-report-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">再次访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button><button class="tag boost" data-action="helpFriend" data-id="${friend.id}" ${friend.profile?.isRealPlayer ? "" : "disabled"}>生产助力</button></div></div>`;
+        const friendIncomeText = `${this.formatNumber(friend.income)}/秒`;
+        return renderFriendVisitReportCard({
+            friendId: friend.id,
+            friendName: friend.name,
+            kind: report.kind,
+            rewardText: report.rewardText,
+            statusText: report.statusText,
+            updatedTimeText: this.formatFriendReportTime(report.updatedAt),
+            friendIncomeText,
+            canHelp: !!friend.profile?.isRealPlayer,
+            timeline: report.timeline,
+            floors: this.getFriendRoomRows(friend).slice(0, 3).map(room => ({
+                floor: room.floor,
+                productionText: `${this.formatNumber(room.production)}/秒`,
+            })),
+        });
     }
 
     private renderFriendFactoryDetail(friends: FriendPanelRow[]): string {

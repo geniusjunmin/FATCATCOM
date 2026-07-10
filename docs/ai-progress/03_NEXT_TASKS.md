@@ -26,6 +26,14 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 ## P0 Now
 
+### Completed: Friend Visit Report Card Extraction
+
+- Moved the friend interaction report card renderer into `FATCATUI/assets/scripts/ui/FriendVisitReportCard.ts` with committed Cocos metadata.
+- `BottomNavUI.ts` now keeps server/offline visit, gift, and help actions, then passes a small view model into `renderFriendVisitReportCard()`.
+- The helper owns report badges, action labels, timeline fallback, floor rows, close/visit/gift/help buttons, and help disabled state.
+- `check-friend-visit-scene-contract.js` now guards the extracted helper, delegation boundary, timeline markup, action markers, and help gating.
+- Verified with Cocos refresh/reimport, TypeScript diagnostics, friend visit contract, preview runtime probe, four-size utility screenshots, full quick verify, and 104/104 tests.
+
 ### Completed: Settings Status Card Extraction
 
 - Moved the settings server-status card renderer into `FATCATUI/assets/scripts/ui/SettingsStatusCard.ts` with committed Cocos metadata.

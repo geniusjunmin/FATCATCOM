@@ -24,6 +24,10 @@ Updated: 2026-07-10
 
 ## Latest Visual Note
 
+- Latest code-health note: friend interaction report card rendering now lives in `FriendVisitReportCard.ts`. Keep `BottomNavUI.ts` as the action/data adapter for `_friendVisitReport`, `getFriendRoomRows()`, and formatter calls; the helper owns badge labels, timeline fallback, floor rows, and close/visit/gift/help action markup.
+- `check-friend-visit-scene-contract.js` reads `FriendVisitReportCard.ts` directly and requires the helper export, `.visit-report-timeline`, `closeFriendVisitReport`, `visitFriend`, `sendFriendGift`, `helpFriend`, and `report.canHelp` disabled gating. Preserve these markers if the report card is redesigned.
+- Current green evidence: Cocos refresh/reimport for `db://assets/scripts/ui/FriendVisitReportCard.ts`, focused TypeScript diagnostics, friend visit-scene contract, clean preview runtime probe, four-size utility regression, full quick verify, and 104/104 server tests.
+
 - Latest code-health note: settings server-status card rendering now lives in `SettingsStatusCard.ts`. Keep `BottomNavUI.ts` as the consumer of `SyncManager.getServerStatus()` and the imported `renderServerStatusCard()` helper; do not reintroduce `private renderServerStatusCard` there.
 - `check-settings-server-status-contract.js` reads both `BottomNavUI.ts` and `SettingsStatusCard.ts`, requiring the helper export, data markers, realtime transport, multiplayer chips, refresh action, and extracted ownership boundary.
 - When adding new Cocos TypeScript modules, reimport the new asset and refresh `db://assets/scripts`; this round found preview `__unresolved_*` chunk errors until `SettingsStatusCard.ts` was reimported.
