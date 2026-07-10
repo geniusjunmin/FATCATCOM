@@ -24,6 +24,10 @@ Updated: 2026-07-10
 
 ## Latest Visual Note
 
+- Latest code-health note: `FriendFactoryCards.ts` now owns the friend snapshot, factory detail, and visit-scene HTML, including decoration tags, assigned-cat portraits, and visit/gift/help/refresh/close action markers. `BottomNavUI.ts` should remain the state/data/asset adapter through `getFriendFactoryRoomViews()`.
+- `check-friend-visit-scene-contract.js`, `check-friend-decor-contract.js`, and `check-real-friend-contract.js` read the helper directly. Preserve `renderFriendSnapshotCard`, `renderFriendFactoryDetailCard`, `renderFriendVisitSceneCard`, and the existing `data-action` names when changing the social UI.
+- Current green evidence: Cocos reimport/refresh for `db://assets/scripts/ui/FriendFactoryCards.ts`, focused TypeScript diagnostics, clean live preview with 3 floors/6 cat portraits/6 decor tags, four-size utility regression, 18 UI click steps, full quick verify, and 104/104 server tests.
+
 - Latest code-health note: friend interaction report card rendering now lives in `FriendVisitReportCard.ts`. Keep `BottomNavUI.ts` as the action/data adapter for `_friendVisitReport`, `getFriendRoomRows()`, and formatter calls; the helper owns badge labels, timeline fallback, floor rows, and close/visit/gift/help action markup.
 - `check-friend-visit-scene-contract.js` reads `FriendVisitReportCard.ts` directly and requires the helper export, `.visit-report-timeline`, `closeFriendVisitReport`, `visitFriend`, `sendFriendGift`, `helpFriend`, and `report.canHelp` disabled gating. Preserve these markers if the report card is redesigned.
 - Current green evidence: Cocos refresh/reimport for `db://assets/scripts/ui/FriendVisitReportCard.ts`, focused TypeScript diagnostics, friend visit-scene contract, clean preview runtime probe, four-size utility regression, full quick verify, and 104/104 server tests.

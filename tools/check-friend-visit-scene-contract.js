@@ -19,6 +19,7 @@ function assertContains(label, source, pattern) {
 }
 
 const bottomNav = read("FATCATUI/assets/scripts/ui/BottomNavUI.ts");
+const friendFactoryCards = read("FATCATUI/assets/scripts/ui/FriendFactoryCards.ts");
 const friendVisitReportCard = read("FATCATUI/assets/scripts/ui/FriendVisitReportCard.ts");
 const panelPresentation = read("FATCATUI/assets/scripts/ui/PanelPresentation.ts");
 const utilityRegression = read("tools/capture-utility-regression.js");
@@ -33,18 +34,32 @@ assertContains("scene render method", bottomNav, "renderFriendVisitScene");
 assertContains("scene before report", bottomNav, "this.renderFriendVisitScene(friends)}${this.renderFriendVisitReport(friends)");
 assertContains("server/offline room reuse", bottomNav, "this.getFriendRoomRows(friend)");
 assertContains("dedicated friend factory backdrop", bottomNav, "GeneratedBackgroundAssets.friendFactoryVisit");
-assertContains("friend factory sign", bottomNav, "friend-scene-sign");
-assertContains("room prop thumbnails", bottomNav, "room-thumb");
 assertContains("room scene resolver", bottomNav, "getFriendRoomScene");
-assertContains("assigned cat mini portraits", bottomNav, "renderFriendRoomCats");
-assertContains("visitor cat card", bottomNav, "friend-scene-mascot");
-assertContains("reward status strip", bottomNav, "friend-scene-reward");
+assertContains("friend factory cards import", bottomNav, "./FriendFactoryCards");
+assertContains("snapshot card delegation", bottomNav, "renderFriendSnapshotCardMarkup({");
+assertContains("factory detail delegation", bottomNav, "renderFriendFactoryDetailCard({");
+assertContains("visit scene delegation", bottomNav, "renderFriendVisitSceneCard({");
+assertContains("shared room view adapter", bottomNav, "getFriendFactoryRoomViews");
 assertContains("visit report timeline data", bottomNav, "timeline:");
 assertContains("visit report card import", bottomNav, "./FriendVisitReportCard");
 assertContains("visit report card delegation", bottomNav, "renderFriendVisitReportCard({");
 assertContains("visit report model income", bottomNav, "friendIncomeText");
 assertContains("visit report model floors", bottomNav, "productionText");
 assertContains("panel presentation import", bottomNav, "from \"./PanelPresentation\"");
+
+assertContains("snapshot renderer export", friendFactoryCards, "export function renderFriendSnapshotCard");
+assertContains("factory detail renderer export", friendFactoryCards, "export function renderFriendFactoryDetailCard");
+assertContains("visit scene renderer export", friendFactoryCards, "export function renderFriendVisitSceneCard");
+assertContains("friend factory sign", friendFactoryCards, "friend-scene-sign");
+assertContains("room prop thumbnails", friendFactoryCards, "room-thumb");
+assertContains("assigned cat mini portraits", friendFactoryCards, "room-cats");
+assertContains("visitor cat card", friendFactoryCards, "friend-scene-mascot");
+assertContains("reward status strip", friendFactoryCards, "friend-scene-reward");
+assertContains("snapshot visit action", friendFactoryCards, "data-action=\"visitFriend\"");
+assertContains("factory scene open action", friendFactoryCards, "data-action=\"openFriendVisitScene\"");
+assertContains("scene help disabled guard", friendFactoryCards, "view.canHelp");
+assertContains("decor tags renderer", friendFactoryCards, "function renderDecorTags");
+assertContains("room cats renderer", friendFactoryCards, "function renderRoomCats");
 
 assertContains("visit report card exports renderer", friendVisitReportCard, "export function renderFriendVisitReportCard");
 assertContains("visit report timeline render", friendVisitReportCard, "visit-report-timeline");
@@ -88,6 +103,7 @@ console.log(JSON.stringify({
   checked: [
     "friend visit-scene state/actions",
     "friend visit-scene render order",
+    "friend factory card extraction and delegation",
     "server/offline room reuse",
     "room thumbnail and assigned-cat visuals",
     "visitor mascot and reward strip",

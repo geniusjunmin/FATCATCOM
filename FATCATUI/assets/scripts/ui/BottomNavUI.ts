@@ -116,6 +116,12 @@ import {
 } from "./HudPresentation";
 import { DOM_NAV_STYLES, DOM_NAV_TARGET_STYLES } from "./NavPresentation";
 import { DOM_PANEL_STYLES } from "./PanelPresentation";
+import {
+    renderFriendFactoryDetailCard,
+    renderFriendSnapshotCard as renderFriendSnapshotCardMarkup,
+    renderFriendVisitSceneCard,
+    type FriendFactoryRoomView,
+} from "./FriendFactoryCards";
 import { renderFriendVisitReportCard } from "./FriendVisitReportCard";
 import { renderServerStatusCard } from "./SettingsStatusCard";
 
@@ -1703,10 +1709,20 @@ export class BottomNavUI extends Component {
         const lastGift = this.getFeatureTimestamp("friendGifts", selected.id) || "未送礼";
         const width = Math.max(8, Math.min(100, Math.floor(selected.income / Math.max(1, maxIncome) * 100)));
         const rewardPreview = Math.max(50, Math.floor(selected.income * 0.12));
-        const floors = this.getFriendRoomRows(selected).slice(0, 3)
-            .map(room => `<div class="snapshot-floor"><i>${room.floor}</i><b>${room.name}</b><em>${this.formatNumber(room.production)}/秒</em></div>`)
-            .join("");
-        return `<div class="friend-snapshot-card"><div class="snapshot-head"><span class="friend-avatar"><i class="friend-rank">工厂</i></span><div class="snapshot-copy"><b>${selected.name} 工厂快照</b><em>Lv.${selected.level} · 收益 ${this.formatNumber(selected.income)}/秒 · ${selected.status}</em>${this.renderFriendProfileMeta(selected)}<div class="snapshot-meter"><i style="width:${width}%"></i></div></div><div class="snapshot-action"><button class="tag" data-action="visitFriend" data-id="${selected.id}">访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${selected.id}">送礼</button><button class="tag boost" data-action="helpFriend" data-id="${selected.id}" ${selected.profile?.isRealPlayer ? "" : "disabled"}>助力</button></div></div><div class="snapshot-stats"><span>访问奖励<b>+${this.formatNumber(rewardPreview)}金币</b></span><span>最近访问<b>${lastVisit}</b></span><span>礼物状态<b>${lastGift}</b></span></div><div class="snapshot-floors">${floors}</div></div>`;
+        return renderFriendSnapshotCardMarkup({
+            friendId: selected.id,
+            friendName: selected.name,
+            friendLevel: selected.level,
+            friendIncomeText: `${this.formatNumber(selected.income)}/秒`,
+            friendStatus: selected.status,
+            profileMarkup: this.renderFriendProfileMeta(selected),
+            canHelp: !!selected.profile?.isRealPlayer,
+            incomePercent: width,
+            rewardText: `+${this.formatNumber(rewardPreview)}金币`,
+            lastVisitText: lastVisit,
+            lastGiftText: lastGift,
+            rooms: this.getFriendFactoryRoomViews(selected),
+        });
     }
 
     private renderFriendVisitReport(friends: FriendPanelRow[]): string {
@@ -1741,10 +1757,20 @@ export class BottomNavUI extends Component {
         const source = friend.rooms?.length ? "服务端房间" : "本地估算";
         const staffedRooms = rooms.filter(room => room.assignedCatCount > 0).length;
         const decorTotal = rooms.reduce((sum, room) => sum + room.decorScore, 0);
-        const roomRows = rooms.slice(0, 6)
-            .map(room => `<div class="factory-room-row"><i>${room.floor}</i><b>${room.name}<small>Lv.${room.level} · ${room.featuredCatName} · 猫 ${room.assignedCatCount} · 装饰 ${room.decorScore}</small>${this.renderFriendDecorTags(room.decorations)}</b><em>${this.formatNumber(room.production)}/秒</em></div>`)
-            .join("");
-        return `<div class="friend-factory-detail"><div class="factory-detail-head"><div><b>${friend.name} 工厂详情</b><em>${source} · ${rooms.length} 个楼层</em></div><button class="tag" data-action="openFriendVisitScene" data-id="${friend.id}">进入访问</button></div><div class="factory-detail-stats"><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>派驻房间<b>${staffedRooms}/${rooms.length}</b></span><span>装饰评分<b>${this.formatNumber(decorTotal)}</b></span></div><div class="factory-room-list">${roomRows}</div></div>`;
+        return renderFriendFactoryDetailCard({
+            friendId: friend.id,
+            friendName: friend.name,
+            friendLevel: friend.level,
+            friendIncomeText: `${this.formatNumber(friend.income)}/秒`,
+            friendStatus: friend.status,
+            profileMarkup: this.renderFriendProfileMeta(friend),
+            canHelp: !!friend.profile?.isRealPlayer,
+            sourceText: source,
+            topFloorText: topRoom?.floor ?? "--",
+            staffedRoomsText: `${staffedRooms}/${rooms.length}`,
+            decorTotalText: this.formatNumber(decorTotal),
+            rooms: this.getFriendFactoryRoomViews(friend),
+        });
     }
 
     private renderFriendVisitScene(friends: FriendPanelRow[]): string {
@@ -1760,10 +1786,25 @@ export class BottomNavUI extends Component {
         const lastVisit = this.getFeatureTimestamp("friendVisits", friend.id) || "未访问";
         const lastGift = this.getFeatureTimestamp("friendGifts", friend.id) || "未送礼";
         const rewardPreview = Math.max(50, Math.floor(friend.income * 0.12));
-        const floorRows = rooms.slice(0, 6)
-            .map((room, index) => `<div class="friend-scene-floor"><i>${room.floor}</i><span class="room-thumb asset" style="background-image:url('${this.getFactoryPropDataUri(room.scene)}')"></span><b>${room.name}<small>Lv.${room.level} · ${room.featuredCatName} · 猫 ${room.assignedCatCount}</small><span class="room-cats">${this.renderFriendRoomCats(room.assignedCatCount, index)}</span>${this.renderFriendDecorTags(room.decorations)}</b><em>${this.formatNumber(room.production)}/秒</em></div>`)
-            .join("");
-        return `<div class="friend-visit-scene" style="--friend-factory-art:url('${this.getDomAssetDataUri(GeneratedBackgroundAssets.friendFactoryVisit)}')"><div class="friend-scene-head"><span class="friend-avatar"><i class="friend-rank">VISIT</i></span><div><b>${friend.name} 访问中</b><em>公司 Lv.${friend.level} · ${friend.status} · ${rooms.length} 个楼层</em>${this.renderFriendProfileMeta(friend)}</div><button class="friend-scene-close" data-action="closeFriendVisitScene" aria-label="关闭好友工厂">×</button></div><div class="friend-scene-sign"><span>好友咖啡工坊</span><small>今日参观通行证</small></div><div class="friend-scene-stage"><div class="friend-scene-building">${floorRows}</div><div class="friend-scene-side"><div class="friend-scene-mascot"><i style="background-image:url('${this.getCatFullArtAsset("c_001")}')"></i><b>访客猫</b><small>正在巡楼</small></div><span>总收益<b>${this.formatNumber(friend.income)}/秒</b></span><span>房间合计<b>${this.formatNumber(roomTotal)}/秒</b></span><span>主力楼层<b>${topRoom?.floor ?? "--"}</b></span><span>值班房间<b>${staffedRooms}/${rooms.length}</b></span><span>装饰评分<b>${this.formatNumber(decorTotal)}</b></span></div></div><div class="friend-scene-reward"><span>访问奖励<b>+${this.formatNumber(rewardPreview)} 金币</b></span><span>上次访问<b>${lastVisit}</b></span><span>礼物状态<b>${lastGift}</b></span></div><div class="friend-scene-actions"><button class="tag" data-action="refreshFriendProfile" data-id="${friend.id}">同步资料</button><button class="tag" data-action="visitFriend" data-id="${friend.id}">领取访问</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">赠送猫粮</button><button class="tag boost" data-action="helpFriend" data-id="${friend.id}" ${friend.profile?.isRealPlayer ? "" : "disabled"}>生产助力</button><button class="tag" data-action="closeFriendVisitScene">返回列表</button></div></div>`;
+        return renderFriendVisitSceneCard({
+            friendId: friend.id,
+            friendName: friend.name,
+            friendLevel: friend.level,
+            friendIncomeText: `${this.formatNumber(friend.income)}/秒`,
+            friendStatus: friend.status,
+            profileMarkup: this.renderFriendProfileMeta(friend),
+            canHelp: !!friend.profile?.isRealPlayer,
+            backdropArt: this.getDomAssetDataUri(GeneratedBackgroundAssets.friendFactoryVisit),
+            mascotArt: this.getCatFullArtAsset("c_001"),
+            roomTotalText: `${this.formatNumber(roomTotal)}/秒`,
+            topFloorText: topRoom?.floor ?? "--",
+            staffedRoomsText: `${staffedRooms}/${rooms.length}`,
+            decorTotalText: this.formatNumber(decorTotal),
+            rewardText: `+${this.formatNumber(rewardPreview)} 金币`,
+            lastVisitText: lastVisit,
+            lastGiftText: lastGift,
+            rooms: this.getFriendFactoryRoomViews(friend, true),
+        });
     }
 
     private renderFriendProfileMeta(friend: FriendPanelRow): string {
@@ -1791,6 +1832,29 @@ export class BottomNavUI extends Component {
         const age = Date.now() - profile.lastActiveAt;
         if (age <= 120000) return "online";
         return age <= 1800000 ? "recent" : "offline";
+    }
+
+    private getFriendFactoryRoomViews(friend: FriendPanelRow, includeArt = false): FriendFactoryRoomView[] {
+        return this.getFriendRoomRows(friend).map((room, roomIndex) => {
+            const catCount = Math.max(1, Math.min(3, room.assignedCatCount || 1));
+            return {
+                floor: room.floor,
+                name: room.name,
+                level: room.level,
+                productionText: `${this.formatNumber(room.production)}/秒`,
+                assignedCatCount: room.assignedCatCount,
+                featuredCatName: room.featuredCatName,
+                decorScore: room.decorScore,
+                decorations: room.decorations.map(decor => ({ name: decor.name, score: decor.score })),
+                roomArt: includeArt ? this.getFactoryPropDataUri(room.scene) : undefined,
+                catArt: includeArt
+                    ? Array.from({ length: catCount }, (_, catIndex) => {
+                        const catId = `c_00${((catIndex + roomIndex) % 5) + 1}`;
+                        return this.getCatFullArtAsset(catId);
+                    })
+                    : undefined,
+            };
+        });
     }
 
     private getFriendRoomRows(friend: FriendPanelRow): Array<{ floor: string; name: string; level: number; production: number; assignedCatCount: number; featuredCatName: string; decorScore: number; decorations: Array<{ decorId: string; name: string; score: number; isPlaced: boolean }>; scene: string }> {
@@ -1821,21 +1885,6 @@ export class BottomNavUI extends Component {
             { floor: "2F", name: "原料车间", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.28)), assignedCatCount: 1, featuredCatName: "搬豆肥猫", decorScore: 70, decorations: [{ decorId: "decor_material_mill", name: "黄铜磨豆机", score: 40, isPlaced: true }, { decorId: "decor_material_crates", name: "原料木箱", score: 30, isPlaced: true }], scene: "mill" },
             { floor: "1F", name: "咖啡厅", level: Math.max(1, Math.floor(friend.level / 3)), production: Math.max(1, Math.floor(friend.income * 0.22)), assignedCatCount: 3, featuredCatName: "招待肥猫", decorScore: 76, decorations: [{ decorId: "decor_cafe_sign", name: "猫爪招牌", score: 42, isPlaced: true }, { decorId: "decor_cafe_cup", name: "幸运咖啡杯", score: 34, isPlaced: true }], scene: "cafe" },
         ];
-    }
-
-    private renderFriendDecorTags(decorations: Array<{ name: string; score: number }>): string {
-        if (decorations.length <= 0) {
-            return `<span class="room-decor-tags"><s>暂无装饰</s></span>`;
-        }
-        return `<span class="room-decor-tags">${decorations.slice(0, 2).map(decor => `<s>${decor.name} +${decor.score}</s>`).join("")}</span>`;
-    }
-
-    private renderFriendRoomCats(count: number, offset: number): string {
-        const total = Math.max(1, Math.min(3, count || 1));
-        return Array.from({ length: total }, (_, index) => {
-            const catId = `c_00${((index + offset) % 5) + 1}`;
-            return `<span style="background-image:url('${this.getCatFullArtAsset(catId)}')"></span>`;
-        }).join("");
     }
 
     private getFriendRoomScene(buildingId: string | undefined, floor: string, name: string): string {

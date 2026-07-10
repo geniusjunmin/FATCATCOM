@@ -26,6 +26,14 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 ## P0 Now
 
+### Completed: Friend Factory Card Extraction
+
+- Added `FriendFactoryCards.ts` with typed render models for the friend snapshot, factory detail, and full visit scene.
+- `BottomNavUI.ts` now adapts friend/room state into formatted models and retains state selection, server/offline room resolution, and asset lookup ownership.
+- Decoration tags, assigned-cat thumbnails, scene actions, and help-disabled gating moved with the presentation markup; existing `data-action` contracts remain unchanged.
+- Friend visit, decor, and real-friend contract checks now validate the extracted module and delegation boundary instead of expecting presentation markup in the main class.
+- Verified with Cocos reimport/refresh, TypeScript diagnostics, preview snapshot/detail/scene probes, four-size utility screenshots, 18-step UI clicks, full quick verify, and 104/104 tests.
+
 ### Completed: Friend Visit Report Card Extraction
 
 - Moved the friend interaction report card renderer into `FATCATUI/assets/scripts/ui/FriendVisitReportCard.ts` with committed Cocos metadata.
