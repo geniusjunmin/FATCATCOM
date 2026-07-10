@@ -18,8 +18,15 @@ function assertContains(label, source, pattern) {
   }
 }
 
+function assertNotContains(label, source, pattern) {
+  if (source.includes(pattern)) {
+    fail("Settings server-status contract check failed.", { label, pattern });
+  }
+}
+
 const syncManager = read("FATCATUI/assets/scripts/manager/SyncManager.ts");
 const bottomNav = read("FATCATUI/assets/scripts/ui/BottomNavUI.ts");
+const settingsStatusCard = read("FATCATUI/assets/scripts/ui/SettingsStatusCard.ts");
 const panelPresentation = read("FATCATUI/assets/scripts/ui/PanelPresentation.ts");
 const utilityRegression = read("tools/capture-utility-regression.js");
 const quickVerify = read("tools/quick-verify.ps1");
@@ -30,16 +37,21 @@ assertContains("SyncManager exposes status getter", syncManager, "getServerStatu
 assertContains("SyncManager fetches public status", syncManager, "ApiClient.fetchServerStatus()");
 assertContains("SyncManager records checked time", syncManager, "_serverStatusCheckedAt");
 
-assertContains("settings panel imports status DTO", bottomNav, "ServerStatusDto");
 assertContains("settings panel auto refreshes status", bottomNav, "refreshServerStatusForPanel");
 assertContains("settings action refreshes status", bottomNav, 'action === "refreshServerStatus"');
 assertContains("settings panel reads cached status", bottomNav, "SyncManager.getServerStatus()");
 assertContains("settings panel renders status card", bottomNav, "renderServerStatusCard");
-assertContains("settings card exposes status marker", bottomNav, "data-server-status");
-assertContains("settings card exposes api version marker", bottomNav, "data-api-version");
-assertContains("settings card exposes config version marker", bottomNav, "data-config-version");
-assertContains("settings card renders realtime transport", bottomNav, "status.realtime.socialEvents");
-assertContains("settings card renders multiplayer chips", bottomNav, "server-status-features");
+assertContains("settings panel imports extracted status card", bottomNav, "./SettingsStatusCard");
+assertNotContains("settings card renderer stays extracted", bottomNav, "private renderServerStatusCard");
+
+assertContains("settings status card imports status DTO", settingsStatusCard, "ServerStatusDto");
+assertContains("settings status card exports renderer", settingsStatusCard, "export function renderServerStatusCard");
+assertContains("settings card exposes status marker", settingsStatusCard, "data-server-status");
+assertContains("settings card exposes api version marker", settingsStatusCard, "data-api-version");
+assertContains("settings card exposes config version marker", settingsStatusCard, "data-config-version");
+assertContains("settings card renders realtime transport", settingsStatusCard, "status.realtime.socialEvents");
+assertContains("settings card renders multiplayer chips", settingsStatusCard, "server-status-features");
+assertContains("settings card renders refresh action", settingsStatusCard, 'data-action="refreshServerStatus"');
 
 assertContains("panel CSS styles status card", panelPresentation, ".server-status-card");
 assertContains("panel CSS styles status grid", panelPresentation, ".server-status-grid");
@@ -56,6 +68,7 @@ console.log(JSON.stringify({
   checked: [
     "SyncManager server-status cache and fetch",
     "settings panel automatic/manual refresh",
+    "extracted settings status-card renderer",
     "settings status card markup and data markers",
     "responsive status-card CSS",
     "utility regression coverage",

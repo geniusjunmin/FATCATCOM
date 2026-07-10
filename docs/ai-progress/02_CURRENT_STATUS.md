@@ -1,6 +1,6 @@
 # Current Status
 
-Updated: 2026-07-08
+Updated: 2026-07-10
 
 ## Control Panel
 
@@ -25,6 +25,10 @@ Updated: 2026-07-08
 | Biggest Risk | Frontend size | `BottomNavUI.ts` remains large, but shared, panel, factory-overlay, and cat-overlay styles are extracted. The next code-health work is splitting cohesive factory/cat/feature render responsibilities without disturbing live actions. |
 
 ## Client UI
+
+- Latest code-health pass extracts the settings server-status card from `BottomNavUI.ts` into `SettingsStatusCard.ts`. `BottomNavUI` now only reads `SyncManager.getServerStatus()` and embeds the helper output, while the helper owns status DTO formatting, feature chips, data markers, and refresh action markup.
+- `tools/check-settings-server-status-contract.js` now reads the extracted helper directly and fails if `private renderServerStatusCard` returns to `BottomNavUI.ts`. Cocos reimport/refresh for the new script was required to clear preview `__unresolved_*` chunk errors.
+- Verification: Cocos reimport for `db://assets/scripts/ui/SettingsStatusCard.ts`, scripts refresh, focused TypeScript diagnostics, settings-status contract, preview runtime probe, four-size utility screenshot regression, full `quick-verify.ps1`, and 104/104 server tests pass.
 
 - Latest friend interaction report pass turns visit, gift, and help results into a compact three-step event timeline. Each report now carries explicit timeline data for reward/status, friend or factory context, and record/progress feedback while preserving the existing server-backed visit, gift, and help actions.
 - `PanelPresentation.ts` adds target-style `.visit-report-timeline` badges with compact guards, and `capture-utility-regression.js` now requires three timeline rows plus three numbered badges across 430x932, 414x896, 360x800, and 768x1024.

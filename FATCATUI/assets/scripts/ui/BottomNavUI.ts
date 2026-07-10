@@ -16,7 +16,7 @@ import { SyncManager } from "../manager/SyncManager";
 import { FriendBoostManager } from "../manager/FriendBoostManager";
 import { FriendCoopManager } from "../manager/FriendCoopManager";
 import { DailyOrderManager } from "../manager/DailyOrderManager";
-import { CatSkinCatalogItemDto, DecorCatalogItemDto, DecorCollectionDto, DecorCollectionTierDto, DecorStateDto, FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto, ServerStatusDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { CatSkinCatalogItemDto, DecorCatalogItemDto, DecorCollectionDto, DecorCollectionTierDto, DecorStateDto, FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
 import { GeneratedBackgroundAssets } from "./UiAssetRegistry";
@@ -116,6 +116,7 @@ import {
 } from "./HudPresentation";
 import { DOM_NAV_STYLES, DOM_NAV_TARGET_STYLES } from "./NavPresentation";
 import { DOM_PANEL_STYLES } from "./PanelPresentation";
+import { renderServerStatusCard } from "./SettingsStatusCard";
 
 const { ccclass, property } = _decorator;
 
@@ -2110,32 +2111,7 @@ export class BottomNavUI extends Component {
         const syncLabel = this.getSyncModeLabel(sync.mode);
         const settings = SETTINGS_PANEL_ITEMS.map(item => ({ ...item, on: this.getSettingValue(item.id) }));
         const rows = settings.map(item => `<div class="feature-card setting-row"><div><b>${item.name}</b><br>${item.desc}</div><button class="toggle-pill ${item.on ? "" : "off"}" data-action="toggleSetting" data-id="${item.id}">${item.on ? "开启" : "关闭"}</button></div>`).join("");
-        return `<div class="panel-shell utility-shell settings-shell"><h2>设置</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("settings")}')"></span><div><b>公司设置</b><br>当前支持本地离线和 .NET Core 服务端联调。URL 可用 ?api=http://localhost:5144 临时指定。</div><span class="feature-badge">存档<br>${created}</span></div><div class="feature-mini"><span>服务器<b>${serverLabel}</b></span><span>同步<b>${syncLabel}</b></span><span>待同步<b>${sync.pendingFeatureChanges}</b></span></div><div class="feature-list">${this.renderServerStatusCard(serverStatus.status, serverStatus.checkedAt)}${rows}<div class="feature-card"><b>账号状态</b><br>API：${apiBase}<br>玩家：${playerId}<br>最近错误：${sync.lastError || network.lastError || "无"}<br><button class="tag" data-action="connectServer">连接服务器</button> <button class="tag" data-action="syncSave">同步存档</button> <button class="tag warn" data-action="pushSettings">推送设置</button> <button class="tag" data-action="previewProduction">结算预览</button> <button class="tag" data-action="refreshServerStatus">刷新状态</button></div></div></div>`;
-    }
-
-    private renderServerStatusCard(status: ServerStatusDto | null, checkedAt: number): string {
-        const checkedLabel = checkedAt > 0 ? new Date(checkedAt).toLocaleTimeString() : "未检查";
-        if (!status) {
-            return `<div class="feature-card server-status-card offline" data-server-status="missing"><div><b>服务器状态</b><br>尚未读取公开状态端点。点击刷新可检查版本、实时通道和多人能力。</div><button class="tag" data-action="refreshServerStatus">刷新状态</button></div>`;
-        }
-        const featureLabels: Record<string, string> = {
-            "signed-guest-auth": "签名登录",
-            "presence": "在线状态",
-            "real-friends": "真实好友",
-            "friend-requests": "好友申请",
-            "visits": "拜访",
-            "gifts": "赠礼",
-            "cooperative-boosts": "协作加成",
-            "cooperative-goals": "协作目标",
-            "leaderboard": "排行榜",
-            "social-events": "实时事件",
-        };
-        const chips = status.multiplayerFeatures
-            .slice(0, 10)
-            .map(feature => `<span>${featureLabels[feature] ?? feature}</span>`)
-            .join("");
-        const realtimeLabel = status.realtime.socialEvents ? status.realtime.transport : "closed";
-        return `<div class="feature-card server-status-card ready" data-server-status="${status.status}" data-api-version="${status.apiVersion}" data-config-version="${status.configVersion}"><div class="server-status-head"><b>服务器状态</b><em>${status.status}</em></div><div class="server-status-grid"><span>API<b>${status.apiVersion}</b></span><span>配置<b>${status.configVersion}</b></span><span>最低客户端<b>v${status.minClientVersion}</b></span><span>实时通道<b>${realtimeLabel}</b></span></div><div class="server-status-features">${chips}</div><small>令牌：${status.requiresPlayerToken ? "需要" : "不需要"} · 环境：${status.environment} · ${checkedLabel}</small><button class="tag" data-action="refreshServerStatus">刷新状态</button></div>`;
+        return `<div class="panel-shell utility-shell settings-shell"><h2>设置</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("settings")}')"></span><div><b>公司设置</b><br>当前支持本地离线和 .NET Core 服务端联调。URL 可用 ?api=http://localhost:5144 临时指定。</div><span class="feature-badge">存档<br>${created}</span></div><div class="feature-mini"><span>服务器<b>${serverLabel}</b></span><span>同步<b>${syncLabel}</b></span><span>待同步<b>${sync.pendingFeatureChanges}</b></span></div><div class="feature-list">${renderServerStatusCard(serverStatus.status, serverStatus.checkedAt)}${rows}<div class="feature-card"><b>账号状态</b><br>API：${apiBase}<br>玩家：${playerId}<br>最近错误：${sync.lastError || network.lastError || "无"}<br><button class="tag" data-action="connectServer">连接服务器</button> <button class="tag" data-action="syncSave">同步存档</button> <button class="tag warn" data-action="pushSettings">推送设置</button> <button class="tag" data-action="previewProduction">结算预览</button> <button class="tag" data-action="refreshServerStatus">刷新状态</button></div></div></div>`;
     }
 
     private renderFeatureProgressCard(icon: string, title: string, desc: string, current: number, goal: number, reward: string, action: string): string {

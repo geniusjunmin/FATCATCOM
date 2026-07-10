@@ -1,6 +1,6 @@
 # Next Tasks
 
-Updated: 2026-07-08
+Updated: 2026-07-10
 
 ## Round Contract
 
@@ -25,6 +25,14 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
 
 ## P0 Now
+
+### Completed: Settings Status Card Extraction
+
+- Moved the settings server-status card renderer into `FATCATUI/assets/scripts/ui/SettingsStatusCard.ts` with committed Cocos metadata.
+- `BottomNavUI.ts` no longer imports `ServerStatusDto` or owns `private renderServerStatusCard`; it delegates the card markup to the helper.
+- The helper preserves status markers, API/config version attributes, realtime transport, multiplayer chips, and the manual refresh action.
+- `check-settings-server-status-contract.js` now guards the helper boundary and prevents the renderer from drifting back into `BottomNavUI.ts`.
+- Verified with Cocos reimport/refresh, TypeScript diagnostics, settings contract, preview runtime probe, four-size utility screenshots, full quick verify, and 104/104 tests.
 
 ### Completed: Authenticated Player Boundary
 
