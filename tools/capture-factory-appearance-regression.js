@@ -60,6 +60,9 @@ const sizes = [
       }));
     }
 
+    await cards.first().click();
+    await page.waitForTimeout(120);
+
     const file = path.join(outDir, `factory-appearance-${width}x${height}.png`);
     await page.screenshot({ path: file, fullPage: false });
     const state = await page.evaluate(() => {
@@ -67,6 +70,9 @@ const sizes = [
       const stage = overlay?.querySelector(".factory-appearance-stage");
       const cards = Array.from(overlay?.querySelectorAll(".factory-appearance-card") || []);
       const apply = overlay?.querySelector(".factory-appearance-apply");
+      const title = overlay?.querySelector(".factory-appearance-title");
+      const outerClose = overlay?.querySelector(":scope > .panel-close");
+      const returnButton = overlay?.querySelector('[data-action="closeFactoryAppearance"]');
       const nav = document.querySelector("#fatcat-dom-nav .nav-bar");
       const inViewport = (element) => {
         if (!element) return false;
@@ -75,12 +81,32 @@ const sizes = [
       };
       return {
         shell: !!overlay?.querySelector(".factory-appearance-shell"),
+        appearancePage: overlay?.querySelector(".factory-appearance-shell")?.getAttribute("data-appearance-page") || "",
+        appearanceZones: Array.from(overlay?.querySelectorAll("[data-appearance-zone]") || [])
+          .map(element => element.getAttribute("data-appearance-zone"))
+          .filter((value, index, values) => !!value && values.indexOf(value) === index)
+          .sort(),
+        titleCompact: (() => {
+          if (!title) return false;
+          const rect = title.getBoundingClientRect();
+          return rect.width <= 1.5 && rect.height <= 1.5;
+        })(),
+        outerCloseHidden: !!outerClose && getComputedStyle(outerClose).display === "none",
         cardCount: cards.length,
         lockedCards: cards.filter((card) => card.classList.contains("locked")).length,
         selectedCards: cards.filter((card) => card.classList.contains("selected")).length,
         activeCards: cards.filter((card) => card.classList.contains("active")).length,
         selectedAppearance: stage?.getAttribute("data-selected-appearance") || "",
         activeAppearance: stage?.getAttribute("data-active-appearance") || "",
+        stageAspect: stage ? Math.round((stage.getBoundingClientRect().width / stage.getBoundingClientRect().height) * 100) / 100 : 0,
+        previewEmbedded: stage ? getComputedStyle(stage).backgroundImage.includes('url("data:image/jpeg;base64,') : false,
+        returnInsideStage: (() => {
+          if (!stage || !returnButton) return false;
+          const stageRect = stage.getBoundingClientRect();
+          const returnRect = returnButton.getBoundingClientRect();
+          return returnRect.left >= stageRect.left && returnRect.right <= stageRect.right
+            && returnRect.top >= stageRect.top && returnRect.bottom <= stageRect.bottom;
+        })(),
         stageVisible: inViewport(stage),
         cardsContained: cards.every(inViewport),
         applyClearNav: !!apply && !!nav && apply.getBoundingClientRect().bottom <= nav.getBoundingClientRect().top - 2,
@@ -116,8 +142,16 @@ const sizes = [
     || result.state.lockedCards !== 3
     || result.state.selectedCards !== 1
     || result.state.activeCards !== 1
-    || result.state.selectedAppearance !== "future"
+    || result.state.appearancePage !== "factory"
+    || result.state.appearanceZones.join(",") !== "bonuses,preview,return,themes,title"
+    || !result.state.titleCompact
+    || !result.state.outerCloseHidden
+    || result.state.selectedAppearance !== "simple"
     || result.state.activeAppearance !== "simple"
+    || result.state.stageAspect < 0.98
+    || result.state.stageAspect > 1.02
+    || !result.state.previewEmbedded
+    || !result.state.returnInsideStage
     || !result.state.stageVisible
     || !result.state.cardsContained
     || !result.state.applyClearNav

@@ -2,11 +2,13 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.resolve(__dirname, "..");
-const relativeAssets = [
-  "factory_appearances/appearance_classic_v1.jpg",
-  "factory_appearances/appearance_steam_v1.jpg",
-  "factory_appearances/appearance_future_v1.jpg",
+const appearanceAssets = [
+  { path: "factory_appearances/appearance_simple_square_v1.jpg", width: 768, height: 768 },
+  { path: "factory_appearances/appearance_classic_v1.jpg", width: 768, height: 432 },
+  { path: "factory_appearances/appearance_steam_v1.jpg", width: 768, height: 432 },
+  { path: "factory_appearances/appearance_future_v1.jpg", width: 768, height: 432 },
 ];
+const relativeAssets = appearanceAssets.map(asset => asset.path);
 
 function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), "utf8");
@@ -35,15 +37,15 @@ function readJpegDimensions(buffer) {
   return {};
 }
 
-for (const relativeAsset of relativeAssets) {
-  const assetPath = path.join(root, "FATCATUI/assets/resources/textures/generated", relativeAsset);
+for (const asset of appearanceAssets) {
+  const assetPath = path.join(root, "FATCATUI/assets/resources/textures/generated", asset.path);
   if (!fs.existsSync(assetPath)) fail("Factory appearance art is missing.", { assetPath });
   const jpeg = fs.readFileSync(assetPath);
   if (jpeg.length < 100000) fail("Factory appearance art is unexpectedly small.", { assetPath, bytes: jpeg.length });
   if (jpeg[0] !== 0xff || jpeg[1] !== 0xd8) fail("Factory appearance art is not a JPEG.", { assetPath });
   const { width, height } = readJpegDimensions(jpeg);
-  if (width !== 768 || height !== 432) {
-    fail("Factory appearance art has the wrong dimensions.", { assetPath, width, height });
+  if (width !== asset.width || height !== asset.height) {
+    fail("Factory appearance art has the wrong dimensions.", { assetPath, width, height, expected: `${asset.width}x${asset.height}` });
   }
 }
 
@@ -63,6 +65,10 @@ assertContains("four appearance configs", presentation, "FACTORY_APPEARANCES");
 assertContains("saved appearance id", saveData, "factoryAppearanceId?: string");
 assertContains("appearance subview state", bottomNav, '_buildingPanelMode: "detail" | "appearance"');
 assertContains("appearance renderer", bottomNav, "renderFactoryAppearancePanel()");
+assertContains("appearance page marker", bottomNav, 'data-appearance-page="factory"');
+for (const zone of ["title", "preview", "return", "themes", "bonuses"]) {
+  assertContains(`${zone} appearance zone`, bottomNav, `data-appearance-zone="${zone}"`);
+}
 assertContains("open action", bottomNav, 'data-action="openFactoryAppearance"');
 assertContains("close action", bottomNav, 'data-action="closeFactoryAppearance"');
 assertContains("select action", bottomNav, 'data-action="selectFactoryAppearance"');
@@ -70,8 +76,12 @@ assertContains("apply action", bottomNav, 'data-action="applyFactoryAppearance"'
 assertContains("stage style", styles, ".factory-appearance-stage");
 assertContains("card style", styles, ".factory-appearance-card");
 assertContains("compact style", styles, ".compact .factory-appearance-stage");
+assertContains("appearance title clipping", styles, ".factory-appearance-title");
+assertContains("outer close suppression", styles, 'data-panel-mode="appearance"');
 assertContains("four-size capture", capture, "[360, 800]");
 assertContains("appearance switch guard", capture, "uniqueAppearances !== 4");
+assertContains("target stage aspect guard", capture, "stageAspect < 0.98");
+assertContains("return overlay guard", capture, "!result.state.returnInsideStage");
 assertContains("return guard", capture, "!result.returnedToBuilding");
 assertContains("quick verify registration", quickVerify, "check-factory-appearance-art.js");
 for (const relativeAsset of relativeAssets) {
@@ -83,8 +93,8 @@ console.log(JSON.stringify({
   ok: true,
   assets: relativeAssets,
   checked: [
-    "three 768x432 generated factory themes",
+    "square default preview plus three 768x432 generated themes",
     "four-theme config, selection, persistence, and action wiring",
-    "responsive appearance stage, cards, bonuses, and return flow",
+    "target hierarchy, responsive stage, cards, bonuses, and return flow",
   ],
 }, null, 2));

@@ -24,6 +24,11 @@ Updated: 2026-08-01
 
 ## Latest Visual Note
 
+- Latest factory-appearance note: `factory_appearances/appearance_simple_square_v1.jpg` is the default preview source. It was generated with the built-in image tool from `主页面.png` and `其他页面.png`, then resized to a 768x768 quality-92 JPEG. The required composition is one complete six-floor coffee factory, roof and ground visible, warm hand-painted rooms, blue sky, and village backdrop.
+- Preserve `data-appearance-page="factory"` and the exact zones `title`, `preview`, `return`, `themes`, and `bonuses`. The title is intentionally accessibility-only; the outer `.panel-close` is hidden in building `appearance` mode because `closeFactoryAppearance` is overlaid inside the preview stage.
+- The screenshot gate visits all four themes but reselects `simple` before capture. It requires a 0.98-1.02 stage aspect, embedded JPEG, return control inside the stage, four unique backgrounds, one selected/active card, three locked cards, return to building detail, and action clearance above nav at all four sizes.
+- Current green evidence: generated-asset contract, focused TypeScript, inspected 430x932/360x800/768x1024 captures, four-theme interaction and return flow, 18/18 UI clicks, zero Cocos errors, full quick verify, and 104/104 tests.
+
 - Latest feature-page note: building, shop, inventory, and research use `.feature-detail-shell` with `data-feature-page` and exact semantic `data-feature-zone` markers. Their `feature-page-title` headings are intentionally accessibility-only; do not restore the old visible `XX详情` bars.
 - Only `data-panel-id="buildings"` plus `data-panel-mode="detail"` shows `.panel-close`, rendered as the `←` return control. Shop, inventory, and research deliberately hide it because bottom navigation is the target interaction model. Factory appearance remains outside this building-detail selector and keeps its own return flow.
 - `capture-feature-regression.js` requires the exact zone sets, a title no larger than 1.5px, a first visible zone within 30px, building-only back visibility, and all existing art/action geometry at 414x896, 430x932, 360x800, and 768x1024. `check-feature-page-hierarchy-contract.js` mirrors these rules in quick verify.

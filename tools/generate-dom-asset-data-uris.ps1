@@ -14,6 +14,7 @@ $relativeAssets = @(
     "building_rooms/room_mill_v1.jpg",
     "building_rooms/room_cafe_v1.jpg",
     "building_rooms/room_storage_v1.jpg",
+    "factory_appearances/appearance_simple_square_v1.jpg",
     "factory_appearances/appearance_classic_v1.jpg",
     "factory_appearances/appearance_steam_v1.jpg",
     "factory_appearances/appearance_future_v1.jpg",

@@ -7,7 +7,7 @@ Updated: 2026-08-01
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Compare factory appearance and remaining secondary-panel materials against `其他页面.png`, then polish the largest visible gap without changing the guarded feature-page hierarchy. |
+| Best Next Move | Compare cat upgrade, skill, equipment, and skin subpages against `猫咪详情页面.png`, then polish the largest visible secondary-tab gap. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -21,10 +21,14 @@ Updated: 2026-08-01
 | Economy Model | Covered | Production uses assignment, building level, equipment, research, skills, and mood. |
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
-| Biggest Gap | Visual fidelity | Main, cat-detail, and the four core feature pages now match the target hierarchy closely; remaining work is richer factory-appearance and secondary social surfaces. |
+| Biggest Gap | Visual fidelity | Main, cat information, core feature pages, and factory appearance now match the target hierarchy closely; remaining work is deeper cat tabs and secondary social surfaces. |
 | Biggest Risk | Frontend size | `BottomNavUI.ts` is roughly 226K characters after the friend presentation extractions, but still owns several utility and feature render adapters. |
 
 ## Client UI
+
+- Latest factory-appearance pass replaces the unsuitable tall default preview with generated `appearance_simple_square_v1.jpg`, a 768x768 six-floor cutaway composed specifically for the target's near-square preview stage. `UiAssetRegistry.ts` and the generated DOM Data URI bridge now resolve this asset for the simple theme.
+- The page now enters directly at a square artwork stage with an overlaid return arrow, followed by four theme cards and the attribute/action panel. The redundant visible title, outer close button, duplicate name toolbar, preview caption, and non-target archive block were removed while preserving selection, persistence, lock, and apply behavior.
+- Five `data-appearance-zone` markers plus `data-appearance-page="factory"` define the hierarchy. Four-size regression verifies the square ratio, compact title, hidden outer close, embedded preview, overlaid return geometry, four unique themes, card containment, return flow, and nav clearance. Inspected 430x932, 360x800, and 768x1024 captures, 18/18 navigation, zero Cocos errors, full quick verify, and 104/104 tests pass.
 
 - Latest feature-page alignment removes the redundant visible `建筑详情` / `商店详情` / `背包详情` / `研究详情` title bars so each page enters directly at its target content. Building detail keeps the target-like left back arrow; shop, inventory, and research hide the unnecessary overlay close control while preserving bottom-nav switching.
 - All four pages now expose `data-feature-page` plus page-specific `data-feature-zone` markers. The title remains a compact accessibility heading, while toolbar/tabs/content begin within 30px of the feature shell top.

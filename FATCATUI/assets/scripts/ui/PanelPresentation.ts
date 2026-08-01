@@ -2009,4 +2009,105 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .feature-detail-shell .building-selector {
                 border-radius:9px;
             }
+
+            /* The target appearance screen is the preview itself: no duplicate
+               overlay title bar, and the return control belongs on the artwork. */
+            #fatcat-dom-panel-overlay[data-panel-id="buildings"][data-panel-mode="appearance"] .panel-close {
+                display:none;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-shell,
+            #fatcat-dom-panel-overlay.compact .factory-appearance-shell,
+            #fatcat-dom-panel-overlay.tall .factory-appearance-shell {
+                padding-top:2.1%;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-shell:before { display:none; }
+            #fatcat-dom-panel-overlay .factory-appearance-title {
+                position:absolute;
+                width:1px;
+                height:1px;
+                margin:0;
+                padding:0;
+                overflow:hidden;
+                white-space:nowrap;
+                clip-path:inset(50%);
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-stage,
+            #fatcat-dom-panel-overlay.compact .factory-appearance-stage {
+                flex:0 0 auto;
+                aspect-ratio:1 / 1;
+                min-height:0;
+                background-size:cover;
+                background-position:center;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-stage:after { display:none; }
+            #fatcat-dom-panel-overlay .factory-appearance-toolbar,
+            #fatcat-dom-panel-overlay.compact .factory-appearance-toolbar {
+                position:absolute;
+                z-index:3;
+                left:3%;
+                top:3%;
+                display:block;
+                width:11%;
+                max-width:42px;
+                margin:0;
+                padding:0;
+                border:0;
+                background:none;
+                box-shadow:none;
+                pointer-events:none;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-toolbar > button {
+                width:100%;
+                min-width:34px;
+                max-width:42px;
+                border-color:#61422c;
+                background:linear-gradient(#8e6b49,#563a27);
+                box-shadow:inset 0 1px 0 rgba(255,244,207,.32),0 3px 0 rgba(55,32,19,.4);
+                pointer-events:auto;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-cards {
+                flex:0 0 auto;
+                margin-top:1.5%;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-card,
+            #fatcat-dom-panel-overlay.compact .factory-appearance-card {
+                min-height:96px;
+                padding:2.5% 3% 3.5%;
+                font-size:1.48%;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-thumb {
+                aspect-ratio:1.18 / 1;
+                margin-bottom:3%;
+                background-size:cover;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-bonuses,
+            #fatcat-dom-panel-overlay.compact .factory-appearance-bonuses {
+                flex:1 1 auto;
+                min-height:128px;
+                margin-top:1.5%;
+                padding:1.8% 2.2%;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-bonuses > div:first-child small {
+                max-width:58%;
+                overflow:hidden;
+                text-overflow:ellipsis;
+                white-space:nowrap;
+            }
+            #fatcat-dom-panel-overlay .factory-appearance-apply {
+                margin-top:auto;
+            }
+            @media (max-width:390px) {
+                #fatcat-dom-panel-overlay.compact .factory-appearance-stage {
+                    aspect-ratio:1 / 1;
+                    min-height:0;
+                }
+                #fatcat-dom-panel-overlay.compact .factory-appearance-card {
+                    min-height:78px;
+                    padding:2% 2% 3%;
+                    font-size:1.28%;
+                }
+                #fatcat-dom-panel-overlay.compact .factory-appearance-bonuses {
+                    min-height:126px;
+                }
+            }
         `;

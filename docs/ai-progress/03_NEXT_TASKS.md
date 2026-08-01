@@ -19,12 +19,20 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Signed player authentication, daily order/chest, and five-launch quota are authoritative; preserve these boundaries. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main/cat/core feature hierarchy is aligned; next compare factory appearance and remaining secondary-panel materials against `其他页面.png`. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main/core features/appearance are aligned; next compare cat upgrade, skill, equipment, and skin tabs against `猫咪详情页面.png`. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Friend cooperation/history/profile extraction is complete; later rounds can move the next cohesive utility renderer while retaining action ownership. |
 
 ## P0 Now
+
+### Completed: Factory Appearance Target Alignment
+
+- Generated and integrated `appearance_simple_square_v1.jpg`, a 768x768 complete six-floor cutaway designed for the target appearance stage instead of stretching or cropping the main portrait background.
+- Removed the visible page title, outer close button, duplicate metadata toolbar, stage caption, and archive filler; moved the return arrow into the artwork and retained four theme cards plus the attribute/action panel.
+- Added page/zone semantics, selected-state accessibility, a square responsive stage, target-like card proportions, and preserved select/apply/persist/return actions.
+- Extended the static asset contract and four-size browser regression with exact zones, title/close state, 1:1 stage geometry, embedded artwork, return containment, four unique themes, and default-state screenshot capture.
+- Refreshed Cocos and the DOM asset bridge, inspected 430x932/360x800/768x1024 results, passed theme switching, 18/18 UI interactions, zero editor errors, full quick verify, and 104/104 tests.
 
 ### Completed: Core Feature Page Top Hierarchy
 

@@ -47,7 +47,7 @@ export const GeneratedBuildingRoomAssets: Record<string, string> = {
 };
 
 export const GeneratedFactoryAppearanceAssets: Record<string, string> = {
-    simple: `${GENERATED_ROOT}/factory_cutaway_bg_852_v2.jpg`,
+    simple: `${GENERATED_ROOT}/factory_appearances/appearance_simple_square_v1.jpg`,
     classic: `${GENERATED_ROOT}/factory_appearances/appearance_classic_v1.jpg`,
     steam: `${GENERATED_ROOT}/factory_appearances/appearance_steam_v1.jpg`,
     future: `${GENERATED_ROOT}/factory_appearances/appearance_future_v1.jpg`,
