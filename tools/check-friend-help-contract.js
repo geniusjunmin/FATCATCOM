@@ -22,6 +22,7 @@ const production = read("FATCATUI/assets/scripts/manager/ProductionManager.ts");
 const apiClient = read("FATCATUI/assets/scripts/net/ApiClient.ts");
 const syncManager = read("FATCATUI/assets/scripts/manager/SyncManager.ts");
 const bottomNav = read("FATCATUI/assets/scripts/ui/BottomNavUI.ts");
+const socialCards = read("FATCATUI/assets/scripts/ui/FriendSocialCards.ts");
 const serviceTests = read("FATCATServer/FatCat.Tests/FatCatGameServiceTests.cs");
 const apiTests = read("FATCATServer/FatCat.Tests/FatCatApiTests.cs");
 const onlineUi = read("tools/check-friend-help-online-ui.js");
@@ -44,7 +45,8 @@ requireText("local production multiplier", production, "FriendBoostManager.getPr
 requireText("client boost fetch", apiClient, "getFriendBoost");
 requireText("client help action", syncManager, "helpServerFriend");
 requireText("realtime boost application", syncManager, "socialEvent.eventType === \"friend_help\"");
-requireText("friend help button", bottomNav, "data-action=\"helpFriend\"");
+requireText("friend help action handler", bottomNav, 'action === "helpFriend"');
+requireText("friend help button", socialCards, "data-action=\"helpFriend\"");
 requireText("factory boost banner", bottomNav, "friend-boost-banner");
 requireText("service boost coverage", serviceTests, "FriendHelp_AppliesPersistentProductionBoostOncePerDay");
 requireText("API boost coverage", apiTests, "FriendHelp_AppliesAndRestoresBoostContract");

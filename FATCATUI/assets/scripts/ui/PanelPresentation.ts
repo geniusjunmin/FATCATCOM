@@ -214,6 +214,13 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .friends-shell .feature-mini span {
                 min-height:58px;
             }
+            #fatcat-dom-panel-overlay .social-card-head { display:flex; justify-content:space-between; align-items:center; gap:8px; min-width:0; margin-bottom:8px; font-weight:900; }
+            #fatcat-dom-panel-overlay .social-card-head b { display:flex; align-items:center; min-width:0; color:inherit; }
+            #fatcat-dom-panel-overlay .social-card-head b:before { content:""; flex:0 0 auto; width:11px; height:11px; margin-right:7px; border-radius:50%; background:radial-gradient(circle at 38% 32%,#fff1a2 0 18%,transparent 20%),linear-gradient(#e4b64e,#9f6424); box-shadow:0 0 0 2px rgba(255,232,169,.2),0 2px 0 rgba(65,38,20,.22); }
+            #fatcat-dom-panel-overlay .social-card-head span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:88%; font-weight:900; }
+            #fatcat-dom-panel-overlay .friend-list { margin-bottom:2%; }
+            #fatcat-dom-panel-overlay .friend-list-head { margin:0 1% 2%; color:#ffe5ad; }
+            #fatcat-dom-panel-overlay .friend-list-head span { color:#f1c56d; }
             #fatcat-dom-panel-overlay .leaderboard-card { margin-bottom:2%; padding:2.2%; border-radius:14px; background:linear-gradient(#76523a,#493124); border:2px solid #7c5736; color:#ffe2a8; box-shadow:inset 0 0 0 2px rgba(255,226,170,.12), 0 3px 0 rgba(72,43,25,.24); font-size:2.05%; }
             #fatcat-dom-panel-overlay .leaderboard-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5%; font-weight:900; }
             #fatcat-dom-panel-overlay .leaderboard-head span { color:#fff; }
@@ -222,10 +229,13 @@ export const DOM_PANEL_STYLES = `
             #fatcat-dom-panel-overlay .leaderboard-row b { color:#fff6d8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-panel-overlay .leaderboard-row em { justify-self:end; font-style:normal; font-weight:900; color:#9fdb69; }
             #fatcat-dom-panel-overlay .leaderboard-row.self { background:rgba(133,184,77,.18); border-radius:8px; padding:0 2%; }
+            #fatcat-dom-panel-overlay .social-card-empty { display:inline-block; max-width:72%; color:#f4d49a; font-weight:800; line-height:1.35; }
+            #fatcat-dom-panel-overlay .leaderboard-card > .tag { float:right; margin-top:-1%; }
             #fatcat-dom-panel-overlay .friend-tools { display:flex; align-items:center; justify-content:space-between; gap:2%; margin:0 0 2%; padding:1.6% 2.2%; border-radius:999px; background:rgba(75,49,32,.88); color:#ffe2a8; font-size:1.95%; font-weight:900; box-shadow:inset 0 0 0 2px rgba(255,226,170,.12), 0 2px 0 rgba(72,43,25,.22); }
             #fatcat-dom-panel-overlay .friend-tools span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
             #fatcat-dom-panel-overlay .friend-tools .tag { margin:0; flex:0 0 auto; }
             #fatcat-dom-panel-overlay .friend-search-card { margin-bottom:2%; padding:2.2%; border-radius:14px; background:linear-gradient(#6e4c34,#3f2a20); border:2px solid #7c5736; color:#ffe2a8; box-shadow:inset 0 0 0 2px rgba(255,226,170,.1), 0 3px 0 rgba(72,43,25,.24); font-size:2.0%; }
+            #fatcat-dom-panel-overlay .friend-search-card .social-card-head span { color:#f1c56d; }
             #fatcat-dom-panel-overlay .friend-search-row { display:grid; grid-template-columns:1fr auto auto; gap:1.5%; align-items:center; }
             #fatcat-dom-panel-overlay .friend-search-row input { min-width:0; height:38px; border-radius:999px; border:2px solid rgba(255,226,170,.32); background:#f7e5bf; color:#4a2f1f; padding:0 14px; font:inherit; font-weight:900; outline:none; box-sizing:border-box; }
             #fatcat-dom-panel-overlay .friend-search-result { margin-top:1.5%; display:grid; grid-template-columns:1fr auto; gap:2%; align-items:center; color:#fff4d8; }

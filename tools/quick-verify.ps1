@@ -218,6 +218,10 @@ Invoke-Step "Friend request contract check" {
     node .\tools\check-friend-request-contract.js
 }
 
+Invoke-Step "Friend social cards contract check" {
+    node .\tools\check-friend-social-cards-contract.js
+}
+
 Invoke-Step "Leaderboard contract check" {
     node .\tools\check-leaderboard-contract.js
 }

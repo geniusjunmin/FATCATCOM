@@ -1,6 +1,6 @@
 # Handoff
 
-Updated: 2026-07-10
+Updated: 2026-08-01
 
 ## 90-Second Boot
 
@@ -23,6 +23,11 @@ Updated: 2026-07-10
 | Online script work | Avoid concurrent users of `http://localhost:5144`. |
 
 ## Latest Visual Note
+
+- Latest social-card note: `FriendSocialCards.ts` now owns friend search, friend roster, request inbox/outbox, leaderboard, and activity HTML. Keep `BottomNavUI.ts` limited to async actions, cached state, selection, formatting, and typed view-model assembly.
+- Preserve all five `data-social-card` values plus `visitFriend`, `sendFriendGift`, `helpFriend`, `searchFriendInline`, `sendFriendRequestInline`, `acceptFriendRequest`, and `rejectFriendRequest`. Dynamic server text must continue through `escapeHtml`/`escapeAttribute`; only the internally generated `profileMarkup` is trusted markup.
+- `check-friend-social-cards-contract.js` owns the extraction boundary. `capture-utility-regression.js` requires five sections, one search input, two search actions, three roster cards, nine roster actions, and horizontal containment at 430x932, 414x896, 360x800, and 768x1024.
+- Current green evidence: Cocos reimport/refresh for `db://assets/scripts/ui/FriendSocialCards.ts`, focused TypeScript and social contracts, live preview with offline search feedback and no browser/editor errors, four inspected utility screenshots, 18 UI click steps, full quick verify, and 104/104 server tests.
 
 - Latest settings note: `SettingsAccountCard.ts` owns the account/sync diagnostic card and escapes all dynamic strings before markup insertion. Keep `BottomNavUI.ts` limited to assembling the view model from `NetworkManager` and `SyncManager`.
 - The card must remain immediately after `SettingsStatusCard` and before preference toggles. Preserve `.settings-account-card`, `.settings-account-grid`, `.settings-account-actions`, all five `data-action` names, and the compact three-column action layout.

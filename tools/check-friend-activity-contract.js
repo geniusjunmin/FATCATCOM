@@ -28,6 +28,7 @@ const apiTypes = read("FATCATUI/assets/scripts/net/ApiTypes.ts");
 const apiClient = read("FATCATUI/assets/scripts/net/ApiClient.ts");
 const syncManager = read("FATCATUI/assets/scripts/manager/SyncManager.ts");
 const bottomNav = read("FATCATUI/assets/scripts/ui/BottomNavUI.ts");
+const socialCards = read("FATCATUI/assets/scripts/ui/FriendSocialCards.ts");
 const apiTests = read("FATCATServer/FatCat.Tests/FatCatApiTests.cs");
 const serviceTests = read("FATCATServer/FatCat.Tests/FatCatGameServiceTests.cs");
 
@@ -46,7 +47,10 @@ assertContains("client dto", apiTypes, "FriendActivityDto");
 assertContains("client api", apiClient, "getFriendActivities");
 assertContains("sync fetch", syncManager, "fetchServerFriendActivities");
 assertContains("panel cache", bottomNav, "_friendActivities: FriendActivityDto[]");
-assertContains("panel render", bottomNav, "renderFriendActivityPreview");
+assertContains("panel activity adapter", bottomNav, "renderFriendActivityPreview");
+assertContains("panel activity delegation", bottomNav, "renderFriendActivityCard({");
+assertContains("panel activity renderer", socialCards, "export function renderFriendActivityCard");
+assertContains("panel activity row", socialCards, 'class="activity-row"');
 assertContains("api coverage", apiTests, "FriendActivity_ReturnsRecentSocialActionsContract");
 assertContains("service coverage", serviceTests, "FriendActions_WriteRecentSocialActivities");
 

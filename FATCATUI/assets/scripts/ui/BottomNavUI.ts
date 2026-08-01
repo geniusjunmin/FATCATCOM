@@ -122,6 +122,13 @@ import {
     renderFriendVisitSceneCard,
     type FriendFactoryRoomView,
 } from "./FriendFactoryCards";
+import {
+    renderFriendActivityCard,
+    renderFriendLeaderboardCard,
+    renderFriendListCards,
+    renderFriendRequestCard,
+    renderFriendSearchCard,
+} from "./FriendSocialCards";
 import { renderFriendVisitReportCard } from "./FriendVisitReportCard";
 import { renderSettingsAccountCard } from "./SettingsAccountCard";
 import { renderServerStatusCard } from "./SettingsStatusCard";
@@ -1660,14 +1667,29 @@ export class BottomNavUI extends Component {
         if (!friends.some(friend => friend.id === this._selectedFriendSnapshotId)) {
             this._selectedFriendSnapshotId = friends[0]?.id ?? "";
         }
-        const rowsNew = friends.map((friend, index) => {
+        const friendList = renderFriendListCards(friends.map((friend, index) => {
             const lastVisit = this.getFeatureTimestamp("friendVisits", friend.id);
             const lastGift = this.getFeatureTimestamp("friendGifts", friend.id);
             const lastHelp = friend.lastHelpAt ? this.formatFriendReportTime(friend.lastHelpAt) : "";
             const width = Math.max(8, Math.min(100, Math.floor(friend.income / maxIncome * 100)));
-            return `<div class="feature-card friend-card"><span class="friend-avatar"><i class="friend-rank">#${index + 1}</i></span><div class="friend-copy"><b>${friend.name}</b><em>公司 Lv.${friend.level} · 工厂收益 ${this.formatNumber(friend.income)}/秒</em>${this.renderFriendProfileMeta(friend)}<div class="friend-income"><i style="width:${width}%"></i></div><div class="friend-states"><span>${friend.status}</span><span>${lastVisit ? `访问 ${lastVisit}` : "待访问"}</span><span>${lastGift ? `送礼 ${lastGift}` : "可送礼"}</span><span>${lastHelp ? `助力 ${lastHelp}` : friend.profile?.isRealPlayer ? "可助力" : "玩家好友限定"}</span></div></div><div class="friend-actions"><button class="tag" data-action="visitFriend" data-id="${friend.id}">访问工厂</button><button class="tag warn" data-action="sendFriendGift" data-id="${friend.id}">${lastGift ? "再次送礼" : "赠送猫粮"}</button><button class="tag boost" data-action="helpFriend" data-id="${friend.id}" ${friend.profile?.isRealPlayer ? "" : "disabled"}>${lastHelp ? "今日已助力" : "生产助力"}</button></div></div>`;
-        }).join("");
-        return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendCoopGoalCard(coopGoal)}${this.renderFriendBoostHistoryCard(boostHistory)}${this.renderFriendVisitScene(friends)}${this.renderFriendVisitReport(friends)}${this.renderFriendFactoryDetail(friends)}${this.renderFriendSnapshotCard(friends, maxIncome)}<div class="feature-list">${rowsNew}</div>${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
+            return {
+                id: friend.id,
+                rank: index + 1,
+                name: friend.name,
+                level: friend.level,
+                incomeText: `${this.formatNumber(friend.income)}/秒`,
+                profileMarkup: this.renderFriendProfileMeta(friend),
+                incomePercent: width,
+                statusText: friend.status,
+                visitText: lastVisit ? `访问 ${lastVisit}` : "待访问",
+                giftText: lastGift ? `送礼 ${lastGift}` : "可送礼",
+                helpText: lastHelp ? `助力 ${lastHelp}` : friend.profile?.isRealPlayer ? "可助力" : "玩家好友限定",
+                giftActionText: lastGift ? "再次送礼" : "赠送猫粮",
+                helpActionText: lastHelp ? "今日已助力" : "生产助力",
+                canHelp: !!friend.profile?.isRealPlayer,
+            };
+        }));
+        return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendCoopGoalCard(coopGoal)}${this.renderFriendBoostHistoryCard(boostHistory)}${this.renderFriendVisitScene(friends)}${this.renderFriendVisitReport(friends)}${this.renderFriendFactoryDetail(friends)}${this.renderFriendSnapshotCard(friends, maxIncome)}${friendList}${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
     }
 
     private renderFriendCoopGoalCard(goal: ReturnType<typeof FriendCoopManager.getState>): string {
@@ -1906,20 +1928,29 @@ export class BottomNavUI extends Component {
 
     private renderFriendSearchCard(): string {
         const preview = this._friendSearchPreview;
-        const query = this.escapeAttribute(this._friendSearchQuery);
-        const result = preview
-            ? `<div class="friend-search-result"><div><b>${preview.companyName}</b><em>Lv.${preview.level} · ${this.formatNumber(preview.incomePerSecond)}/秒 · ${preview.inviteCode}</em></div><button class="tag" data-action="sendFriendRequestInline" ${preview.isSelf || preview.isFriend ? "disabled" : ""}>${preview.isFriend ? "已是好友" : preview.isSelf ? "自己" : "发送申请"}</button></div>`
-            : (this._friendSearchMessage ? `<div class="friend-search-result"><div><b>${this._friendSearchMessage}</b><em>输入 FC 开头邀请码或玩家ID。</em></div></div>` : "");
-        return `<div class="friend-search-card"><div class="friend-search-row"><input data-field="friendSearch" value="${query}" placeholder="输入邀请码或玩家ID"><button class="tag" data-action="searchFriendInline">搜索</button><button class="tag warn" data-action="sendFriendRequest">旧版输入</button></div>${result}</div>`;
+        return renderFriendSearchCard({
+            query: this._friendSearchQuery,
+            message: this._friendSearchMessage,
+            preview: preview ? {
+                companyName: preview.companyName,
+                detailText: `Lv.${preview.level} · ${this.formatNumber(preview.incomePerSecond)}/秒 · ${preview.inviteCode}`,
+                isSelf: preview.isSelf,
+                isFriend: preview.isFriend,
+            } : null,
+        });
     }
 
     private renderFriendRequestPreview(): string {
         const received = this._receivedFriendRequests.filter(request => request.status === "pending").slice(0, 4);
         const sent = this._sentFriendRequests.filter(request => request.status === "pending").slice(0, 3);
-        const receivedRows = received.map(request => `<div class="request-row incoming"><span>申请</span><b>${request.companyName}</b><em>Lv.${request.level} · ${this.formatNumber(request.incomePerSecond)}/秒</em><button class="tag" data-action="acceptFriendRequest" data-id="${request.id}">接受</button><button class="tag warn" data-action="rejectFriendRequest" data-id="${request.id}">拒绝</button></div>`).join("");
-        const sentRows = sent.map(request => `<div class="request-row sent"><span>已发</span><b>${request.companyName}</b><em>等待回应</em></div>`).join("");
-        const empty = receivedRows || sentRows ? "" : `<div class="activity-empty">暂无好友申请。可通过邀请码向玩家发送申请。</div>`;
-        return `<div class="friend-request-card"><div class="leaderboard-head"><b>好友申请</b><span>${received.length} 待处理</span></div>${receivedRows}${sentRows}${empty}</div>`;
+        return renderFriendRequestCard({
+            received: received.map(request => ({
+                id: request.id,
+                companyName: request.companyName,
+                detailText: `Lv.${request.level} · ${this.formatNumber(request.incomePerSecond)}/秒`,
+            })),
+            sent: sent.map(request => ({ companyName: request.companyName })),
+        });
     }
 
     private getFriendPanelRows(): FriendPanelRow[] {
@@ -2093,20 +2124,27 @@ export class BottomNavUI extends Component {
     private renderLeaderboardPreview(): string {
         const leaderboard = this._serverLeaderboard;
         const entries = leaderboard?.entries?.slice(0, 5) ?? [];
-        if (entries.length <= 0) {
-            return `<div class="leaderboard-card"><div><b>收益排行榜</b><br>联网后显示好友与自己的咖啡收益名次。</div><span class="tag warn">等待同步</span></div>`;
-        }
         const selfRank = leaderboard?.self?.rank ? `#${leaderboard.self.rank}` : "未上榜";
-        const rows = entries.map(entry => `<div class="leaderboard-row ${entry.isSelf ? "self" : ""}"><span>#${entry.rank}</span><b>${entry.companyName}</b><em>${this.formatNumber(entry.score)}/秒</em></div>`).join("");
-        return `<div class="leaderboard-card"><div class="leaderboard-head"><b>收益排行榜</b><span>我的名次 ${selfRank}</span></div>${rows}</div>`;
+        return renderFriendLeaderboardCard({
+            selfRankText: selfRank,
+            entries: entries.map(entry => ({
+                rank: entry.rank,
+                companyName: entry.companyName,
+                scoreText: `${this.formatNumber(entry.score)}/秒`,
+                isSelf: entry.isSelf,
+            })),
+        });
     }
 
     private renderFriendActivityPreview(): string {
-        if (this._friendActivities.length <= 0) {
-            return `<div class="friend-activity-card"><div class="leaderboard-head"><b>好友动态</b><span>暂无记录</span></div><div class="activity-empty">访问、送礼或添加好友后会同步到这里。</div></div>`;
-        }
-        const rows = this._friendActivities.slice(0, 6).map(activity => `<div class="activity-row"><span>${this.getFriendActivityLabel(activity.activityType)}</span><b>${activity.friendName}</b><em>${this.formatActivityTime(activity.createdAt)}</em></div>`).join("");
-        return `<div class="friend-activity-card"><div class="leaderboard-head"><b>好友动态</b><span>${this._friendActivities.length}条</span></div>${rows}</div>`;
+        return renderFriendActivityCard({
+            total: this._friendActivities.length,
+            entries: this._friendActivities.slice(0, 6).map(activity => ({
+                label: this.getFriendActivityLabel(activity.activityType),
+                friendName: activity.friendName,
+                timeText: this.formatActivityTime(activity.createdAt),
+            })),
+        });
     }
 
     private getFriendActivityLabel(type: string): string {
@@ -2119,14 +2157,6 @@ export class BottomNavUI extends Component {
         if (preview.isSelf) return "You cannot add yourself.";
         if (preview.isFriend) return `${preview.companyName} is already your friend.`;
         return "Friend add cancelled.";
-    }
-
-    private escapeAttribute(value: string): string {
-        return value
-            .replace(/&/g, "&amp;")
-            .replace(/"/g, "&quot;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
     }
 
     private formatActivityTime(timestamp: number): string {

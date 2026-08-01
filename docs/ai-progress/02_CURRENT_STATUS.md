@@ -1,13 +1,13 @@
 # Current Status
 
-Updated: 2026-07-10
+Updated: 2026-08-01
 
 ## Control Panel
 
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Return to final main/cat visual micro-alignment, or extract the remaining friend list/search/activity render cards from `BottomNavUI.ts`. |
+| Best Next Move | Return to final main/cat visual micro-alignment, or extract the remaining friend cooperation/history/profile render adapters from `BottomNavUI.ts`. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -22,9 +22,13 @@ Updated: 2026-07-10
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
 | Biggest Gap | Visual fidelity | Main factory and cat page are close to target structure; remaining work is final proportion/detail tuning and richer secondary social surfaces. |
-| Biggest Risk | Frontend size | `BottomNavUI.ts` is down to roughly 226K characters after extracting friend factory cards, but still owns too many feature render adapters. |
+| Biggest Risk | Frontend size | `BottomNavUI.ts` is down to roughly 224K characters after extracting friend factory and social cards, but still owns too many feature render adapters. |
 
 ## Client UI
+
+- Latest social UI pass extracts five cohesive surfaces into `FriendSocialCards.ts`: friend search, request inbox/outbox, friend roster, income leaderboard, and activity history. `BottomNavUI.ts` remains the state/action adapter and supplies typed, preformatted view models.
+- The helper preserves visit/gift/help, inline search/request, and accept/reject action markers while escaping server-provided names, ids, invite details, messages, and activity text. Shared section headers and five stable `data-social-card` markers sharpen the target-like paper/wood hierarchy.
+- `check-friend-social-cards-contract.js` prevents markup ownership from drifting back into the main controller. Utility regression now requires exactly five horizontally contained social sections, one search input, and at least two search actions at all four supported sizes. Live preview search feedback, four inspected screenshots, 18-step navigation, full quick verify, clean Cocos logs, and 104/104 tests pass.
 
 - Latest settings pass replaces the plain line-broken account block with `SettingsAccountCard.ts`. The typed helper owns escaped API/player/error text, connected/offline state, four diagnostic fields, and the five existing connect/sync/push/preview/status actions.
 - The account card now appears directly after server status, ahead of preference toggles. `PanelPresentation.ts` gives it a target-style paper/wood treatment, stable readable pixel typography, responsive three-column actions on compact screens, and enough bottom space to contain wrapped actions without overlapping the next card.

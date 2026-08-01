@@ -1,6 +1,6 @@
 # Next Tasks
 
-Updated: 2026-07-10
+Updated: 2026-08-01
 
 ## Round Contract
 
@@ -25,6 +25,14 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
 
 ## P0 Now
+
+### Completed: Friend Social Card Extraction
+
+- Added `FriendSocialCards.ts` with typed render models for friend search, roster, requests, leaderboard, and activity history.
+- Kept asynchronous network/state ownership in `BottomNavUI.ts` while moving all five cohesive markup blocks and their existing action markers into the helper.
+- Added HTML/attribute escaping for server-provided player names, ids, search details, invite messages, leaderboard names, and activity text.
+- Added shared target-style social headers and stable `data-social-card` markers; four-size utility regression now guards all five sections, search controls, and horizontal containment.
+- Updated request/activity/leaderboard/help contracts, added a dedicated extraction boundary contract, refreshed Cocos assets, verified live offline search feedback, inspected four screenshots, passed 18 UI click steps, full quick verify, clean editor logs, and 104/104 tests.
 
 ### Completed: Settings Account Diagnostics Card
 
