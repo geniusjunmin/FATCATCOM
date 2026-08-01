@@ -26,6 +26,14 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 ## P0 Now
 
+### Completed: Cat Detail Final Hierarchy Alignment
+
+- Restructured the identity card into explicit rarity/type, level, and star rows while preserving the selected cat's authoritative data.
+- Marked identity, stage, status, power, stats, weight, and roster regions with stable semantic hooks; all five stat cards now expose dedicated label/value roles.
+- Restored dark mood/feed cards on a connected status rail, added stat progress accents, lower-section title medals, and an active-roster crest.
+- Compared fresh captures against `所有猫咪页面.png`; removed the first-pass duplicate portrait name and corrected status label spacing after visual inspection.
+- Expanded static/runtime contracts, refreshed Cocos scripts, inspected all four target sizes, passed 18 UI click steps, clean editor logs, full quick verify, and 104/104 tests.
+
 ### Completed: Friend Social Card Extraction
 
 - Added `FriendSocialCards.ts` with typed render models for friend search, roster, requests, leaderboard, and activity history.

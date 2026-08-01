@@ -7,7 +7,7 @@ Updated: 2026-08-01
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Return to final main/cat visual micro-alignment, or extract the remaining friend cooperation/history/profile render adapters from `BottomNavUI.ts`. |
+| Best Next Move | Return to the main factory reference for final HUD/floor-detail polish, or extract the remaining friend cooperation/history/profile render adapters from `BottomNavUI.ts`. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -25,6 +25,10 @@ Updated: 2026-08-01
 | Biggest Risk | Frontend size | `BottomNavUI.ts` is down to roughly 224K characters after extracting friend factory and social cards, but still owns too many feature render adapters. |
 
 ## Client UI
+
+- Latest cat-detail hierarchy pass aligns the information page more closely with `所有猫咪页面.png`: the identity card now has explicit rarity/type, level, and star rows; the central workshop keeps the cat as the sole focus; and mood/feed cards return to the target's dark status-rail treatment.
+- All seven major areas expose stable `data-cat-panel` markers. Five stat cards now separate label/value roles and add bottom progress accents; lower information/equipment titles have medal cues; the active roster cat has a selected crest. A screenshot review caught and removed a duplicate oversized portrait name before completion.
+- `capture-cat-regression.js` guards the seven panels, identity seal, status connector, five stat accents/labels/values, two lower title badges, and active roster crest at 414x896, 430x932, 360x800, and 768x1024. Cocos refresh, focused TypeScript, cat contract, four-size screenshots, 18-step navigation, clean editor logs, full quick verify, and 104/104 tests pass.
 
 - Latest social UI pass extracts five cohesive surfaces into `FriendSocialCards.ts`: friend search, request inbox/outbox, friend roster, income leaderboard, and activity history. `BottomNavUI.ts` remains the state/action adapter and supplies typed, preformatted view models.
 - The helper preserves visit/gift/help, inline search/request, and accept/reject action markers while escaping server-provided names, ids, invite details, messages, and activity text. Shared section headers and five stable `data-social-card` markers sharpen the target-like paper/wood hierarchy.

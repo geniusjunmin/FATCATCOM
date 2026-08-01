@@ -97,6 +97,26 @@ async function isVisible(page, selector) {
                 })(),
                 catStatTopGlints: Array.from(document.querySelectorAll("#fatcat-dom-cat-overlay .cat-stats > div"))
                     .filter(element => getComputedStyle(element, "::before").content !== "none").length,
+                catPanelMarkers: Array.from(document.querySelectorAll("#fatcat-dom-cat-overlay [data-cat-panel]"))
+                    .map(element => element.getAttribute("data-cat-panel")),
+                catIdentitySeal: (() => {
+                    const element = document.querySelector("#fatcat-dom-cat-overlay .cat-card.info strong");
+                    return !!element && getComputedStyle(element, "::before").content !== "none";
+                })(),
+                catStatusRail: (() => {
+                    const element = document.querySelector("#fatcat-dom-cat-overlay .cat-status-rail");
+                    return !!element && getComputedStyle(element, "::before").content !== "none";
+                })(),
+                catStatBottomAccents: Array.from(document.querySelectorAll("#fatcat-dom-cat-overlay .cat-stats > div"))
+                    .filter(element => getComputedStyle(element, "::after").content !== "none").length,
+                catStatLabels: document.querySelectorAll("#fatcat-dom-cat-overlay .cat-stats .stat-label").length,
+                catStatValues: document.querySelectorAll("#fatcat-dom-cat-overlay .cat-stats .stat-value").length,
+                catLowerTitleBadges: Array.from(document.querySelectorAll("#fatcat-dom-cat-overlay .cat-grid > div > b"))
+                    .filter(element => getComputedStyle(element, "::before").content !== "none").length,
+                catRosterActiveCrest: (() => {
+                    const element = document.querySelector("#fatcat-dom-cat-overlay .cat-list button.active");
+                    return !!element && getComputedStyle(element, "::after").content !== "none";
+                })(),
                 catWeightBadge: (() => {
                     const element = document.querySelector("#fatcat-dom-cat-overlay .cat-weight > b");
                     return !!element && getComputedStyle(element, "::before").content !== "none";
@@ -209,6 +229,14 @@ async function isVisible(page, selector) {
         || !entry.state.catTalkPin
         || !entry.state.catPowerBeanMedal
         || entry.state.catStatTopGlints < 5
+        || entry.state.catPanelMarkers.join(",") !== "identity,stage,status,power,stats,weight,roster"
+        || !entry.state.catIdentitySeal
+        || !entry.state.catStatusRail
+        || entry.state.catStatBottomAccents < 5
+        || entry.state.catStatLabels !== 5
+        || entry.state.catStatValues !== 5
+        || entry.state.catLowerTitleBadges < 2
+        || !entry.state.catRosterActiveCrest
         || !entry.state.catWeightBadge
         || !entry.state.storyCornerPin
         || !entry.state.hasStoryPhoto

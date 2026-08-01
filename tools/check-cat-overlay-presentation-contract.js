@@ -52,6 +52,11 @@ for (const selector of [
   ".cat-portrait .cat-talk:before",
   ".cat-power:before",
   ".cat-stats div:before",
+  ".cat-card.info strong:before",
+  ".cat-status-rail:before",
+  ".cat-stats div:after",
+  ".cat-grid > div > b:before",
+  ".cat-list button.active:after",
   ".cat-weight > b:before",
   ".story-copy:after",
   ".tablet .cat-bg",
@@ -78,12 +83,29 @@ assertContains(
 assertNotContains("BottomNavUI no inline cat CSS", bottomNav, "#fatcat-dom-cat-overlay { position: fixed;");
 assertContains("BottomNavUI retains cat pointer actions", bottomNav, "private onDomCatPointerDown");
 assertContains("BottomNavUI retains cat rendering", bottomNav, "private renderDomCatOverlay");
+for (const panel of ["identity", "stage", "status", "power", "stats", "weight", "roster"]) {
+  assertContains(`BottomNavUI marks ${panel} cat panel`, bottomNav, `data-cat-panel=\"${panel}\"`);
+}
+const statMarkers = bottomNav.split("data-cat-stat=").length - 1;
+if (statMarkers !== 5) {
+  fail("Cat overlay presentation contract check failed.", {
+    label: "cat stat semantic marker count",
+    expected: 5,
+    actual: statMarkers,
+  });
+}
 assertContains("BottomNavUI renders accessible back arrow", bottomNav, "aria-label=\"返回\">←</button>");
 assertContains("compact side rail target width", presentation, "width: 9.8%");
 assertContains("compact side icon target scale", presentation, ".compact .side-tab i.asset { width:68%; }");
 assertContains("cat regression guards talk pin", read("tools/capture-cat-regression.js"), "catTalkPin");
 assertContains("cat regression guards power medal", read("tools/capture-cat-regression.js"), "catPowerBeanMedal");
 assertContains("cat regression guards stat glints", read("tools/capture-cat-regression.js"), "catStatTopGlints");
+assertContains("cat regression guards semantic panels", read("tools/capture-cat-regression.js"), "catPanelMarkers");
+assertContains("cat regression guards identity seal", read("tools/capture-cat-regression.js"), "catIdentitySeal");
+assertContains("cat regression guards status rail", read("tools/capture-cat-regression.js"), "catStatusRail");
+assertContains("cat regression guards stat accents", read("tools/capture-cat-regression.js"), "catStatBottomAccents");
+assertContains("cat regression guards lower title badges", read("tools/capture-cat-regression.js"), "catLowerTitleBadges");
+assertContains("cat regression guards active roster crest", read("tools/capture-cat-regression.js"), "catRosterActiveCrest");
 assertContains("cat regression guards weight badge", read("tools/capture-cat-regression.js"), "catWeightBadge");
 assertContains("cat regression guards story pin", read("tools/capture-cat-regression.js"), "storyCornerPin");
 assertContains("quick verify includes contract", quickVerify, "check-cat-overlay-presentation-contract.js");

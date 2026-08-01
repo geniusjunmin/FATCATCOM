@@ -1324,6 +1324,40 @@ export function getDomCatStyles(catWorkshopDataUri: string): string {
                 top:3px;
                 height:3px;
             }
+            /* Final target micro-alignment: identity, status, stats,
+               lower cards, and roster each expose one durable visual cue. */
+            #fatcat-dom-cat-overlay .cat-card.info strong:before {
+                content:"";
+                flex:0 0 auto;
+                width:18px;
+                height:18px;
+                margin-right:7px;
+                border-radius:50%;
+                background:radial-gradient(circle at 50% 58%,#6d452d 0 18%,transparent 20%),radial-gradient(circle at 29% 33%,#6d452d 0 11%,transparent 13%),radial-gradient(circle at 50% 24%,#6d452d 0 11%,transparent 13%),radial-gradient(circle at 71% 33%,#6d452d 0 11%,transparent 13%),linear-gradient(#f6d27e,#c98a35);
+                box-shadow:0 2px 0 rgba(82,48,23,.2),inset 0 0 0 2px rgba(255,248,216,.3);
+            }
+            #fatcat-dom-cat-overlay .cat-info-badges { display:flex; align-items:center; gap:6px; margin-top:8px; }
+            #fatcat-dom-cat-overlay .cat-info-level { width:max-content; min-width:62%; margin-top:8px; padding:5px 8px; border-radius:7px; background:rgba(101,65,36,.11); box-shadow:inset 0 0 0 1px rgba(101,65,36,.12); color:#57351f; font-weight:900; }
+            #fatcat-dom-cat-overlay .cat-info-stars { margin-top:7px; color:#e6a32a; font-size:118%; line-height:1; text-shadow:0 1px 0 #fff0c8; }
+            #fatcat-dom-cat-overlay .cat-status-rail { position:relative; isolation:isolate; }
+            #fatcat-dom-cat-overlay .cat-status-rail:before { content:""; position:absolute; z-index:-1; left:50%; top:7%; bottom:7%; width:7px; transform:translateX(-50%); border-radius:999px; background:linear-gradient(90deg,#4f3526,#c68a45 45% 58%,#4a3022); box-shadow:0 0 0 2px rgba(62,39,24,.28),0 3px 0 rgba(0,0,0,.22); }
+            #fatcat-dom-cat-overlay .cat-status-rail .mood,
+            #fatcat-dom-cat-overlay .cat-status-rail .feed { padding-top:30%; background:linear-gradient(#594332,#2f241d); color:#fff3d4; border-color:#a47a4e; box-shadow:inset 0 0 0 2px rgba(255,235,190,.12),0 4px 0 rgba(0,0,0,.28); }
+            #fatcat-dom-cat-overlay .cat-status-label { display:block; margin-top:6px; color:#f5dca6; font-weight:900; line-height:1; }
+            #fatcat-dom-cat-overlay .cat-status-value { display:block; margin-top:4px; color:#fff; line-height:1; text-shadow:0 2px rgba(0,0,0,.32); }
+            #fatcat-dom-cat-overlay .cat-stats div:after { content:""; position:absolute; left:14%; right:14%; bottom:5px; height:3px; border-radius:999px; background:linear-gradient(90deg,#8db44f,#e4ae42); opacity:.72; }
+            #fatcat-dom-cat-overlay .stat-label { display:block; min-height:1.25em; color:#775237; font-weight:900; line-height:1.1; }
+            #fatcat-dom-cat-overlay .stat-value { display:block; margin-top:2px; color:#3f281a; line-height:1.05; }
+            #fatcat-dom-cat-overlay .cat-grid > div > b:before { content:""; width:10px; height:10px; margin-right:6px; border-radius:50%; background:radial-gradient(circle,#fff0a7 0 28%,#d69b38 31% 100%); box-shadow:0 1px 0 rgba(59,35,20,.24); }
+            #fatcat-dom-cat-overlay .cat-list button.active:after { content:"★"; position:absolute; z-index:4; right:5%; top:5%; width:20px; height:20px; border-radius:50%; background:linear-gradient(#ffe171,#d58c20); color:#754018; display:flex; align-items:center; justify-content:center; font-size:11px; box-shadow:0 2px 0 rgba(70,39,19,.24),inset 0 0 0 2px rgba(255,248,213,.32); }
+            #fatcat-dom-cat-overlay.compact .cat-card.info strong:before,
+            #fatcat-dom-cat-overlay.tablet .cat-card.info strong:before { width:14px; height:14px; margin-right:5px; }
+            #fatcat-dom-cat-overlay.compact .cat-info-badges { gap:4px; margin-top:5px; }
+            #fatcat-dom-cat-overlay.compact .cat-info-level { margin-top:5px; padding:3px 5px; }
+            #fatcat-dom-cat-overlay.compact .cat-info-stars { margin-top:4px; }
+            #fatcat-dom-cat-overlay.compact .cat-status-rail:before { width:5px; }
+            #fatcat-dom-cat-overlay.compact .cat-stats div:after { bottom:3px; height:2px; }
+            #fatcat-dom-cat-overlay.compact .cat-list button.active:after { width:16px; height:16px; font-size:9px; }
             #fatcat-dom-cat-overlay.compact .story-copy:after,
             #fatcat-dom-cat-overlay.tablet .story-copy:after {
                 width:12px;

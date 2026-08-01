@@ -24,6 +24,10 @@ Updated: 2026-08-01
 
 ## Latest Visual Note
 
+- Latest cat hierarchy note: `BottomNavUI.ts` now emits `data-cat-panel` for identity, stage, status, power, stats, weight, and roster, plus exactly five `data-cat-stat` cards with `.stat-label` and `.stat-value`. Preserve those hooks when changing cat markup.
+- `CatOverlayPresentation.ts` owns the new identity paw seal, dark connected status rail, five stat bottom accents, lower-card title medals, and selected-roster crest. The portrait name remains intentionally hidden because the target places the cat name in the identity card; a first-pass visible duplicate overlapped the production strip.
+- `capture-cat-regression.js` and `check-cat-overlay-presentation-contract.js` guard these cues across 414x896, 430x932, 360x800, and 768x1024. Current green evidence: focused TypeScript, Cocos script refresh, four-size cat information/equipment/skin capture, 18 UI click steps, zero Cocos errors, full quick verify, and 104/104 server tests.
+
 - Latest social-card note: `FriendSocialCards.ts` now owns friend search, friend roster, request inbox/outbox, leaderboard, and activity HTML. Keep `BottomNavUI.ts` limited to async actions, cached state, selection, formatting, and typed view-model assembly.
 - Preserve all five `data-social-card` values plus `visitFriend`, `sendFriendGift`, `helpFriend`, `searchFriendInline`, `sendFriendRequestInline`, `acceptFriendRequest`, and `rejectFriendRequest`. Dynamic server text must continue through `escapeHtml`/`escapeAttribute`; only the internally generated `profileMarkup` is trusted markup.
 - `check-friend-social-cards-contract.js` owns the extraction boundary. `capture-utility-regression.js` requires five sections, one search input, two search actions, three roster cards, nine roster actions, and horizontal containment at 430x932, 414x896, 360x800, and 768x1024.
