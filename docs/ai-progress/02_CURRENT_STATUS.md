@@ -7,7 +7,7 @@ Updated: 2026-08-01
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Make inventory ownership server-authoritative so achievement and task rewards can grant real items without client-only state. |
+| Best Next Move | Move the main/daily task catalog, progress, and reward claims behind authenticated server authority. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -21,10 +21,16 @@ Updated: 2026-08-01
 | Economy Model | Covered | Production uses assignment, building level, equipment, research, skills, mood, and the equipped factory appearance. |
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
-| Biggest Gap | Inventory reward authority | Currency and progression rewards are authoritative, but general item ownership and item-pack rewards still live only in the client save. |
+| Biggest Gap | Task authority | One achievement and the daily order are authoritative, but the broader main/daily task catalog still derives progress and claims from the client save. |
 | Biggest Risk | Frontend size | `BottomNavUI.ts` is roughly 226K characters after the friend presentation extractions, but still owns several utility and feature render adapters. |
 
 ## Client UI
+
+- Inventory ownership is now server-authoritative. `PlayerInventoryItem` persists trusted item counts and `PlayerInventoryTransaction` snapshots every shop grant, consumable use, achievement item grant, post-mutation quantity, resource balances, daily limit, and client request id.
+- Authenticated `GET /api/inventory` and `POST /api/inventory/{itemId}/use` power the online backpack. Shop purchase and use mutations share per-player inventory serialization, replay fixed transaction snapshots, and never trust client quantities; offline mode retains the existing local fallback.
+- `task_ach_1` grants `item_coin_pack_small x1` through the same inventory ledger. Existing claimed achievements without the newer item transaction receive one deterministic backfill, while future catalog rows are added to existing inventories at zero quantity instead of replaying initial gifts.
+- `SyncManager` refreshes inventory after login/save sync, applies server item snapshots after shop/use/achievement actions, and emits `INVENTORY_CHANGED`. The backpack exposes `data-inventory-authority` and rerenders immediately after mutations.
+- Verification: focused TypeScript, zero Cocos errors, 124/124 server tests, inventory/shop/progression contracts, online purchase-use-reload and achievement reward flows, 18/18 UI clicks, and feature screenshots at 430x932/414x896/360x800/768x1024 all pass.
 
 - Player progression and its first three experience sources are now server-authoritative. `PlayerProgressionRules` owns the level-28 target default, level-60 cap, `400 + level * 100` threshold curve, launch experience, daily-order `400 EXP`, and achievement `800 EXP`.
 - Every crossed level automatically grants `5000` coin, `5` diamonds, and `20` research points. `RewardedThroughLevel` is persisted and migrated without retroactive legacy grants; launch records and resource transactions snapshot experience, post-action progression, and level rewards so replay and reconnect cannot duplicate or rewrite the result.

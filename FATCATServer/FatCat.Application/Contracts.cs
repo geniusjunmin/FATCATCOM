@@ -84,7 +84,7 @@ public sealed record ClaimMailResponse(
     double DiamondBalance,
     double ResearchPointBalance);
 
-public sealed record ShopPurchaseRequest(string ShopItemId, int Count = 1);
+public sealed record ShopPurchaseRequest(string ShopItemId, int Count = 1, string ClientRequestId = "");
 
 public sealed record ShopPurchaseResponse(
     string ShopItemId,
@@ -98,7 +98,39 @@ public sealed record ShopPurchaseResponse(
     double CatFoodBalance,
     double DiamondBalance,
     double ResearchPointBalance,
+    long ServerTime,
+    string ClientRequestId,
+    bool Replayed,
+    int ItemQuantityAfter);
+
+public sealed record InventoryItemDto(
+    string ItemId,
+    string Name,
+    string Type,
+    string Rarity,
+    string Description,
+    string? ResourceType,
+    int ResourceAmount,
+    int Quantity,
+    bool Usable);
+
+public sealed record InventoryUseRequest(string ClientRequestId, int Count = 1);
+
+public sealed record InventoryUseResponse(
+    string ClientRequestId,
+    bool Replayed,
+    InventoryItemDto Item,
+    int Count,
+    string RewardType,
+    int RewardAmount,
+    double CoinBalance,
+    double BeanBalance,
+    double CatFoodBalance,
+    double DiamondBalance,
+    double ResearchPointBalance,
     long ServerTime);
+
+public sealed record InventoryRewardDto(string ItemId, int Count);
 
 public sealed record ShopStateDto(
     string ShopItemId,
@@ -634,7 +666,8 @@ public sealed record AchievementDto(
     int RewardCoin,
     int RewardDiamond,
     int RewardResearchPoint,
-    int RewardExperience);
+    int RewardExperience,
+    IReadOnlyList<InventoryRewardDto> RewardItems);
 
 public sealed record AchievementClaimResponse(
     bool Claimed,
@@ -644,6 +677,7 @@ public sealed record AchievementClaimResponse(
     double CatFoodBalance,
     double DiamondBalance,
     double ResearchPointBalance,
+    IReadOnlyList<InventoryItemDto> InventoryItems,
     string? LimitedReason = null,
     int ExperienceGained = 0,
     PlayerProgressionDto? PlayerProgression = null,

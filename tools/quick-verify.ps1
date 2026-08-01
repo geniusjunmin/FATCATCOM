@@ -165,6 +165,10 @@ Invoke-Step "Shop state contract check" {
     node .\tools\check-shop-state-contract.js
 }
 
+Invoke-Step "Authoritative inventory contract check" {
+    node .\tools\check-authoritative-inventory-contract.js
+}
+
 Invoke-Step "Friend sync contract check" {
     node .\tools\check-friend-sync-contract.js
 }

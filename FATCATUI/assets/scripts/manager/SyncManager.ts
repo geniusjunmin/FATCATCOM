@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { AchievementClaimResponse, AchievementDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatSkinCatalogItemDto, CatSkinEquipResponse, CatSkinUnlockResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerDto, PlayerPresenceDto, PlayerProgressionDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, ServerStatusDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { AchievementClaimResponse, AchievementDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatSkinCatalogItemDto, CatSkinEquipResponse, CatSkinUnlockResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, InventoryItemDto, InventoryUseResponse, LaunchResponse, LeaderboardDto, MailDto, PlayerDto, PlayerPresenceDto, PlayerProgressionDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, ServerStatusDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -13,6 +13,7 @@ import { ResourceManager } from "./ResourceManager";
 import { CatManager } from "./CatManager";
 import { ResearchManager } from "./ResearchManager";
 import { ShopManager } from "./ShopManager";
+import { InventoryManager } from "./InventoryManager";
 import { DailyOrderManager } from "./DailyOrderManager";
 import { FactoryAppearanceManager } from "./FactoryAppearanceManager";
 import type { FactoryAppearanceStateDto } from "../net/ApiTypes";
@@ -113,6 +114,7 @@ export class SyncManager {
         void this.fetchServerBuildings();
         void this.fetchServerResearch();
         void this.fetchServerShopState();
+        void this.fetchServerInventory();
         void this.fetchServerFriends();
         void this.fetchServerSocialProfile();
         void this.fetchServerFriendActivities();
@@ -252,6 +254,7 @@ export class SyncManager {
         await this.fetchServerBuildings();
         await this.fetchServerResearch();
         await this.fetchServerShopState();
+        await this.fetchServerInventory();
         await this.fetchServerFriends();
         await this.fetchServerSocialProfile();
         await this.fetchServerFriendActivities();
@@ -373,6 +376,7 @@ export class SyncManager {
             diamond: response.data.diamondBalance,
             researchPoint: response.data.researchPointBalance,
         }, `server_achievement_${achievementId}`);
+        InventoryManager.applyServerSnapshot(response.data.inventoryItems);
         this.applyProgressionResponse(response.data.playerProgression);
         EventBus.emit(GameEvents.ACHIEVEMENTS_CHANGED, this.getServerAchievements());
         this.markReadyAfterServerCall();
@@ -459,6 +463,18 @@ export class SyncManager {
         return response.data;
     }
 
+    public static async fetchServerInventory(): Promise<InventoryItemDto[]> {
+        if (!this.canCallServer()) return [];
+        const response = await ApiClient.getInventory(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "inventory_fetch_failed");
+            return [];
+        }
+        InventoryManager.applyServerSnapshot(response.data);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
     public static async fetchServerMail(): Promise<MailDto[]> {
         if (!this.canCallServer()) return [];
         const response = await ApiClient.getMail(NetworkManager.playerId);
@@ -490,7 +506,11 @@ export class SyncManager {
 
     public static async purchaseServerShopItem(shopItemId: string, count = 1): Promise<ShopPurchaseResponse | null> {
         if (!this.canCallServer()) return null;
-        const response = await ApiClient.purchaseShopItem(NetworkManager.playerId, { shopItemId, count });
+        const response = await ApiClient.purchaseShopItem(NetworkManager.playerId, {
+            shopItemId,
+            count,
+            clientRequestId: this.createInventoryRequestId("shop"),
+        });
         if (!response.ok || !response.data) {
             this.markFailed(response.error ?? "shop_purchase_failed");
             return null;
@@ -502,6 +522,29 @@ export class SyncManager {
             diamond: response.data.diamondBalance,
             researchPoint: response.data.researchPointBalance,
         }, `server_shop_${shopItemId}`);
+        InventoryManager.applyServerQuantity(response.data.itemId, response.data.itemQuantityAfter);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async useServerInventoryItem(itemId: string, count = 1): Promise<InventoryUseResponse | null> {
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.useInventoryItem(NetworkManager.playerId, itemId, {
+            clientRequestId: this.createInventoryRequestId("use"),
+            count,
+        });
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "inventory_use_failed");
+            return null;
+        }
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, `server_inventory_use_${itemId}`);
+        InventoryManager.applyServerItem(response.data.item);
         this.markReadyAfterServerCall();
         return response.data;
     }
@@ -1348,6 +1391,11 @@ export class SyncManager {
             return false;
         }
         return true;
+    }
+
+    private static createInventoryRequestId(action: "shop" | "use"): string {
+        const random = Math.random().toString(36).slice(2, 10);
+        return `${action}_${Date.now()}_${random}`;
     }
 
     private static createProductionPreviewRequest(): ProductionPreviewRequest {

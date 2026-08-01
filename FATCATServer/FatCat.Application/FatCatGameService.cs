@@ -14,6 +14,7 @@ public sealed class FatCatGameService(
     private readonly SocialEventBroker socialEvents = socialEventBroker ?? new SocialEventBroker();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> ResearchUnlockGates = new();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> PlayerProgressionGates = new();
+    private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> InventoryMutationGates = new();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> CatSkinUnlockGates = new();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> FactoryAppearanceGates = new();
     private static readonly HashSet<string> CatSkinIds = ["default", "apron", "manager", "festival"];
@@ -69,13 +70,49 @@ public sealed class FatCatGameService(
             0,
             0,
             200,
-            800),
+            800,
+            [new InventoryRewardDto("item_coin_pack_small", 1)]),
     ];
     private const double InitialCoin = 12_450_000;
     private const double InitialBean = 8_240;
     private const double InitialCatFood = 3_510;
     private const double InitialDiamond = 2_580;
     private const double InitialResearchPoint = 200;
+    private static readonly ItemCatalogDefinition[] ItemCatalog =
+    [
+        new(
+            "item_cat_food_pack",
+            "\u732b\u7cae\u5305",
+            "resource",
+            "B",
+            "\u6253\u5f00\u83b7\u5f97 100 \u732b\u7cae",
+            "catFood",
+            100,
+            true,
+            2),
+        new(
+            "item_coin_pack_small",
+            "\u5c0f\u888b\u91d1\u5e01",
+            "resource",
+            "B",
+            "\u6253\u5f00\u83b7\u5f97 1000 \u91d1\u5e01",
+            "coin",
+            1_000,
+            true,
+            5),
+        new(
+            "item_shard_orange",
+            "\u5927\u6a58\u788e\u7247",
+            "shard",
+            "A",
+            "\u96c6\u9f50 10 \u4e2a\u53ef\u4ee5\u89e3\u9501\u5927\u6a58",
+            null,
+            0,
+            false,
+            0),
+    ];
+    private static readonly IReadOnlyDictionary<string, ItemCatalogDefinition> ItemCatalogById = ItemCatalog
+        .ToDictionary(item => item.ItemId, StringComparer.Ordinal);
     private static readonly Dictionary<string, ShopItemDefinition> ShopItems = new()
     {
         ["shop_cat_food_1"] = new ShopItemDefinition("shop_cat_food_1", "item_cat_food_pack", "coin", 500, 5),
@@ -187,7 +224,7 @@ public sealed class FatCatGameService(
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "friend-coop-tiers", "daily-order", "achievements", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "player-progression", "level-up-rewards", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "cat-skin-equip", "cat-skin-unlock", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "friend-coop-tiers", "daily-order", "achievements", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "player-progression", "level-up-rewards", "resource-state", "resource-snapshot", "shop-state", "authoritative-inventory", "inventory-use", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "cat-skin-equip", "cat-skin-unlock", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -339,15 +376,18 @@ public sealed class FatCatGameService(
         string achievementId,
         CancellationToken cancellationToken)
     {
-        var gate = PlayerProgressionGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
-        await gate.WaitAsync(cancellationToken);
+        var progressionGate = PlayerProgressionGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        var inventoryGate = InventoryMutationGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        await progressionGate.WaitAsync(cancellationToken);
+        await inventoryGate.WaitAsync(cancellationToken);
         try
         {
             return await ClaimAchievementCoreAsync(playerId, achievementId, cancellationToken);
         }
         finally
         {
-            gate.Release();
+            inventoryGate.Release();
+            progressionGate.Release();
         }
     }
 
@@ -369,24 +409,21 @@ public sealed class FatCatGameService(
         var existingClaims = await repository.GetAchievementClaimsAsync(playerId, cancellationToken);
         var alreadyClaimed = existingClaims.Any(claim => claim.AchievementKey == definition.Id);
         var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
-        if (alreadyClaimed || progress < definition.Target)
+        var inventory = await EnsureInventoryItemsAsync(playerId, cancellationToken);
+        if (alreadyClaimed)
         {
-            return new AchievementClaimResponse(
-                false,
-                ToAchievementDto(definition, progress, alreadyClaimed),
-                resources.Coin,
-                resources.Bean,
-                resources.CatFood,
-                resources.Diamond,
-                resources.ResearchPoint,
-                alreadyClaimed ? "already_claimed" : "achievement_not_complete",
-                PlayerProgression: ToPlayerProgressionDto(player));
-        }
+            var backfillAt = DateTimeOffset.UtcNow;
+            if (await EnsureAchievementInventoryRewardsAsync(
+                playerId,
+                definition,
+                inventory,
+                resources,
+                backfillAt,
+                cancellationToken))
+            {
+                await repository.SaveChangesAsync(cancellationToken);
+            }
 
-        var now = DateTimeOffset.UtcNow;
-        var claimed = await repository.TryAddAchievementClaimAsync(playerId, definition.Id, now, cancellationToken);
-        if (!claimed)
-        {
             return new AchievementClaimResponse(
                 false,
                 ToAchievementDto(definition, progress, true),
@@ -395,6 +432,50 @@ public sealed class FatCatGameService(
                 resources.CatFood,
                 resources.Diamond,
                 resources.ResearchPoint,
+                ToInventoryDtos(inventory),
+                "already_claimed",
+                PlayerProgression: ToPlayerProgressionDto(player));
+        }
+
+        if (progress < definition.Target)
+        {
+            return new AchievementClaimResponse(
+                false,
+                ToAchievementDto(definition, progress, false),
+                resources.Coin,
+                resources.Bean,
+                resources.CatFood,
+                resources.Diamond,
+                resources.ResearchPoint,
+                ToInventoryDtos(inventory),
+                "achievement_not_complete",
+                PlayerProgression: ToPlayerProgressionDto(player));
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var claimed = await repository.TryAddAchievementClaimAsync(playerId, definition.Id, now, cancellationToken);
+        if (!claimed)
+        {
+            if (await EnsureAchievementInventoryRewardsAsync(
+                playerId,
+                definition,
+                inventory,
+                resources,
+                now,
+                cancellationToken))
+            {
+                await repository.SaveChangesAsync(cancellationToken);
+            }
+
+            return new AchievementClaimResponse(
+                false,
+                ToAchievementDto(definition, progress, true),
+                resources.Coin,
+                resources.Bean,
+                resources.CatFood,
+                resources.Diamond,
+                resources.ResearchPoint,
+                ToInventoryDtos(inventory),
                 "already_claimed",
                 PlayerProgression: ToPlayerProgressionDto(player));
         }
@@ -405,6 +486,13 @@ public sealed class FatCatGameService(
         resources.ResearchPoint += definition.RewardResearchPoint + experienceSettlement.LevelUpReward.ResearchPoint;
         resources.UpdatedAt = now;
         player.UpdatedAt = now;
+        await EnsureAchievementInventoryRewardsAsync(
+            playerId,
+            definition,
+            inventory,
+            resources,
+            now,
+            cancellationToken);
         await AddResourceTransactionAsync(
             playerId,
             "achievement_claim",
@@ -429,6 +517,7 @@ public sealed class FatCatGameService(
             resources.CatFood,
             resources.Diamond,
             resources.ResearchPoint,
+            ToInventoryDtos(inventory),
             ExperienceGained: definition.RewardExperience,
             PlayerProgression: ToPlayerProgressionDto(player),
             LevelUpReward: ToLevelUpRewardDto(experienceSettlement.LevelUpReward));
@@ -803,70 +892,98 @@ public sealed class FatCatGameService(
         {
             return null;
         }
-
-        var today = ToUtcDate(DateTimeOffset.UtcNow);
-        var history = await repository.GetShopPurchaseHistoryAsync(playerId, item.ShopItemId, today, cancellationToken);
-        var purchasedToday = history?.Count ?? 0;
-        var remainingBeforePurchase = item.LimitDaily > 0 ? Math.Max(0, item.LimitDaily - purchasedToday) : 99;
-        var count = Math.Clamp(request.Count, 1, item.LimitDaily > 0 ? item.LimitDaily : 99);
-        if (remainingBeforePurchase < count)
+        var requestId = NormalizeInventoryRequestId(request.ClientRequestId, "shop");
+        var gate = InventoryMutationGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
         {
-            return null;
-        }
+            var replay = await repository.GetInventoryTransactionAsync(playerId, requestId, cancellationToken);
+            if (replay is not null)
+            {
+                return replay.SourceType == "shop_purchase" && replay.SourceKey == item.ShopItemId
+                    ? ToShopPurchaseResponse(item, replay, true)
+                    : null;
+            }
 
-        var pricePaid = item.PriceAmount * count;
-        var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
-        if (!CanSpendResource(resources, item.PriceType, pricePaid))
-        {
-            return null;
-        }
+            var inventory = await EnsureInventoryItemsAsync(playerId, cancellationToken);
+            var inventoryItem = inventory.Single(state => state.ItemKey == item.ItemId);
+            var today = ToUtcDate(DateTimeOffset.UtcNow);
+            var history = await repository.GetShopPurchaseHistoryAsync(playerId, item.ShopItemId, today, cancellationToken);
+            var purchasedToday = history?.Count ?? 0;
+            var remainingBeforePurchase = item.LimitDaily > 0 ? Math.Max(0, item.LimitDaily - purchasedToday) : 99;
+            var count = Math.Clamp(request.Count, 1, item.LimitDaily > 0 ? item.LimitDaily : 99);
+            if (remainingBeforePurchase < count)
+            {
+                return null;
+            }
 
-        SpendResource(resources, item.PriceType, pricePaid);
-        resources.UpdatedAt = DateTimeOffset.UtcNow;
-        await AddResourceTransactionAsync(
-            playerId,
-            "shop_purchase",
-            item.ShopItemId,
-            null,
-            item.PriceType == "coin" ? -pricePaid : 0,
-            item.PriceType == "bean" ? -pricePaid : 0,
-            item.PriceType == "catFood" ? -pricePaid : 0,
-            item.PriceType == "diamond" ? -pricePaid : 0,
-            item.PriceType == "researchPoint" ? -pricePaid : 0,
-            resources,
-            cancellationToken);
-        if (history is null)
-        {
-            history = new PlayerShopPurchaseHistory
+            var pricePaid = checked(item.PriceAmount * count);
+            var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
+            if (!CanSpendResource(resources, item.PriceType, pricePaid))
+            {
+                return null;
+            }
+
+            SpendResource(resources, item.PriceType, pricePaid);
+            var now = DateTimeOffset.UtcNow;
+            resources.UpdatedAt = now;
+            inventoryItem.Quantity = checked(inventoryItem.Quantity + count);
+            inventoryItem.UpdatedAt = now;
+            await AddResourceTransactionAsync(
+                playerId,
+                "shop_purchase",
+                item.ShopItemId,
+                requestId,
+                item.PriceType == "coin" ? -pricePaid : 0,
+                item.PriceType == "bean" ? -pricePaid : 0,
+                item.PriceType == "catFood" ? -pricePaid : 0,
+                item.PriceType == "diamond" ? -pricePaid : 0,
+                item.PriceType == "researchPoint" ? -pricePaid : 0,
+                resources,
+                cancellationToken);
+            if (history is null)
+            {
+                history = new PlayerShopPurchaseHistory
+                {
+                    PlayerId = playerId,
+                    ShopItemId = item.ShopItemId,
+                    PurchaseDate = today,
+                    Count = count,
+                    UpdatedAt = now,
+                };
+                await repository.AddShopPurchaseHistoryAsync(history, cancellationToken);
+            }
+            else
+            {
+                history.Count += count;
+                history.UpdatedAt = now;
+            }
+
+            var transaction = new PlayerInventoryTransaction
             {
                 PlayerId = playerId,
-                ShopItemId = item.ShopItemId,
-                PurchaseDate = today,
-                Count = count,
-                UpdatedAt = DateTimeOffset.UtcNow,
+                ClientRequestId = requestId,
+                SourceType = "shop_purchase",
+                SourceKey = item.ShopItemId,
+                ItemKey = item.ItemId,
+                QuantityDelta = count,
+                QuantityAfter = inventoryItem.Quantity,
+                RemainingDailyAfter = item.LimitDaily > 0 ? Math.Max(0, item.LimitDaily - history.Count) : 99,
+                CoinBalance = resources.Coin,
+                BeanBalance = resources.Bean,
+                CatFoodBalance = resources.CatFood,
+                DiamondBalance = resources.Diamond,
+                ResearchPointBalance = resources.ResearchPoint,
+                CreatedAt = now,
             };
-            await repository.AddShopPurchaseHistoryAsync(history, cancellationToken);
+            await repository.AddInventoryTransactionAsync(transaction, cancellationToken);
+            await repository.SaveChangesAsync(cancellationToken);
+            return ToShopPurchaseResponse(item, transaction, false);
         }
-        else
+        finally
         {
-            history.Count += count;
-            history.UpdatedAt = DateTimeOffset.UtcNow;
+            gate.Release();
         }
-        await repository.SaveChangesAsync(cancellationToken);
-
-        return new ShopPurchaseResponse(
-            item.ShopItemId,
-            item.ItemId,
-            count,
-            item.LimitDaily > 0 ? Math.Max(0, item.LimitDaily - history.Count) : 99,
-            item.PriceType,
-            pricePaid,
-            resources.Coin,
-            resources.Bean,
-            resources.CatFood,
-            resources.Diamond,
-            resources.ResearchPoint,
-            resources.UpdatedAt.ToUnixTimeMilliseconds());
     }
 
     public async Task<IReadOnlyList<ShopStateDto>?> GetShopStateAsync(Guid playerId, CancellationToken cancellationToken)
@@ -895,6 +1012,108 @@ public sealed class FatCatGameService(
         }
 
         return states;
+    }
+
+    public async Task<IReadOnlyList<InventoryItemDto>?> GetInventoryAsync(
+        Guid playerId,
+        CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        var gate = InventoryMutationGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            return ToInventoryDtos(await EnsureInventoryItemsAsync(playerId, cancellationToken));
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    public async Task<InventoryUseResponse?> UseInventoryItemAsync(
+        Guid playerId,
+        string itemId,
+        InventoryUseRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null ||
+            !ItemCatalogById.TryGetValue(itemId?.Trim() ?? "", out var definition) ||
+            !definition.Usable ||
+            string.IsNullOrWhiteSpace(definition.ResourceType) ||
+            definition.ResourceAmount <= 0)
+        {
+            return null;
+        }
+
+        var requestId = NormalizeInventoryRequestId(request.ClientRequestId, "use");
+        var gate = InventoryMutationGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            var replay = await repository.GetInventoryTransactionAsync(playerId, requestId, cancellationToken);
+            if (replay is not null)
+            {
+                return replay.SourceType == "inventory_use" && replay.ItemKey == definition.ItemId
+                    ? ToInventoryUseResponse(definition, replay, true)
+                    : null;
+            }
+
+            var count = Math.Clamp(request.Count, 1, 99);
+            var inventory = await EnsureInventoryItemsAsync(playerId, cancellationToken);
+            var item = inventory.Single(state => state.ItemKey == definition.ItemId);
+            if (item.Quantity < count)
+            {
+                return null;
+            }
+
+            var rewardAmount = checked(definition.ResourceAmount * count);
+            var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
+            AddResource(resources, definition.ResourceType, rewardAmount);
+            var now = DateTimeOffset.UtcNow;
+            resources.UpdatedAt = now;
+            item.Quantity -= count;
+            item.UpdatedAt = now;
+            await AddResourceTransactionAsync(
+                playerId,
+                "inventory_use",
+                definition.ItemId,
+                requestId,
+                definition.ResourceType == "coin" ? rewardAmount : 0,
+                definition.ResourceType == "bean" ? rewardAmount : 0,
+                definition.ResourceType == "catFood" ? rewardAmount : 0,
+                definition.ResourceType == "diamond" ? rewardAmount : 0,
+                definition.ResourceType == "researchPoint" ? rewardAmount : 0,
+                resources,
+                cancellationToken);
+            var transaction = new PlayerInventoryTransaction
+            {
+                PlayerId = playerId,
+                ClientRequestId = requestId,
+                SourceType = "inventory_use",
+                SourceKey = definition.ItemId,
+                ItemKey = definition.ItemId,
+                QuantityDelta = -count,
+                QuantityAfter = item.Quantity,
+                CoinBalance = resources.Coin,
+                BeanBalance = resources.Bean,
+                CatFoodBalance = resources.CatFood,
+                DiamondBalance = resources.Diamond,
+                ResearchPointBalance = resources.ResearchPoint,
+                CreatedAt = now,
+            };
+            await repository.AddInventoryTransactionAsync(transaction, cancellationToken);
+            await repository.SaveChangesAsync(cancellationToken);
+            return ToInventoryUseResponse(definition, transaction, false);
+        }
+        finally
+        {
+            gate.Release();
+        }
     }
 
     public async Task<CatUpgradeResponse?> UpgradeCatAsync(Guid playerId, CatUpgradeRequest request, CancellationToken cancellationToken)
@@ -2635,7 +2854,75 @@ public sealed class FatCatGameService(
             definition.RewardCoin,
             definition.RewardDiamond,
             definition.RewardResearchPoint,
-            definition.RewardExperience);
+            definition.RewardExperience,
+            definition.RewardItems);
+    }
+
+    private static ShopPurchaseResponse ToShopPurchaseResponse(
+        ShopItemDefinition definition,
+        PlayerInventoryTransaction transaction,
+        bool replayed)
+    {
+        var count = Math.Max(0, transaction.QuantityDelta);
+        return new ShopPurchaseResponse(
+            definition.ShopItemId,
+            definition.ItemId,
+            count,
+            transaction.RemainingDailyAfter,
+            definition.PriceType,
+            checked(definition.PriceAmount * count),
+            transaction.CoinBalance,
+            transaction.BeanBalance,
+            transaction.CatFoodBalance,
+            transaction.DiamondBalance,
+            transaction.ResearchPointBalance,
+            transaction.CreatedAt.ToUnixTimeMilliseconds(),
+            transaction.ClientRequestId,
+            replayed,
+            transaction.QuantityAfter);
+    }
+
+    private static InventoryUseResponse ToInventoryUseResponse(
+        ItemCatalogDefinition definition,
+        PlayerInventoryTransaction transaction,
+        bool replayed)
+    {
+        var count = Math.Max(0, -transaction.QuantityDelta);
+        return new InventoryUseResponse(
+            transaction.ClientRequestId,
+            replayed,
+            ToInventoryDto(definition, transaction.QuantityAfter),
+            count,
+            definition.ResourceType ?? "",
+            checked(definition.ResourceAmount * count),
+            transaction.CoinBalance,
+            transaction.BeanBalance,
+            transaction.CatFoodBalance,
+            transaction.DiamondBalance,
+            transaction.ResearchPointBalance,
+            transaction.CreatedAt.ToUnixTimeMilliseconds());
+    }
+
+    private static IReadOnlyList<InventoryItemDto> ToInventoryDtos(IReadOnlyCollection<PlayerInventoryItem> inventory)
+    {
+        var quantities = inventory.ToDictionary(item => item.ItemKey, item => Math.Max(0, item.Quantity), StringComparer.Ordinal);
+        return ItemCatalog
+            .Select(definition => ToInventoryDto(definition, quantities.GetValueOrDefault(definition.ItemId)))
+            .ToArray();
+    }
+
+    private static InventoryItemDto ToInventoryDto(ItemCatalogDefinition definition, int quantity)
+    {
+        return new InventoryItemDto(
+            definition.ItemId,
+            definition.Name,
+            definition.Type,
+            definition.Rarity,
+            definition.Description,
+            definition.ResourceType,
+            definition.ResourceAmount,
+            Math.Max(0, quantity),
+            definition.Usable);
     }
 
     private static LaunchResponse CreateRejectedLaunch(
@@ -2683,6 +2970,18 @@ public sealed class FatCatGameService(
         return string.IsNullOrWhiteSpace(clientRequestId)
             ? Guid.NewGuid().ToString("N")
             : clientRequestId.Trim();
+    }
+
+    private static string NormalizeInventoryRequestId(string? clientRequestId, string prefix)
+    {
+        var normalized = string.IsNullOrWhiteSpace(clientRequestId)
+            ? Guid.NewGuid().ToString("N")
+            : clientRequestId.Trim();
+        if (normalized.Length > 100)
+        {
+            normalized = normalized[..100];
+        }
+        return $"{prefix}:{normalized}";
     }
 
     private static LaunchResponse ToLaunchResponse(
@@ -3196,6 +3495,101 @@ public sealed class FatCatGameService(
         return resources;
     }
 
+    private async Task<List<PlayerInventoryItem>> EnsureInventoryItemsAsync(
+        Guid playerId,
+        CancellationToken cancellationToken)
+    {
+        var inventory = await repository.GetInventoryItemsAsync(playerId, cancellationToken);
+        if (inventory.Count > 0)
+        {
+            var knownItemKeys = inventory.Select(item => item.ItemKey).ToHashSet(StringComparer.Ordinal);
+            var catalogUpdatedAt = DateTimeOffset.UtcNow;
+            var catalogChanged = false;
+            foreach (var definition in ItemCatalog.Where(definition => !knownItemKeys.Contains(definition.ItemId)))
+            {
+                var item = new PlayerInventoryItem
+                {
+                    PlayerId = playerId,
+                    ItemKey = definition.ItemId,
+                    Quantity = 0,
+                    UpdatedAt = catalogUpdatedAt,
+                };
+                inventory.Add(item);
+                await repository.AddInventoryItemAsync(item, cancellationToken);
+                catalogChanged = true;
+            }
+
+            if (catalogChanged)
+            {
+                await repository.SaveChangesAsync(cancellationToken);
+            }
+
+            return inventory;
+        }
+
+        var purchaseHistory = await repository.GetShopPurchaseHistoriesAsync(playerId, cancellationToken);
+        var now = DateTimeOffset.UtcNow;
+        foreach (var definition in ItemCatalog)
+        {
+            var purchasedCount = purchaseHistory
+                .Where(history => ShopItems.TryGetValue(history.ShopItemId, out var shop) && shop.ItemId == definition.ItemId)
+                .Sum(history => Math.Max(0, history.Count));
+            var item = new PlayerInventoryItem
+            {
+                PlayerId = playerId,
+                ItemKey = definition.ItemId,
+                Quantity = checked(definition.InitialQuantity + purchasedCount),
+                UpdatedAt = now,
+            };
+            inventory.Add(item);
+            await repository.AddInventoryItemAsync(item, cancellationToken);
+        }
+        await repository.SaveChangesAsync(cancellationToken);
+        return inventory;
+    }
+
+    private async Task<bool> EnsureAchievementInventoryRewardsAsync(
+        Guid playerId,
+        AchievementDefinition definition,
+        IReadOnlyList<PlayerInventoryItem> inventory,
+        PlayerResourceState resources,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var changed = false;
+        foreach (var rewardItem in definition.RewardItems)
+        {
+            var requestId = $"achievement:{definition.Id}:{rewardItem.ItemId}";
+            if (await repository.GetInventoryTransactionAsync(playerId, requestId, cancellationToken) is not null)
+            {
+                continue;
+            }
+
+            var item = inventory.Single(state => state.ItemKey == rewardItem.ItemId);
+            item.Quantity = checked(item.Quantity + rewardItem.Count);
+            item.UpdatedAt = now;
+            await repository.AddInventoryTransactionAsync(new PlayerInventoryTransaction
+            {
+                PlayerId = playerId,
+                ClientRequestId = requestId,
+                SourceType = "achievement_claim",
+                SourceKey = definition.Id,
+                ItemKey = rewardItem.ItemId,
+                QuantityDelta = rewardItem.Count,
+                QuantityAfter = item.Quantity,
+                CoinBalance = resources.Coin,
+                BeanBalance = resources.Bean,
+                CatFoodBalance = resources.CatFood,
+                DiamondBalance = resources.Diamond,
+                ResearchPointBalance = resources.ResearchPoint,
+                CreatedAt = now,
+            }, cancellationToken);
+            changed = true;
+        }
+
+        return changed;
+    }
+
     private async Task<PlayerCatState> EnsureCatStateAsync(Guid playerId, string catId, CancellationToken cancellationToken)
     {
         var cat = await repository.GetCatStateAsync(playerId, catId, cancellationToken);
@@ -3264,6 +3658,30 @@ public sealed class FatCatGameService(
         foreach (var buildingId in balance.BuildingDefinitions.Keys)
         {
             await EnsureBuildingStateAsync(playerId, buildingId, cancellationToken);
+        }
+    }
+
+    private static void AddResource(PlayerResourceState resources, string resourceType, double amount)
+    {
+        switch (resourceType)
+        {
+            case "coin":
+                resources.Coin = Math.Max(0, resources.Coin + amount);
+                break;
+            case "bean":
+                resources.Bean = Math.Max(0, resources.Bean + amount);
+                break;
+            case "catFood":
+                resources.CatFood = Math.Max(0, resources.CatFood + amount);
+                break;
+            case "diamond":
+                resources.Diamond = Math.Max(0, resources.Diamond + amount);
+                break;
+            case "researchPoint":
+                resources.ResearchPoint = Math.Max(0, resources.ResearchPoint + amount);
+                break;
+            default:
+                throw new InvalidOperationException($"Unsupported inventory resource type '{resourceType}'.");
         }
     }
 
@@ -4231,6 +4649,16 @@ public sealed class FatCatGameService(
     private const int DailyLaunchLimit = 5;
     private static readonly TimeSpan FriendHelpDuration = TimeSpan.FromMinutes(30);
     private sealed record ShopItemDefinition(string ShopItemId, string ItemId, string PriceType, int PriceAmount, int LimitDaily);
+    private sealed record ItemCatalogDefinition(
+        string ItemId,
+        string Name,
+        string Type,
+        string Rarity,
+        string Description,
+        string? ResourceType,
+        int ResourceAmount,
+        bool Usable,
+        int InitialQuantity);
     private sealed record DecorCatalogDefinition(
         string DecorId,
         string Name,
@@ -4283,7 +4711,8 @@ public sealed class FatCatGameService(
         int RewardCoin,
         int RewardDiamond,
         int RewardResearchPoint,
-        int RewardExperience);
+        int RewardExperience,
+        IReadOnlyList<InventoryRewardDto> RewardItems);
     private readonly record struct ExperienceSettlement(
         PlayerProgressionState Progression,
         PlayerLevelUpReward LevelUpReward);

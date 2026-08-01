@@ -108,6 +108,7 @@ export type AchievementDto = {
     rewardDiamond: number;
     rewardResearchPoint: number;
     rewardExperience: number;
+    rewardItems: InventoryRewardDto[];
 };
 
 export type AchievementClaimResponse = {
@@ -118,6 +119,7 @@ export type AchievementClaimResponse = {
     catFoodBalance: number;
     diamondBalance: number;
     researchPointBalance: number;
+    inventoryItems: InventoryItemDto[];
     limitedReason?: string | null;
     experienceGained: number;
     playerProgression?: PlayerProgressionDto;
@@ -151,6 +153,7 @@ export type ClaimMailResponse = {
 export type ShopPurchaseRequest = {
     shopItemId: string;
     count?: number;
+    clientRequestId?: string;
 };
 
 export type ShopPurchaseResponse = {
@@ -166,6 +169,46 @@ export type ShopPurchaseResponse = {
     diamondBalance: number;
     researchPointBalance: number;
     serverTime: number;
+    clientRequestId: string;
+    replayed: boolean;
+    itemQuantityAfter: number;
+};
+
+export type InventoryItemDto = {
+    itemId: string;
+    name: string;
+    type: string;
+    rarity: string;
+    description: string;
+    resourceType?: string | null;
+    resourceAmount: number;
+    quantity: number;
+    usable: boolean;
+};
+
+export type InventoryUseRequest = {
+    clientRequestId: string;
+    count?: number;
+};
+
+export type InventoryUseResponse = {
+    clientRequestId: string;
+    replayed: boolean;
+    item: InventoryItemDto;
+    count: number;
+    rewardType: string;
+    rewardAmount: number;
+    coinBalance: number;
+    beanBalance: number;
+    catFoodBalance: number;
+    diamondBalance: number;
+    researchPointBalance: number;
+    serverTime: number;
+};
+
+export type InventoryRewardDto = {
+    itemId: string;
+    count: number;
 };
 
 export type ShopStateDto = {

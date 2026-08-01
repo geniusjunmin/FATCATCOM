@@ -92,6 +92,7 @@ app.MapGet("/api/server/status", (IHostEnvironment environment) => Results.Ok(Ap
         "cooperative-goals",
         "leaderboard",
         "social-events",
+        "authoritative-inventory",
     },
 })));
 
@@ -395,6 +396,30 @@ app.MapGet("/api/shop/state", async (
     return result is null
         ? Results.NotFound(ApiEnvelope<IReadOnlyList<ShopStateDto>>.Fail("player_not_found"))
         : Results.Ok(ApiEnvelope<IReadOnlyList<ShopStateDto>>.Success(result));
+});
+
+app.MapGet("/api/inventory", async (
+    Guid playerId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.GetInventoryAsync(playerId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<IReadOnlyList<InventoryItemDto>>.Fail("player_not_found"))
+        : Results.Ok(ApiEnvelope<IReadOnlyList<InventoryItemDto>>.Success(result));
+});
+
+app.MapPost("/api/inventory/{itemId}/use", async (
+    Guid playerId,
+    string itemId,
+    InventoryUseRequest request,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.UseInventoryItemAsync(playerId, itemId, request, cancellationToken);
+    return result is null
+        ? Results.BadRequest(ApiEnvelope<InventoryUseResponse>.Fail("inventory_use_failed"))
+        : Results.Ok(ApiEnvelope<InventoryUseResponse>.Success(result));
 });
 
 app.MapPost("/api/cats/{catId}/upgrade", async (

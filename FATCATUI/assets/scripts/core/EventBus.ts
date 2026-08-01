@@ -57,4 +57,5 @@ export const GameEvents = {
     DAILY_ORDER_CHANGED: "daily-order:changed",
     PLAYER_PROGRESSION_CHANGED: "player-progression:changed",
     ACHIEVEMENTS_CHANGED: "achievements:changed",
+    INVENTORY_CHANGED: "inventory:changed",
 } as const;

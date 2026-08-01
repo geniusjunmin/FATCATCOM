@@ -343,6 +343,8 @@ export class BottomNavUI extends Component {
         EventBus.on(GameEvents.PLAYER_PROGRESSION_CHANGED, this.onPlayerProgressionChanged);
         EventBus.off(GameEvents.ACHIEVEMENTS_CHANGED, this.onAchievementsChanged);
         EventBus.on(GameEvents.ACHIEVEMENTS_CHANGED, this.onAchievementsChanged);
+        EventBus.off(GameEvents.INVENTORY_CHANGED, this.onInventoryChanged);
+        EventBus.on(GameEvents.INVENTORY_CHANGED, this.onInventoryChanged);
 
         // Ensure navigation is on top of everything
         this.node.parent?.setSiblingIndex(999);
@@ -381,6 +383,7 @@ export class BottomNavUI extends Component {
         EventBus.off(GameEvents.DAILY_ORDER_CHANGED, this.onDailyOrderChanged);
         EventBus.off(GameEvents.PLAYER_PROGRESSION_CHANGED, this.onPlayerProgressionChanged);
         EventBus.off(GameEvents.ACHIEVEMENTS_CHANGED, this.onAchievementsChanged);
+        EventBus.off(GameEvents.INVENTORY_CHANGED, this.onInventoryChanged);
         if (this._waitingForAppReady) {
             EventBus.off(GameEvents.APP_READY, this.onAppReady);
             this._waitingForAppReady = false;
@@ -445,6 +448,12 @@ export class BottomNavUI extends Component {
     private onAchievementsChanged = (): void => {
         if (this.currentPanel === "achievements") {
             this.renderDomPanel("achievements");
+        }
+    };
+
+    private onInventoryChanged = (): void => {
+        if (this.currentPanel === "inventory" || this.currentPanel === "shop") {
+            this.renderDomPanel(this.currentPanel);
         }
     };
 
@@ -1126,10 +1135,15 @@ export class BottomNavUI extends Component {
             return;
         }
         if (action === "buy") {
-            const serverPurchase = NetworkManager.canUseServer && NetworkManager.playerId
+            const serverPurchase = NetworkManager.canUseServer
                 ? await SyncManager.purchaseServerShopItem(id, 1)
                 : null;
-            success = serverPurchase ? ShopManager.fulfillServerPurchase(id, serverPurchase.count, serverPurchase.remainingDaily) : ShopManager.buyItem(id);
+            success = NetworkManager.canUseServer ? !!serverPurchase : ShopManager.buyItem(id);
+            if (serverPurchase) {
+                actionMessageOverride = `购买成功：服务器库存现有 ${this.formatNumber(serverPurchase.itemQuantityAfter)} 件。`;
+            } else if (NetworkManager.canUseServer) {
+                actionMessageOverride = "购买失败：余额不足、达到限购或服务器未连接。";
+            }
             if (success) this._selectedShopProductKey = `shop:${id}`;
         } else if (action === "buyDecor") {
             const purchase = await SyncManager.purchaseServerDecoration(id);
@@ -1154,7 +1168,19 @@ export class BottomNavUI extends Component {
                 actionMessageOverride = "领取失败：收藏数量不足、奖励已领取或服务器未连接。";
             }
         } else if (action === "use") {
-            success = InventoryManager.useItem(id);
+            const serverUse = NetworkManager.canUseServer
+                ? await SyncManager.useServerInventoryItem(id, 1)
+                : null;
+            success = NetworkManager.canUseServer ? !!serverUse : InventoryManager.useItem(id);
+            if (serverUse) {
+                const rewardLabel = serverUse.rewardType === "coin" ? "金币"
+                    : serverUse.rewardType === "catFood" ? "猫粮"
+                        : serverUse.rewardType === "diamond" ? "钻石"
+                            : serverUse.rewardType === "researchPoint" ? "研究点" : serverUse.rewardType;
+                actionMessageOverride = `使用成功：获得 ${this.formatNumber(serverUse.rewardAmount)} ${rewardLabel}，剩余 ${this.formatNumber(serverUse.item.quantity)} 件。`;
+            } else if (NetworkManager.canUseServer) {
+                actionMessageOverride = "使用失败：物品不足、不可使用或服务器未连接。";
+            }
         } else if (action === "research") {
             const serverResearch = NetworkManager.canUseServer
                 ? await SyncManager.unlockServerResearch(id)
@@ -1198,7 +1224,10 @@ export class BottomNavUI extends Component {
                 success = !!result?.claimed;
                 if (result?.claimed) {
                     const levelReward = result.levelUpReward;
-                    actionMessageOverride = `成就奖励已领取：经验 +${result.experienceGained}，研究点 +${result.achievement.rewardResearchPoint}${levelReward ? `，升至 Lv.${levelReward.toLevel}，额外获得 ${this.formatNumber(levelReward.coin)} 金币、${levelReward.diamond} 钻石` : ""}`;
+                    const itemReward = result.achievement.rewardItems
+                        .map(item => `${this.getItemDisplayName(item.itemId)} x${item.count}`)
+                        .join("、");
+                    actionMessageOverride = `成就奖励已领取：经验 +${result.experienceGained}，研究点 +${result.achievement.rewardResearchPoint}${itemReward ? `，${itemReward}` : ""}${levelReward ? `，升至 Lv.${levelReward.toLevel}，额外获得 ${this.formatNumber(levelReward.coin)} 金币、${levelReward.diamond} 钻石` : ""}`;
                 } else if (result?.limitedReason === "already_claimed") {
                     actionMessageOverride = "该成就奖励已经领取。";
                 } else if (result?.limitedReason === "achievement_not_complete") {
@@ -1703,7 +1732,7 @@ export class BottomNavUI extends Component {
                 achievement.description,
                 achievement.progress,
                 achievement.target,
-                `经验 ${achievement.rewardExperience} · 研究点 ${achievement.rewardResearchPoint}${achievement.rewardCoin > 0 ? ` · 金币 ${this.formatNumber(achievement.rewardCoin)}` : ""}${achievement.rewardDiamond > 0 ? ` · 钻石 ${achievement.rewardDiamond}` : ""}`,
+                `经验 ${achievement.rewardExperience} · 研究点 ${achievement.rewardResearchPoint}${achievement.rewardItems.map(item => ` · ${this.getItemDisplayName(item.itemId)} x${item.count}`).join("")}${achievement.rewardCoin > 0 ? ` · 金币 ${this.formatNumber(achievement.rewardCoin)}` : ""}${achievement.rewardDiamond > 0 ? ` · 钻石 ${achievement.rewardDiamond}` : ""}`,
                 achievement.claimable
                     ? `<button class="tag" data-action="claimTask" data-id="${achievement.id}">领取</button>`
                     : `<span class="tag ${achievement.claimed ? "" : "warn"}">${achievement.claimed ? "已领取" : "进行中"}</span>`
@@ -2859,7 +2888,8 @@ export class BottomNavUI extends Component {
         const grid = this._domInventoryTab === "all"
             ? this.renderInventoryAllSlots()
             : `${this.renderInventoryItems()}${this.renderInventoryPreviewCards(INVENTORY_PREVIEW_CARDS.length)}`;
-        return `<div class="panel-shell inventory-shell feature-detail-shell" data-feature-page="inventory"><h2 class="feature-page-title" data-feature-zone="title">背包详情</h2><div class="tabs" data-feature-zone="categories">${INVENTORY_TABS.map(tab => `<button class="tab ${this._domInventoryTab === tab.id ? "active" : ""}" data-action="inventoryTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list bag-grid" data-feature-zone="grid">${grid}</div>${detail ? this.renderInventoryDetail(detail) : ""}</div>`;
+        const authority = InventoryManager.hasServerAuthority ? "server" : "offline";
+        return `<div class="panel-shell inventory-shell feature-detail-shell" data-feature-page="inventory" data-inventory-authority="${authority}"><h2 class="feature-page-title" data-feature-zone="title">背包详情</h2><div class="tabs" data-feature-zone="categories">${INVENTORY_TABS.map(tab => `<button class="tab ${this._domInventoryTab === tab.id ? "active" : ""}" data-action="inventoryTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list bag-grid" data-feature-zone="grid">${grid}</div>${detail ? this.renderInventoryDetail(detail) : ""}</div>`;
     }
 
     private getInventoryTabLabel(): string {

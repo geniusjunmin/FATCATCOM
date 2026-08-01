@@ -37,7 +37,8 @@ assertContains("manager snapshot", shopManager, "applyServerSnapshot(states: Sho
 assertContains("sync fetch", syncManager, "fetchServerShopState");
 assertContains("login fetch", syncManager, "void this.fetchServerShopState()");
 assertContains("save sync fetch", syncManager, "await this.fetchServerShopState()");
-assertContains("purchase remaining", bottomNav, "serverPurchase.remainingDaily");
+assertContains("purchase inventory snapshot", bottomNav, "serverPurchase.itemQuantityAfter");
+assertContains("online purchase avoids local fulfillment", bottomNav, "NetworkManager.canUseServer ? !!serverPurchase : ShopManager.buyItem(id)");
 
 console.log(JSON.stringify({
   ok: true,
@@ -47,6 +48,6 @@ console.log(JSON.stringify({
     "client shop state DTO/API",
     "ShopManager server snapshot consumption",
     "SyncManager login/save shop state refresh",
-    "online purchase remainingDaily application",
+    "online purchase inventory snapshot application",
   ],
 }, null, 2));

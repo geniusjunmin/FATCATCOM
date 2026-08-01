@@ -3,8 +3,11 @@ import { ConfigManager } from "./ConfigManager";
 import { SaveManager } from "./SaveManager";
 import { ResourceManager } from "./ResourceManager";
 import { EventBus, GameEvents } from "../core/EventBus";
+import { InventoryItemDto } from "../net/ApiTypes";
 
 export class InventoryManager {
+    private static _serverAuthority = false;
+
     /**
      * Add items to inventory
      */
@@ -15,6 +18,7 @@ export class InventoryManager {
             }
             data.inventory[itemId].count += count;
         });
+        EventBus.emit(GameEvents.INVENTORY_CHANGED, { itemId, count: this.getItemCount(itemId), authority: "offline" });
         console.info(`[InventoryManager] Added ${count} of ${itemId}`);
     }
 
@@ -66,9 +70,43 @@ export class InventoryManager {
             SaveManager.update(data => {
                 data.inventory[itemId].count -= count;
             });
+            EventBus.emit(GameEvents.INVENTORY_CHANGED, { itemId, count: this.getItemCount(itemId), authority: "offline" });
             console.info(`[InventoryManager] Used ${count} of ${itemId}`);
         }
 
         return used;
+    }
+
+    public static applyServerSnapshot(items: InventoryItemDto[]): void {
+        if (!items.length) return;
+        SaveManager.update(data => {
+            for (const item of items) {
+                data.inventory[item.itemId] = {
+                    itemId: item.itemId,
+                    count: Math.max(0, Math.floor(item.quantity)),
+                };
+            }
+        });
+        this._serverAuthority = true;
+        EventBus.emit(GameEvents.INVENTORY_CHANGED, { items, authority: "server" });
+    }
+
+    public static applyServerItem(item: InventoryItemDto): void {
+        this.applyServerSnapshot([item]);
+    }
+
+    public static applyServerQuantity(itemId: string, quantity: number): void {
+        SaveManager.update(data => {
+            data.inventory[itemId] = {
+                itemId,
+                count: Math.max(0, Math.floor(quantity)),
+            };
+        });
+        this._serverAuthority = true;
+        EventBus.emit(GameEvents.INVENTORY_CHANGED, { itemId, count: this.getItemCount(itemId), authority: "server" });
+    }
+
+    public static get hasServerAuthority(): boolean {
+        return this._serverAuthority;
     }
 }

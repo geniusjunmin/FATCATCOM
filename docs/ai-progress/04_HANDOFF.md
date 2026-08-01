@@ -24,6 +24,14 @@ Updated: 2026-08-01
 
 ## Latest Visual Note
 
+- Inventory is server-authoritative through `PlayerInventoryItem`, `PlayerInventoryTransaction`, `GET /api/inventory`, and `POST /api/inventory/{itemId}/use`. Online item counts must come from the server; local inventory remains an offline fallback only.
+- Shop purchases and inventory use normalize request ids with `shop:` and `use:` prefixes, serialize through `InventoryMutationGates`, and replay the original quantity/resource/daily-limit snapshot. Do not apply `ShopManager.fulfillServerPurchase` after an online response.
+- `task_ach_1` grants `item_coin_pack_small x1`. `EnsureAchievementInventoryRewardsAsync` uses `achievement:{achievementId}:{itemId}` to backfill legacy claims exactly once; preserve that deterministic key when reward presentation changes.
+- Existing inventories add missing future catalog rows at zero quantity. A completely new inventory seeds trusted defaults plus recorded historical shop purchases, never client-provided counts.
+- Client integration lives in `InventoryManager`, `SyncManager`, `ApiClient`, and `BottomNavUI`. Preserve `INVENTORY_CHANGED`, `data-inventory-authority`, server snapshot application after purchase/use/achievement, and the explicit offline use path.
+- Focused gates are `check-authoritative-inventory-contract.js`, `check-authoritative-inventory-online.js`, `check-shop-state-contract.js`, `check-progression-rewards-online.js`, and `capture-feature-regression.js`. Current evidence: 124/124 tests, purchase/use/reload persistence, achievement item settlement, 18/18 clicks, zero Cocos errors, and four supported viewports.
+- Next server batch is the authoritative main/daily task catalog and claims: persisted/resettable progress, server-derived goals, unified currency/item/EXP rewards, client snapshots, and idempotent online regression.
+
 - Player progression is authoritative. `PlayerProgressionRules` owns level-28 defaults, the level-60 cap, `400 + level * 100` thresholds, launch experience (`floor(productiveSeconds * 25)`), daily-order `400 EXP`, achievement `800 EXP`, and per-level rewards of `5000` coin, `5` diamonds, and `20` research points.
 - `PlayerProfile.RewardedThroughLevel` is the one-time reward cursor. Runtime migration advances legacy cursors to their existing level to prevent retroactive grants. Do not remove this cursor or award level rewards outside `ApplyExperienceSettlement`.
 - Launch records preserve reward from/to levels and reward currencies. `PlayerResourceTransaction` preserves experience delta and the complete post-action progression snapshot. Replays must return those original values rather than current profile values.
@@ -31,7 +39,7 @@ Updated: 2026-08-01
 - `task_ach_1` is server-owned through persistent `PlayerAchievementClaim`, `GET /api/achievements`, and `POST /api/achievements/{achievementId}/claim`. The claim requires five unlocked cats and atomically grants `200` research plus `800 EXP`; concurrent duplicate claims return the existing claimed state.
 - `SyncManager` caches achievements, emits `ACHIEVEMENTS_CHANGED`, applies server balances/progression, and preserves offline fallback. Keep `data-achievement-authority`, `data-achievement-count`, and `data-achievement-claimable` stable.
 - Focused gates are `check-player-progression-contract.js`, `check-progression-rewards-contract.js`, `check-player-progression-online.js`, `check-progression-rewards-online.js`, `capture-main-regression.js`, and `capture-utility-regression.js`. Current evidence: online `2560 -> 2810`, online achievement `Lv.28 2560 -> Lv.29 160`, four-size screenshots, 18/18 clicks, full quick verify, and 120/120 tests.
-- Next server task is authoritative inventory ownership and item grant/consume flows so shop and achievement rewards can stop relying on client-only item counts.
+- Inventory authority is now complete; keep progression and achievement reward flows aligned with the inventory notes above.
 
 - Factory appearances are server-authoritative through `PlayerFactoryAppearanceState`, `/api/factory/appearances`, and `FactoryAppearanceManager`. Online UI must use server ownership, equipped state, and bonus DTOs; offline mode may use local config/state only as fallback.
 - The effective production mapping is simple gross `+10%` and wage `-5%`, classic gross `+8%`, steam gross `+22%` and bean cost `-6%`, future gross `+27%`. Catalog-only storage/research/mood/bean-output bonuses carry `productionEffective=false` until those systems have authoritative modifier semantics.

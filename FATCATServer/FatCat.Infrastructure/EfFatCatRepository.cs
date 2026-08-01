@@ -572,9 +572,50 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
             .FirstOrDefaultAsync(history => history.PlayerId == playerId && history.ShopItemId == shopItemId && history.PurchaseDate == purchaseDate, cancellationToken);
     }
 
+    public Task<List<PlayerShopPurchaseHistory>> GetShopPurchaseHistoriesAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        return dbContext.ShopPurchaseHistories
+            .Where(history => history.PlayerId == playerId)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddShopPurchaseHistoryAsync(PlayerShopPurchaseHistory history, CancellationToken cancellationToken)
     {
         await dbContext.ShopPurchaseHistories.AddAsync(history, cancellationToken);
+    }
+
+    public Task<List<PlayerInventoryItem>> GetInventoryItemsAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        return dbContext.InventoryItems
+            .Where(item => item.PlayerId == playerId)
+            .OrderBy(item => item.ItemKey)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<PlayerInventoryItem?> GetInventoryItemAsync(Guid playerId, string itemKey, CancellationToken cancellationToken)
+    {
+        return dbContext.InventoryItems
+            .FirstOrDefaultAsync(item => item.PlayerId == playerId && item.ItemKey == itemKey, cancellationToken);
+    }
+
+    public async Task AddInventoryItemAsync(PlayerInventoryItem item, CancellationToken cancellationToken)
+    {
+        await dbContext.InventoryItems.AddAsync(item, cancellationToken);
+    }
+
+    public Task<PlayerInventoryTransaction?> GetInventoryTransactionAsync(
+        Guid playerId,
+        string clientRequestId,
+        CancellationToken cancellationToken)
+    {
+        return dbContext.InventoryTransactions.FirstOrDefaultAsync(
+            transaction => transaction.PlayerId == playerId && transaction.ClientRequestId == clientRequestId,
+            cancellationToken);
+    }
+
+    public async Task AddInventoryTransactionAsync(PlayerInventoryTransaction transaction, CancellationToken cancellationToken)
+    {
+        await dbContext.InventoryTransactions.AddAsync(transaction, cancellationToken);
     }
 
     public Task<PlayerCatState?> GetCatStateAsync(Guid playerId, string catKey, CancellationToken cancellationToken)

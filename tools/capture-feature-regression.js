@@ -309,6 +309,7 @@ async function isVisible(page, selector) {
                 })(),
                 shopSelectedRows: document.querySelectorAll("#fatcat-dom-panel-overlay .shop-row.selected").length,
                 bagCards: document.querySelectorAll("#fatcat-dom-panel-overlay .bag-card").length,
+                inventoryAuthority: document.querySelector("#fatcat-dom-panel-overlay .inventory-shell")?.getAttribute("data-inventory-authority") || "",
                 inventoryArtKinds: new Set(Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay [data-inventory-art]"))
                     .map(element => element.getAttribute("data-inventory-art"))).size,
                 embeddedInventoryArt: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay .bag-icon.dedicated-art"))
@@ -456,6 +457,7 @@ async function isVisible(page, selector) {
             || !entry.interaction.shopDetailSwitch
             || !entry.interaction.shopRealPurchaseAction;
         if (entry.panel === "inventory") return entry.state.bagCards !== 20
+            || !["offline", "server"].includes(entry.state.inventoryAuthority)
             || entry.state.inventoryArtKinds < 7
             || entry.state.embeddedInventoryArt < 8
             || !entry.state.bagDetailVisible

@@ -124,6 +124,76 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task Inventory_PurchaseAndUseReplayWithoutDuplicatingMutation()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("inventory-device", "FatCat"), CancellationToken.None);
+
+        var initial = await service.GetInventoryAsync(auth.PlayerId, CancellationToken.None);
+        var purchase = await service.PurchaseShopItemAsync(
+            auth.PlayerId,
+            new ShopPurchaseRequest("shop_cat_food_1", 1, "purchase-once"),
+            CancellationToken.None);
+        var purchaseReplay = await service.PurchaseShopItemAsync(
+            auth.PlayerId,
+            new ShopPurchaseRequest("shop_cat_food_1", 1, "purchase-once"),
+            CancellationToken.None);
+        var use = await service.UseInventoryItemAsync(
+            auth.PlayerId,
+            "item_cat_food_pack",
+            new InventoryUseRequest("use-once", 1),
+            CancellationToken.None);
+        var useReplay = await service.UseInventoryItemAsync(
+            auth.PlayerId,
+            "item_cat_food_pack",
+            new InventoryUseRequest("use-once", 1),
+            CancellationToken.None);
+        var final = await service.GetInventoryAsync(auth.PlayerId, CancellationToken.None);
+
+        Assert.NotNull(initial);
+        Assert.Equal(2, Assert.Single(initial!, item => item.ItemId == "item_cat_food_pack").Quantity);
+        Assert.Equal(5, Assert.Single(initial!, item => item.ItemId == "item_coin_pack_small").Quantity);
+        Assert.NotNull(purchase);
+        Assert.False(purchase!.Replayed);
+        Assert.Equal(3, purchase.ItemQuantityAfter);
+        Assert.NotNull(purchaseReplay);
+        Assert.True(purchaseReplay!.Replayed);
+        Assert.Equal(purchase.CoinBalance, purchaseReplay.CoinBalance);
+        Assert.NotNull(use);
+        Assert.False(use!.Replayed);
+        Assert.Equal(100, use.RewardAmount);
+        Assert.Equal(2, use.Item.Quantity);
+        Assert.NotNull(useReplay);
+        Assert.True(useReplay!.Replayed);
+        Assert.Equal(use.CatFoodBalance, useReplay.CatFoodBalance);
+        Assert.Equal(3_610, use.CatFoodBalance);
+        Assert.Equal(2, Assert.Single(final!, item => item.ItemId == "item_cat_food_pack").Quantity);
+        Assert.Equal(2, await dbContext.InventoryTransactions.CountAsync(item => item.PlayerId == auth.PlayerId));
+        Assert.Equal(2, await dbContext.ResourceTransactions.CountAsync(item => item.PlayerId == auth.PlayerId));
+        Assert.Equal(1, Assert.Single(dbContext.ShopPurchaseHistories.Where(item => item.PlayerId == auth.PlayerId)).Count);
+    }
+
+    [Fact]
+    public async Task Inventory_AddsMissingCatalogRowsWithoutGrantingDefaultsAgain()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("inventory-catalog-migration", "FatCat"), CancellationToken.None);
+        await service.GetInventoryAsync(auth.PlayerId, CancellationToken.None);
+        var removed = Assert.Single(dbContext.InventoryItems.Where(item =>
+            item.PlayerId == auth.PlayerId && item.ItemKey == "item_coin_pack_small"));
+        dbContext.InventoryItems.Remove(removed);
+        await dbContext.SaveChangesAsync();
+
+        var migrated = await service.GetInventoryAsync(auth.PlayerId, CancellationToken.None);
+
+        Assert.NotNull(migrated);
+        Assert.Equal(0, Assert.Single(migrated!, item => item.ItemId == "item_coin_pack_small").Quantity);
+        Assert.Equal(3, dbContext.InventoryItems.Count(item => item.PlayerId == auth.PlayerId));
+    }
+
+    [Fact]
     public async Task PurchaseDecorationAsync_AddsPermanentOwnedDecorAndDeductsOnce()
     {
         await using var dbContext = CreateDbContext();
@@ -1992,6 +2062,40 @@ public sealed class FatCatGameServiceTests
         Assert.Equal(5_000, transaction.CoinDelta);
         Assert.Equal(5, transaction.DiamondDelta);
         Assert.Equal(220, transaction.ResearchPointDelta);
+        Assert.Contains(first.InventoryItems, item => item.ItemId == "item_coin_pack_small" && item.Quantity == 6);
+        Assert.Contains(second.InventoryItems, item => item.ItemId == "item_coin_pack_small" && item.Quantity == 6);
+        var inventoryTransaction = Assert.Single(dbContext.InventoryTransactions.Where(item => item.SourceType == "achievement_claim"));
+        Assert.Equal("item_coin_pack_small", inventoryTransaction.ItemKey);
+        Assert.Equal(1, inventoryTransaction.QuantityDelta);
+        Assert.Equal(6, inventoryTransaction.QuantityAfter);
+    }
+
+    [Fact]
+    public async Task Achievement_BackfillsLegacyInventoryRewardExactlyOnce()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("achievement-item-backfill", "FatCat"), CancellationToken.None);
+        await service.GetInventoryAsync(auth.PlayerId, CancellationToken.None);
+        dbContext.AchievementClaims.Add(new PlayerAchievementClaim
+        {
+            PlayerId = auth.PlayerId,
+            AchievementKey = "task_ach_1",
+        });
+        await dbContext.SaveChangesAsync();
+
+        var first = await service.ClaimAchievementAsync(auth.PlayerId, "task_ach_1", CancellationToken.None);
+        var second = await service.ClaimAchievementAsync(auth.PlayerId, "task_ach_1", CancellationToken.None);
+
+        Assert.NotNull(first);
+        Assert.False(first!.Claimed);
+        Assert.Equal("already_claimed", first.LimitedReason);
+        Assert.Contains(first.InventoryItems, item => item.ItemId == "item_coin_pack_small" && item.Quantity == 6);
+        Assert.NotNull(second);
+        Assert.Contains(second!.InventoryItems, item => item.ItemId == "item_coin_pack_small" && item.Quantity == 6);
+        var transaction = Assert.Single(dbContext.InventoryTransactions.Where(item => item.SourceType == "achievement_claim"));
+        Assert.Equal(1, transaction.QuantityDelta);
+        Assert.Equal(6, transaction.QuantityAfter);
     }
 
     [Fact]
@@ -2199,6 +2303,9 @@ public sealed class FatCatGameServiceTests
         await using var verifyAchievementTable = connection.CreateCommand();
         verifyAchievementTable.CommandText = """SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'AchievementClaims';""";
         Assert.Equal(1, Convert.ToInt32(await verifyAchievementTable.ExecuteScalarAsync()));
+        await using var verifyInventoryTables = connection.CreateCommand();
+        verifyInventoryTables.CommandText = """SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name IN ('InventoryItems', 'InventoryTransactions');""";
+        Assert.Equal(2, Convert.ToInt32(await verifyInventoryTables.ExecuteScalarAsync()));
     }
 
     private static FatCatDbContext CreateDbContext()

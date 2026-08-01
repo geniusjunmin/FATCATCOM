@@ -22,6 +22,8 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
     public DbSet<PlayerResourceState> ResourceStates => Set<PlayerResourceState>();
     public DbSet<PlayerResourceTransaction> ResourceTransactions => Set<PlayerResourceTransaction>();
     public DbSet<PlayerShopPurchaseHistory> ShopPurchaseHistories => Set<PlayerShopPurchaseHistory>();
+    public DbSet<PlayerInventoryItem> InventoryItems => Set<PlayerInventoryItem>();
+    public DbSet<PlayerInventoryTransaction> InventoryTransactions => Set<PlayerInventoryTransaction>();
     public DbSet<PlayerCatState> CatStates => Set<PlayerCatState>();
     public DbSet<PlayerFactoryAppearanceState> FactoryAppearanceStates => Set<PlayerFactoryAppearanceState>();
     public DbSet<PlayerBuildingState> BuildingStates => Set<PlayerBuildingState>();
@@ -244,6 +246,48 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
         await Database.ExecuteSqlRawAsync("""
             CREATE UNIQUE INDEX IF NOT EXISTS "IX_ShopPurchaseHistories_PlayerId_ShopItemId_PurchaseDate"
             ON "ShopPurchaseHistories" ("PlayerId", "ShopItemId", "PurchaseDate");
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "InventoryItems" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_InventoryItems" PRIMARY KEY,
+                "PlayerId" TEXT NOT NULL,
+                "ItemKey" TEXT NOT NULL,
+                "Quantity" INTEGER NOT NULL,
+                "UpdatedAt" TEXT NOT NULL,
+                CONSTRAINT "FK_InventoryItems_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
+            );
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_InventoryItems_PlayerId_ItemKey"
+            ON "InventoryItems" ("PlayerId", "ItemKey");
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "InventoryTransactions" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_InventoryTransactions" PRIMARY KEY,
+                "PlayerId" TEXT NOT NULL,
+                "ClientRequestId" TEXT NOT NULL,
+                "SourceType" TEXT NOT NULL,
+                "SourceKey" TEXT NOT NULL,
+                "ItemKey" TEXT NOT NULL,
+                "QuantityDelta" INTEGER NOT NULL,
+                "QuantityAfter" INTEGER NOT NULL,
+                "RemainingDailyAfter" INTEGER NOT NULL DEFAULT -1,
+                "CoinBalance" REAL NOT NULL,
+                "BeanBalance" REAL NOT NULL,
+                "CatFoodBalance" REAL NOT NULL,
+                "DiamondBalance" REAL NOT NULL,
+                "ResearchPointBalance" REAL NOT NULL,
+                "CreatedAt" TEXT NOT NULL,
+                CONSTRAINT "FK_InventoryTransactions_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
+            );
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_InventoryTransactions_PlayerId_ClientRequestId"
+            ON "InventoryTransactions" ("PlayerId", "ClientRequestId");
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE INDEX IF NOT EXISTS "IX_InventoryTransactions_PlayerId_CreatedAt"
+            ON "InventoryTransactions" ("PlayerId", "CreatedAt");
             """, cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS "CatStates" (
@@ -694,6 +738,32 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.HasOne(history => history.Player)
                 .WithMany()
                 .HasForeignKey(history => history.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlayerInventoryItem>(entity =>
+        {
+            entity.HasKey(item => item.Id);
+            entity.HasIndex(item => new { item.PlayerId, item.ItemKey }).IsUnique();
+            entity.Property(item => item.ItemKey).HasMaxLength(120);
+            entity.HasOne(item => item.Player)
+                .WithMany()
+                .HasForeignKey(item => item.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlayerInventoryTransaction>(entity =>
+        {
+            entity.HasKey(transaction => transaction.Id);
+            entity.HasIndex(transaction => new { transaction.PlayerId, transaction.ClientRequestId }).IsUnique();
+            entity.HasIndex(transaction => new { transaction.PlayerId, transaction.CreatedAt });
+            entity.Property(transaction => transaction.ClientRequestId).HasMaxLength(120);
+            entity.Property(transaction => transaction.SourceType).HasMaxLength(80);
+            entity.Property(transaction => transaction.SourceKey).HasMaxLength(160);
+            entity.Property(transaction => transaction.ItemKey).HasMaxLength(120);
+            entity.HasOne(transaction => transaction.Player)
+                .WithMany()
+                .HasForeignKey(transaction => transaction.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

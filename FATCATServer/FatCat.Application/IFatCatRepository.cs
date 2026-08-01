@@ -49,7 +49,13 @@ public interface IFatCatRepository
     Task AddResourceTransactionAsync(PlayerResourceTransaction transaction, CancellationToken cancellationToken);
     Task<List<PlayerResourceTransaction>> GetResourceTransactionsAsync(Guid playerId, int limit, CancellationToken cancellationToken);
     Task<PlayerShopPurchaseHistory?> GetShopPurchaseHistoryAsync(Guid playerId, string shopItemId, int purchaseDate, CancellationToken cancellationToken);
+    Task<List<PlayerShopPurchaseHistory>> GetShopPurchaseHistoriesAsync(Guid playerId, CancellationToken cancellationToken);
     Task AddShopPurchaseHistoryAsync(PlayerShopPurchaseHistory history, CancellationToken cancellationToken);
+    Task<List<PlayerInventoryItem>> GetInventoryItemsAsync(Guid playerId, CancellationToken cancellationToken);
+    Task<PlayerInventoryItem?> GetInventoryItemAsync(Guid playerId, string itemKey, CancellationToken cancellationToken);
+    Task AddInventoryItemAsync(PlayerInventoryItem item, CancellationToken cancellationToken);
+    Task<PlayerInventoryTransaction?> GetInventoryTransactionAsync(Guid playerId, string clientRequestId, CancellationToken cancellationToken);
+    Task AddInventoryTransactionAsync(PlayerInventoryTransaction transaction, CancellationToken cancellationToken);
     Task<PlayerCatState?> GetCatStateAsync(Guid playerId, string catKey, CancellationToken cancellationToken);
     Task<List<PlayerCatState>> GetCatStatesAsync(Guid playerId, CancellationToken cancellationToken);
     Task AddCatStateAsync(PlayerCatState cat, CancellationToken cancellationToken);

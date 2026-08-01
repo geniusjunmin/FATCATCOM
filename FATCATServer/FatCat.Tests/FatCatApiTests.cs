@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FatCat.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FatCat.Tests;
@@ -52,6 +53,7 @@ public sealed class FatCatApiTests
             "/api/save",
             "/api/daily-order",
             "/api/achievements",
+            "/api/inventory",
             "/api/factory/appearances",
         };
         foreach (var path in privatePaths)
@@ -970,6 +972,56 @@ public sealed class FatCatApiTests
         Assert.Equal(5, catFood.GetProperty("limitDaily").GetInt32());
         Assert.Equal(2, catFood.GetProperty("purchasedToday").GetInt32());
         Assert.Equal(3, catFood.GetProperty("remainingDaily").GetInt32());
+    }
+
+    [Fact]
+    public async Task Inventory_ConcurrentPurchaseAndUseAreIdempotentAcrossReload()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-inventory-device",
+            companyName = "FatCat",
+        });
+        var playerId = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync())
+            .RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+
+        var initialResponse = await client.GetAsync($"/api/inventory?playerId={playerId}");
+        var initial = JsonDocument.Parse(await initialResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var initialFood = initial.EnumerateArray().Single(item => item.GetProperty("itemId").GetString() == "item_cat_food_pack");
+
+        var purchases = await Task.WhenAll(Enumerable.Range(0, 2).Select(_ => client.PostAsJsonAsync(
+            $"/api/shop/purchase?playerId={playerId}",
+            new { shopItemId = "shop_cat_food_1", count = 1, clientRequestId = "api-purchase-once" })));
+        var purchaseData = await Task.WhenAll(purchases.Select(async response =>
+            JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("data").Clone()));
+
+        var uses = await Task.WhenAll(Enumerable.Range(0, 2).Select(_ => client.PostAsJsonAsync(
+            $"/api/inventory/item_cat_food_pack/use?playerId={playerId}",
+            new { clientRequestId = "api-use-once", count = 1 })));
+        var useData = await Task.WhenAll(uses.Select(async response =>
+            JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("data").Clone()));
+        var finalResponse = await client.GetAsync($"/api/inventory?playerId={playerId}");
+        var final = JsonDocument.Parse(await finalResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var finalFood = final.EnumerateArray().Single(item => item.GetProperty("itemId").GetString() == "item_cat_food_pack");
+
+        Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
+        Assert.Equal(2, initialFood.GetProperty("quantity").GetInt32());
+        Assert.All(purchases, response => Assert.Equal(HttpStatusCode.OK, response.StatusCode));
+        Assert.Single(purchaseData, item => !item.GetProperty("replayed").GetBoolean());
+        Assert.Single(purchaseData, item => item.GetProperty("replayed").GetBoolean());
+        Assert.All(purchaseData, item => Assert.Equal(3, item.GetProperty("itemQuantityAfter").GetInt32()));
+        Assert.All(uses, response => Assert.Equal(HttpStatusCode.OK, response.StatusCode));
+        Assert.Single(useData, item => !item.GetProperty("replayed").GetBoolean());
+        Assert.Single(useData, item => item.GetProperty("replayed").GetBoolean());
+        Assert.All(useData, item => Assert.Equal(3_610, item.GetProperty("catFoodBalance").GetDouble()));
+        Assert.Equal(2, finalFood.GetProperty("quantity").GetInt32());
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<FatCatDbContext>();
+        Assert.Equal(2, await dbContext.InventoryTransactions.CountAsync(item => item.PlayerId == playerId));
+        Assert.Equal(2, await dbContext.ResourceTransactions.CountAsync(item => item.PlayerId == playerId));
     }
 
     [Fact]
