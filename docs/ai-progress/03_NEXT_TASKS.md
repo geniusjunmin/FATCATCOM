@@ -26,6 +26,14 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 ## P0 Now
 
+### Completed: Main Factory First-Screen Hierarchy Alignment
+
+- Added stable semantic markers for eight main zones, four HUD resources, six ordered floors, six scene-specific production cards, and four bottom operations.
+- Refined the player/resource HUD, riveted roof sign, floor number/name/level hierarchy, dark output cards, side tools, launch strip, and navigation proportions against `主页面.png`.
+- Kept the high-resolution generated cutaway as the sole room-art source so the six detailed interiors remain readable and free from duplicate overlay machinery or cats.
+- Hardened the screenshot gate with exact zone/count/order checks, floor-detail routing, text-overflow diagnostics, root responsive classes, and computed styling for the longest production label.
+- Inspected 414x896, 430x932, 360x800, and 768x1024 captures; passed all 24 floor routes, 18 UI click steps, zero Cocos errors, full quick verify, and 104/104 tests.
+
 ### Completed: Cat Detail Final Hierarchy Alignment
 
 - Restructured the identity card into explicit rarity/type, level, and star rows while preserving the selected cat's authoritative data.

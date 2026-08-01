@@ -907,9 +907,9 @@ export class BottomNavUI extends Component {
         }));
         overlay.innerHTML = `
             <div class="art-bg"></div><div class="sky"></div><div class="town"></div><div class="factory-illustration"></div><div class="roof-crates"></div><div class="roof-deck"></div>
-            <div class="sign">肥猫咖啡<span class="paw-mark"></span></div><div class="sign-posts"></div><div class="chimney"></div><div class="roof-cat"><div class="cat-sprite"><i class="cat-face"></i></div></div><div class="flag">爪</div>
+            <div class="sign" data-main-zone="roof">肥猫咖啡<span class="paw-mark"></span></div><div class="sign-posts"></div><div class="chimney"></div><div class="roof-cat"><div class="cat-sprite"><i class="cat-face"></i></div></div><div class="flag">爪</div>
             <div class="side-pipe left"></div><div class="side-pipe right"></div><div class="ladder"></div><div class="elevator-panel"><i class="elevator-paw"></i><i class="elevator-floor-indicator"></i><div class="elevator-car"></div></div>
-            <div class="building">
+            <div class="building" data-main-zone="floors">
                 ${floors.map((floor, index) => `
                     <div class="floor floor-scene-${floor.scene}">
                         <div class="floor-glow"></div><div class="room-lights"></div><div class="wall-details">${this.renderFactoryWallDetails(floor.scene)}</div><div class="room-decor decor-${floor.scene}">${this.renderFactoryRoomDecor(floor.scene)}</div><div class="room-foreground ${floor.scene}"></div>
@@ -917,18 +917,18 @@ export class BottomNavUI extends Component {
                         <div class="pipe"></div>
                         <div class="cat cat-${floor.scene} ${index % 3 === 0 ? "a" : index % 3 === 1 ? "b" : "c"}"><div class="cat-sprite"><i class="cat-face"></i></div></div>
                         <div class="worker-cats ${floor.scene}">${this.renderFactoryWorkerCats(floor.scene)}</div>
-                        <button type="button" class="floor-card" data-action="openBuildingFloor" data-id="${floor.buildingId}" data-scene="${floor.scene}" aria-label="打开${floor.no} ${floor.name}建筑详情"><div class="floor-no">${floor.no}</div><div class="floor-name">${floor.name}<span>Lv.${floor.lv}</span></div><div class="floor-medal">${floor.lv}</div></button>
+                        <button type="button" class="floor-card" data-action="openBuildingFloor" data-id="${floor.buildingId}" data-scene="${floor.scene}" data-floor-index="${index}" aria-label="打开${floor.no} ${floor.name}建筑详情"><div class="floor-no">${floor.no}</div><div class="floor-name">${floor.name}<span>Lv.${floor.lv}</span></div><div class="floor-medal">${floor.lv}</div></button>
                         <div class="cat-dots"><span class="cat-dot"></span><span class="cat-dot gray"></span><span class="cat-dot black"></span></div>
-                        <div class="bonus"><i class="bonus-icon ${this.getFloorBonusIconClass(floor.scene)}"></i><strong>${this.getFloorOutputText(floor.scene)}</strong><span>${floor.bonus}</span><b>${floor.value}</b></div>
+                        <div class="bonus" data-bonus-scene="${floor.scene}"><i class="bonus-icon ${this.getFloorBonusIconClass(floor.scene)}"></i><strong class="bonus-rate">${this.getFloorOutputText(floor.scene)}</strong><span class="bonus-label">${floor.bonus}</span><b class="bonus-value">${floor.value}</b></div>
                     </div>`).join("")}
             </div>
-            <div class="left-tools"><button class="side-btn alert" data-action="tasks"><i class="ico-task asset" data-art-key="task-board" style="background-image:url('${this.getFeatureIconAsset("task")}')"></i>任务</button></div>
-            <div class="right-tools"><button class="side-btn alert" data-action="achievement"><i class="ico-trophy asset" data-art-key="achievement-trophy-v2" style="background-image:url('${this.getFeatureIconAsset("achievement")}')"></i>成就</button><button class="side-btn alert" data-action="mail"><i class="ico-mail asset" data-art-key="mail-envelope-v2" style="background-image:url('${this.getFeatureIconAsset("mail")}')"></i>邮件</button><button class="side-btn" data-action="friend"><i class="ico-friend asset" data-art-key="friend-cat-v2" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></i>好友</button><button class="side-btn" data-action="settings"><i class="ico-gear asset" data-art-key="settings-gear-v2" style="background-image:url('${this.getFeatureIconAsset("settings")}')"></i>设置</button></div>
-            <div class="bottom-widgets">
-                <button class="order" data-action="order" data-daily-progress="${dailyOrder.progress}" data-daily-target="${dailyOrder.target}"><span class="order-icon"></span><span class="order-text">今日订单<b>${dailyOrder.progress}/${dailyOrder.target}</b></span><span class="bar"><i style="width:${dailyOrderPercent}%"></i></span></button>
-                <button class="chest ${dailyOrder.claimable ? "ready" : ""} ${dailyOrder.claimed ? "claimed" : ""}" data-action="claim" data-daily-claimable="${dailyOrder.claimable}" data-daily-claimed="${dailyOrder.claimed}" ${dailyOrder.claimable ? "" : "disabled"}><span class="chest-art" style="background-image:url('${this.getFeatureIconAsset("rewardChest")}')"></span>${dailyOrderStatus}</button>
-                <button class="launch ${dailyOrder.launchesRemaining <= 0 ? "exhausted" : ""}" data-action="launch" data-launches-used="${dailyOrder.launchesUsed}" data-launch-limit="${dailyOrder.launchLimit}" data-launches-remaining="${dailyOrder.launchesRemaining}" ${dailyOrder.launchesRemaining <= 0 ? "disabled" : ""}><span class="rocket-shape asset" style="background-image:url('${this.getFeatureIconAsset("launch")}')"></span>发射猫咪</button>
-                <button class="gift" data-action="gift"><span class="gift-cat asset" style="background-image:url('${this.getCatFullArtAsset("c_005")}')"></span><span><b>超级猫粮礼包</b><br><em>03:25:15</em></span></button>
+            <div class="left-tools" data-main-zone="left-tools"><button class="side-btn alert" data-action="tasks"><i class="ico-task asset" data-art-key="task-board" style="background-image:url('${this.getFeatureIconAsset("task")}')"></i>任务</button></div>
+            <div class="right-tools" data-main-zone="right-tools"><button class="side-btn alert" data-action="achievement"><i class="ico-trophy asset" data-art-key="achievement-trophy-v2" style="background-image:url('${this.getFeatureIconAsset("achievement")}')"></i>成就</button><button class="side-btn alert" data-action="mail"><i class="ico-mail asset" data-art-key="mail-envelope-v2" style="background-image:url('${this.getFeatureIconAsset("mail")}')"></i>邮件</button><button class="side-btn" data-action="friend"><i class="ico-friend asset" data-art-key="friend-cat-v2" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></i>好友</button><button class="side-btn" data-action="settings"><i class="ico-gear asset" data-art-key="settings-gear-v2" style="background-image:url('${this.getFeatureIconAsset("settings")}')"></i>设置</button></div>
+            <div class="bottom-widgets" data-main-zone="operations">
+                <button class="order" data-operation="order" data-action="order" data-daily-progress="${dailyOrder.progress}" data-daily-target="${dailyOrder.target}"><span class="order-icon"></span><span class="order-text">今日订单<b>${dailyOrder.progress}/${dailyOrder.target}</b></span><span class="bar"><i style="width:${dailyOrderPercent}%"></i></span></button>
+                <button class="chest ${dailyOrder.claimable ? "ready" : ""} ${dailyOrder.claimed ? "claimed" : ""}" data-operation="chest" data-action="claim" data-daily-claimable="${dailyOrder.claimable}" data-daily-claimed="${dailyOrder.claimed}" ${dailyOrder.claimable ? "" : "disabled"}><span class="chest-art" style="background-image:url('${this.getFeatureIconAsset("rewardChest")}')"></span>${dailyOrderStatus}</button>
+                <button class="launch ${dailyOrder.launchesRemaining <= 0 ? "exhausted" : ""}" data-operation="launch" data-action="launch" data-launches-used="${dailyOrder.launchesUsed}" data-launch-limit="${dailyOrder.launchLimit}" data-launches-remaining="${dailyOrder.launchesRemaining}" ${dailyOrder.launchesRemaining <= 0 ? "disabled" : ""}><span class="rocket-shape asset" style="background-image:url('${this.getFeatureIconAsset("launch")}')"></span>发射猫咪</button>
+                <button class="gift" data-operation="gift" data-action="gift"><span class="gift-cat asset" style="background-image:url('${this.getCatFullArtAsset("c_005")}')"></span><span><b>超级猫粮礼包</b><br><em>03:25:15</em></span></button>
             </div>
             <div class="launch-count" data-launches-remaining="${dailyOrder.launchesRemaining}" data-launch-limit="${dailyOrder.launchLimit}">今日剩余次数：${dailyOrder.launchesRemaining}/${dailyOrder.launchLimit}</div>
             ${friendBoost.active ? `<div class="friend-boost-banner"><b>好友助力 +${friendBoost.boostPercent}%</b><span class="boost-latest">${friendBoost.boostedByName} · ${Math.max(1, Math.ceil(((friendBoost.boostEndsAt ?? Date.now()) - Date.now()) / 60000))}分钟</span>${activeBoostSources.length > 0 ? `<span class="boost-sources">${activeBoostSources.map(source => `<i>${source.sourceName} +${source.boostPercent}%</i>`).join("")}</span>` : ""}<em class="${coopGoal.claimable ? "ready" : ""}">协作 ${coopGoal.progress}/${coopGoal.target}</em></div>` : ""}
@@ -3089,7 +3089,7 @@ export class BottomNavUI extends Component {
         this._hudText = nextText;
         overlay.innerHTML = `
             <div class="hud-inner">
-                <div class="player">
+                <div class="player" data-main-zone="identity">
                         <div class="avatar asset" style="background-image:url('${this.getCatFullArtAsset("c_001")}')"></div><div class="level">${HUD_PLAYER_LEVEL}</div>
                     <div>
                         <div class="company">${HUD_COMPANY_NAME}</div>
@@ -3097,7 +3097,7 @@ export class BottomNavUI extends Component {
                         <div class="exp-text">${HUD_EXP_TEXT}</div>
                     </div>
                 </div>
-                <div class="resources">
+                <div class="resources" data-main-zone="resources">
                     ${HUD_RESOURCE_ITEMS.map(item => this.renderHudResource(
                         item.kind,
                         item.label,
@@ -3170,7 +3170,7 @@ export class BottomNavUI extends Component {
             buildings: upgradeableBuildings > 0 ? String(upgradeableBuildings) : undefined,
             shop: shopHints > 0 ? "!" : undefined,
         };
-        overlay.innerHTML = `<div class="nav-bar">${MAIN_DOM_NAV_ITEMS.map((item) => `
+        overlay.innerHTML = `<div class="nav-bar" data-main-zone="navigation">${MAIN_DOM_NAV_ITEMS.map((item) => `
             <button type="button" class="nav-item ${this.currentPanel === item.id ? "active" : ""}" data-panel="${item.id}">
                 ${badges[item.id] ? `<div class="badge">${badges[item.id]}</div>` : ""}
                 <div class="nav-icon asset ${item.iconClass}" style="background-image:url('${this.getMainNavIconAsset(item.id)}')"></div>

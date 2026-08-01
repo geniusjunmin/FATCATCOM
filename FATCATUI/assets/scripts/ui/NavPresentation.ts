@@ -6,7 +6,7 @@ export const DOM_NAV_TARGET_STYLES = `
                 height:5.8%;
             }
             #fatcat-dom-nav.compact .nav-bar {
-                height:6.1%;
+                height:6.3%;
             }
             #fatcat-dom-nav .nav-item,
             #fatcat-dom-nav.compact .nav-item {
@@ -15,7 +15,7 @@ export const DOM_NAV_TARGET_STYLES = `
             }
             #fatcat-dom-nav .nav-icon.asset,
             #fatcat-dom-nav.compact .nav-icon.asset {
-                width:62%;
+                width:64%;
                 filter:
                     drop-shadow(0 3px 0 rgba(39,24,15,.34))
                     drop-shadow(0 0 2px rgba(255,231,176,.16));
@@ -29,7 +29,7 @@ export const DOM_NAV_TARGET_STYLES = `
                     font-size:clamp(9px,2.5vw,11px);
                 }
                 #fatcat-dom-nav.compact .nav-icon.asset {
-                    width:54%;
+                    width:56%;
                 }
             }
 `;

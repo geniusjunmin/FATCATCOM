@@ -58,6 +58,10 @@ assertContains("BottomNavUI uses company constant", bottomNav, "${HUD_COMPANY_NA
 assertContains("BottomNavUI uses resource config", bottomNav, "HUD_RESOURCE_ITEMS.map");
 assertContains("BottomNavUI uses typed HUD resource kind", bottomNav, "kind: HudResourceKind");
 assertContains("BottomNavUI exposes resource kind marker", bottomNav, 'data-resource-kind="${kind}"');
+assertContains("BottomNavUI marks main identity zone", bottomNav, 'data-main-zone="identity"');
+assertContains("BottomNavUI marks main resource zone", bottomNav, 'data-main-zone="resources"');
+assertContains("HUD styles target identity zone", presentation, '.player[data-main-zone="identity"]');
+assertContains("HUD styles target resource zone", presentation, '.resources[data-main-zone="resources"]');
 assertNotContains("BottomNavUI no inline HUD CSS", bottomNav, "#fatcat-dom-hud { position: fixed;");
 assertNotContains("BottomNavUI no hard-coded HUD company", bottomNav, "<div class=\"company\">肥猫咖啡公司</div>");
 assertNotContains("BottomNavUI no hard-coded HUD resource row", bottomNav, "this.renderHudResource(\"coin\", \"金币\"");

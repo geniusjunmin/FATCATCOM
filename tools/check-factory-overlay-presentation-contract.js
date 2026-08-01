@@ -74,9 +74,37 @@ assertContains("BottomNavUI retains factory pointer actions", bottomNav, "privat
 assertContains("BottomNavUI retains factory keyboard actions", bottomNav, "private onDomFactoryKeyDown");
 assertContains("BottomNavUI shares factory action dispatch", bottomNav, "private handleDomFactoryAction");
 assertContains("BottomNavUI renders floor direct action", bottomNav, 'data-action="openBuildingFloor"');
+for (const marker of [
+  'data-main-zone="roof"',
+  'data-main-zone="floors"',
+  'data-main-zone="left-tools"',
+  'data-main-zone="right-tools"',
+  'data-main-zone="operations"',
+  'data-floor-index="${index}"',
+  'data-bonus-scene="${floor.scene}"',
+  'data-operation="order"',
+  'data-operation="chest"',
+  'data-operation="launch"',
+  'data-operation="gift"',
+]) {
+  assertContains(`BottomNavUI preserves main hierarchy marker ${marker}`, bottomNav, marker);
+}
+for (const selector of [
+  '.sign[data-main-zone="roof"]:before',
+  ".floor-card[data-floor-index] .floor-no",
+  ".bonus[data-bonus-scene] .bonus-rate",
+  '.bottom-widgets[data-main-zone="operations"] .order b',
+]) {
+  assertContains(`factory styles include hierarchy selector ${selector}`, presentation, selector);
+}
 assertContains("BottomNavUI preselects floor building", bottomNav, "this._selectedDomBuildingId = buildingId");
 assertContains("factory floor focus treatment", presentation, ".floor-card:focus-visible");
 assertContains("main capture checks every floor route", mainCapture, "floorRouteResults");
+assertContains("main capture checks hierarchy zones", mainCapture, "mainZones");
+assertContains("main capture checks floor indexes", mainCapture, "floorIndexes");
+assertContains("main capture checks bonus roles", mainCapture, "bonusRateCount");
+assertContains("main capture checks operations", mainCapture, "operationMarkers");
+assertContains("main capture checks roof rivets", mainCapture, "roofRivets");
 assertContains("main capture checks selected building", mainCapture, "result.selected.activeId !== result.expected.id");
 assertContains("BottomNavUI retains factory rendering", bottomNav, "private renderDomFactoryOverlay");
 assertContains("quick verify includes contract", quickVerify, "check-factory-overlay-presentation-contract.js");

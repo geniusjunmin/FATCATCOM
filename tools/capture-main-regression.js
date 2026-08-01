@@ -42,7 +42,7 @@ const floorRoutes = [
             }
         });
 
-        await page.goto(`http://localhost:7456/?api=http://localhost:5144&pwreg=${width}x${height}`, {
+        await page.goto(`http://localhost:7456/?pwreg=${width}x${height}`, {
             waitUntil: "load",
             timeout: 15000,
         });
@@ -86,13 +86,26 @@ const floorRoutes = [
             const diamondValue = document.querySelector("#fatcat-dom-hud .res.diamond .value")?.textContent?.trim() ?? "";
             const dailyOrder = document.querySelector("#fatcat-dom-factory .order");
             const launchCount = document.querySelector("#fatcat-dom-factory .launch-count");
+            const longestBonusLabel = Array.from(document.querySelectorAll("#fatcat-dom-factory .bonus-label"))
+                .sort((left, right) => (right.textContent?.length ?? 0) - (left.textContent?.length ?? 0))[0];
             const ratio = (part, whole) => part && whole
                 ? Math.round(part / whole * 10000) / 10000
                 : null;
             const allTextFits = (selector) => Array.from(document.querySelectorAll(selector))
                 .every(element => element.scrollWidth <= element.clientWidth + 1);
+            const overflowTexts = (selector) => Array.from(document.querySelectorAll(selector))
+                .filter(element => element.scrollWidth > element.clientWidth + 1)
+                .map(element => ({
+                    text: element.textContent?.trim() ?? "",
+                    clientWidth: Math.round(element.clientWidth * 10) / 10,
+                    scrollWidth: Math.round(element.scrollWidth * 10) / 10,
+                }));
 
             return {
+                mainZones: Array.from(document.querySelectorAll("[data-main-zone]"))
+                    .map(element => element.getAttribute("data-main-zone"))
+                    .filter((value, index, values) => !!value && values.indexOf(value) === index)
+                    .sort(),
                 resourceCount: document.querySelectorAll("#fatcat-dom-hud .res").length,
                 resourceKinds: Array.from(document.querySelectorAll("#fatcat-dom-hud .res"))
                     .map(element => element.getAttribute("data-resource-kind")),
@@ -101,7 +114,40 @@ const floorRoutes = [
                 resourceMaterial: getComputedStyle(document.querySelector("#fatcat-dom-hud .res")).backgroundImage,
                 domCanvasHidden: document.querySelector("canvas")?.style.opacity === "0",
                 floorCount: document.querySelectorAll("#fatcat-dom-factory .floor").length,
+                floorIndexes: Array.from(document.querySelectorAll("#fatcat-dom-factory .floor-card[data-floor-index]"))
+                    .map(element => element.getAttribute("data-floor-index")),
                 roomDecorCount: document.querySelectorAll("#fatcat-dom-factory .room-decor").length,
+                bonusScenes: Array.from(document.querySelectorAll("#fatcat-dom-factory .bonus[data-bonus-scene]"))
+                    .map(element => element.getAttribute("data-bonus-scene")),
+                bonusRateCount: document.querySelectorAll("#fatcat-dom-factory .bonus-rate").length,
+                bonusLabelCount: document.querySelectorAll("#fatcat-dom-factory .bonus-label").length,
+                bonusValueCount: document.querySelectorAll("#fatcat-dom-factory .bonus-value").length,
+                factoryClass: document.querySelector("#fatcat-dom-factory")?.className ?? "",
+                longestBonusLabelStyle: longestBonusLabel
+                    ? (() => {
+                        const style = getComputedStyle(longestBonusLabel);
+                        const parentStyle = longestBonusLabel.parentElement
+                            ? getComputedStyle(longestBonusLabel.parentElement)
+                            : null;
+                        return {
+                            text: longestBonusLabel.textContent?.trim() ?? "",
+                            fontSize: style.fontSize,
+                            lineHeight: style.lineHeight,
+                            whiteSpace: style.whiteSpace,
+                            wordBreak: style.wordBreak,
+                            width: style.width,
+                            gridTemplateColumns: parentStyle?.gridTemplateColumns ?? "",
+                        };
+                    })()
+                    : null,
+                operationMarkers: Array.from(document.querySelectorAll("#fatcat-dom-factory [data-operation]"))
+                    .map(element => element.getAttribute("data-operation")),
+                roofRivets: (() => {
+                    const sign = document.querySelector('#fatcat-dom-factory .sign[data-main-zone="roof"]');
+                    return !!sign
+                        && getComputedStyle(sign, "::before").display !== "none"
+                        && getComputedStyle(sign, "::after").display !== "none";
+                })(),
                 sideButtonCount: document.querySelectorAll("#fatcat-dom-factory .side-btn").length,
                 sideButtonIconCount: document.querySelectorAll("#fatcat-dom-factory .side-btn i.asset").length,
                 sideButtonArtKeys: Array.from(document.querySelectorAll("#fatcat-dom-factory .side-btn i.asset"))
@@ -154,6 +200,11 @@ const floorRoutes = [
                     "#fatcat-dom-factory .bonus strong, #fatcat-dom-factory .bonus span, #fatcat-dom-factory .bonus b"
                 ),
                 hudTextFits: allTextFits("#fatcat-dom-hud .company, #fatcat-dom-hud .value"),
+                floorNameOverflows: overflowTexts("#fatcat-dom-factory .floor-name"),
+                bonusChildOverflows: overflowTexts(
+                    "#fatcat-dom-factory .bonus strong, #fatcat-dom-factory .bonus span, #fatcat-dom-factory .bonus b"
+                ),
+                hudTextOverflows: overflowTexts("#fatcat-dom-hud .company, #fatcat-dom-hud .value"),
             };
         });
 
@@ -198,12 +249,20 @@ const floorRoutes = [
     if (results.some(entry =>
         entry.messages.length
         || entry.failedRequests.length
+        || entry.state.mainZones.join(",") !== "floors,identity,left-tools,navigation,operations,resources,right-tools,roof"
         || entry.state.resourceCount < 4
         || entry.state.resourceKinds.join(",") !== "coin,bean,food,diamond"
         || entry.state.embeddedResourceIcons !== 4
         || !entry.state.resourceMaterial.includes("linear-gradient")
         || !entry.state.domCanvasHidden
         || entry.state.floorCount < 6
+        || entry.state.floorIndexes.join(",") !== "0,1,2,3,4,5"
+        || entry.state.bonusScenes.join(",") !== "office,roast,tank,mill,cafe,storage"
+        || entry.state.bonusRateCount !== 6
+        || entry.state.bonusLabelCount !== 6
+        || entry.state.bonusValueCount !== 6
+        || entry.state.operationMarkers.join(",") !== "order,chest,launch,gift"
+        || !entry.state.roofRivets
         || entry.state.sideButtonCount !== 5
         || entry.state.sideButtonIconCount !== 5
         || entry.state.sideButtonArtKeys.join(",") !== "task-board,achievement-trophy-v2,mail-envelope-v2,friend-cat-v2,settings-gear-v2"

@@ -24,6 +24,10 @@ Updated: 2026-08-01
 
 ## Latest Visual Note
 
+- Latest main-factory note: preserve the eight `data-main-zone` values, `data-floor-index="0..5"`, six `data-bonus-scene` values, and the four `data-operation` markers. They define the target first-screen hierarchy independently of decorative CSS.
+- Main responsive sizing follows the centered game canvas, not the outer browser width. At a 768x1024 browser viewport the factory root is still `compact tall`; narrow production-label typography must therefore keep a bounded pixel maximum. The `咖啡豆消耗` label currently caps at 8px and all child text fits.
+- `capture-main-regression.js` records root classes and the longest production label's computed style in addition to geometry and interaction checks. Current green evidence: four inspected main screenshots, 24/24 floor-detail routes, 18/18 UI click steps, zero Cocos errors, full quick verify, and 104/104 server tests.
+
 - Latest cat hierarchy note: `BottomNavUI.ts` now emits `data-cat-panel` for identity, stage, status, power, stats, weight, and roster, plus exactly five `data-cat-stat` cards with `.stat-label` and `.stat-value`. Preserve those hooks when changing cat markup.
 - `CatOverlayPresentation.ts` owns the new identity paw seal, dark connected status rail, five stat bottom accents, lower-card title medals, and selected-roster crest. The portrait name remains intentionally hidden because the target places the cat name in the identity card; a first-pass visible duplicate overlapped the production strip.
 - `capture-cat-regression.js` and `check-cat-overlay-presentation-contract.js` guard these cues across 414x896, 430x932, 360x800, and 768x1024. Current green evidence: focused TypeScript, Cocos script refresh, four-size cat information/equipment/skin capture, 18 UI click steps, zero Cocos errors, full quick verify, and 104/104 server tests.

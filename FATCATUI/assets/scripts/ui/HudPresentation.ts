@@ -344,4 +344,35 @@ export const DOM_HUD_STYLES = `            #fatcat-dom-hud { position: fixed; z-
             #fatcat-dom-hud.wide .value { font-size:8px; }
             #fatcat-dom-hud.wide .level { font-size:11px; }
             #fatcat-dom-hud.wide .exp-text { font-size:8px; }
-            #fatcat-dom-hud.wide .plus { font-size:14px; }`;
+            #fatcat-dom-hud.wide .plus { font-size:14px; }
+
+            /* Final first-screen hierarchy: preserve the measured HUD bands
+               while making the brand and live balances read at phone scale. */
+            #fatcat-dom-hud .player[data-main-zone="identity"] .level {
+                box-shadow:0 3px 0 rgba(66,38,19,.38),inset 0 0 0 2px rgba(255,239,190,.28),0 0 0 1px rgba(73,44,24,.35);
+            }
+            #fatcat-dom-hud .resources[data-main-zone="resources"] .res {
+                min-width:0;
+            }
+            #fatcat-dom-hud.compact .company,
+            #fatcat-dom-hud.compact.tall .company {
+                font-size:clamp(10px,2.65vw,13px);
+            }
+            #fatcat-dom-hud.compact .value,
+            #fatcat-dom-hud.compact.tall .res .value {
+                font-size:clamp(8px,2.15vw,9px);
+            }
+            #fatcat-dom-hud .res.coin .value,
+            #fatcat-dom-hud.compact .res.coin .value,
+            #fatcat-dom-hud.compact.tall .res.coin .value { font-size:8px; }
+            #fatcat-dom-hud.compact .exp-text,
+            #fatcat-dom-hud.compact.tall .exp-text {
+                color:#fff0bf;
+                text-shadow:0 1px 0 rgba(43,25,14,.64);
+            }
+            @media (max-width:390px) {
+                #fatcat-dom-hud.compact.tall .company { font-size:clamp(9px,2.55vw,10px); }
+                #fatcat-dom-hud.compact.tall .res .value { font-size:8px; }
+            }
+            #fatcat-dom-hud.wide .company { font-size:10px; }
+            #fatcat-dom-hud.wide .value { font-size:8px; }`;

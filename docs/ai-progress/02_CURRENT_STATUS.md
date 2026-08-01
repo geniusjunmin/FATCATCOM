@@ -7,7 +7,7 @@ Updated: 2026-08-01
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Return to the main factory reference for final HUD/floor-detail polish, or extract the remaining friend cooperation/history/profile render adapters from `BottomNavUI.ts`. |
+| Best Next Move | Extract the remaining friend cooperation/history/profile render adapters from `BottomNavUI.ts`, then polish the next largest secondary-panel gap against the root references. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -21,10 +21,14 @@ Updated: 2026-08-01
 | Economy Model | Covered | Production uses assignment, building level, equipment, research, skills, and mood. |
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
-| Biggest Gap | Visual fidelity | Main factory and cat page are close to target structure; remaining work is final proportion/detail tuning and richer secondary social surfaces. |
+| Biggest Gap | Visual fidelity | Main factory and cat-detail first screens now match the target hierarchy closely; remaining work is richer secondary social and feature-panel surfaces. |
 | Biggest Risk | Frontend size | `BottomNavUI.ts` is down to roughly 224K characters after extracting friend factory and social cards, but still owns too many feature render adapters. |
 
 ## Client UI
+
+- Latest main-factory hierarchy pass marks eight stable first-screen zones across player identity, resources, roof, floors, side tools, operations, and navigation. The six floor cards now expose ordered floor indexes, each production card exposes scene/rate/label/value roles, and all four bottom operations have stable semantic markers.
+- `HudPresentation.ts`, `FactoryOverlayPresentation.ts`, and `NavPresentation.ts` sharpen the target-like medal/resource hierarchy, riveted roof sign, floor labels, dark production cards, operation strip, and compact bottom navigation without obscuring the 852px six-floor source art. The long `咖啡豆消耗` label now caps at 8px because 768px browser viewports still use the centered compact game canvas.
+- `capture-main-regression.js` guards all eight zones, four resources, six floor/production pairs, four operations, roof rivets, text containment, geometry, and 24 floor-detail routes across 414x896, 430x932, 360x800, and 768x1024. Visual inspection, 18-step navigation, zero Cocos errors, full quick verify, and 104/104 tests pass.
 
 - Latest cat-detail hierarchy pass aligns the information page more closely with `所有猫咪页面.png`: the identity card now has explicit rarity/type, level, and star rows; the central workshop keeps the cat as the sole focus; and mood/feed cards return to the target's dark status-rail treatment.
 - All seven major areas expose stable `data-cat-panel` markers. Five stat cards now separate label/value roles and add bottom progress accents; lower information/equipment titles have medal cues; the active roster cat has a selected crest. A screenshot review caught and removed a duplicate oversized portrait name before completion.

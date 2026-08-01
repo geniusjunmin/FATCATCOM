@@ -769,5 +769,93 @@ export function getDomFactoryStyles(factoryCutawayDataUri: string): string {
             }
             #fatcat-dom-factory.wide .floor-name { font-size:9px; }
             #fatcat-dom-factory.wide .floor-name span { font-size:8px; }
+
+            /* Final first-screen hierarchy: sharpen the interactive overlays
+               without covering the high-resolution six-floor illustration. */
+            #fatcat-dom-factory .sign[data-main-zone="roof"] {
+                font-size:clamp(19px,5.35vw,28px);
+                letter-spacing:0;
+            }
+            #fatcat-dom-factory .sign[data-main-zone="roof"]:before,
+            #fatcat-dom-factory .sign[data-main-zone="roof"]:after {
+                display:block;
+                top:50%;
+                width:8px;
+                height:8px;
+                transform:translateY(-50%);
+                background:radial-gradient(circle at 35% 30%,#ffe6a2 0 18%,#b6722d 22% 64%,#57301a 68%);
+                box-shadow:0 2px 0 rgba(48,28,17,.34);
+            }
+            #fatcat-dom-factory .sign[data-main-zone="roof"]:before { left:2%; }
+            #fatcat-dom-factory .sign[data-main-zone="roof"]:after { right:2%; }
+            #fatcat-dom-factory .floor-card[data-floor-index] .floor-no {
+                font-size:clamp(17px,4.55vw,25px);
+            }
+            #fatcat-dom-factory .floor-card[data-floor-index] .floor-name {
+                font-size:clamp(8px,2.15vw,9px);
+                font-weight:900;
+            }
+            #fatcat-dom-factory .floor-card[data-floor-index] .floor-name span {
+                font-size:clamp(7.5px,1.95vw,9px);
+                color:#67452e;
+            }
+            #fatcat-dom-factory .bonus[data-bonus-scene] .bonus-rate {
+                font-size:clamp(10px,2.65vw,12px);
+                line-height:1;
+            }
+            #fatcat-dom-factory .bonus[data-bonus-scene] .bonus-label {
+                font-size:clamp(7px,1.8vw,8px);
+                line-height:1;
+            }
+            #fatcat-dom-factory .bonus[data-bonus-scene] .bonus-value {
+                font-size:clamp(9px,2.45vw,11px);
+                line-height:1;
+            }
+            #fatcat-dom-factory .left-tools[data-main-zone="left-tools"] .side-btn,
+            #fatcat-dom-factory .right-tools[data-main-zone="right-tools"] .side-btn {
+                letter-spacing:0;
+            }
+            #fatcat-dom-factory .bottom-widgets[data-main-zone="operations"],
+            #fatcat-dom-factory.compact .bottom-widgets[data-main-zone="operations"],
+            #fatcat-dom-factory.tall .bottom-widgets[data-main-zone="operations"] {
+                height:7.4%;
+            }
+            #fatcat-dom-factory .bottom-widgets[data-main-zone="operations"] .order b {
+                font-size:clamp(17px,4.5vw,24px);
+                line-height:1;
+            }
+            #fatcat-dom-factory .bottom-widgets[data-main-zone="operations"] .chest {
+                font-size:clamp(8px,2.05vw,11px);
+            }
+            #fatcat-dom-factory .bottom-widgets[data-main-zone="operations"] .gift em {
+                font-size:clamp(7px,1.75vw,9px);
+                letter-spacing:0;
+            }
+            @media (max-width:390px) {
+                #fatcat-dom-factory .sign[data-main-zone="roof"] { font-size:clamp(18px,5.2vw,21px); }
+                #fatcat-dom-factory .sign[data-main-zone="roof"]:before,
+                #fatcat-dom-factory .sign[data-main-zone="roof"]:after { width:6px; height:6px; }
+                #fatcat-dom-factory .floor-card[data-floor-index] .floor-name { font-size:8px; }
+                #fatcat-dom-factory .bonus[data-bonus-scene] .bonus-rate { font-size:9px; }
+                #fatcat-dom-factory .bonus[data-bonus-scene] .bonus-value { font-size:8.5px; }
+            }
+            #fatcat-dom-factory.wide .floor-card[data-floor-index] .floor-name { font-size:9px; }
+            #fatcat-dom-factory.wide .bonus[data-bonus-scene] .bonus-rate { font-size:11px; }
+            #fatcat-dom-factory.wide .bonus[data-bonus-scene] {
+                grid-template-columns:10px minmax(0,1fr);
+                column-gap:1px;
+                padding-left:1px;
+                padding-right:1px;
+            }
+            #fatcat-dom-factory.wide .bonus[data-bonus-scene] .bonus-label {
+                font-size:7px;
+                white-space:normal;
+                min-width:0;
+                width:100%;
+                word-break:break-all;
+                overflow-wrap:anywhere;
+                line-height:1;
+            }
+            #fatcat-dom-factory.wide .bonus[data-bonus-scene] .bonus-value { font-size:10px; }
         `;
 }
