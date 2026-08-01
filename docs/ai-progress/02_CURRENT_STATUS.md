@@ -7,7 +7,7 @@ Updated: 2026-08-01
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Move the main/daily task catalog, progress, and reward claims behind authenticated server authority. |
+| Best Next Move | Expand authoritative task goals beyond coin income, then add main-chain unlocks and daily catalog rotation. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -21,10 +21,15 @@ Updated: 2026-08-01
 | Economy Model | Covered | Production uses assignment, building level, equipment, research, skills, mood, and the equipped factory appearance. |
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
-| Biggest Gap | Task authority | One achievement and the daily order are authoritative, but the broader main/daily task catalog still derives progress and claims from the client save. |
+| Biggest Gap | Task breadth | Main/daily claims are authoritative, but the first catalog only covers cumulative and UTC-daily positive coin income. |
 | Biggest Risk | Frontend size | `BottomNavUI.ts` is roughly 226K characters after the friend presentation extractions, but still owns several utility and feature render adapters. |
 
 ## Client UI
+
+- Main and daily tasks are now server-authoritative. `PlayerTaskState` persists catalog version, UTC cycle, derived progress, and claim state; `PlayerTaskClaim` stores request-keyed reward and progression snapshots for deterministic replay.
+- Authenticated `GET /api/tasks` and `POST /api/tasks/{taskId}/claim` derive progress from positive server resource-ledger entries and atomically settle coin, diamond, research, inventory items, experience, and level-up rewards. The daily target is calibrated to an achievable `10,000` coin and resets by UTC date.
+- `SyncManager` caches task snapshots, refreshes them after positive-income actions, applies authoritative reward snapshots, emits `TASKS_CHANGED`, and retains the existing offline fallback. Task rows expose authority/progress markers and cap visible progress at the target.
+- Verification: 127/127 server tests, static task contract, online five-launch/claim/reload flow, inventory and progression online guards, 18/18 clicks, zero Cocos errors, full quick verify, and task screenshots at 430x932/414x896/360x800/768x1024 pass.
 
 - Inventory ownership is now server-authoritative. `PlayerInventoryItem` persists trusted item counts and `PlayerInventoryTransaction` snapshots every shop grant, consumable use, achievement item grant, post-mutation quantity, resource balances, daily limit, and client request id.
 - Authenticated `GET /api/inventory` and `POST /api/inventory/{itemId}/use` power the online backpack. Shop purchase and use mutations share per-player inventory serialization, replay fixed transaction snapshots, and never trust client quantities; offline mode retains the existing local fallback.

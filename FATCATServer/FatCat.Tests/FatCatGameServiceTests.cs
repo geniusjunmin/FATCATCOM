@@ -194,6 +194,109 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task Tasks_DeriveLedgerProgressAndClaimUnifiedRewardsOnce()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("task-authority-device", "FatCat"), CancellationToken.None);
+        dbContext.ResourceTransactions.Add(new PlayerResourceTransaction
+        {
+            PlayerId = auth.PlayerId,
+            SourceType = "test_income",
+            SourceKey = "task_progress",
+            CoinDelta = 60_000,
+            CoinBalance = 12_510_000,
+            CreatedAt = DateTimeOffset.UtcNow,
+        });
+        await dbContext.SaveChangesAsync();
+
+        var tasks = await service.GetTasksAsync(auth.PlayerId, CancellationToken.None);
+        var main = Assert.Single(tasks!, task => task.Id == "task_main_1");
+        var daily = Assert.Single(tasks!, task => task.Id == "task_daily_1");
+        var mainClaim = await service.ClaimTaskAsync(
+            auth.PlayerId,
+            main.Id,
+            new TaskClaimRequest("main-task-once"),
+            CancellationToken.None);
+        var mainReplay = await service.ClaimTaskAsync(
+            auth.PlayerId,
+            main.Id,
+            new TaskClaimRequest("main-task-once"),
+            CancellationToken.None);
+        var mainDuplicate = await service.ClaimTaskAsync(
+            auth.PlayerId,
+            main.Id,
+            new TaskClaimRequest("main-task-other-request"),
+            CancellationToken.None);
+        var dailyClaim = await service.ClaimTaskAsync(
+            auth.PlayerId,
+            daily.Id,
+            new TaskClaimRequest("daily-task-once"),
+            CancellationToken.None);
+        var mainState = Assert.Single(dbContext.TaskStates.Where(item =>
+            item.PlayerId == auth.PlayerId && item.TaskKey == "task_main_1"));
+        mainState.IsClaimed = false;
+        await dbContext.SaveChangesAsync();
+        var reconciledTasks = await service.GetTasksAsync(auth.PlayerId, CancellationToken.None);
+        var reconciledMain = Assert.Single(reconciledTasks!, task => task.Id == "task_main_1");
+
+        Assert.Equal(10_000, main.Progress);
+        Assert.True(main.Claimable);
+        Assert.Equal(10_000, daily.Progress);
+        Assert.True(daily.Claimable);
+        Assert.NotNull(mainClaim);
+        Assert.True(mainClaim!.Claimed);
+        Assert.False(mainClaim.Replayed);
+        Assert.Equal(5_000, mainClaim.Task.RewardCoin);
+        Assert.Equal(250, mainClaim.ExperienceGained);
+        Assert.Contains(mainClaim.InventoryItems, item => item.ItemId == "item_coin_pack_small" && item.Quantity == 6);
+        Assert.NotNull(mainReplay);
+        Assert.True(mainReplay!.Replayed);
+        Assert.Equal(mainClaim.CoinBalance, mainReplay.CoinBalance);
+        Assert.NotNull(mainDuplicate);
+        Assert.False(mainDuplicate!.Claimed);
+        Assert.Equal("already_claimed", mainDuplicate.LimitedReason);
+        Assert.NotNull(dailyClaim);
+        Assert.True(dailyClaim!.Claimed);
+        Assert.True(reconciledMain.Claimed);
+        Assert.False(reconciledMain.Claimable);
+        Assert.Equal(10, dailyClaim.Task.RewardDiamond);
+        Assert.Equal(150, dailyClaim.ExperienceGained);
+        Assert.Contains(dailyClaim.InventoryItems, item => item.ItemId == "item_cat_food_pack" && item.Quantity == 3);
+        Assert.Equal(12_455_000, dailyClaim.CoinBalance);
+        Assert.Equal(2_590, dailyClaim.DiamondBalance);
+        Assert.Equal(250, dailyClaim.ResearchPointBalance);
+        Assert.Equal(28, dailyClaim.PlayerProgression!.Level);
+        Assert.Equal(2_960, dailyClaim.PlayerProgression.Exp);
+        Assert.Equal(2, await dbContext.TaskClaims.CountAsync(item => item.PlayerId == auth.PlayerId));
+        Assert.Equal(2, await dbContext.InventoryTransactions.CountAsync(item => item.PlayerId == auth.PlayerId && item.SourceType == "task_claim"));
+        Assert.Equal(2, await dbContext.ResourceTransactions.CountAsync(item => item.PlayerId == auth.PlayerId && item.SourceType == "task_claim"));
+    }
+
+    [Fact]
+    public async Task Tasks_ResetStaleDailyStateOnUtcCycleChange()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("task-cycle-device", "FatCat"), CancellationToken.None);
+        await service.GetTasksAsync(auth.PlayerId, CancellationToken.None);
+        var state = Assert.Single(dbContext.TaskStates.Where(item =>
+            item.PlayerId == auth.PlayerId && item.TaskKey == "task_daily_1"));
+        state.CycleDate = 20000101;
+        state.Progress = 50_000;
+        state.IsClaimed = true;
+        await dbContext.SaveChangesAsync();
+
+        var tasks = await service.GetTasksAsync(auth.PlayerId, CancellationToken.None);
+        var daily = Assert.Single(tasks!, task => task.Id == "task_daily_1");
+
+        Assert.NotEqual(20000101, daily.CycleDate);
+        Assert.Equal(0, daily.Progress);
+        Assert.False(daily.Claimed);
+        Assert.False(daily.Claimable);
+    }
+
+    [Fact]
     public async Task PurchaseDecorationAsync_AddsPermanentOwnedDecorAndDeductsOnce()
     {
         await using var dbContext = CreateDbContext();
@@ -2306,6 +2409,9 @@ public sealed class FatCatGameServiceTests
         await using var verifyInventoryTables = connection.CreateCommand();
         verifyInventoryTables.CommandText = """SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name IN ('InventoryItems', 'InventoryTransactions');""";
         Assert.Equal(2, Convert.ToInt32(await verifyInventoryTables.ExecuteScalarAsync()));
+        await using var verifyTaskTables = connection.CreateCommand();
+        verifyTaskTables.CommandText = """SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name IN ('TaskStates', 'TaskClaims');""";
+        Assert.Equal(2, Convert.ToInt32(await verifyTaskTables.ExecuteScalarAsync()));
     }
 
     private static FatCatDbContext CreateDbContext()

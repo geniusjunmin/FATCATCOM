@@ -58,4 +58,5 @@ export const GameEvents = {
     PLAYER_PROGRESSION_CHANGED: "player-progression:changed",
     ACHIEVEMENTS_CHANGED: "achievements:changed",
     INVENTORY_CHANGED: "inventory:changed",
+    TASKS_CHANGED: "tasks:changed",
 } as const;

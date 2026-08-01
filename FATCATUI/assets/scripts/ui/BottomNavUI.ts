@@ -345,6 +345,8 @@ export class BottomNavUI extends Component {
         EventBus.on(GameEvents.ACHIEVEMENTS_CHANGED, this.onAchievementsChanged);
         EventBus.off(GameEvents.INVENTORY_CHANGED, this.onInventoryChanged);
         EventBus.on(GameEvents.INVENTORY_CHANGED, this.onInventoryChanged);
+        EventBus.off(GameEvents.TASKS_CHANGED, this.onTasksChanged);
+        EventBus.on(GameEvents.TASKS_CHANGED, this.onTasksChanged);
 
         // Ensure navigation is on top of everything
         this.node.parent?.setSiblingIndex(999);
@@ -384,6 +386,7 @@ export class BottomNavUI extends Component {
         EventBus.off(GameEvents.PLAYER_PROGRESSION_CHANGED, this.onPlayerProgressionChanged);
         EventBus.off(GameEvents.ACHIEVEMENTS_CHANGED, this.onAchievementsChanged);
         EventBus.off(GameEvents.INVENTORY_CHANGED, this.onInventoryChanged);
+        EventBus.off(GameEvents.TASKS_CHANGED, this.onTasksChanged);
         if (this._waitingForAppReady) {
             EventBus.off(GameEvents.APP_READY, this.onAppReady);
             this._waitingForAppReady = false;
@@ -454,6 +457,12 @@ export class BottomNavUI extends Component {
     private onInventoryChanged = (): void => {
         if (this.currentPanel === "inventory" || this.currentPanel === "shop") {
             this.renderDomPanel(this.currentPanel);
+        }
+    };
+
+    private onTasksChanged = (): void => {
+        if (this.currentPanel === "tasks") {
+            this.renderDomPanel("tasks");
         }
     };
 
@@ -746,6 +755,9 @@ export class BottomNavUI extends Component {
         this.setDomCatOverlayVisible(panelId === "cats");
         this.setDomFactoryOverlayVisible(panelId === "factory");
         this.setDomPanelOverlay(panelId);
+        if (panelId === "tasks" && NetworkManager.canUseServer) {
+            void SyncManager.fetchServerTasks();
+        }
         const useDomPanels = typeof document !== "undefined";
         if (this.shopPanel) this.shopPanel.active = !useDomPanels && panelId === "shop";
         if (this.inventoryPanel) this.inventoryPanel.active = !useDomPanels && panelId === "inventory";
@@ -1219,7 +1231,23 @@ export class BottomNavUI extends Component {
                     : "请先连接服务器再管理楼层装饰。";
             }
         } else if (action === "claimTask") {
-            if (this.currentPanel === "achievements" && NetworkManager.canUseServer) {
+            if (this.currentPanel === "tasks" && NetworkManager.canUseServer) {
+                const result = await SyncManager.claimServerTask(id);
+                success = !!result?.claimed;
+                if (result?.claimed) {
+                    const itemReward = result.task.rewardItems
+                        .map(item => `${this.getItemDisplayName(item.itemId)} x${item.count}`)
+                        .join("、");
+                    const levelReward = result.levelUpReward;
+                    actionMessageOverride = `任务奖励已领取：经验 +${result.experienceGained}${result.task.rewardCoin > 0 ? `，金币 +${this.formatNumber(result.task.rewardCoin)}` : ""}${result.task.rewardDiamond > 0 ? `，钻石 +${result.task.rewardDiamond}` : ""}${result.task.rewardResearchPoint > 0 ? `，研究点 +${result.task.rewardResearchPoint}` : ""}${itemReward ? `，${itemReward}` : ""}${levelReward ? `，升至 Lv.${levelReward.toLevel}` : ""}`;
+                } else if (result?.limitedReason === "already_claimed") {
+                    actionMessageOverride = "该任务奖励已经领取。";
+                } else if (result?.limitedReason === "task_not_complete") {
+                    actionMessageOverride = "任务目标尚未完成。";
+                } else {
+                    actionMessageOverride = "任务领取失败，请稍后重试。";
+                }
+            } else if (this.currentPanel === "achievements" && NetworkManager.canUseServer) {
                 const result = await SyncManager.claimServerAchievement(id);
                 success = !!result?.claimed;
                 if (result?.claimed) {
@@ -1654,6 +1682,17 @@ export class BottomNavUI extends Component {
         const closeText = panelId === "buildings" && this._buildingPanelMode === "detail" ? "←" : "×";
         const closeLabel = closeText === "←" ? "返回工厂" : "关闭";
         overlay.innerHTML = `${body ? `<button class="panel-close" data-action="panelClose" aria-label="${closeLabel}">${closeText}</button>` : ""}${body}${this.renderDomMessage()}`;
+        if (panelId === "tasks") {
+            const serverTasks = SyncManager.getServerTasks();
+            const usesServerAuthority = serverTasks.length > 0;
+            const localTasks = TaskManager.getActiveTasks().filter(({ config }) => config.type !== TaskType.ACHIEVEMENT);
+            const shell = overlay.querySelector<HTMLElement>(".task-shell");
+            if (shell) {
+                shell.dataset.taskAuthority = usesServerAuthority ? "server" : "offline";
+                shell.dataset.taskCount = String(usesServerAuthority ? serverTasks.length : localTasks.length);
+                shell.dataset.taskClaimable = String(this.getClaimableTaskCount());
+            }
+        }
     }
 
     private renderDomMessage(): string {
@@ -2552,12 +2591,34 @@ export class BottomNavUI extends Component {
     }
 
     private renderTaskPanel(): string {
-        const tasks = TaskManager.getActiveTasks();
+        const serverTasks = SyncManager.getServerTasks();
+        const usesServerAuthority = serverTasks.length > 0;
+        const tasks = TaskManager.getActiveTasks().filter(({ config }) => config.type !== TaskType.ACHIEVEMENT);
         const claimableCount = this.getClaimableTaskCount();
         const activeScore = Math.min(100, 40 + claimableCount * 20 + Math.floor(ResourceManager.get("coin") / 10000) * 5);
-        const orderProgress = 56;
-        const orderGoal = 60;
-        const rows = tasks.length > 0
+        const order = DailyOrderManager.getState();
+        const orderProgress = order.progress;
+        const orderGoal = order.target;
+        const rows = usesServerAuthority
+            ? serverTasks.map(task => this.renderTaskRow(
+                task.id,
+                task.name,
+                task.description,
+                task.type,
+                task.progress,
+                task.target,
+                this.formatTaskReward({
+                    coin: task.rewardCoin,
+                    diamond: task.rewardDiamond,
+                    researchPoint: task.rewardResearchPoint,
+                    experience: task.rewardExperience,
+                    items: task.rewardItems,
+                }),
+                task.claimable,
+                task.claimed,
+                "server",
+            )).join("")
+            : tasks.length > 0
             ? tasks.map(({ config, data }) => this.renderTaskRow(
                 config.id,
                 config.name,
@@ -2567,27 +2628,35 @@ export class BottomNavUI extends Component {
                 config.goalValue,
                 this.formatTaskReward(config.rewards),
                 data.currentValue >= config.goalValue && !data.isClaimed,
+                data.isClaimed,
+                "offline",
             )).join("")
             : `<div class="item">当前任务已完成<br><span class="tag">等待刷新</span></div>`;
 
         return `<div class="panel-shell utility-shell task-shell"><h2>任务详情</h2><div class="task-board"><span class="task-board-icon"></span><div>今日订单<br><b>${orderProgress}/${orderGoal}</b><div class="progress-line"><i style="width:${Math.floor((orderProgress / orderGoal) * 100)}%"></i></div></div><span class="task-stamp">活跃 ${activeScore}</span></div><div class="task-daily"><div class="task-daily-card">${this.renderCssIcon("task")}<span>订单完成<br><b>${orderProgress}/${orderGoal}</b></span></div><div class="task-daily-card">${this.renderCssIcon("gift")}<span>可领取奖励<br><b>${claimableCount}</b></span></div><div class="task-daily-card">${this.renderCssIcon("coin")}<span>活跃度<br><b>${activeScore}</b></span></div></div><div class="task-reward-strip">${TASK_PROGRESS_MILESTONES.map(value => `<span class="${activeScore >= value ? "ready" : ""}">${value}</span>`).join("")}</div><div class="list shop-list">${rows}</div><div class="wide">点击左侧任务板或底部今日订单会打开这里；主界面宝箱会优先领取已完成任务，没有可领任务时发放一份小额宝箱奖励。</div></div>`;
     }
 
-    private renderTaskRow(id: string, name: string, description: string, type: string, currentValue: number, goalValue: number, rewardText: string, claimable: boolean): string {
+    private renderTaskRow(id: string, name: string, description: string, type: string, currentValue: number, goalValue: number, rewardText: string, claimable: boolean, claimed = false, authority = "offline"): string {
         const safeGoal = Math.max(1, goalValue);
-        const progress = Math.min(100, Math.floor((currentValue / safeGoal) * 100));
-        const action = claimable
+        const displayedValue = Math.min(safeGoal, Math.max(0, currentValue));
+        const progress = Math.min(100, Math.floor((displayedValue / safeGoal) * 100));
+        const rowAttributes = `data-task-id="${id}" data-task-authority="${authority}" data-task-claimed="${claimed}" data-task-progress="${displayedValue}" data-task-target="${safeGoal}"`;
+        if (claimed) {
+            return `<div class="item task-row with-icon" ${rowAttributes}><div class="task-icon">${this.renderCssIcon("task")}</div><div><b>${name}</b><div class="task-meta">${this.getTaskTypeLabel(type)} · ${description}</div><div class="progress-line"><i style="width:${progress}%"></i></div><div class="task-meta">进度 ${this.formatNumber(displayedValue)}/${this.formatNumber(goalValue)}</div><div class="task-reward">${rewardText}</div></div><div><span class="tag">已领取</span></div></div>`;
+        }
+        let action = claimable
             ? `<button class="tag" data-action="claimTask" data-id="${id}">领取</button>`
             : `<span class="tag warn">进行中</span>`;
-        return `<div class="item task-row with-icon"><div class="task-icon">${this.renderCssIcon("task")}</div><div><b>${name}</b><div class="task-meta">${this.getTaskTypeLabel(type)} · ${description}</div><div class="progress-line"><i style="width:${progress}%"></i></div><div class="task-meta">进度 ${this.formatNumber(currentValue)}/${this.formatNumber(goalValue)}</div><div class="task-reward">${rewardText}</div></div><div>${action}</div></div>`;
+        return `<div class="item task-row with-icon" ${rowAttributes}><div class="task-icon">${this.renderCssIcon("task")}</div><div><b>${name}</b><div class="task-meta">${this.getTaskTypeLabel(type)} · ${description}</div><div class="progress-line"><i style="width:${progress}%"></i></div><div class="task-meta">进度 ${this.formatNumber(displayedValue)}/${this.formatNumber(goalValue)}</div><div class="task-reward">${rewardText}</div></div><div>${action}</div></div>`;
     }
 
     private getTaskTypeLabel(type: string): string {
         return getTaskTypeLabelText(type);
     }
 
-    private formatTaskReward(rewards: { coin?: number; diamond?: number; researchPoint?: number; items?: { itemId: string; count: number }[] }): string {
+    private formatTaskReward(rewards: { coin?: number; diamond?: number; researchPoint?: number; experience?: number; items?: { itemId: string; count: number }[] }): string {
         const parts: string[] = [];
+        if (rewards.experience) parts.push(`${this.formatNumber(rewards.experience)} 经验`);
         if (rewards.coin) parts.push(`${this.formatNumber(rewards.coin)} 金币`);
         if (rewards.diamond) parts.push(`${this.formatNumber(rewards.diamond)} 钻石`);
         if (rewards.researchPoint) parts.push(`${this.formatNumber(rewards.researchPoint)} 研究点`);
@@ -2868,6 +2937,10 @@ export class BottomNavUI extends Component {
     }
 
     private getClaimableTaskCount(): number {
+        const serverTasks = SyncManager.getServerTasks();
+        if (serverTasks.length > 0) {
+            return serverTasks.filter(task => task.claimable).length;
+        }
         return TaskManager.getActiveTasks().filter(({ config, data }) => (
             data.currentValue >= config.goalValue && !data.isClaimed
         )).length;

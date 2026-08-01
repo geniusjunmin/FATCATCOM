@@ -1,5 +1,5 @@
 import { GameConfig } from "../core/GameConfig";
-import { AchievementClaimResponse, AchievementDto, AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatSkinCatalogItemDto, CatSkinEquipResponse, CatSkinUnlockResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, CreateFriendRequestRequest, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPlacementRequest, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, InventoryItemDto, InventoryUseRequest, InventoryUseResponse, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, PlayerDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, ServerStatusDto, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto } from "./ApiTypes";
+import { AchievementClaimResponse, AchievementDto, AddFriendRequest, ApiEnvelope, AuthGuestRequest, AuthGuestResponse, BootstrapDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatSkinCatalogItemDto, CatSkinEquipResponse, CatSkinUnlockResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, CreateFriendRequestRequest, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPlacementRequest, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, InventoryItemDto, InventoryUseRequest, InventoryUseResponse, LaunchRequest, LaunchResponse, LeaderboardDto, MailDto, PlayerDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, SaveSyncRequest, SaveSyncResponse, ServerStatusDto, SettingsDto, ShopPurchaseRequest, ShopPurchaseResponse, ShopStateDto, TaskClaimRequest, TaskClaimResponse, TaskDto } from "./ApiTypes";
 import type { FactoryAppearanceStateDto } from "./ApiTypes";
 
 export class ApiClient {
@@ -77,6 +77,14 @@ export class ApiClient {
 
     public static claimAchievement(playerId: string, achievementId: string): Promise<ApiEnvelope<AchievementClaimResponse>> {
         return this.post(`/api/achievements/${encodeURIComponent(achievementId)}/claim?playerId=${encodeURIComponent(playerId)}`, {});
+    }
+
+    public static getTasks(playerId: string): Promise<ApiEnvelope<TaskDto[]>> {
+        return this.get(`/api/tasks?playerId=${encodeURIComponent(playerId)}`);
+    }
+
+    public static claimTask(playerId: string, taskId: string, request: TaskClaimRequest): Promise<ApiEnvelope<TaskClaimResponse>> {
+        return this.post(`/api/tasks/${encodeURIComponent(taskId)}/claim?playerId=${encodeURIComponent(playerId)}`, request);
     }
 
     public static getMail(playerId: string): Promise<ApiEnvelope<MailDto[]>> {

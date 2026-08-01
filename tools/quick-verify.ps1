@@ -169,6 +169,10 @@ Invoke-Step "Authoritative inventory contract check" {
     node .\tools\check-authoritative-inventory-contract.js
 }
 
+Invoke-Step "Authoritative tasks contract check" {
+    node .\tools\check-authoritative-tasks-contract.js
+}
+
 Invoke-Step "Friend sync contract check" {
     node .\tools\check-friend-sync-contract.js
 }

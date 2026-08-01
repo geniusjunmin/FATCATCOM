@@ -15,6 +15,7 @@ public sealed class FatCatGameService(
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> ResearchUnlockGates = new();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> PlayerProgressionGates = new();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> InventoryMutationGates = new();
+    private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> TaskClaimGates = new();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> CatSkinUnlockGates = new();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> FactoryAppearanceGates = new();
     private static readonly HashSet<string> CatSkinIds = ["default", "apron", "manager", "festival"];
@@ -72,6 +73,34 @@ public sealed class FatCatGameService(
             200,
             800,
             [new InventoryRewardDto("item_coin_pack_small", 1)]),
+    ];
+    private const int TaskCatalogVersion = 1;
+    private static readonly TaskDefinition[] TaskCatalog =
+    [
+        new(
+            "task_main_1",
+            "\u516c\u53f8\u5f00\u4e1a",
+            "\u7d2f\u8ba1\u83b7\u5f97 10,000 \u91d1\u5e01",
+            "main",
+            "total_coin",
+            10_000,
+            5_000,
+            0,
+            50,
+            250,
+            [new InventoryRewardDto("item_coin_pack_small", 1)]),
+        new(
+            "task_daily_1",
+            "\u52e4\u594b\u7ecf\u8425",
+            "\u4eca\u65e5\u7d2f\u8ba1\u83b7\u5f97 10,000 \u91d1\u5e01",
+            "daily",
+            "daily_coin",
+            10_000,
+            0,
+            10,
+            0,
+            150,
+            [new InventoryRewardDto("item_cat_food_pack", 1)]),
     ];
     private const double InitialCoin = 12_450_000;
     private const double InitialBean = 8_240;
@@ -168,6 +197,8 @@ public sealed class FatCatGameService(
             await EnsureDefaultBuildingStatesAsync(existing.Id, cancellationToken);
             await EnsureDefaultDecorStatesAsync(existing.Id, cancellationToken);
             await EnsureInviteCodeAsync(existing.Id, cancellationToken);
+            await EnsureInventoryItemsAsync(existing.Id, cancellationToken);
+            await EnsureTaskStatesAsync(existing.Id, DateTimeOffset.UtcNow, cancellationToken);
             NormalizePlayerProgression(existing);
             existing.UpdatedAt = DateTimeOffset.UtcNow;
             await repository.SaveChangesAsync(cancellationToken);
@@ -187,6 +218,8 @@ public sealed class FatCatGameService(
         await EnsureDefaultBuildingStatesAsync(player.Id, cancellationToken);
         await EnsureDefaultDecorStatesAsync(player.Id, cancellationToken);
         await EnsureInviteCodeAsync(player.Id, cancellationToken);
+        await EnsureInventoryItemsAsync(player.Id, cancellationToken);
+        await EnsureTaskStatesAsync(player.Id, DateTimeOffset.UtcNow, cancellationToken);
         return new AuthGuestResponse(player.Id, "", true);
     }
 
@@ -224,7 +257,7 @@ public sealed class FatCatGameService(
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "friend-coop-tiers", "daily-order", "achievements", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "player-progression", "level-up-rewards", "resource-state", "resource-snapshot", "shop-state", "authoritative-inventory", "inventory-use", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "cat-skin-equip", "cat-skin-unlock", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "friend-coop-tiers", "daily-order", "achievements", "authoritative-tasks", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "player-progression", "level-up-rewards", "resource-state", "resource-snapshot", "shop-state", "authoritative-inventory", "inventory-use", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "cat-skin-equip", "cat-skin-unlock", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -369,6 +402,202 @@ public sealed class FatCatGameService(
         return AchievementCatalog
             .Select(definition => ToAchievementDto(definition, progress.GetValueOrDefault(definition.GoalType), claimedIds.Contains(definition.Id)))
             .ToArray();
+    }
+
+    public async Task<IReadOnlyList<TaskDto>?> GetTasksAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var states = await EnsureTaskStatesAsync(playerId, now, cancellationToken);
+        return TaskCatalog
+            .Select(definition => ToTaskDto(
+                definition,
+                states.Single(state => state.TaskKey == definition.Id),
+                now))
+            .ToArray();
+    }
+
+    public async Task<TaskClaimResponse?> ClaimTaskAsync(
+        Guid playerId,
+        string taskId,
+        TaskClaimRequest request,
+        CancellationToken cancellationToken)
+    {
+        var definition = TaskCatalog.FirstOrDefault(item => item.Id == taskId?.Trim());
+        if (definition is null)
+        {
+            return null;
+        }
+
+        var requestId = NormalizeInventoryRequestId(request.ClientRequestId, "task");
+        var progressionGate = PlayerProgressionGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        var inventoryGate = InventoryMutationGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        var taskGate = TaskClaimGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        await progressionGate.WaitAsync(cancellationToken);
+        await inventoryGate.WaitAsync(cancellationToken);
+        await taskGate.WaitAsync(cancellationToken);
+        try
+        {
+            var replay = await repository.GetTaskClaimByRequestAsync(playerId, requestId, cancellationToken);
+            if (replay is not null)
+            {
+                return replay.TaskKey == definition.Id
+                    ? ToTaskClaimResponse(definition, replay, true)
+                    : null;
+            }
+
+            var player = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
+            if (player is null)
+            {
+                return null;
+            }
+            NormalizePlayerProgression(player);
+
+            var now = DateTimeOffset.UtcNow;
+            var states = await EnsureTaskStatesAsync(playerId, now, cancellationToken);
+            var state = states.Single(item => item.TaskKey == definition.Id);
+            var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
+            var inventory = await EnsureInventoryItemsAsync(playerId, cancellationToken);
+            if (state.IsClaimed)
+            {
+                return new TaskClaimResponse(
+                    requestId,
+                    false,
+                    false,
+                    ToTaskDto(definition, state, now),
+                    resources.Coin,
+                    resources.Bean,
+                    resources.CatFood,
+                    resources.Diamond,
+                    resources.ResearchPoint,
+                    [],
+                    "already_claimed",
+                    PlayerProgression: ToPlayerProgressionDto(player));
+            }
+            if (state.Progress < definition.Target)
+            {
+                return new TaskClaimResponse(
+                    requestId,
+                    false,
+                    false,
+                    ToTaskDto(definition, state, now),
+                    resources.Coin,
+                    resources.Bean,
+                    resources.CatFood,
+                    resources.Diamond,
+                    resources.ResearchPoint,
+                    [],
+                    "task_not_complete",
+                    PlayerProgression: ToPlayerProgressionDto(player));
+            }
+
+            var existingClaim = await repository.GetTaskClaimAsync(playerId, definition.Id, state.CycleDate, cancellationToken);
+            if (existingClaim is not null)
+            {
+                state.IsClaimed = true;
+                state.UpdatedAt = now;
+                await repository.SaveChangesAsync(cancellationToken);
+                return new TaskClaimResponse(
+                    requestId,
+                    false,
+                    false,
+                    ToTaskDto(definition, state, now),
+                    resources.Coin,
+                    resources.Bean,
+                    resources.CatFood,
+                    resources.Diamond,
+                    resources.ResearchPoint,
+                    [],
+                    "already_claimed",
+                    PlayerProgression: ToPlayerProgressionDto(player));
+            }
+
+            var experienceSettlement = ApplyExperienceSettlement(player, definition.RewardExperience);
+            resources.Coin += definition.RewardCoin + experienceSettlement.LevelUpReward.Coin;
+            resources.Diamond += definition.RewardDiamond + experienceSettlement.LevelUpReward.Diamond;
+            resources.ResearchPoint += definition.RewardResearchPoint + experienceSettlement.LevelUpReward.ResearchPoint;
+            resources.UpdatedAt = now;
+            player.UpdatedAt = now;
+            state.IsClaimed = true;
+            state.UpdatedAt = now;
+
+            var rewardItems = new List<InventoryItemDto>();
+            foreach (var rewardItem in definition.RewardItems)
+            {
+                var item = inventory.Single(entry => entry.ItemKey == rewardItem.ItemId);
+                item.Quantity = checked(item.Quantity + rewardItem.Count);
+                item.UpdatedAt = now;
+                var snapshot = ToInventoryDto(ItemCatalogById[rewardItem.ItemId], item.Quantity);
+                rewardItems.Add(snapshot);
+                await repository.AddInventoryTransactionAsync(new PlayerInventoryTransaction
+                {
+                    PlayerId = playerId,
+                    ClientRequestId = $"{requestId}:item:{rewardItem.ItemId}",
+                    SourceType = "task_claim",
+                    SourceKey = definition.Id,
+                    ItemKey = rewardItem.ItemId,
+                    QuantityDelta = rewardItem.Count,
+                    QuantityAfter = item.Quantity,
+                    CoinBalance = resources.Coin,
+                    BeanBalance = resources.Bean,
+                    CatFoodBalance = resources.CatFood,
+                    DiamondBalance = resources.Diamond,
+                    ResearchPointBalance = resources.ResearchPoint,
+                    CreatedAt = now,
+                }, cancellationToken);
+            }
+
+            await AddResourceTransactionAsync(
+                playerId,
+                "task_claim",
+                definition.Id,
+                requestId,
+                definition.RewardCoin + experienceSettlement.LevelUpReward.Coin,
+                0,
+                0,
+                definition.RewardDiamond + experienceSettlement.LevelUpReward.Diamond,
+                definition.RewardResearchPoint + experienceSettlement.LevelUpReward.ResearchPoint,
+                resources,
+                cancellationToken,
+                definition.RewardExperience,
+                experienceSettlement.Progression);
+            var claim = new PlayerTaskClaim
+            {
+                PlayerId = playerId,
+                ClientRequestId = requestId,
+                TaskKey = definition.Id,
+                CycleDate = state.CycleDate,
+                CoinBalance = resources.Coin,
+                BeanBalance = resources.Bean,
+                CatFoodBalance = resources.CatFood,
+                DiamondBalance = resources.Diamond,
+                ResearchPointBalance = resources.ResearchPoint,
+                ExperienceDelta = definition.RewardExperience,
+                PlayerLevelAfter = experienceSettlement.Progression.Level,
+                PlayerExpAfter = experienceSettlement.Progression.Experience,
+                PlayerExpToNextAfter = experienceSettlement.Progression.ExperienceToNext,
+                LevelRewardFrom = experienceSettlement.LevelUpReward.FromLevel,
+                LevelRewardTo = experienceSettlement.LevelUpReward.ToLevel,
+                LevelRewardCoin = experienceSettlement.LevelUpReward.Coin,
+                LevelRewardDiamond = experienceSettlement.LevelUpReward.Diamond,
+                LevelRewardResearchPoint = experienceSettlement.LevelUpReward.ResearchPoint,
+                InventoryItemsJson = JsonSerializer.Serialize(rewardItems),
+                CreatedAt = now,
+            };
+            await repository.AddTaskClaimAsync(claim, cancellationToken);
+            await repository.SaveChangesAsync(cancellationToken);
+            return ToTaskClaimResponse(definition, claim, false);
+        }
+        finally
+        {
+            taskGate.Release();
+            inventoryGate.Release();
+            progressionGate.Release();
+        }
     }
 
     public async Task<AchievementClaimResponse?> ClaimAchievementAsync(
@@ -3548,6 +3777,139 @@ public sealed class FatCatGameService(
         return inventory;
     }
 
+    private async Task<List<PlayerTaskState>> EnsureTaskStatesAsync(
+        Guid playerId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var states = await repository.GetTaskStatesAsync(playerId, cancellationToken);
+        var byKey = states.ToDictionary(state => state.TaskKey, StringComparer.Ordinal);
+        var totalCoin = await repository.GetPositiveCoinEarnedAsync(playerId, null, cancellationToken);
+        var dailyCoin = await repository.GetPositiveCoinEarnedAsync(playerId, now.Date, cancellationToken);
+        var today = ToUtcDate(now);
+        var changed = false;
+        foreach (var definition in TaskCatalog)
+        {
+            var cycleDate = definition.Type == "daily" ? today : 0;
+            if (!byKey.TryGetValue(definition.Id, out var state))
+            {
+                state = new PlayerTaskState
+                {
+                    PlayerId = playerId,
+                    TaskKey = definition.Id,
+                    CatalogVersion = TaskCatalogVersion,
+                    CycleDate = cycleDate,
+                    UpdatedAt = now,
+                };
+                states.Add(state);
+                byKey.Add(definition.Id, state);
+                await repository.AddTaskStateAsync(state, cancellationToken);
+                changed = true;
+            }
+            else if (state.CycleDate != cycleDate)
+            {
+                state.CycleDate = cycleDate;
+                state.Progress = 0;
+                state.IsClaimed = false;
+                state.UpdatedAt = now;
+                changed = true;
+            }
+
+            var earned = definition.GoalType == "daily_coin" ? dailyCoin : totalCoin;
+            var progress = (int)Math.Clamp(Math.Floor(earned), 0, definition.Target);
+            if (state.Progress != progress || state.CatalogVersion != TaskCatalogVersion)
+            {
+                state.Progress = progress;
+                state.CatalogVersion = TaskCatalogVersion;
+                state.UpdatedAt = now;
+                changed = true;
+            }
+
+            if (!state.IsClaimed &&
+                await repository.GetTaskClaimAsync(playerId, definition.Id, state.CycleDate, cancellationToken) is not null)
+            {
+                state.IsClaimed = true;
+                state.UpdatedAt = now;
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            await repository.SaveChangesAsync(cancellationToken);
+        }
+        return states;
+    }
+
+    private static TaskDto ToTaskDto(TaskDefinition definition, PlayerTaskState state, DateTimeOffset now)
+    {
+        var progress = Math.Clamp(state.Progress, 0, definition.Target);
+        return new TaskDto(
+            definition.Id,
+            definition.Name,
+            definition.Description,
+            definition.Type,
+            definition.GoalType,
+            progress,
+            definition.Target,
+            progress >= definition.Target && !state.IsClaimed,
+            state.IsClaimed,
+            state.CatalogVersion,
+            state.CycleDate,
+            definition.RewardCoin,
+            definition.RewardDiamond,
+            definition.RewardResearchPoint,
+            definition.RewardExperience,
+            definition.RewardItems,
+            state.UpdatedAt.ToUnixTimeMilliseconds(),
+            now.ToUnixTimeMilliseconds());
+    }
+
+    private static TaskClaimResponse ToTaskClaimResponse(
+        TaskDefinition definition,
+        PlayerTaskClaim claim,
+        bool replayed)
+    {
+        var progression = new PlayerProgressionDto(
+            claim.PlayerLevelAfter,
+            claim.PlayerExpAfter,
+            claim.PlayerExpToNextAfter,
+            PlayerProgressionRules.LevelCap);
+        var levelReward = claim.LevelRewardTo > claim.LevelRewardFrom
+            ? new LevelUpRewardDto(
+                claim.LevelRewardFrom,
+                claim.LevelRewardTo,
+                claim.LevelRewardTo - claim.LevelRewardFrom,
+                claim.LevelRewardCoin,
+                claim.LevelRewardDiamond,
+                claim.LevelRewardResearchPoint)
+            : null;
+        var rewardItems = JsonSerializer.Deserialize<InventoryItemDto[]>(claim.InventoryItemsJson) ?? [];
+        var state = new PlayerTaskState
+        {
+            TaskKey = definition.Id,
+            CatalogVersion = TaskCatalogVersion,
+            CycleDate = claim.CycleDate,
+            Progress = definition.Target,
+            IsClaimed = true,
+            UpdatedAt = claim.CreatedAt,
+        };
+        return new TaskClaimResponse(
+            claim.ClientRequestId,
+            replayed,
+            true,
+            ToTaskDto(definition, state, claim.CreatedAt),
+            claim.CoinBalance,
+            claim.BeanBalance,
+            claim.CatFoodBalance,
+            claim.DiamondBalance,
+            claim.ResearchPointBalance,
+            rewardItems,
+            ExperienceGained: claim.ExperienceDelta,
+            PlayerProgression: progression,
+            LevelUpReward: levelReward);
+    }
+
     private async Task<bool> EnsureAchievementInventoryRewardsAsync(
         Guid playerId,
         AchievementDefinition definition,
@@ -4706,6 +5068,18 @@ public sealed class FatCatGameService(
         string Id,
         string Name,
         string Description,
+        string GoalType,
+        int Target,
+        int RewardCoin,
+        int RewardDiamond,
+        int RewardResearchPoint,
+        int RewardExperience,
+        IReadOnlyList<InventoryRewardDto> RewardItems);
+    private sealed record TaskDefinition(
+        string Id,
+        string Name,
+        string Description,
+        string Type,
         string GoalType,
         int Target,
         int RewardCoin,

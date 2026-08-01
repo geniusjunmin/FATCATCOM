@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { AchievementClaimResponse, AchievementDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatSkinCatalogItemDto, CatSkinEquipResponse, CatSkinUnlockResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, InventoryItemDto, InventoryUseResponse, LaunchResponse, LeaderboardDto, MailDto, PlayerDto, PlayerPresenceDto, PlayerProgressionDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, ServerStatusDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { AchievementClaimResponse, AchievementDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatSkinCatalogItemDto, CatSkinEquipResponse, CatSkinUnlockResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, InventoryItemDto, InventoryUseResponse, LaunchResponse, LeaderboardDto, MailDto, PlayerDto, PlayerPresenceDto, PlayerProgressionDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, ServerStatusDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto, TaskClaimResponse, TaskDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -40,6 +40,7 @@ export class SyncManager {
     private static _serverStatusCheckedAt = 0;
     private static _serverPlayer: PlayerDto | null = null;
     private static _serverAchievements: AchievementDto[] = [];
+    private static _serverTasks: TaskDto[] = [];
     private static _socialEventSource: EventSource | null = null;
     private static _socialEventPlayerId = "";
 
@@ -73,6 +74,10 @@ export class SyncManager {
         return this._serverAchievements.map(achievement => ({ ...achievement }));
     }
 
+    public static getServerTasks(): TaskDto[] {
+        return this._serverTasks.map(task => ({ ...task, rewardItems: task.rewardItems.map(item => ({ ...item })) }));
+    }
+
     public static getFeatureStateDto(): FeatureSaveData {
         const featureState = SaveManager.isInitialized() ? SaveManager.data.featureState : undefined;
         return {
@@ -102,6 +107,7 @@ export class SyncManager {
         if (this._serverPlayer?.id !== response.data.playerId) {
             this._serverPlayer = null;
             this._serverAchievements = [];
+            this._serverTasks = [];
         }
         NetworkManager.markReady();
         this._snapshot.mode = "ready";
@@ -125,6 +131,7 @@ export class SyncManager {
         void this.fetchServerFriendCoopGoal();
         void this.fetchServerDailyOrder();
         void this.fetchServerAchievements();
+        void this.fetchServerTasks();
         this.startSocialEventStream();
         return true;
     }
@@ -261,6 +268,7 @@ export class SyncManager {
         await this.fetchServerLeaderboard();
         await this.fetchServerDailyOrder();
         await this.fetchServerAchievements();
+        await this.fetchServerTasks();
         this.refreshPendingFeatureChanges();
         this.emitSyncChanged();
         return true;
@@ -383,6 +391,61 @@ export class SyncManager {
         return response.data;
     }
 
+    public static async fetchServerTasks(): Promise<TaskDto[]> {
+        if (!this.canCallServer()) return [];
+        const response = await ApiClient.getTasks(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "tasks_fetch_failed");
+            return [];
+        }
+        this._serverTasks = response.data.map(task => ({
+            ...task,
+            rewardItems: task.rewardItems.map(item => ({ ...item })),
+        }));
+        EventBus.emit(GameEvents.TASKS_CHANGED, this.getServerTasks());
+        this.markReadyAfterServerCall();
+        return this.getServerTasks();
+    }
+
+    public static async claimServerTask(taskId: string): Promise<TaskClaimResponse | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.claimTask(NetworkManager.playerId, taskId, {
+            clientRequestId: this.createInventoryRequestId("task"),
+        });
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "task_claim_failed");
+            return null;
+        }
+        const updated = response.data.task;
+        const existingIndex = this._serverTasks.findIndex(task => task.id === updated.id);
+        if (existingIndex >= 0) {
+            this._serverTasks[existingIndex] = { ...updated, rewardItems: updated.rewardItems.map(item => ({ ...item })) };
+        } else {
+            this._serverTasks.push({ ...updated, rewardItems: updated.rewardItems.map(item => ({ ...item })) });
+        }
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, `server_task_${taskId}`);
+        for (const item of response.data.inventoryItems) {
+            InventoryManager.applyServerItem(item);
+        }
+        this.applyProgressionResponse(response.data.playerProgression);
+        EventBus.emit(GameEvents.TASKS_CHANGED, this.getServerTasks());
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
     public static async fetchServerCats(): Promise<CatStateDto[]> {
         if (!this.canCallServer()) return [];
         const response = await ApiClient.getCats(NetworkManager.playerId);
@@ -500,6 +563,7 @@ export class SyncManager {
             diamond: response.data.diamondBalance,
             researchPoint: response.data.researchPointBalance,
         }, `server_mail_${mailId}`);
+        void this.fetchServerTasks();
         this.markReadyAfterServerCall();
         return response.data;
     }
@@ -545,6 +609,7 @@ export class SyncManager {
             researchPoint: response.data.researchPointBalance,
         }, `server_inventory_use_${itemId}`);
         InventoryManager.applyServerItem(response.data.item);
+        void this.fetchServerTasks();
         this.markReadyAfterServerCall();
         return response.data;
     }
@@ -1307,6 +1372,7 @@ export class SyncManager {
             return response.data ?? null;
         }
         this.applyProgressionResponse(response.data.playerProgression);
+        void this.fetchServerTasks();
         this.markReadyAfterServerCall();
         return response.data;
     }
@@ -1393,7 +1459,7 @@ export class SyncManager {
         return true;
     }
 
-    private static createInventoryRequestId(action: "shop" | "use"): string {
+    private static createInventoryRequestId(action: "shop" | "use" | "task"): string {
         const random = Math.random().toString(36).slice(2, 10);
         return `${action}_${Date.now()}_${random}`;
     }

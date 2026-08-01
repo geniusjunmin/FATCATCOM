@@ -618,6 +618,59 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         await dbContext.InventoryTransactions.AddAsync(transaction, cancellationToken);
     }
 
+    public Task<List<PlayerTaskState>> GetTaskStatesAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        return dbContext.TaskStates
+            .Where(state => state.PlayerId == playerId)
+            .OrderBy(state => state.TaskKey)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task AddTaskStateAsync(PlayerTaskState state, CancellationToken cancellationToken)
+    {
+        await dbContext.TaskStates.AddAsync(state, cancellationToken);
+    }
+
+    public Task<PlayerTaskClaim?> GetTaskClaimByRequestAsync(
+        Guid playerId,
+        string clientRequestId,
+        CancellationToken cancellationToken)
+    {
+        return dbContext.TaskClaims.FirstOrDefaultAsync(
+            claim => claim.PlayerId == playerId && claim.ClientRequestId == clientRequestId,
+            cancellationToken);
+    }
+
+    public Task<PlayerTaskClaim?> GetTaskClaimAsync(
+        Guid playerId,
+        string taskKey,
+        int cycleDate,
+        CancellationToken cancellationToken)
+    {
+        return dbContext.TaskClaims.FirstOrDefaultAsync(
+            claim => claim.PlayerId == playerId && claim.TaskKey == taskKey && claim.CycleDate == cycleDate,
+            cancellationToken);
+    }
+
+    public async Task AddTaskClaimAsync(PlayerTaskClaim claim, CancellationToken cancellationToken)
+    {
+        await dbContext.TaskClaims.AddAsync(claim, cancellationToken);
+    }
+
+    public async Task<double> GetPositiveCoinEarnedAsync(
+        Guid playerId,
+        DateTimeOffset? from,
+        CancellationToken cancellationToken)
+    {
+        var transactions = await dbContext.ResourceTransactions
+            .Where(transaction => transaction.PlayerId == playerId && transaction.CoinDelta > 0)
+            .Select(transaction => new { transaction.CoinDelta, transaction.CreatedAt })
+            .ToListAsync(cancellationToken);
+        return transactions
+            .Where(transaction => from is null || transaction.CreatedAt >= from.Value)
+            .Sum(transaction => transaction.CoinDelta);
+    }
+
     public Task<PlayerCatState?> GetCatStateAsync(Guid playerId, string catKey, CancellationToken cancellationToken)
     {
         return dbContext.CatStates

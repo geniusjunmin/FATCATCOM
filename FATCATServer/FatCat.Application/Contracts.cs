@@ -683,6 +683,44 @@ public sealed record AchievementClaimResponse(
     PlayerProgressionDto? PlayerProgression = null,
     LevelUpRewardDto? LevelUpReward = null);
 
+public sealed record TaskDto(
+    string Id,
+    string Name,
+    string Description,
+    string Type,
+    string GoalType,
+    int Progress,
+    int Target,
+    bool Claimable,
+    bool Claimed,
+    int CatalogVersion,
+    int CycleDate,
+    int RewardCoin,
+    int RewardDiamond,
+    int RewardResearchPoint,
+    int RewardExperience,
+    IReadOnlyList<InventoryRewardDto> RewardItems,
+    long UpdatedAt,
+    long ServerTime);
+
+public sealed record TaskClaimRequest(string ClientRequestId = "");
+
+public sealed record TaskClaimResponse(
+    string ClientRequestId,
+    bool Replayed,
+    bool Claimed,
+    TaskDto Task,
+    double CoinBalance,
+    double BeanBalance,
+    double CatFoodBalance,
+    double DiamondBalance,
+    double ResearchPointBalance,
+    IReadOnlyList<InventoryItemDto> InventoryItems,
+    string? LimitedReason = null,
+    int ExperienceGained = 0,
+    PlayerProgressionDto? PlayerProgression = null,
+    LevelUpRewardDto? LevelUpReward = null);
+
 public sealed record LaunchRequest(
     string? ClientRequestId,
     int LaunchSeconds,

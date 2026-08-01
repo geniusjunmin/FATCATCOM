@@ -18,7 +18,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
-| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Persist the main/daily task catalog and settle unified currency, item, and experience rewards idempotently. |
+| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Expand task goal projections, main-chain unlocks, and daily rotation on the new authoritative claim foundation. |
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main, cat five-tab flow, core features, and appearance now have guarded four-size target hierarchy; preserve it while server work advances. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
@@ -66,13 +66,21 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - Connected client inventory snapshots, mutation refresh, UI authority markers, online use feedback, and offline fallback.
 - Added migration, service, API, concurrency, static, online purchase-use-reload, click, and four-size screenshot coverage; 124/124 tests pass.
 
-### Next: Authoritative Task Catalog And Claims
+### Completed: Authoritative Task Catalog And Claims
 
-- Persist main/daily task progress and claim state, including UTC daily reset/version semantics and old-save-safe initialization.
-- Compute task goals from authoritative server state and ledgers rather than accepting client progress counters.
-- Settle one unified reward bundle containing currencies, inventory items, and experience behind request-keyed idempotent claims.
-- Feed server task snapshots into `SyncManager` and the existing task panel with authority markers, immediate refresh, and offline fallback.
-- Add migration, service, API, concurrency, replay, online claim/reload, and four-size task-panel regression coverage.
+- Persisted versioned main/daily task state and request-keyed claims with UTC reset and old-database-safe initialization.
+- Derived cumulative and daily income only from positive server resource-ledger entries; client counters are never accepted.
+- Settled currencies, inventory items, experience, and level-up rewards in one replay-safe claim transaction.
+- Connected authenticated task snapshots and claims through `ApiClient`, `SyncManager`, task events, authority markers, immediate refresh, and offline fallback.
+- Added migration, service, API, concurrency, replay, online claim/reload, progress-overflow, click, Cocos-log, and four-size coverage; full quick verify and 127/127 tests pass.
+
+### Next: Expand Authoritative Task Goal Coverage
+
+- Add server-owned projections for cat upgrades, building upgrades, research unlocks, item use, and accepted production launches.
+- Introduce explicit main-task prerequisites and unlock sequencing without trusting client completion order.
+- Add versioned daily catalog rotation with deterministic UTC selection and migration behavior.
+- Group main/daily task presentation, timers, and reward previews while preserving the target-style task board and compact breakpoints.
+- Add economy simulations plus service, API, concurrency, online, and four-size regression for every new goal type.
 
 ### Completed: Cat Secondary Tab Hierarchy
 

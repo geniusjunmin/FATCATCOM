@@ -126,6 +126,48 @@ export type AchievementClaimResponse = {
     levelUpReward?: LevelUpRewardDto;
 };
 
+export type TaskDto = {
+    id: string;
+    name: string;
+    description: string;
+    type: "main" | "daily";
+    goalType: string;
+    progress: number;
+    target: number;
+    claimable: boolean;
+    claimed: boolean;
+    catalogVersion: number;
+    cycleDate: number;
+    rewardCoin: number;
+    rewardDiamond: number;
+    rewardResearchPoint: number;
+    rewardExperience: number;
+    rewardItems: InventoryRewardDto[];
+    updatedAt: number;
+    serverTime: number;
+};
+
+export type TaskClaimRequest = {
+    clientRequestId: string;
+};
+
+export type TaskClaimResponse = {
+    clientRequestId: string;
+    replayed: boolean;
+    claimed: boolean;
+    task: TaskDto;
+    coinBalance: number;
+    beanBalance: number;
+    catFoodBalance: number;
+    diamondBalance: number;
+    researchPointBalance: number;
+    inventoryItems: InventoryItemDto[];
+    limitedReason?: string | null;
+    experienceGained: number;
+    playerProgression?: PlayerProgressionDto;
+    levelUpReward?: LevelUpRewardDto;
+};
+
 export type MailDto = {
     id: string;
     title: string;

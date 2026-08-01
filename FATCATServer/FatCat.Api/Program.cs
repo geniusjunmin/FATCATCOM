@@ -93,6 +93,7 @@ app.MapGet("/api/server/status", (IHostEnvironment environment) => Results.Ok(Ap
         "leaderboard",
         "social-events",
         "authoritative-inventory",
+        "authoritative-tasks",
     },
 })));
 
@@ -294,6 +295,30 @@ app.MapPost("/api/achievements/{achievementId}/claim", async (
     return result is null
         ? Results.NotFound(ApiEnvelope<AchievementClaimResponse>.Fail("achievement_not_found"))
         : Results.Ok(ApiEnvelope<AchievementClaimResponse>.Success(result));
+});
+
+app.MapGet("/api/tasks", async (
+    Guid playerId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var tasks = await service.GetTasksAsync(playerId, cancellationToken);
+    return tasks is null
+        ? Results.NotFound(ApiEnvelope<IReadOnlyList<TaskDto>>.Fail("player_not_found"))
+        : Results.Ok(ApiEnvelope<IReadOnlyList<TaskDto>>.Success(tasks));
+});
+
+app.MapPost("/api/tasks/{taskId}/claim", async (
+    Guid playerId,
+    string taskId,
+    TaskClaimRequest request,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.ClaimTaskAsync(playerId, taskId, request, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<TaskClaimResponse>.Fail("task_not_found"))
+        : Results.Ok(ApiEnvelope<TaskClaimResponse>.Success(result));
 });
 
 app.MapGet("/api/save", async (

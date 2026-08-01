@@ -56,6 +56,12 @@ public interface IFatCatRepository
     Task AddInventoryItemAsync(PlayerInventoryItem item, CancellationToken cancellationToken);
     Task<PlayerInventoryTransaction?> GetInventoryTransactionAsync(Guid playerId, string clientRequestId, CancellationToken cancellationToken);
     Task AddInventoryTransactionAsync(PlayerInventoryTransaction transaction, CancellationToken cancellationToken);
+    Task<List<PlayerTaskState>> GetTaskStatesAsync(Guid playerId, CancellationToken cancellationToken);
+    Task AddTaskStateAsync(PlayerTaskState state, CancellationToken cancellationToken);
+    Task<PlayerTaskClaim?> GetTaskClaimByRequestAsync(Guid playerId, string clientRequestId, CancellationToken cancellationToken);
+    Task<PlayerTaskClaim?> GetTaskClaimAsync(Guid playerId, string taskKey, int cycleDate, CancellationToken cancellationToken);
+    Task AddTaskClaimAsync(PlayerTaskClaim claim, CancellationToken cancellationToken);
+    Task<double> GetPositiveCoinEarnedAsync(Guid playerId, DateTimeOffset? from, CancellationToken cancellationToken);
     Task<PlayerCatState?> GetCatStateAsync(Guid playerId, string catKey, CancellationToken cancellationToken);
     Task<List<PlayerCatState>> GetCatStatesAsync(Guid playerId, CancellationToken cancellationToken);
     Task AddCatStateAsync(PlayerCatState cat, CancellationToken cancellationToken);

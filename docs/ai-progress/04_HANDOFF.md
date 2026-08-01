@@ -24,6 +24,12 @@ Updated: 2026-08-01
 
 ## Latest Visual Note
 
+- Main/daily tasks are authoritative through `PlayerTaskState`, `PlayerTaskClaim`, `GET /api/tasks`, and `POST /api/tasks/{taskId}/claim`. Progress is derived from positive server resource transactions; never accept a task progress counter from the client.
+- The current catalog has `task_main_1` and UTC-daily `task_daily_1`, both targeting `10,000` earned coin. Daily cycle dates use `yyyyMMdd` in UTC. Catalog version and cycle are part of persisted state and claim uniqueness.
+- Task claims normalize request ids with a `task:` prefix, serialize behind progression/inventory/task gates, and snapshot all balances, item quantities, experience, progression, and level rewards. Same-request replay must return the stored result; another request for the same task/cycle must return `already_claimed`.
+- Online task UI reads `SyncManager.getServerTasks()`, emits `TASKS_CHANGED`, and exposes `data-task-authority`, count, claimable, progress, target, and claimed markers. Offline `TaskManager` remains a fallback, and visible progress must stay capped at the target.
+- Current evidence: static and online task checks, inventory/progression online guards, 18/18 clicks, four-size utility screenshots with no progress overflow, zero Cocos errors, full quick verify, and 127/127 server tests. Next batch should add authoritative upgrade/research/item/launch goals, main-chain prerequisites, and daily rotation.
+
 - Inventory is server-authoritative through `PlayerInventoryItem`, `PlayerInventoryTransaction`, `GET /api/inventory`, and `POST /api/inventory/{itemId}/use`. Online item counts must come from the server; local inventory remains an offline fallback only.
 - Shop purchases and inventory use normalize request ids with `shop:` and `use:` prefixes, serialize through `InventoryMutationGates`, and replay the original quantity/resource/daily-limit snapshot. Do not apply `ShopManager.fulfillServerPurchase` after an online response.
 - `task_ach_1` grants `item_coin_pack_small x1`. `EnsureAchievementInventoryRewardsAsync` uses `achievement:{achievementId}:{itemId}` to backfill legacy claims exactly once; preserve that deterministic key when reward presentation changes.

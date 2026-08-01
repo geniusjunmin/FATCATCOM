@@ -24,6 +24,8 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
     public DbSet<PlayerShopPurchaseHistory> ShopPurchaseHistories => Set<PlayerShopPurchaseHistory>();
     public DbSet<PlayerInventoryItem> InventoryItems => Set<PlayerInventoryItem>();
     public DbSet<PlayerInventoryTransaction> InventoryTransactions => Set<PlayerInventoryTransaction>();
+    public DbSet<PlayerTaskState> TaskStates => Set<PlayerTaskState>();
+    public DbSet<PlayerTaskClaim> TaskClaims => Set<PlayerTaskClaim>();
     public DbSet<PlayerCatState> CatStates => Set<PlayerCatState>();
     public DbSet<PlayerFactoryAppearanceState> FactoryAppearanceStates => Set<PlayerFactoryAppearanceState>();
     public DbSet<PlayerBuildingState> BuildingStates => Set<PlayerBuildingState>();
@@ -260,6 +262,57 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
         await Database.ExecuteSqlRawAsync("""
             CREATE UNIQUE INDEX IF NOT EXISTS "IX_InventoryItems_PlayerId_ItemKey"
             ON "InventoryItems" ("PlayerId", "ItemKey");
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "TaskStates" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_TaskStates" PRIMARY KEY,
+                "PlayerId" TEXT NOT NULL,
+                "TaskKey" TEXT NOT NULL,
+                "CatalogVersion" INTEGER NOT NULL,
+                "CycleDate" INTEGER NOT NULL,
+                "Progress" INTEGER NOT NULL,
+                "IsClaimed" INTEGER NOT NULL,
+                "UpdatedAt" TEXT NOT NULL,
+                CONSTRAINT "FK_TaskStates_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
+            );
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_TaskStates_PlayerId_TaskKey"
+            ON "TaskStates" ("PlayerId", "TaskKey");
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "TaskClaims" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_TaskClaims" PRIMARY KEY,
+                "PlayerId" TEXT NOT NULL,
+                "ClientRequestId" TEXT NOT NULL,
+                "TaskKey" TEXT NOT NULL,
+                "CycleDate" INTEGER NOT NULL,
+                "CoinBalance" REAL NOT NULL,
+                "BeanBalance" REAL NOT NULL,
+                "CatFoodBalance" REAL NOT NULL,
+                "DiamondBalance" REAL NOT NULL,
+                "ResearchPointBalance" REAL NOT NULL,
+                "ExperienceDelta" INTEGER NOT NULL,
+                "PlayerLevelAfter" INTEGER NOT NULL,
+                "PlayerExpAfter" INTEGER NOT NULL,
+                "PlayerExpToNextAfter" INTEGER NOT NULL,
+                "LevelRewardFrom" INTEGER NOT NULL,
+                "LevelRewardTo" INTEGER NOT NULL,
+                "LevelRewardCoin" INTEGER NOT NULL,
+                "LevelRewardDiamond" INTEGER NOT NULL,
+                "LevelRewardResearchPoint" INTEGER NOT NULL,
+                "InventoryItemsJson" TEXT NOT NULL,
+                "CreatedAt" TEXT NOT NULL,
+                CONSTRAINT "FK_TaskClaims_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
+            );
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_TaskClaims_PlayerId_ClientRequestId"
+            ON "TaskClaims" ("PlayerId", "ClientRequestId");
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_TaskClaims_PlayerId_TaskKey_CycleDate"
+            ON "TaskClaims" ("PlayerId", "TaskKey", "CycleDate");
             """, cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS "InventoryTransactions" (
@@ -749,6 +802,31 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.HasOne(item => item.Player)
                 .WithMany()
                 .HasForeignKey(item => item.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlayerTaskState>(entity =>
+        {
+            entity.HasKey(state => state.Id);
+            entity.HasIndex(state => new { state.PlayerId, state.TaskKey }).IsUnique();
+            entity.Property(state => state.TaskKey).HasMaxLength(120);
+            entity.HasOne(state => state.Player)
+                .WithMany()
+                .HasForeignKey(state => state.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlayerTaskClaim>(entity =>
+        {
+            entity.HasKey(claim => claim.Id);
+            entity.HasIndex(claim => new { claim.PlayerId, claim.ClientRequestId }).IsUnique();
+            entity.HasIndex(claim => new { claim.PlayerId, claim.TaskKey, claim.CycleDate }).IsUnique();
+            entity.Property(claim => claim.ClientRequestId).HasMaxLength(160);
+            entity.Property(claim => claim.TaskKey).HasMaxLength(120);
+            entity.Property(claim => claim.InventoryItemsJson).HasColumnType("TEXT");
+            entity.HasOne(claim => claim.Player)
+                .WithMany()
+                .HasForeignKey(claim => claim.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

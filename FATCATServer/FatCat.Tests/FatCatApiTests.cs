@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using FatCat.Domain;
 using FatCat.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -53,6 +54,7 @@ public sealed class FatCatApiTests
             "/api/save",
             "/api/daily-order",
             "/api/achievements",
+            "/api/tasks",
             "/api/inventory",
             "/api/factory/appearances",
         };
@@ -1022,6 +1024,65 @@ public sealed class FatCatApiTests
         var dbContext = scope.ServiceProvider.GetRequiredService<FatCatDbContext>();
         Assert.Equal(2, await dbContext.InventoryTransactions.CountAsync(item => item.PlayerId == playerId));
         Assert.Equal(2, await dbContext.ResourceTransactions.CountAsync(item => item.PlayerId == playerId));
+    }
+
+    [Fact]
+    public async Task Tasks_ConcurrentClaimIsIdempotentAcrossReload()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-task-authority-device",
+            companyName = "FatCat",
+        });
+        var playerId = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync())
+            .RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+        await using (var setupScope = factory.Services.CreateAsyncScope())
+        {
+            var setupDb = setupScope.ServiceProvider.GetRequiredService<FatCatDbContext>();
+            setupDb.ResourceTransactions.Add(new PlayerResourceTransaction
+            {
+                PlayerId = playerId,
+                SourceType = "test_income",
+                SourceKey = "api_task_progress",
+                CoinDelta = 60_000,
+                CoinBalance = 12_510_000,
+                CreatedAt = DateTimeOffset.UtcNow,
+            });
+            await setupDb.SaveChangesAsync();
+        }
+
+        var initialResponse = await client.GetAsync($"/api/tasks?playerId={playerId}");
+        var initial = JsonDocument.Parse(await initialResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var main = initial.EnumerateArray().Single(item => item.GetProperty("id").GetString() == "task_main_1");
+        var claims = await Task.WhenAll(Enumerable.Range(0, 2).Select(_ => client.PostAsJsonAsync(
+            $"/api/tasks/task_main_1/claim?playerId={playerId}",
+            new { clientRequestId = "api-task-claim-once" })));
+        var claimData = await Task.WhenAll(claims.Select(async response =>
+            JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("data").Clone()));
+        var finalResponse = await client.GetAsync($"/api/tasks?playerId={playerId}");
+        var final = JsonDocument.Parse(await finalResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var finalMain = final.EnumerateArray().Single(item => item.GetProperty("id").GetString() == "task_main_1");
+        var inventoryResponse = await client.GetAsync($"/api/inventory?playerId={playerId}");
+        var inventory = JsonDocument.Parse(await inventoryResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var coinPack = inventory.EnumerateArray().Single(item => item.GetProperty("itemId").GetString() == "item_coin_pack_small");
+
+        Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
+        Assert.True(main.GetProperty("claimable").GetBoolean());
+        Assert.All(claims, response => Assert.Equal(HttpStatusCode.OK, response.StatusCode));
+        Assert.Single(claimData, item => !item.GetProperty("replayed").GetBoolean());
+        Assert.Single(claimData, item => item.GetProperty("replayed").GetBoolean());
+        Assert.All(claimData, item => Assert.True(item.GetProperty("claimed").GetBoolean()));
+        Assert.True(finalMain.GetProperty("claimed").GetBoolean());
+        Assert.False(finalMain.GetProperty("claimable").GetBoolean());
+        Assert.Equal(6, coinPack.GetProperty("quantity").GetInt32());
+
+        await using var verifyScope = factory.Services.CreateAsyncScope();
+        var dbContext = verifyScope.ServiceProvider.GetRequiredService<FatCatDbContext>();
+        Assert.Equal(1, await dbContext.TaskClaims.CountAsync(item => item.PlayerId == playerId));
+        Assert.Equal(1, await dbContext.InventoryTransactions.CountAsync(item => item.PlayerId == playerId && item.SourceType == "task_claim"));
+        Assert.Equal(1, await dbContext.ResourceTransactions.CountAsync(item => item.PlayerId == playerId && item.SourceType == "task_claim"));
     }
 
     [Fact]
