@@ -18,7 +18,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
-| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Feed equipped appearance bonuses into production preview/settlement with explicit modifier evidence. |
+| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Add authoritative player experience/level progression and connect it to existing unlock gates. |
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main, cat five-tab flow, core features, and appearance now have guarded four-size target hierarchy; preserve it while server work advances. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
@@ -34,12 +34,21 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - Updated the existing target-aligned appearance page to render owned, unlockable, level-locked, and active states without changing its five-zone hierarchy.
 - Added service/API/migration/static/online browser coverage; refreshed Cocos and passed four-size screenshots, zero editor errors, full quick verify, and 106/106 tests.
 
-### Next: Authoritative Appearance Bonuses
+### Completed: Authoritative Appearance Bonuses
 
-- Define server-owned modifier values for all four appearance ids and keep them aligned with the UI labels.
-- Include the equipped appearance in production preview and launch settlement calculations without trusting client-supplied percentages.
-- Return modifier-source evidence so the client can explain active bonuses and tests can detect drift.
-- Add idempotent settlement and cross-player isolation coverage, then extend the online appearance test to a level-eligible account fixture.
+- Defined server-owned bonus catalogs for all four appearance ids and exposed the same bonus DTOs to the client.
+- Applied gross-production, wage-reduction, and bean-cost modifiers in authoritative previews and launch settlements without accepting client percentages.
+- Added explicit modifier-source evidence to preview/launch responses and displayed the active appearance in online settlement feedback.
+- Snapshotted the equipped appearance and modifier sources in launch records so idempotent replay remains stable after an appearance switch.
+- Added old-SQLite column migration, service/API coverage, static and online browser contracts, four-size screenshots, clean editor logs, full quick verify, and 107/107 tests.
+
+### Next: Authoritative Player Level And Experience
+
+- Define one server-owned experience curve and level cap; expose current level, experience, current threshold, and next threshold in player snapshots.
+- Award experience from accepted non-replayed launches first, preserving launch idempotency and daily quota behavior.
+- Persist experience with old-SQLite-safe migration and make level calculation deterministic rather than trusting a client-submitted level.
+- Refresh the client HUD and appearance page from the authoritative progression DTO so level 30/45/60 unlock states update immediately.
+- Add concurrent launch, replay, boundary-level, migration, API, online UI, and four-size regression coverage before expanding experience sources to orders or achievements.
 
 ### Completed: Cat Secondary Tab Hierarchy
 

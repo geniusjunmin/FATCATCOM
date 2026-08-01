@@ -178,6 +178,13 @@ public sealed record CatSkinUnlockResponse(
     double ResearchPointBalance,
     long ServerTime);
 
+public sealed record FactoryAppearanceBonusDto(
+    string Key,
+    string Icon,
+    string Label,
+    int ValuePercent,
+    bool ProductionEffective);
+
 public sealed record FactoryAppearanceCatalogItemDto(
     string AppearanceId,
     string Name,
@@ -185,7 +192,8 @@ public sealed record FactoryAppearanceCatalogItemDto(
     int RequiredFactoryLevel,
     bool Owned,
     bool CanUnlock,
-    bool Equipped);
+    bool Equipped,
+    IReadOnlyList<FactoryAppearanceBonusDto> Bonuses);
 
 public sealed record FactoryAppearanceStateDto(
     string EquippedAppearanceId,
@@ -547,12 +555,21 @@ public sealed record ProductionPreviewRequest(
     IReadOnlyList<ProductionBuildingPreviewDto>? Buildings = null,
     bool IncludesClientModifiers = true);
 
+public sealed record ProductionModifierSourceDto(
+    string SourceType,
+    string SourceId,
+    string Name,
+    int GrossCoinPercent,
+    int WageCostPercent,
+    int BeanCostReducePercent);
+
 public sealed record ProductionPreviewResponse(
     double GrossCoinPerSecond,
     double WageCostPerSecond,
     double NetCoinPerSecond,
     double BeanCostPerSecond,
-    IReadOnlyList<ProductionBuildingPreviewDto> Buildings);
+    IReadOnlyList<ProductionBuildingPreviewDto> Buildings,
+    IReadOnlyList<ProductionModifierSourceDto>? ModifierSources = null);
 
 public sealed record DailyOrderDto(
     int OrderDate,
@@ -601,4 +618,6 @@ public sealed record LaunchResponse(
     double ResearchPointBalance,
     long ServerTime,
     string? RejectedReason = null,
-    DailyOrderDto? DailyOrder = null);
+    DailyOrderDto? DailyOrder = null,
+    string EquippedFactoryAppearanceId = "simple",
+    IReadOnlyList<ProductionModifierSourceDto>? ModifierSources = null);

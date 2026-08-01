@@ -1275,6 +1275,8 @@ public sealed class FatCatApiTests
         }
         var unlockResponse = await client.PostAsJsonAsync($"/api/factory/appearances/future/unlock?playerId={playerId}", new { });
         var unlocked = JsonDocument.Parse(await unlockResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var futurePreviewResponse = await client.GetAsync($"/api/production/server-preview?playerId={playerId}");
+        var futurePreview = JsonDocument.Parse(await futurePreviewResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
         var equipResponse = await client.PostAsJsonAsync($"/api/factory/appearances/simple/equip?playerId={playerId}", new { });
         var refreshedResponse = await client.GetAsync($"/api/factory/appearances?playerId={playerId}");
         var refreshed = JsonDocument.Parse(await refreshedResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
@@ -1282,10 +1284,18 @@ public sealed class FatCatApiTests
         Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
         Assert.Equal("simple", initial.GetProperty("equippedAppearanceId").GetString());
         Assert.Equal(["simple"], initial.GetProperty("ownedAppearanceIds").EnumerateArray().Select(item => item.GetString()));
+        var simpleCatalog = initial.GetProperty("catalog").EnumerateArray()
+            .Single(item => item.GetProperty("appearanceId").GetString() == "simple");
+        Assert.Equal(4, simpleCatalog.GetProperty("bonuses").GetArrayLength());
+        Assert.Equal(3, simpleCatalog.GetProperty("bonuses").EnumerateArray().Count(item => item.GetProperty("productionEffective").GetBoolean()));
         Assert.Equal(HttpStatusCode.BadRequest, lockedResponse.StatusCode);
         Assert.Equal(HttpStatusCode.OK, unlockResponse.StatusCode);
         Assert.Equal("future", unlocked.GetProperty("equippedAppearanceId").GetString());
         Assert.Contains(unlocked.GetProperty("ownedAppearanceIds").EnumerateArray(), item => item.GetString() == "future");
+        Assert.Equal(HttpStatusCode.OK, futurePreviewResponse.StatusCode);
+        var futureSource = Assert.Single(futurePreview.GetProperty("modifierSources").EnumerateArray());
+        Assert.Equal("future", futureSource.GetProperty("sourceId").GetString());
+        Assert.Equal(27, futureSource.GetProperty("grossCoinPercent").GetInt32());
         Assert.Equal(HttpStatusCode.OK, equipResponse.StatusCode);
         Assert.Equal(HttpStatusCode.OK, refreshedResponse.StatusCode);
         Assert.Equal("simple", refreshed.GetProperty("equippedAppearanceId").GetString());
@@ -1349,10 +1359,14 @@ public sealed class FatCatApiTests
             .Single(item => item.GetProperty("buildingId").GetString() == "building_cafe_1f");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(224.357364, data.GetProperty("grossCoinPerSecond").GetDouble(), 5);
-        Assert.Equal(0.016667, data.GetProperty("wageCostPerSecond").GetDouble(), 5);
+        Assert.Equal(246.7931004, data.GetProperty("grossCoinPerSecond").GetDouble(), 5);
+        Assert.Equal(0.0158333, data.GetProperty("wageCostPerSecond").GetDouble(), 5);
         Assert.Equal(4, data.GetProperty("beanCostPerSecond").GetDouble(), 5);
         Assert.Equal(data.GetProperty("netCoinPerSecond").GetDouble(), cafe.GetProperty("netCoinPerSecond").GetDouble(), 5);
+        var appearanceSource = Assert.Single(data.GetProperty("modifierSources").EnumerateArray());
+        Assert.Equal("factory_appearance", appearanceSource.GetProperty("sourceType").GetString());
+        Assert.Equal("simple", appearanceSource.GetProperty("sourceId").GetString());
+        Assert.Equal(10, appearanceSource.GetProperty("grossCoinPercent").GetInt32());
     }
 
     [Fact]
@@ -1682,16 +1696,18 @@ public sealed class FatCatApiTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(data.GetProperty("accepted").GetBoolean());
-        Assert.Equal(2243, data.GetProperty("coinGained").GetInt32());
+        Assert.Equal(2467, data.GetProperty("coinGained").GetInt32());
         Assert.Equal(40, data.GetProperty("beanSpent").GetInt32());
-        Assert.Equal(224.340697, data.GetProperty("netCoinPerSecond").GetDouble(), 5);
-        Assert.Equal(12452243, data.GetProperty("coinBalance").GetDouble());
+        Assert.Equal(246.777267, data.GetProperty("netCoinPerSecond").GetDouble(), 5);
+        Assert.Equal(12452467, data.GetProperty("coinBalance").GetDouble());
         Assert.Equal(8200, data.GetProperty("beanBalance").GetDouble());
+        Assert.Equal("simple", data.GetProperty("equippedFactoryAppearanceId").GetString());
+        Assert.Equal("simple", Assert.Single(data.GetProperty("modifierSources").EnumerateArray()).GetProperty("sourceId").GetString());
 
         var resources = await client.GetAsync($"/api/resources?playerId={playerId}");
         var resourceData = JsonDocument.Parse(await resources.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
         Assert.Equal(HttpStatusCode.OK, resources.StatusCode);
-        Assert.Equal(12452243, resourceData.GetProperty("coin").GetDouble());
+        Assert.Equal(12452467, resourceData.GetProperty("coin").GetDouble());
         Assert.Equal(8200, resourceData.GetProperty("bean").GetDouble());
     }
 
@@ -1724,10 +1740,10 @@ public sealed class FatCatApiTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(data.GetProperty("accepted").GetBoolean());
-        Assert.Equal(2243, data.GetProperty("coinGained").GetInt32());
+        Assert.Equal(2467, data.GetProperty("coinGained").GetInt32());
         Assert.Equal(40, data.GetProperty("beanSpent").GetInt32());
-        Assert.Equal(224.340697, data.GetProperty("netCoinPerSecond").GetDouble(), 5);
-        Assert.Equal(12452243, data.GetProperty("coinBalance").GetDouble());
+        Assert.Equal(246.777267, data.GetProperty("netCoinPerSecond").GetDouble(), 5);
+        Assert.Equal(12452467, data.GetProperty("coinBalance").GetDouble());
     }
 
     [Fact]

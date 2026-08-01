@@ -81,10 +81,22 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
                 "NetCoinPerSecond" REAL NOT NULL,
                 "WageCostPerSecond" REAL NOT NULL,
                 "BeanCostPerSecond" REAL NOT NULL,
+                "EquippedFactoryAppearanceKey" TEXT NOT NULL DEFAULT 'simple',
+                "ModifierSourcesJson" TEXT NOT NULL DEFAULT '[]',
                 "CreatedAt" TEXT NOT NULL,
                 CONSTRAINT "FK_LaunchRecords_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
             );
             """, cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "LaunchRecords",
+            "EquippedFactoryAppearanceKey",
+            """ALTER TABLE "LaunchRecords" ADD COLUMN "EquippedFactoryAppearanceKey" TEXT NOT NULL DEFAULT 'simple';""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "LaunchRecords",
+            "ModifierSourcesJson",
+            """ALTER TABLE "LaunchRecords" ADD COLUMN "ModifierSourcesJson" TEXT NOT NULL DEFAULT '[]';""",
+            cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS "ResourceTransactions" (
                 "Id" TEXT NOT NULL CONSTRAINT "PK_ResourceTransactions" PRIMARY KEY,
@@ -530,6 +542,8 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.HasIndex(record => new { record.PlayerId, record.CreatedAt });
             entity.Property(record => record.ClientRequestId).HasMaxLength(120);
             entity.Property(record => record.LaunchKey).HasMaxLength(160);
+            entity.Property(record => record.EquippedFactoryAppearanceKey).HasMaxLength(80).HasDefaultValue("simple");
+            entity.Property(record => record.ModifierSourcesJson).HasColumnType("TEXT");
             entity.HasOne(record => record.Player)
                 .WithMany()
                 .HasForeignKey(record => record.PlayerId)

@@ -427,6 +427,9 @@ public sealed class FatCatGameServiceTests
         Assert.NotNull(initial);
         Assert.Equal("simple", initial!.EquippedAppearanceId);
         Assert.Equal(["simple"], initial.OwnedAppearanceIds);
+        var simpleCatalog = Assert.Single(initial.Catalog, item => item.AppearanceId == "simple");
+        Assert.Equal(4, simpleCatalog.Bonuses.Count);
+        Assert.Equal(3, simpleCatalog.Bonuses.Count(bonus => bonus.ProductionEffective));
         Assert.False(Assert.Single(initial.Catalog, item => item.AppearanceId == "classic").CanUnlock);
         Assert.Null(locked);
         Assert.NotNull(unlocked);
@@ -441,6 +444,57 @@ public sealed class FatCatGameServiceTests
         var saved = Assert.Single(dbContext.FactoryAppearanceStates.Where(state => state.PlayerId == auth.PlayerId));
         Assert.Equal("simple", saved.EquippedAppearanceKey);
         Assert.Contains("\"steam\"", saved.OwnedAppearanceIdsJson);
+    }
+
+    [Fact]
+    public async Task FactoryAppearanceBonus_AffectsPreviewAndPersistsLaunchModifierSnapshot()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("factory-appearance-bonus-device", "FatCat"), CancellationToken.None);
+        var player = await dbContext.Players.FindAsync([auth.PlayerId], CancellationToken.None);
+        Assert.NotNull(player);
+        player!.Level = 60;
+        await dbContext.SaveChangesAsync();
+
+        var simplePreview = await service.PreviewServerProductionAsync(auth.PlayerId, CancellationToken.None);
+        var steam = await service.UnlockFactoryAppearanceAsync(auth.PlayerId, "steam", CancellationToken.None);
+        var steamPreview = await service.PreviewServerProductionAsync(auth.PlayerId, CancellationToken.None);
+        var launch = await service.LaunchAsync(auth.PlayerId, new LaunchRequest(
+            "appearance-modifier-snapshot",
+            10,
+            999999,
+            new ProductionPreviewRequest(999999, 0, 0)), CancellationToken.None);
+        await service.EquipFactoryAppearanceAsync(auth.PlayerId, "simple", CancellationToken.None);
+        var replay = await service.LaunchAsync(auth.PlayerId, new LaunchRequest(
+            "appearance-modifier-snapshot",
+            10,
+            0,
+            new ProductionPreviewRequest(0, 999999, 999999)), CancellationToken.None);
+
+        Assert.NotNull(simplePreview);
+        Assert.NotNull(steam);
+        Assert.NotNull(steamPreview);
+        var simpleSource = Assert.Single(simplePreview!.ModifierSources!);
+        Assert.Equal("simple", simpleSource.SourceId);
+        Assert.Equal(10, simpleSource.GrossCoinPercent);
+        Assert.Equal(-5, simpleSource.WageCostPercent);
+        var steamSource = Assert.Single(steamPreview!.ModifierSources!);
+        Assert.Equal("steam", steamSource.SourceId);
+        Assert.Equal(22, steamSource.GrossCoinPercent);
+        Assert.Equal(6, steamSource.BeanCostReducePercent);
+        Assert.True(steamPreview.GrossCoinPerSecond > simplePreview.GrossCoinPerSecond);
+        Assert.True(steamPreview.BeanCostPerSecond < simplePreview.BeanCostPerSecond);
+        Assert.True(launch.Accepted);
+        Assert.Equal("steam", launch.EquippedFactoryAppearanceId);
+        Assert.Equal("steam", Assert.Single(launch.ModifierSources!).SourceId);
+        Assert.Equal(launch.LaunchId, replay.LaunchId);
+        Assert.Equal(launch.CoinGained, replay.CoinGained);
+        Assert.Equal("steam", replay.EquippedFactoryAppearanceId);
+        Assert.Equal("steam", Assert.Single(replay.ModifierSources!).SourceId);
+        var record = Assert.Single(dbContext.LaunchRecords.Where(item => item.PlayerId == auth.PlayerId));
+        Assert.Equal("steam", record.EquippedFactoryAppearanceKey);
+        Assert.Contains("factory_appearance", record.ModifierSourcesJson);
     }
 
     [Fact]
@@ -1404,15 +1458,19 @@ public sealed class FatCatGameServiceTests
         Assert.NotNull(after);
         var cafeBefore = Assert.Single(before!.Buildings, building => building.BuildingId == "building_cafe_1f");
         // Default soft cushion gives c_001 105% mood, which now scales server-side production.
-        Assert.Equal(224.357364, before.GrossCoinPerSecond, 5);
-        Assert.Equal(0.016667, before.WageCostPerSecond, 5);
+        Assert.Equal(246.7931004, before.GrossCoinPerSecond, 5);
+        Assert.Equal(0.0158333, before.WageCostPerSecond, 5);
         Assert.Equal(4, before.BeanCostPerSecond, 5);
         Assert.Equal(before.GrossCoinPerSecond - before.WageCostPerSecond, before.NetCoinPerSecond, 5);
         Assert.Equal(before.NetCoinPerSecond, cafeBefore.NetCoinPerSecond, 5);
+        var appearanceSource = Assert.Single(before.ModifierSources!);
+        Assert.Equal("factory_appearance", appearanceSource.SourceType);
+        Assert.Equal("simple", appearanceSource.SourceId);
+        Assert.Equal(10, appearanceSource.GrossCoinPercent);
         Assert.NotNull(upgrade);
         Assert.Equal(7, upgrade!.Level);
         var cafeAfter = Assert.Single(after!.Buildings, building => building.BuildingId == "building_cafe_1f");
-        Assert.Equal(230.95611, after.GrossCoinPerSecond, 4);
+        Assert.Equal(254.051721, after.GrossCoinPerSecond, 4);
         Assert.Equal(after.GrossCoinPerSecond - after.WageCostPerSecond, after.NetCoinPerSecond, 5);
         Assert.True(cafeAfter.GrossCoinPerSecond > cafeBefore.GrossCoinPerSecond);
     }
@@ -1437,21 +1495,23 @@ public sealed class FatCatGameServiceTests
         Assert.True(result.Accepted);
         Assert.Equal(10, result.RequestedSeconds);
         Assert.Equal(10, result.ProductiveSeconds);
-        Assert.Equal(2243, result.CoinGained);
+        Assert.Equal(2467, result.CoinGained);
         Assert.Equal(40, result.BeanSpent);
-        Assert.Equal(224.340697, result.NetCoinPerSecond, 5);
-        Assert.Equal(12452243, result.CoinBalance);
+        Assert.Equal(246.777267, result.NetCoinPerSecond, 5);
+        Assert.Equal(12452467, result.CoinBalance);
         Assert.Equal(8200, result.BeanBalance);
         Assert.StartsWith("launch_", result.LaunchId);
+        Assert.Equal("simple", result.EquippedFactoryAppearanceId);
+        Assert.Equal("simple", Assert.Single(result.ModifierSources!).SourceId);
 
         var resources = await dbContext.ResourceStates.FindAsync([auth.PlayerId], CancellationToken.None);
         Assert.NotNull(resources);
-        Assert.Equal(12452243, resources!.Coin);
+        Assert.Equal(12452467, resources!.Coin);
         Assert.Equal(8200, resources.Bean);
         var transaction = Assert.Single(dbContext.ResourceTransactions.Where(item => item.PlayerId == auth.PlayerId));
         Assert.Equal("launch", transaction.SourceType);
         Assert.Equal("unit-test", transaction.SourceKey);
-        Assert.Equal(2243, transaction.CoinDelta);
+        Assert.Equal(2467, transaction.CoinDelta);
         Assert.Equal(-40, transaction.BeanDelta);
     }
 
@@ -1474,10 +1534,10 @@ public sealed class FatCatGameServiceTests
             CancellationToken.None);
 
         Assert.True(result.Accepted);
-        Assert.Equal(2243, result.CoinGained);
+        Assert.Equal(2467, result.CoinGained);
         Assert.Equal(40, result.BeanSpent);
-        Assert.Equal(224.340697, result.NetCoinPerSecond, 5);
-        Assert.Equal(12452243, result.CoinBalance);
+        Assert.Equal(246.777267, result.NetCoinPerSecond, 5);
+        Assert.Equal(12452467, result.CoinBalance);
     }
 
     [Fact]
@@ -1513,12 +1573,12 @@ public sealed class FatCatGameServiceTests
                 IncludesClientModifiers: false)),
             CancellationToken.None);
 
-        Assert.Equal(266.25, preview.GrossCoinPerSecond, 3);
-        Assert.Equal(266, preview.NetCoinPerSecond, 3);
+        Assert.Equal(287.55, preview.GrossCoinPerSecond, 3);
+        Assert.Equal(287.3125, preview.NetCoinPerSecond, 3);
         Assert.Equal(3.8, preview.BeanCostPerSecond, 3);
         Assert.Equal(3.8, preview.Buildings[0].BeanCostPerSecond, 3);
         Assert.True(result.Accepted);
-        Assert.Equal(2438, result.CoinGained);
+        Assert.Equal(2682, result.CoinGained);
         Assert.Equal(38, result.BeanSpent);
         Assert.Equal(3.75, result.BeanCostPerSecond, 3);
         Assert.Equal(8202, result.BeanBalance);
@@ -1576,9 +1636,9 @@ public sealed class FatCatGameServiceTests
             BeanCostPerSecond: 0,
             IncludesClientModifiers: false), CancellationToken.None);
 
-        Assert.Equal(100, preview.GrossCoinPerSecond);
-        Assert.Equal(0.8, preview.WageCostPerSecond, 3);
-        Assert.Equal(99.2, preview.NetCoinPerSecond, 3);
+        Assert.Equal(110, preview.GrossCoinPerSecond, 3);
+        Assert.Equal(0.75, preview.WageCostPerSecond, 3);
+        Assert.Equal(109.25, preview.NetCoinPerSecond, 3);
     }
 
     [Fact]
@@ -1608,9 +1668,9 @@ public sealed class FatCatGameServiceTests
 
         Assert.True(result.Accepted);
         Assert.Equal(3, result.ProductiveSeconds);
-        Assert.Equal(673, result.CoinGained);
+        Assert.Equal(740, result.CoinGained);
         Assert.Equal(12, result.BeanSpent);
-        Assert.Equal(773, result.CoinBalance);
+        Assert.Equal(840, result.CoinBalance);
         Assert.Equal(0, result.BeanBalance);
     }
 
@@ -1649,7 +1709,7 @@ public sealed class FatCatGameServiceTests
         Assert.Equal(4, dailyOrder.LaunchesRemaining);
         var resources = await dbContext.ResourceStates.FindAsync([auth.PlayerId], CancellationToken.None);
         Assert.NotNull(resources);
-        Assert.Equal(12452243, resources!.Coin);
+        Assert.Equal(12452467, resources!.Coin);
         Assert.Equal(8200, resources.Bean);
     }
 
@@ -1960,6 +2020,9 @@ public sealed class FatCatGameServiceTests
         await using var verifyAppearanceTable = connection.CreateCommand();
         verifyAppearanceTable.CommandText = """SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'FactoryAppearanceStates';""";
         Assert.Equal(1, Convert.ToInt32(await verifyAppearanceTable.ExecuteScalarAsync()));
+        await using var verifyLaunchModifierColumns = connection.CreateCommand();
+        verifyLaunchModifierColumns.CommandText = """SELECT COUNT(*) FROM pragma_table_info('LaunchRecords') WHERE name IN ('EquippedFactoryAppearanceKey', 'ModifierSourcesJson');""";
+        Assert.Equal(2, Convert.ToInt32(await verifyLaunchModifierColumns.ExecuteScalarAsync()));
     }
 
     private static FatCatDbContext CreateDbContext()

@@ -13,6 +13,8 @@ public sealed class PlayerLaunchRecord
     public double NetCoinPerSecond { get; set; }
     public double WageCostPerSecond { get; set; }
     public double BeanCostPerSecond { get; set; }
+    public string EquippedFactoryAppearanceKey { get; set; } = "simple";
+    public string ModifierSourcesJson { get; set; } = "[]";
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public PlayerProfile? Player { get; set; }
 }

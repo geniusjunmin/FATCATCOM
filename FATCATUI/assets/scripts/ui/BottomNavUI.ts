@@ -620,7 +620,8 @@ export class BottomNavUI extends Component {
                     diamond: serverLaunch.diamondBalance,
                     researchPoint: serverLaunch.researchPointBalance,
                 }, "server_launch");
-                this._factoryMessage = `服务端发射完成：+${this.formatNumber(serverLaunch.coinGained)} 金币，-${this.formatNumber(serverLaunch.beanSpent)} 咖啡豆，净收益 ${this.formatRate(serverLaunch.netCoinPerSecond)}/秒`;
+                const appearanceSource = serverLaunch.modifierSources?.find(source => source.sourceType === "factory_appearance");
+                this._factoryMessage = `服务端发射完成：+${this.formatNumber(serverLaunch.coinGained)} 金币，-${this.formatNumber(serverLaunch.beanSpent)} 咖啡豆，净收益 ${this.formatRate(serverLaunch.netCoinPerSecond)}/秒${appearanceSource ? ` · ${appearanceSource.name}` : ""}`;
             } else if (serverLaunch && !serverLaunch.accepted) {
                 this._factoryMessage = serverLaunch.rejectedReason === "daily_launch_limit_reached"
                     ? "次数已用完 · 明日再来"
@@ -1451,7 +1452,8 @@ export class BottomNavUI extends Component {
             const preview = await SyncManager.previewProduction();
             success = !!preview;
             if (preview) {
-                this._domPanelMessage = `服务端结算预览：净收益 ${this.formatRate(preview.netCoinPerSecond)} 金币/秒，工资 ${this.formatRate(preview.wageCostPerSecond)} 金币/秒。`;
+                const appearanceSource = preview.modifierSources?.find(source => source.sourceType === "factory_appearance");
+                this._domPanelMessage = `服务端结算预览：净收益 ${this.formatRate(preview.netCoinPerSecond)} 金币/秒，工资 ${this.formatRate(preview.wageCostPerSecond)} 金币/秒${appearanceSource ? `；${appearanceSource.name}收益 +${appearanceSource.grossCoinPercent}%` : ""}。`;
             }
         } else if (action === "selectBuilding") {
             this._selectedDomBuildingId = id;
@@ -2371,8 +2373,10 @@ export class BottomNavUI extends Component {
             const statusLabel = item.id === activeId ? "使用中" : owned ? "已拥有" : canUnlock ? "可解锁" : item.unlockLabel;
             return `<button class="factory-appearance-card ${state} ${canUnlock ? "unlockable" : ""} ${selectedClass}" data-action="selectFactoryAppearance" data-id="${item.id}" data-appearance-id="${item.id}" data-appearance-state="${state}" aria-pressed="${item.id === selected.id}"><span class="factory-appearance-thumb" style="background-image:url('${getFactoryAppearanceAsset(item.id)}')"></span><b>${item.name}</b><small>${statusLabel}</small></button>`;
         }).join("");
-        const bonuses = selected.bonuses.map(bonus => `<span><i>${this.renderCssIcon(bonus.icon)}</i><small>${bonus.label}</small><b>${bonus.value}</b></span>`).join("");
         const selectedCatalogItem = serverState?.catalog.find(entry => entry.appearanceId === selected.id);
+        const bonuses = useServerState && selectedCatalogItem?.bonuses?.length
+            ? selectedCatalogItem.bonuses.map(bonus => `<span data-bonus-key="${bonus.key}" data-production-effective="${bonus.productionEffective}"><i>${this.renderCssIcon(bonus.icon)}</i><small>${bonus.label}</small><b>${bonus.valuePercent > 0 ? "+" : ""}${bonus.valuePercent}%</b></span>`).join("")
+            : selected.bonuses.map(bonus => `<span><i>${this.renderCssIcon(bonus.icon)}</i><small>${bonus.label}</small><b>${bonus.value}</b></span>`).join("");
         const selectedOwned = useServerState ? !!selectedCatalogItem?.owned : selected.unlocked;
         const selectedCanUnlock = useServerState && !!selectedCatalogItem?.canUnlock;
         const action = selected.id === activeId

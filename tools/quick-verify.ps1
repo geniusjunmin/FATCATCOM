@@ -105,6 +105,10 @@ Invoke-Step "Factory appearance sync contract check" {
     node .\tools\check-factory-appearance-sync-contract.js
 }
 
+Invoke-Step "Factory appearance production contract check" {
+    node .\tools\check-factory-appearance-production-contract.js
+}
+
 Invoke-Step "Inventory and research art contract check" {
     node .\tools\check-inventory-research-art.js
 }

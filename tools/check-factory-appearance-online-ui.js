@@ -67,6 +67,7 @@ async function openAppearance(page) {
                 classicLabel: classic?.querySelector("small")?.textContent?.trim() ?? "",
                 applyDisabled: apply?.hasAttribute("disabled") ?? false,
                 applyText: apply?.textContent?.trim() ?? "",
+                effectiveBonuses: document.querySelectorAll('.factory-appearance-bonus-grid [data-production-effective="true"]').length,
                 configuredApi: localStorage.getItem("fatcat_api_base_url") ?? "",
             };
         });
@@ -77,6 +78,7 @@ async function openAppearance(page) {
         const reloaded = await page.evaluate(() => ({
             active: document.querySelector(".factory-appearance-stage")?.getAttribute("data-active-appearance") ?? "",
             simpleActive: document.querySelector('.factory-appearance-card[data-appearance-id="simple"]')?.classList.contains("active") ?? false,
+            effectiveBonuses: document.querySelectorAll('.factory-appearance-bonus-grid [data-production-effective="true"]').length,
         }));
 
         const ok = initial.cardCount === 4
@@ -87,8 +89,10 @@ async function openAppearance(page) {
             && initial.classicLabel.includes("30")
             && initial.applyDisabled
             && initial.applyText.includes("30")
+            && initial.effectiveBonuses === 1
             && reloaded.active === "simple"
             && reloaded.simpleActive
+            && reloaded.effectiveBonuses === 3
             && appearanceRequests.filter(item => item.status === 200 && item.method === "GET").length >= 2
             && failedRequests.length === 0
             && messages.length === 0;

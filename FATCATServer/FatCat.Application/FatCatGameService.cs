@@ -26,10 +26,34 @@ public sealed class FatCatGameService(
     ];
     private static readonly FactoryAppearanceDefinition[] FactoryAppearanceCatalog =
     [
-        new("simple", "简约工厂", "整洁明亮的经典咖啡工厂", 0),
-        new("classic", "经典工坊", "木质暖调与传统烘焙器械", 30),
-        new("steam", "蒸汽工坊", "铜管、锅炉与机械齿轮构成的工坊", 45),
-        new("future", "未来工坊", "自动化设备与清洁能源驱动的工厂", 60),
+        new("simple", "简版工厂", "熟悉的六层咖啡工坊，温暖、可靠，适合稳定经营。", 0, 10, -5, 0,
+        [
+            new("global_income", "coin", "全局收益", 5, true),
+            new("production_speed", "deco", "生产速度", 5, true),
+            new("cat_wage", "cat", "猫咪工资", -5, true),
+            new("storage_capacity", "gift", "仓库容量", 10, false),
+        ]),
+        new("classic", "经典工厂", "木雕、砖墙与黄铜共同构成的咖啡公会式工厂。", 30, 8, 0, 0,
+        [
+            new("order_coin", "coin", "订单金币", 8, true),
+            new("customer_mood", "cat", "顾客心情", 5, false),
+            new("bean_output", "bean", "咖啡产量", 8, false),
+            new("storage_capacity", "gift", "仓库容量", 12, false),
+        ]),
+        new("steam", "蒸汽工厂", "铜制锅炉与机械传动持续运转的高压烘焙工坊。", 45, 22, 0, 6,
+        [
+            new("production_speed", "deco", "生产速度", 12, true),
+            new("bean_cost", "bean", "豆耗降低", -6, true),
+            new("order_coin", "coin", "订单金币", 10, true),
+            new("storage_capacity", "gift", "仓库容量", 15, false),
+        ]),
+        new("future", "未来工厂", "以洁净能源、生态温室和智能设备驱动的咖啡实验室。", 60, 27, 0, 0,
+        [
+            new("production_speed", "deco", "生产速度", 15, true),
+            new("research_efficiency", "diamond", "研究效率", 10, false),
+            new("global_income", "coin", "全局收益", 12, true),
+            new("storage_capacity", "gift", "仓库容量", 20, false),
+        ]),
     ];
     private static readonly HashSet<string> FactoryAppearanceIds = FactoryAppearanceCatalog
         .Select(item => item.AppearanceId)
@@ -284,6 +308,7 @@ public sealed class FatCatGameService(
         var researchProductionPercent = await GetResearchBonusAsync(playerId, "coin_production_mult", cancellationToken);
         var researchProductionAdd = await GetResearchBonusAsync(playerId, "coin_production_add", cancellationToken);
         var beanReduceResearch = await GetResearchBonusAsync(playerId, "bean_reduce", cancellationToken);
+        var appearance = await GetEquippedFactoryAppearanceDefinitionAsync(playerId, cancellationToken);
 
         var productionBonus = PercentToMultiplier(GetBuildingEffectValue(buildings, "base_production"));
         var priceBonus = PercentToMultiplier(GetBuildingEffectValue(buildings, "coffee_price"));
@@ -291,8 +316,10 @@ public sealed class FatCatGameService(
         var globalBonus = PercentToMultiplier(GetBuildingEffectValue(buildings, "salary_reduce"));
         var beanReduceBuilding = Math.Max(0, -GetBuildingEffectValue(buildings, "ferment_efficiency"));
         var friendBoostMultiplier = PercentToMultiplier(GetActiveFriendBoostPercent(player, DateTimeOffset.UtcNow));
-        var coinMultiplier = productionBonus * priceBonus * orderBonus * globalBonus * friendBoostMultiplier;
-        var beanMultiplier = Math.Max(0.1, 1 - (beanReduceBuilding + beanReduceResearch) / 100.0);
+        var appearanceCoinMultiplier = PercentToMultiplier(appearance.GrossCoinPercent);
+        var appearanceWageMultiplier = Math.Clamp(1 + appearance.WageCostPercent / 100.0, 0.1, 3);
+        var coinMultiplier = productionBonus * priceBonus * orderBonus * globalBonus * friendBoostMultiplier * appearanceCoinMultiplier;
+        var beanMultiplier = Math.Max(0.1, 1 - (beanReduceBuilding + beanReduceResearch + appearance.BeanCostReducePercent) / 100.0);
 
         var buildingPreviews = new List<ProductionBuildingPreviewDto>();
         foreach (var building in buildings.OrderBy(item => balance.BuildingDefinitions.TryGetValue(item.BuildingKey, out var definition) ? definition.Floor : item.BuildingKey))
@@ -306,7 +333,7 @@ public sealed class FatCatGameService(
             var wagePerMinute = assigned.Sum(CalculateServerCatWageCost);
             var beanBase = assigned.Sum(CalculateServerCatBeanCost);
             var gross = Math.Max(0, grossBase * coinMultiplier);
-            var wage = Math.Max(0, wagePerMinute / 60.0);
+            var wage = Math.Max(0, wagePerMinute / 60.0 * appearanceWageMultiplier);
             var bean = Math.Max(0, beanBase * beanMultiplier);
             buildingPreviews.Add(new ProductionBuildingPreviewDto(
                 building.BuildingKey,
@@ -321,7 +348,8 @@ public sealed class FatCatGameService(
             buildingPreviews.Sum(item => item.WageCostPerSecond),
             buildingPreviews.Sum(item => item.NetCoinPerSecond),
             buildingPreviews.Sum(item => item.BeanCostPerSecond),
-            buildingPreviews);
+            buildingPreviews,
+            [ToProductionModifierSource(appearance)]);
     }
 
     private static ProductionPreviewResponse PreviewProduction(ProductionPreviewRequest request, ProductionModifiers modifiers)
@@ -351,7 +379,8 @@ public sealed class FatCatGameService(
             wage,
             Math.Max(0, gross - wage),
             bean,
-            buildings);
+            buildings,
+            modifiers.Sources);
     }
 
     private static double PercentToMultiplier(double percent)
@@ -479,6 +508,9 @@ public sealed class FatCatGameService(
             NetCoinPerSecond = preview.NetCoinPerSecond,
             WageCostPerSecond = preview.WageCostPerSecond,
             BeanCostPerSecond = preview.BeanCostPerSecond,
+            EquippedFactoryAppearanceKey = preview.ModifierSources?
+                .FirstOrDefault(source => source.SourceType == "factory_appearance")?.SourceId ?? "simple",
+            ModifierSourcesJson = JsonSerializer.Serialize(preview.ModifierSources ?? []),
             CreatedAt = now,
         };
         await repository.AddLaunchRecordAsync(record, cancellationToken);
@@ -2342,7 +2374,9 @@ public sealed class FatCatGameService(
             resources?.ResearchPoint ?? 0,
             DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             reason,
-            dailyOrder);
+            dailyOrder,
+            preview?.ModifierSources?.FirstOrDefault(source => source.SourceType == "factory_appearance")?.SourceId ?? "simple",
+            preview?.ModifierSources ?? []);
     }
 
     private static string CreateLaunchId(string? clientRequestId)
@@ -2381,7 +2415,25 @@ public sealed class FatCatGameService(
             resources.Diamond,
             resources.ResearchPoint,
             record.CreatedAt.ToUnixTimeMilliseconds(),
-            DailyOrder: dailyOrder);
+            DailyOrder: dailyOrder,
+            EquippedFactoryAppearanceId: record.EquippedFactoryAppearanceKey,
+            ModifierSources: ReadProductionModifierSources(record.ModifierSourcesJson));
+    }
+
+    private static IReadOnlyList<ProductionModifierSourceDto> ReadProductionModifierSources(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return [];
+        }
+        try
+        {
+            return JsonSerializer.Deserialize<List<ProductionModifierSourceDto>>(json) ?? [];
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
     }
 
     private static ResourceStateDto ToResourceStateDto(PlayerResourceState resources)
@@ -2667,7 +2719,13 @@ public sealed class FatCatGameService(
             item.RequiredFactoryLevel,
             owned.Contains(item.AppearanceId, StringComparer.Ordinal),
             !owned.Contains(item.AppearanceId, StringComparer.Ordinal) && player.Level >= item.RequiredFactoryLevel,
-            state.EquippedAppearanceKey == item.AppearanceId)).ToArray();
+            state.EquippedAppearanceKey == item.AppearanceId,
+            item.Bonuses.Select(bonus => new FactoryAppearanceBonusDto(
+                bonus.Key,
+                bonus.Icon,
+                bonus.Label,
+                bonus.ValuePercent,
+                bonus.ProductionEffective)).ToArray())).ToArray();
         return new FactoryAppearanceStateDto(
             state.EquippedAppearanceKey,
             owned,
@@ -2962,11 +3020,34 @@ public sealed class FatCatGameService(
         var beanReduce = await GetResearchBonusAsync(playerId, "bean_reduce", cancellationToken);
         var equipmentProductionPercent = await GetPlayerEquipmentEffectTotalAsync(playerId, "materialOutput", cancellationToken);
         var equipmentWagePercent = await GetPlayerEquipmentEffectTotalAsync(playerId, "wageCost", cancellationToken);
+        var appearance = await GetEquippedFactoryAppearanceDefinitionAsync(playerId, cancellationToken);
         return new ProductionModifiers(
-            productionPercent + equipmentProductionPercent + (player is null ? 0 : GetActiveFriendBoostPercent(player, DateTimeOffset.UtcNow)),
+            productionPercent + equipmentProductionPercent + (player is null ? 0 : GetActiveFriendBoostPercent(player, DateTimeOffset.UtcNow)) + appearance.GrossCoinPercent,
             productionAdd,
-            Math.Clamp(equipmentWagePercent, -90, 200),
-            Math.Clamp(beanReduce, 0, 90));
+            Math.Clamp(equipmentWagePercent + appearance.WageCostPercent, -90, 200),
+            Math.Clamp(beanReduce + appearance.BeanCostReducePercent, 0, 90),
+            [ToProductionModifierSource(appearance)]);
+    }
+
+    private async Task<FactoryAppearanceDefinition> GetEquippedFactoryAppearanceDefinitionAsync(
+        Guid playerId,
+        CancellationToken cancellationToken)
+    {
+        var state = await repository.GetFactoryAppearanceStateAsync(playerId, cancellationToken);
+        var appearanceId = NormalizeFactoryAppearanceId(state?.EquippedAppearanceKey);
+        return FactoryAppearanceCatalog.FirstOrDefault(item => item.AppearanceId == appearanceId)
+            ?? FactoryAppearanceCatalog[0];
+    }
+
+    private static ProductionModifierSourceDto ToProductionModifierSource(FactoryAppearanceDefinition appearance)
+    {
+        return new ProductionModifierSourceDto(
+            "factory_appearance",
+            appearance.AppearanceId,
+            appearance.Name,
+            appearance.GrossCoinPercent,
+            appearance.WageCostPercent,
+            appearance.BeanCostReducePercent);
     }
 
     private async Task<int> GetPlayerEquipmentEffectTotalAsync(Guid playerId, string effectType, CancellationToken cancellationToken)
@@ -3843,7 +3924,17 @@ public sealed class FatCatGameService(
         string AppearanceId,
         string Name,
         string Description,
-        int RequiredFactoryLevel);
+        int RequiredFactoryLevel,
+        int GrossCoinPercent,
+        int WageCostPercent,
+        int BeanCostReducePercent,
+        IReadOnlyList<FactoryAppearanceBonusDefinition> Bonuses);
+    private sealed record FactoryAppearanceBonusDefinition(
+        string Key,
+        string Icon,
+        string Label,
+        int ValuePercent,
+        bool ProductionEffective);
     private sealed record DecorCollectionTierDefinition(
         string TierId,
         int TargetCount,
@@ -3860,8 +3951,9 @@ public sealed class FatCatGameService(
         int GrossCoinPercent,
         int GrossCoinAdd,
         int WageCostPercent,
-        int BeanCostReducePercent)
+        int BeanCostReducePercent,
+        IReadOnlyList<ProductionModifierSourceDto> Sources)
     {
-        public static ProductionModifiers None { get; } = new(0, 0, 0, 0);
+        public static ProductionModifiers None { get; } = new(0, 0, 0, 0, []);
     }
 }

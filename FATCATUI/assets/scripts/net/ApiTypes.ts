@@ -220,6 +220,15 @@ export type FactoryAppearanceCatalogItemDto = {
     owned: boolean;
     canUnlock: boolean;
     equipped: boolean;
+    bonuses: FactoryAppearanceBonusDto[];
+};
+
+export type FactoryAppearanceBonusDto = {
+    key: string;
+    icon: string;
+    label: string;
+    valuePercent: number;
+    productionEffective: boolean;
 };
 
 export type FactoryAppearanceStateDto = {
@@ -623,12 +632,22 @@ export type ProductionPreviewRequest = {
     includesClientModifiers?: boolean;
 };
 
+export type ProductionModifierSourceDto = {
+    sourceType: string;
+    sourceId: string;
+    name: string;
+    grossCoinPercent: number;
+    wageCostPercent: number;
+    beanCostReducePercent: number;
+};
+
 export type ProductionPreviewResponse = {
     grossCoinPerSecond: number;
     wageCostPerSecond: number;
     netCoinPerSecond: number;
     beanCostPerSecond: number;
     buildings: ProductionBuildingPreviewDto[];
+    modifierSources?: ProductionModifierSourceDto[];
 };
 
 export type LaunchRequest = {
@@ -656,6 +675,8 @@ export type LaunchResponse = {
     serverTime: number;
     rejectedReason?: string;
     dailyOrder?: DailyOrderDto;
+    equippedFactoryAppearanceId: string;
+    modifierSources?: ProductionModifierSourceDto[];
 };
 
 export type BootstrapDto = {
