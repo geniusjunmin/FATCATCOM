@@ -6,10 +6,19 @@ export interface HudResourceItem {
     resourceKey: "coin" | "bean" | "catFood" | "diamond";
 }
 
-export const HUD_COMPANY_NAME = "肥猫咖啡公司";
-export const HUD_PLAYER_LEVEL = 28;
-export const HUD_EXP_TEXT = "2560/3200";
-export const HUD_EXP_PERCENT = 80;
+export function getHudExperiencePercent(exp: number, expToNext: number, level: number, levelCap: number): number {
+    if (level >= levelCap || expToNext <= 0) return 100;
+    return Math.max(0, Math.min(100, Math.round((exp / expToNext) * 100)));
+}
+
+export function escapeHudText(value: string): string {
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
 
 export const HUD_RESOURCE_ITEMS: HudResourceItem[] = [
     { kind: "coin", label: "金币", resourceKey: "coin" },

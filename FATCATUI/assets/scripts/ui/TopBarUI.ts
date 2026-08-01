@@ -36,12 +36,14 @@ export class TopBarUI extends Component {
     protected onEnable(): void {
         this.applyLayout();
         EventBus.on<GameSaveData>(GameEvents.APP_READY, this.onAppReady);
+        EventBus.on<GameSaveData>(GameEvents.SAVE_UPDATED, this.onSaveUpdated);
         EventBus.on<ResourceChangedPayload>(GameEvents.RESOURCES_CHANGED, this.onResourcesChanged);
         this.tryRefresh();
     }
 
     protected onDisable(): void {
         EventBus.off<GameSaveData>(GameEvents.APP_READY, this.onAppReady);
+        EventBus.off<GameSaveData>(GameEvents.SAVE_UPDATED, this.onSaveUpdated);
         EventBus.off<ResourceChangedPayload>(GameEvents.RESOURCES_CHANGED, this.onResourcesChanged);
     }
 
@@ -51,6 +53,10 @@ export class TopBarUI extends Component {
 
     private onResourcesChanged = (): void => {
         this.refreshResources();
+    };
+
+    private onSaveUpdated = (save: GameSaveData): void => {
+        this.refreshPlayer(save);
     };
 
     private applyLayout(): void {

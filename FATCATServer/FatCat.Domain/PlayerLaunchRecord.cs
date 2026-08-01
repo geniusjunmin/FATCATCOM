@@ -15,6 +15,10 @@ public sealed class PlayerLaunchRecord
     public double BeanCostPerSecond { get; set; }
     public string EquippedFactoryAppearanceKey { get; set; } = "simple";
     public string ModifierSourcesJson { get; set; } = "[]";
+    public int ExperienceGained { get; set; }
+    public int PlayerLevelAfter { get; set; }
+    public int PlayerExpAfter { get; set; }
+    public int PlayerExpToNextAfter { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public PlayerProfile? Player { get; set; }
 }

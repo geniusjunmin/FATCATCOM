@@ -18,6 +18,23 @@ export type AuthGuestResponse = {
     isNewPlayer: boolean;
 };
 
+export type PlayerDto = {
+    id: string;
+    deviceId: string;
+    companyName: string;
+    level: number;
+    exp: number;
+    expToNext: number;
+    levelCap: number;
+};
+
+export type PlayerProgressionDto = {
+    level: number;
+    exp: number;
+    expToNext: number;
+    levelCap: number;
+};
+
 export type SaveSyncRequest = {
     clientVersion: number;
     localUpdatedAt: number;
@@ -677,6 +694,8 @@ export type LaunchResponse = {
     dailyOrder?: DailyOrderDto;
     equippedFactoryAppearanceId: string;
     modifierSources?: ProductionModifierSourceDto[];
+    experienceGained: number;
+    playerProgression?: PlayerProgressionDto;
 };
 
 export type BootstrapDto = {

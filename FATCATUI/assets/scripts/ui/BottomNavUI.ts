@@ -108,11 +108,9 @@ import {
 import { getDomCatStyles } from "./CatOverlayPresentation";
 import {
     DOM_HUD_STYLES,
-    HUD_COMPANY_NAME,
-    HUD_EXP_PERCENT,
-    HUD_EXP_TEXT,
-    HUD_PLAYER_LEVEL,
     HUD_RESOURCE_ITEMS,
+    escapeHudText,
+    getHudExperiencePercent,
     type HudResourceKind,
 } from "./HudPresentation";
 import { DOM_NAV_STYLES, DOM_NAV_TARGET_STYLES } from "./NavPresentation";
@@ -341,6 +339,8 @@ export class BottomNavUI extends Component {
         EventBus.on(GameEvents.FRIEND_BOOST_HISTORY_CHANGED, this.onFriendBoostHistoryChanged);
         EventBus.off(GameEvents.DAILY_ORDER_CHANGED, this.onDailyOrderChanged);
         EventBus.on(GameEvents.DAILY_ORDER_CHANGED, this.onDailyOrderChanged);
+        EventBus.off(GameEvents.PLAYER_PROGRESSION_CHANGED, this.onPlayerProgressionChanged);
+        EventBus.on(GameEvents.PLAYER_PROGRESSION_CHANGED, this.onPlayerProgressionChanged);
 
         // Ensure navigation is on top of everything
         this.node.parent?.setSiblingIndex(999);
@@ -377,6 +377,7 @@ export class BottomNavUI extends Component {
         EventBus.off(GameEvents.SOCIAL_REALTIME_EVENT, this.onSocialRealtimeEvent);
         EventBus.off(GameEvents.FRIEND_BOOST_HISTORY_CHANGED, this.onFriendBoostHistoryChanged);
         EventBus.off(GameEvents.DAILY_ORDER_CHANGED, this.onDailyOrderChanged);
+        EventBus.off(GameEvents.PLAYER_PROGRESSION_CHANGED, this.onPlayerProgressionChanged);
         if (this._waitingForAppReady) {
             EventBus.off(GameEvents.APP_READY, this.onAppReady);
             this._waitingForAppReady = false;
@@ -428,6 +429,13 @@ export class BottomNavUI extends Component {
     private onDailyOrderChanged = (): void => {
         if (this.currentPanel === "factory") {
             this.renderDomFactoryOverlay();
+        }
+    };
+
+    private onPlayerProgressionChanged = (): void => {
+        this.renderDomHudOverlay(true);
+        if (this._buildingPanelMode === "appearance" && this.currentPanel === "buildings") {
+            this.renderDomPanel("buildings");
         }
     };
 
@@ -621,7 +629,9 @@ export class BottomNavUI extends Component {
                     researchPoint: serverLaunch.researchPointBalance,
                 }, "server_launch");
                 const appearanceSource = serverLaunch.modifierSources?.find(source => source.sourceType === "factory_appearance");
-                this._factoryMessage = `服务端发射完成：+${this.formatNumber(serverLaunch.coinGained)} 金币，-${this.formatNumber(serverLaunch.beanSpent)} 咖啡豆，净收益 ${this.formatRate(serverLaunch.netCoinPerSecond)}/秒${appearanceSource ? ` · ${appearanceSource.name}` : ""}`;
+                const progression = serverLaunch.playerProgression;
+                const levelText = progression ? ` · Lv.${progression.level}` : "";
+                this._factoryMessage = `服务端发射完成：+${this.formatNumber(serverLaunch.coinGained)} 金币，-${this.formatNumber(serverLaunch.beanSpent)} 咖啡豆，净收益 ${this.formatRate(serverLaunch.netCoinPerSecond)}/秒${appearanceSource ? ` · ${appearanceSource.name}` : ""}${serverLaunch.experienceGained > 0 ? ` · 经验 +${serverLaunch.experienceGained}` : ""}${levelText}`;
             } else if (serverLaunch && !serverLaunch.accepted) {
                 this._factoryMessage = serverLaunch.rejectedReason === "daily_launch_limit_reached"
                     ? "次数已用完 · 明日再来"
@@ -3130,7 +3140,19 @@ export class BottomNavUI extends Component {
 
         const resources = ResourceManager.getAll();
         const snapshot = ProductionManager.calculateSnapshot();
+        const serverPlayer = SyncManager.getServerPlayer();
+        const player = serverPlayer ?? SaveManager.data.player;
+        const playerLevelCap = serverPlayer?.levelCap ?? 60;
+        const hasServerPlayerAuthority = !!serverPlayer
+            || (NetworkManager.getStatus().serverMode === "ready" && !!NetworkManager.playerId);
+        const expPercent = getHudExperiencePercent(player.exp, player.expToNext, player.level, playerLevelCap);
         const nextText = [
+            player.companyName,
+            player.level,
+            player.exp,
+            player.expToNext,
+            playerLevelCap,
+            hasServerPlayerAuthority ? "server" : "offline",
             resources.coin,
             resources.bean,
             resources.catFood,
@@ -3149,12 +3171,12 @@ export class BottomNavUI extends Component {
         this._hudText = nextText;
         overlay.innerHTML = `
             <div class="hud-inner">
-                <div class="player" data-main-zone="identity">
-                        <div class="avatar asset" style="background-image:url('${this.getCatFullArtAsset("c_001")}')"></div><div class="level">${HUD_PLAYER_LEVEL}</div>
+                <div class="player" data-main-zone="identity" data-player-authority="${hasServerPlayerAuthority ? "server" : "offline"}" data-player-level="${player.level}" data-player-exp="${player.exp}" data-player-exp-to-next="${player.expToNext}" data-player-level-cap="${playerLevelCap}">
+                        <div class="avatar asset" style="background-image:url('${this.getCatFullArtAsset("c_001")}')"></div><div class="level">${player.level}</div>
                     <div>
-                        <div class="company">${HUD_COMPANY_NAME}</div>
-                        <div class="exp"><span style="width:${HUD_EXP_PERCENT}%"></span></div>
-                        <div class="exp-text">${HUD_EXP_TEXT}</div>
+                        <div class="company">${escapeHudText(player.companyName)}</div>
+                        <div class="exp"><span style="width:${expPercent}%"></span></div>
+                        <div class="exp-text">${player.level >= playerLevelCap ? "MAX" : `${player.exp}/${player.expToNext}`}</div>
                     </div>
                 </div>
                 <div class="resources" data-main-zone="resources">

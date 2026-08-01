@@ -29,10 +29,8 @@ const bottomNav = read("FATCATUI/assets/scripts/ui/BottomNavUI.ts");
 const quickVerify = read("tools/quick-verify.ps1");
 
 for (const name of [
-  "HUD_COMPANY_NAME",
-  "HUD_PLAYER_LEVEL",
-  "HUD_EXP_TEXT",
-  "HUD_EXP_PERCENT",
+  "getHudExperiencePercent",
+  "escapeHudText",
   "HUD_RESOURCE_ITEMS",
   "DOM_HUD_STYLES",
   "HudResourceKind",
@@ -54,7 +52,13 @@ for (const token of [
 
 assertContains("BottomNavUI imports HUD presentation", bottomNav, "from \"./HudPresentation\"");
 assertContains("BottomNavUI applies HUD styles", bottomNav, "style.textContent = DOM_HUD_STYLES;");
-assertContains("BottomNavUI uses company constant", bottomNav, "${HUD_COMPANY_NAME}");
+assertContains("BottomNavUI reads authoritative player cache", bottomNav, "SyncManager.getServerPlayer()");
+assertContains("BottomNavUI recognizes authenticated player authority", bottomNav, 'NetworkManager.getStatus().serverMode === "ready"');
+assertContains("BottomNavUI falls back to local player save", bottomNav, "serverPlayer ?? SaveManager.data.player");
+assertContains("BottomNavUI exposes player authority", bottomNav, 'data-player-authority=');
+assertContains("BottomNavUI exposes player level", bottomNav, 'data-player-level=');
+assertContains("BottomNavUI exposes player experience", bottomNav, 'data-player-exp=');
+assertContains("BottomNavUI escapes company text", bottomNav, "escapeHudText(player.companyName)");
 assertContains("BottomNavUI uses resource config", bottomNav, "HUD_RESOURCE_ITEMS.map");
 assertContains("BottomNavUI uses typed HUD resource kind", bottomNav, "kind: HudResourceKind");
 assertContains("BottomNavUI exposes resource kind marker", bottomNav, 'data-resource-kind="${kind}"');
@@ -71,6 +75,7 @@ console.log(JSON.stringify({
   ok: true,
   checked: [
     "HUD style and static config exports",
+    "authoritative player progression rendering",
     "BottomNavUI HUD presentation delegation",
     "quick verify registration",
   ],

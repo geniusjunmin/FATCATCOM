@@ -118,6 +118,7 @@ public sealed class FatCatGameService(
             await EnsureDefaultBuildingStatesAsync(existing.Id, cancellationToken);
             await EnsureDefaultDecorStatesAsync(existing.Id, cancellationToken);
             await EnsureInviteCodeAsync(existing.Id, cancellationToken);
+            NormalizePlayerProgression(existing);
             existing.UpdatedAt = DateTimeOffset.UtcNow;
             await repository.SaveChangesAsync(cancellationToken);
             return new AuthGuestResponse(existing.Id, "", false);
@@ -142,9 +143,16 @@ public sealed class FatCatGameService(
     public async Task<PlayerDto?> GetPlayerAsync(Guid playerId, CancellationToken cancellationToken)
     {
         var player = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
-        return player is null
-            ? null
-            : new PlayerDto(player.Id, player.DeviceId, player.CompanyName, player.Level, player.Exp, player.ExpToNext);
+        if (player is null)
+        {
+            return null;
+        }
+
+        if (NormalizePlayerProgression(player))
+        {
+            await repository.SaveChangesAsync(cancellationToken);
+        }
+        return ToPlayerDto(player);
     }
 
     public async Task<PlayerPresenceDto?> TouchPresenceAsync(Guid playerId, CancellationToken cancellationToken)
@@ -166,7 +174,7 @@ public sealed class FatCatGameService(
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "friend-coop-tiers", "daily-order", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "cat-skin-equip", "cat-skin-unlock", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "friend-coop-tiers", "daily-order", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "player-progression", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "cat-skin-equip", "cat-skin-unlock", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -404,10 +412,12 @@ public sealed class FatCatGameService(
 
     private async Task<LaunchResponse> LaunchCoreAsync(Guid playerId, LaunchRequest request, CancellationToken cancellationToken)
     {
-        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        var player = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
+        if (player is null)
         {
             return CreateRejectedLaunch(request, "player_not_found");
         }
+        NormalizePlayerProgression(player);
 
         var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
         var now = DateTimeOffset.UtcNow;
@@ -423,20 +433,20 @@ public sealed class FatCatGameService(
         var existing = await repository.GetLaunchRecordAsync(playerId, clientRequestId, cancellationToken);
         if (existing is not null)
         {
-            return ToLaunchResponse(existing, resources, dailyOrder);
+            return ToLaunchResponse(existing, resources, player, dailyOrder);
         }
 
         var requestedSeconds = Math.Clamp(request.LaunchSeconds, 0, 600);
         if (requestedSeconds <= 0)
         {
-            return CreateRejectedLaunch(request, "invalid_launch_seconds", resources, dailyOrder: dailyOrder);
+            return CreateRejectedLaunch(request, "invalid_launch_seconds", resources, dailyOrder: dailyOrder, player: player);
         }
 
         var preview = await PreviewServerProductionAsync(playerId, cancellationToken)
             ?? PreviewProduction(request.Production, ProductionModifiers.None);
         if (preview.NetCoinPerSecond <= 0)
         {
-            return CreateRejectedLaunch(request, "no_net_production", resources, requestedSeconds, preview, dailyOrder);
+            return CreateRejectedLaunch(request, "no_net_production", resources, requestedSeconds, preview, dailyOrder, player);
         }
 
         var availableBean = NonNegative(resources.Bean);
@@ -446,14 +456,14 @@ public sealed class FatCatGameService(
         var productiveSeconds = Math.Max(0, Math.Min(requestedSeconds, maxSecondsByBean));
         if (productiveSeconds <= 0)
         {
-            return CreateRejectedLaunch(request, "bean_not_enough", resources, requestedSeconds, preview, dailyOrder);
+            return CreateRejectedLaunch(request, "bean_not_enough", resources, requestedSeconds, preview, dailyOrder, player);
         }
 
         var coinGained = (int)Math.Floor(preview.NetCoinPerSecond * productiveSeconds);
         var beanSpent = (int)Math.Ceiling(preview.BeanCostPerSecond * productiveSeconds);
         if (coinGained <= 0 && beanSpent <= 0)
         {
-            return CreateRejectedLaunch(request, "settlement_empty", resources, requestedSeconds, preview, dailyOrder);
+            return CreateRejectedLaunch(request, "settlement_empty", resources, requestedSeconds, preview, dailyOrder, player);
         }
 
         var advancedDailyState = await repository.TryAdvanceDailyLaunchAsync(
@@ -478,12 +488,17 @@ public sealed class FatCatGameService(
                 resources,
                 requestedSeconds,
                 preview,
-                ToDailyOrderDto(dailyState, now));
+                ToDailyOrderDto(dailyState, now),
+                player);
         }
 
         resources.Coin = Math.Max(0, resources.Coin + coinGained);
         resources.Bean = Math.Max(0, resources.Bean - beanSpent);
         resources.UpdatedAt = now;
+        var experienceGained = PlayerProgressionRules.GetLaunchExperience(productiveSeconds);
+        var progression = PlayerProgressionRules.AddExperience(player.Level, player.Exp, experienceGained);
+        ApplyPlayerProgression(player, progression);
+        player.UpdatedAt = now;
         await AddResourceTransactionAsync(
             playerId,
             "launch",
@@ -511,11 +526,15 @@ public sealed class FatCatGameService(
             EquippedFactoryAppearanceKey = preview.ModifierSources?
                 .FirstOrDefault(source => source.SourceType == "factory_appearance")?.SourceId ?? "simple",
             ModifierSourcesJson = JsonSerializer.Serialize(preview.ModifierSources ?? []),
+            ExperienceGained = experienceGained,
+            PlayerLevelAfter = progression.Level,
+            PlayerExpAfter = progression.Experience,
+            PlayerExpToNextAfter = progression.ExperienceToNext,
             CreatedAt = now,
         };
         await repository.AddLaunchRecordAsync(record, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
-        return ToLaunchResponse(record, resources, ToDailyOrderDto(advancedDailyState, now));
+        return ToLaunchResponse(record, resources, player, ToDailyOrderDto(advancedDailyState, now));
     }
 
     public async Task<SaveSyncResponse> SyncSaveAsync(Guid playerId, SaveSyncRequest request, CancellationToken cancellationToken)
@@ -1133,6 +1152,7 @@ public sealed class FatCatGameService(
         await gate.WaitAsync(cancellationToken);
         try
         {
+            NormalizePlayerProgression(player);
             var state = await EnsureFactoryAppearanceStateAsync(playerId, cancellationToken);
             var owned = EnsureFactoryAppearanceDefaults(state);
             await repository.SaveChangesAsync(cancellationToken);
@@ -1165,6 +1185,7 @@ public sealed class FatCatGameService(
             {
                 return null;
             }
+            NormalizePlayerProgression(player);
 
             var state = await EnsureFactoryAppearanceStateAsync(playerId, cancellationToken);
             var owned = EnsureFactoryAppearanceDefaults(state).ToList();
@@ -1210,6 +1231,7 @@ public sealed class FatCatGameService(
             {
                 return null;
             }
+            NormalizePlayerProgression(player);
 
             var state = await EnsureFactoryAppearanceStateAsync(playerId, cancellationToken);
             var owned = EnsureFactoryAppearanceDefaults(state);
@@ -2349,13 +2371,56 @@ public sealed class FatCatGameService(
         return double.IsFinite(value) ? Math.Max(0, value) : 0;
     }
 
+    private static bool NormalizePlayerProgression(PlayerProfile player)
+    {
+        var progression = PlayerProgressionRules.Normalize(player.Level, player.Exp);
+        if (player.Level == progression.Level
+            && player.Exp == progression.Experience
+            && player.ExpToNext == progression.ExperienceToNext)
+        {
+            return false;
+        }
+
+        ApplyPlayerProgression(player, progression);
+        return true;
+    }
+
+    private static void ApplyPlayerProgression(PlayerProfile player, PlayerProgressionState progression)
+    {
+        player.Level = progression.Level;
+        player.Exp = progression.Experience;
+        player.ExpToNext = progression.ExperienceToNext;
+    }
+
+    private static PlayerDto ToPlayerDto(PlayerProfile player)
+    {
+        return new PlayerDto(
+            player.Id,
+            player.DeviceId,
+            player.CompanyName,
+            player.Level,
+            player.Exp,
+            player.ExpToNext,
+            PlayerProgressionRules.LevelCap);
+    }
+
+    private static PlayerProgressionDto ToPlayerProgressionDto(PlayerProfile player)
+    {
+        return new PlayerProgressionDto(
+            player.Level,
+            player.Exp,
+            player.ExpToNext,
+            PlayerProgressionRules.LevelCap);
+    }
+
     private static LaunchResponse CreateRejectedLaunch(
         LaunchRequest request,
         string reason,
         PlayerResourceState? resources = null,
         int? requestedSeconds = null,
         ProductionPreviewResponse? preview = null,
-        DailyOrderDto? dailyOrder = null)
+        DailyOrderDto? dailyOrder = null,
+        PlayerProfile? player = null)
     {
         return new LaunchResponse(
             CreateLaunchId(request.ClientRequestId),
@@ -2376,7 +2441,8 @@ public sealed class FatCatGameService(
             reason,
             dailyOrder,
             preview?.ModifierSources?.FirstOrDefault(source => source.SourceType == "factory_appearance")?.SourceId ?? "simple",
-            preview?.ModifierSources ?? []);
+            preview?.ModifierSources ?? [],
+            PlayerProgression: player is null ? null : ToPlayerProgressionDto(player));
     }
 
     private static string CreateLaunchId(string? clientRequestId)
@@ -2397,8 +2463,16 @@ public sealed class FatCatGameService(
     private static LaunchResponse ToLaunchResponse(
         PlayerLaunchRecord record,
         PlayerResourceState resources,
+        PlayerProfile player,
         DailyOrderDto? dailyOrder = null)
     {
+        var progression = record.PlayerLevelAfter > 0
+            ? new PlayerProgressionDto(
+                record.PlayerLevelAfter,
+                record.PlayerExpAfter,
+                record.PlayerExpToNextAfter,
+                PlayerProgressionRules.LevelCap)
+            : ToPlayerProgressionDto(player);
         return new LaunchResponse(
             record.LaunchKey,
             true,
@@ -2417,7 +2491,9 @@ public sealed class FatCatGameService(
             record.CreatedAt.ToUnixTimeMilliseconds(),
             DailyOrder: dailyOrder,
             EquippedFactoryAppearanceId: record.EquippedFactoryAppearanceKey,
-            ModifierSources: ReadProductionModifierSources(record.ModifierSourcesJson));
+            ModifierSources: ReadProductionModifierSources(record.ModifierSourcesJson),
+            ExperienceGained: record.ExperienceGained,
+            PlayerProgression: progression);
     }
 
     private static IReadOnlyList<ProductionModifierSourceDto> ReadProductionModifierSources(string? json)

@@ -145,6 +145,10 @@ Invoke-Step "HUD presentation contract check" {
     node .\tools\check-hud-presentation-contract.js
 }
 
+Invoke-Step "Player progression contract check" {
+    node .\tools\check-player-progression-contract.js
+}
+
 Invoke-Step "Nav presentation contract check" {
     node .\tools\check-nav-presentation-contract.js
 }

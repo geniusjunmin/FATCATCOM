@@ -36,6 +36,21 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             return;
         }
 
+        await EnsureSqliteColumnAsync(
+            "Players",
+            "Level",
+            $"""ALTER TABLE "Players" ADD COLUMN "Level" INTEGER NOT NULL DEFAULT {PlayerProgressionRules.InitialLevel};""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "Players",
+            "Exp",
+            $"""ALTER TABLE "Players" ADD COLUMN "Exp" INTEGER NOT NULL DEFAULT {PlayerProgressionRules.InitialExperience};""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "Players",
+            "ExpToNext",
+            $"""ALTER TABLE "Players" ADD COLUMN "ExpToNext" INTEGER NOT NULL DEFAULT {PlayerProgressionRules.GetExperienceToNext(PlayerProgressionRules.InitialLevel)};""",
+            cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS "ResourceStates" (
                 "PlayerId" TEXT NOT NULL CONSTRAINT "PK_ResourceStates" PRIMARY KEY,
@@ -83,6 +98,10 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
                 "BeanCostPerSecond" REAL NOT NULL,
                 "EquippedFactoryAppearanceKey" TEXT NOT NULL DEFAULT 'simple',
                 "ModifierSourcesJson" TEXT NOT NULL DEFAULT '[]',
+                "ExperienceGained" INTEGER NOT NULL DEFAULT 0,
+                "PlayerLevelAfter" INTEGER NOT NULL DEFAULT 0,
+                "PlayerExpAfter" INTEGER NOT NULL DEFAULT 0,
+                "PlayerExpToNextAfter" INTEGER NOT NULL DEFAULT 0,
                 "CreatedAt" TEXT NOT NULL,
                 CONSTRAINT "FK_LaunchRecords_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
             );
@@ -96,6 +115,26 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             "LaunchRecords",
             "ModifierSourcesJson",
             """ALTER TABLE "LaunchRecords" ADD COLUMN "ModifierSourcesJson" TEXT NOT NULL DEFAULT '[]';""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "LaunchRecords",
+            "ExperienceGained",
+            """ALTER TABLE "LaunchRecords" ADD COLUMN "ExperienceGained" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "LaunchRecords",
+            "PlayerLevelAfter",
+            """ALTER TABLE "LaunchRecords" ADD COLUMN "PlayerLevelAfter" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "LaunchRecords",
+            "PlayerExpAfter",
+            """ALTER TABLE "LaunchRecords" ADD COLUMN "PlayerExpAfter" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "LaunchRecords",
+            "PlayerExpToNextAfter",
+            """ALTER TABLE "LaunchRecords" ADD COLUMN "PlayerExpToNextAfter" INTEGER NOT NULL DEFAULT 0;""",
             cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS "ResourceTransactions" (
@@ -400,6 +439,9 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.Property(player => player.DeviceId).HasMaxLength(160);
             entity.Property(player => player.CompanyName).HasMaxLength(80);
             entity.Property(player => player.FriendBoostedBy).HasMaxLength(80);
+            entity.Property(player => player.Level).HasDefaultValue(PlayerProgressionRules.InitialLevel);
+            entity.Property(player => player.Exp).HasDefaultValue(PlayerProgressionRules.InitialExperience);
+            entity.Property(player => player.ExpToNext).HasDefaultValue(PlayerProgressionRules.GetExperienceToNext(PlayerProgressionRules.InitialLevel));
         });
 
         modelBuilder.Entity<PlayerSaveSnapshot>(entity =>

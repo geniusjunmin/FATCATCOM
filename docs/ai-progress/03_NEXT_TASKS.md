@@ -18,7 +18,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
-| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Add authoritative player experience/level progression and connect it to existing unlock gates. |
+| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Expand experience sources and add server-owned level-up rewards without weakening idempotency. |
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main, cat five-tab flow, core features, and appearance now have guarded four-size target hierarchy; preserve it while server work advances. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
@@ -42,13 +42,21 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - Snapshotted the equipped appearance and modifier sources in launch records so idempotent replay remains stable after an appearance switch.
 - Added old-SQLite column migration, service/API coverage, static and online browser contracts, four-size screenshots, clean editor logs, full quick verify, and 107/107 tests.
 
-### Next: Authoritative Player Level And Experience
+### Completed: Authoritative Player Level And Experience
 
-- Define one server-owned experience curve and level cap; expose current level, experience, current threshold, and next threshold in player snapshots.
-- Award experience from accepted non-replayed launches first, preserving launch idempotency and daily quota behavior.
-- Persist experience with old-SQLite-safe migration and make level calculation deterministic rather than trusting a client-submitted level.
-- Refresh the client HUD and appearance page from the authoritative progression DTO so level 30/45/60 unlock states update immediately.
-- Add concurrent launch, replay, boundary-level, migration, API, online UI, and four-size regression coverage before expanding experience sources to orders or achievements.
+- Added `PlayerProgressionRules` as the deterministic server owner of target defaults, the level-60 cap, per-level thresholds, normalization, and launch experience rewards.
+- Persisted player experience/threshold fields plus launch progression snapshots with old-SQLite-safe migration; accepted launches award experience and idempotent replays preserve the original result.
+- Extended player and launch contracts with complete progression DTOs, normalization on player reads/mutations, and authenticated `GET /api/player/me` refresh.
+- Connected `ApiClient`, `SyncManager`, `SaveManager`, DOM/native HUDs, and appearance refresh through a dedicated progression event while retaining offline fallback.
+- Added domain/service/API/concurrency/static/online/four-size coverage; passed `2560 -> 2810` online progression, 18/18 clicks, full quick verify, and 115/115 server tests.
+
+### Next: Experience Sources And Level-Up Rewards
+
+- Award server-owned experience for daily-order claims and achievement claims while preserving each action's existing idempotency boundary.
+- Define a compact level-up reward catalog and persist one-time reward grants so reconnects and concurrent claims cannot duplicate currency.
+- Return experience, crossed levels, and granted rewards in action responses and the resource transaction ledger.
+- Surface level-up feedback in the main HUD and immediately refresh level-gated appearance states without blocking offline play.
+- Add boundary, replay, concurrency, migration, API, online UI, and four-size regression coverage before adding further progression sources.
 
 ### Completed: Cat Secondary Tab Hierarchy
 

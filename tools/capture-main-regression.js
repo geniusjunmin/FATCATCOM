@@ -69,6 +69,7 @@ const floorRoutes = [
                 };
             };
             const player = rect("#fatcat-dom-hud .player");
+            const playerElement = document.querySelector("#fatcat-dom-hud .player");
             const firstResource = rect("#fatcat-dom-hud .res");
             const chest = document.querySelector("#fatcat-dom-factory .chest");
             const launch = document.querySelector("#fatcat-dom-factory .launch");
@@ -106,6 +107,12 @@ const floorRoutes = [
                     .map(element => element.getAttribute("data-main-zone"))
                     .filter((value, index, values) => !!value && values.indexOf(value) === index)
                     .sort(),
+                playerAuthority: playerElement?.getAttribute("data-player-authority") ?? "",
+                playerLevel: playerElement?.getAttribute("data-player-level") ?? "",
+                playerExp: playerElement?.getAttribute("data-player-exp") ?? "",
+                playerExpToNext: playerElement?.getAttribute("data-player-exp-to-next") ?? "",
+                playerLevelCap: playerElement?.getAttribute("data-player-level-cap") ?? "",
+                playerExpText: document.querySelector("#fatcat-dom-hud .exp-text")?.textContent?.trim() ?? "",
                 resourceCount: document.querySelectorAll("#fatcat-dom-hud .res").length,
                 resourceKinds: Array.from(document.querySelectorAll("#fatcat-dom-hud .res"))
                     .map(element => element.getAttribute("data-resource-kind")),
@@ -250,6 +257,12 @@ const floorRoutes = [
         entry.messages.length
         || entry.failedRequests.length
         || entry.state.mainZones.join(",") !== "floors,identity,left-tools,navigation,operations,resources,right-tools,roof"
+        || entry.state.playerAuthority !== "offline"
+        || entry.state.playerLevel !== "28"
+        || entry.state.playerExp !== "2560"
+        || entry.state.playerExpToNext !== "3200"
+        || entry.state.playerLevelCap !== "60"
+        || entry.state.playerExpText !== "2560/3200"
         || entry.state.resourceCount < 4
         || entry.state.resourceKinds.join(",") !== "coin,bean,food,diamond"
         || entry.state.embeddedResourceIcons !== 4

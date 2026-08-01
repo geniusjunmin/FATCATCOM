@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatSkinCatalogItemDto, CatSkinEquipResponse, CatSkinUnlockResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerPresenceDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, ServerStatusDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatSkinCatalogItemDto, CatSkinEquipResponse, CatSkinUnlockResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerDto, PlayerPresenceDto, PlayerProgressionDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, ServerStatusDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -37,6 +37,7 @@ export class SyncManager {
     private static _lastPresencePlayerId = "";
     private static _serverStatus: ServerStatusDto | null = null;
     private static _serverStatusCheckedAt = 0;
+    private static _serverPlayer: PlayerDto | null = null;
     private static _socialEventSource: EventSource | null = null;
     private static _socialEventPlayerId = "";
 
@@ -60,6 +61,10 @@ export class SyncManager {
             status: this._serverStatus,
             checkedAt: this._serverStatusCheckedAt,
         };
+    }
+
+    public static getServerPlayer(): PlayerDto | null {
+        return this._serverPlayer ? { ...this._serverPlayer } : null;
     }
 
     public static getFeatureStateDto(): FeatureSaveData {
@@ -88,9 +93,13 @@ export class SyncManager {
         }
         NetworkManager.setToken(response.data.token);
         NetworkManager.setPlayerId(response.data.playerId);
+        if (this._serverPlayer?.id !== response.data.playerId) {
+            this._serverPlayer = null;
+        }
         NetworkManager.markReady();
         this._snapshot.mode = "ready";
         this.emitSyncChanged();
+        await this.fetchServerPlayer();
         void this.fetchServerResources();
         void this.fetchServerCats();
         void this.fetchServerCatSkinCatalog();
@@ -228,6 +237,7 @@ export class SyncManager {
         this._snapshot.mode = "ready";
         this._snapshot.lastError = "";
         this._snapshot.lastSyncAt = Date.now();
+        await this.fetchServerPlayer();
         await this.fetchServerResources();
         await this.fetchServerCats();
         await this.fetchServerCatSkinCatalog();
@@ -261,6 +271,18 @@ export class SyncManager {
         }, "server_resources");
         this.markReadyAfterServerCall();
         return response.data;
+    }
+
+    public static async fetchServerPlayer(): Promise<PlayerDto | null> {
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.getPlayer(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "player_fetch_failed");
+            return null;
+        }
+        this.applyServerPlayer(response.data);
+        this.markReadyAfterServerCall();
+        return { ...response.data };
     }
 
     public static async fetchServerDailyOrder(): Promise<DailyOrderDto | null> {
@@ -1184,8 +1206,60 @@ export class SyncManager {
             }
             return response.data ?? null;
         }
+        const levelChanged = response.data.playerProgression
+            ? this.applyServerProgression(response.data.playerProgression)
+            : false;
+        if (levelChanged) {
+            void this.fetchServerFactoryAppearanceState();
+        }
         this.markReadyAfterServerCall();
         return response.data;
+    }
+
+    private static applyServerPlayer(player: PlayerDto): boolean {
+        const previousLevel = this._serverPlayer?.level ?? (SaveManager.isInitialized() ? SaveManager.data.player.level : player.level);
+        this._serverPlayer = { ...player };
+        if (SaveManager.isInitialized()) {
+            const local = SaveManager.data.player;
+            if (local.companyName !== player.companyName
+                || local.level !== player.level
+                || local.exp !== player.exp
+                || local.expToNext !== player.expToNext)
+            {
+                SaveManager.update(data => {
+                    data.player.companyName = player.companyName;
+                    data.player.level = player.level;
+                    data.player.exp = player.exp;
+                    data.player.expToNext = player.expToNext;
+                });
+            }
+        }
+        EventBus.emit(GameEvents.PLAYER_PROGRESSION_CHANGED, { ...player });
+        return previousLevel !== player.level;
+    }
+
+    private static applyServerProgression(progression: PlayerProgressionDto): boolean {
+        const identity = this._serverPlayer;
+        if (identity) {
+            return this.applyServerPlayer({
+                ...identity,
+                level: progression.level,
+                exp: progression.exp,
+                expToNext: progression.expToNext,
+                levelCap: progression.levelCap,
+            });
+        }
+
+        const previousLevel = SaveManager.isInitialized() ? SaveManager.data.player.level : progression.level;
+        if (SaveManager.isInitialized()) {
+            SaveManager.update(data => {
+                data.player.level = progression.level;
+                data.player.exp = progression.exp;
+                data.player.expToNext = progression.expToNext;
+            });
+        }
+        EventBus.emit(GameEvents.PLAYER_PROGRESSION_CHANGED, { ...progression });
+        return previousLevel !== progression.level;
     }
 
     private static onSaveUpdated = (): void => {

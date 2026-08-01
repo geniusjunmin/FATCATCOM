@@ -1703,12 +1703,25 @@ public sealed class FatCatApiTests
         Assert.Equal(8200, data.GetProperty("beanBalance").GetDouble());
         Assert.Equal("simple", data.GetProperty("equippedFactoryAppearanceId").GetString());
         Assert.Equal("simple", Assert.Single(data.GetProperty("modifierSources").EnumerateArray()).GetProperty("sourceId").GetString());
+        Assert.Equal(250, data.GetProperty("experienceGained").GetInt32());
+        var progression = data.GetProperty("playerProgression");
+        Assert.Equal(28, progression.GetProperty("level").GetInt32());
+        Assert.Equal(2810, progression.GetProperty("exp").GetInt32());
+        Assert.Equal(3200, progression.GetProperty("expToNext").GetInt32());
+        Assert.Equal(60, progression.GetProperty("levelCap").GetInt32());
 
         var resources = await client.GetAsync($"/api/resources?playerId={playerId}");
         var resourceData = JsonDocument.Parse(await resources.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var playerResponse = await client.GetAsync($"/api/player/me?playerId={playerId}");
+        var player = JsonDocument.Parse(await playerResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
         Assert.Equal(HttpStatusCode.OK, resources.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, playerResponse.StatusCode);
         Assert.Equal(12452467, resourceData.GetProperty("coin").GetDouble());
         Assert.Equal(8200, resourceData.GetProperty("bean").GetDouble());
+        Assert.Equal(28, player.GetProperty("level").GetInt32());
+        Assert.Equal(2810, player.GetProperty("exp").GetInt32());
+        Assert.Equal(3200, player.GetProperty("expToNext").GetInt32());
+        Assert.Equal(60, player.GetProperty("levelCap").GetInt32());
     }
 
     [Fact]
@@ -1787,6 +1800,8 @@ public sealed class FatCatApiTests
         Assert.Equal(firstData.GetProperty("beanSpent").GetInt32(), secondData.GetProperty("beanSpent").GetInt32());
         Assert.Equal(firstData.GetProperty("coinBalance").GetDouble(), secondData.GetProperty("coinBalance").GetDouble());
         Assert.Equal(firstData.GetProperty("beanBalance").GetDouble(), secondData.GetProperty("beanBalance").GetDouble());
+        Assert.Equal(firstData.GetProperty("experienceGained").GetInt32(), secondData.GetProperty("experienceGained").GetInt32());
+        Assert.Equal(firstData.GetProperty("playerProgression").GetRawText(), secondData.GetProperty("playerProgression").GetRawText());
     }
 
     [Fact]
@@ -1925,6 +1940,8 @@ public sealed class FatCatApiTests
         var replay = await client.PostAsJsonAsync(
             $"/api/launch?playerId={playerId}",
             requests[accepted[0].index]);
+        var playerResponse = await client.GetAsync($"/api/player/me?playerId={playerId}");
+        var player = JsonDocument.Parse(await playerResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
 
         Assert.Equal(5, accepted.Length);
         Assert.Equal("daily_launch_limit_reached", rejectedData.GetProperty("rejectedReason").GetString());
@@ -1933,6 +1950,8 @@ public sealed class FatCatApiTests
         Assert.Equal(5, order.GetProperty("launchLimit").GetInt32());
         Assert.Equal(0, order.GetProperty("launchesRemaining").GetInt32());
         Assert.Equal(HttpStatusCode.OK, replay.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, playerResponse.StatusCode);
+        Assert.Equal(2685, player.GetProperty("exp").GetInt32());
         Assert.Equal(5, transactions.EnumerateArray().Count(transaction =>
             transaction.GetProperty("sourceType").GetString() == "launch"));
     }

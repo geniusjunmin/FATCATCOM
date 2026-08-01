@@ -6,7 +6,20 @@ public sealed record AuthGuestRequest(string DeviceId, string CompanyName);
 
 public sealed record AuthGuestResponse(Guid PlayerId, string Token, bool IsNewPlayer);
 
-public sealed record PlayerDto(Guid Id, string DeviceId, string CompanyName, int Level, int Exp, int ExpToNext);
+public sealed record PlayerDto(
+    Guid Id,
+    string DeviceId,
+    string CompanyName,
+    int Level,
+    int Exp,
+    int ExpToNext,
+    int LevelCap);
+
+public sealed record PlayerProgressionDto(
+    int Level,
+    int Exp,
+    int ExpToNext,
+    int LevelCap);
 
 public sealed record ResourceStateDto(
     double Coin,
@@ -620,4 +633,6 @@ public sealed record LaunchResponse(
     string? RejectedReason = null,
     DailyOrderDto? DailyOrder = null,
     string EquippedFactoryAppearanceId = "simple",
-    IReadOnlyList<ProductionModifierSourceDto>? ModifierSources = null);
+    IReadOnlyList<ProductionModifierSourceDto>? ModifierSources = null,
+    int ExperienceGained = 0,
+    PlayerProgressionDto? PlayerProgression = null);

@@ -7,7 +7,7 @@ Updated: 2026-08-01
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Make player experience and level progression server-authoritative so appearance unlock gates can be reached through play. |
+| Best Next Move | Expand authoritative experience sources to daily orders and achievements, then add explicit level-up rewards and feedback. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -21,10 +21,14 @@ Updated: 2026-08-01
 | Economy Model | Covered | Production uses assignment, building level, equipment, research, skills, mood, and the equipped factory appearance. |
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
-| Biggest Gap | Player progression | Level-gated appearance content exists, but player experience and level advancement are not yet a complete authoritative loop. |
+| Biggest Gap | Progression rewards | Launches now advance authoritative level/experience, but orders, achievements, and level-up reward grants are not connected yet. |
 | Biggest Risk | Frontend size | `BottomNavUI.ts` is roughly 226K characters after the friend presentation extractions, but still owns several utility and feature render adapters. |
 
 ## Client UI
+
+- Player progression is now server-authoritative. `PlayerProgressionRules` owns the level-28 target default, level-60 cap, `400 + level * 100` threshold curve, and launch experience rate; accepted non-replayed launches award experience while replayed request ids return their original progression snapshot.
+- `GET /api/player/me` and launch responses expose level, experience, current threshold, cap, and level-up deltas. Runtime SQLite migration preserves old profiles and launch records; the client caches the player snapshot, mirrors it into `SaveManager`, emits `PLAYER_PROGRESSION_CHANGED`, redraws native/DOM HUDs, and refreshes appearance unlocks after a level change.
+- Verification: focused TypeScript, progression/HUD contracts, online launch progression (`2560 -> 2810` for a ten-second launch), four-size 414x896/430x932/360x800/768x1024 main regression, 18/18 UI clicks, full quick verify, and 115/115 server tests pass.
 
 - Equipped factory appearances now affect authoritative production preview and launch settlement. The server owns all four bonus catalogs; simple applies gross `+10%`, wage `-5%`, classic gross `+8%`, steam gross `+22%` plus bean cost `-6%`, and future gross `+27%`. Bonuses for systems not yet represented in production remain catalog-only and are marked `productionEffective=false`.
 - `ProductionModifierSourceDto` explains the active appearance contribution in previews and launch responses. Launch records snapshot the equipped appearance id and serialized modifier sources, so an idempotent replay still reports the original settlement after the player switches themes. The client renders server bonus DTOs online and includes the appearance name in launch feedback.

@@ -55,4 +55,5 @@ export const GameEvents = {
     SOCIAL_REALTIME_EVENT: "social:realtime-event",
     FRIEND_BOOST_HISTORY_CHANGED: "friend:boost-history-changed",
     DAILY_ORDER_CHANGED: "daily-order:changed",
+    PLAYER_PROGRESSION_CHANGED: "player-progression:changed",
 } as const;

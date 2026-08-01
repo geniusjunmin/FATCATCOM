@@ -24,11 +24,17 @@ Updated: 2026-08-01
 
 ## Latest Visual Note
 
+- Player level/experience is now authoritative. `PlayerProgressionRules` owns level-28 defaults, the level-60 cap, `400 + level * 100` thresholds, normalization, and launch experience (`floor(productiveSeconds * 25)`, minimum one for positive production time).
+- Accepted non-replayed launches persist and return `ExperienceGained`, `PlayerLevelAfter`, `PlayerExpAfter`, and `PlayerExpToNextAfter`. Preserve those snapshots: replaying a `clientRequestId` must not award experience twice or report newer profile values.
+- `SyncManager` fetches `/api/player/me`, caches `PlayerDto`, mirrors progression into `SaveManager`, and emits `PLAYER_PROGRESSION_CHANGED`; DOM/native HUDs and appearance unlock states consume that path. Preserve `data-player-authority`, level/experience/cap attributes, and offline fallback.
+- Focused gates are `check-player-progression-contract.js`, `check-player-progression-online.js`, `check-hud-presentation-contract.js`, and `capture-main-regression.js`. Current green evidence: online `2560 -> 2810`, four-size main screenshots, 18/18 clicks, full quick verify, and 115/115 tests.
+- Next server task is authoritative experience from daily orders/achievements plus idempotent level-up rewards and visible reward feedback.
+
 - Factory appearances are server-authoritative through `PlayerFactoryAppearanceState`, `/api/factory/appearances`, and `FactoryAppearanceManager`. Online UI must use server ownership, equipped state, and bonus DTOs; offline mode may use local config/state only as fallback.
 - The effective production mapping is simple gross `+10%` and wage `-5%`, classic gross `+8%`, steam gross `+22%` and bean cost `-6%`, future gross `+27%`. Catalog-only storage/research/mood/bean-output bonuses carry `productionEffective=false` until those systems have authoritative modifier semantics.
 - `ProductionModifierSourceDto` is returned by server preview and launch. `PlayerLaunchRecord` persists both the equipped appearance id and source JSON; preserve these snapshots so replaying a `clientRequestId` after switching themes reports the original result.
 - Preserve `data-appearance-page="factory"`, the exact five zones, `data-bonus-key`, and `data-production-effective`. Focused gates are `check-factory-appearance-production-contract.js`, `check-factory-appearance-production-online.js`, `check-factory-appearance-online-ui.js`, and `capture-factory-appearance-regression.js`.
-- Next server task is authoritative player EXP/level progression, making level 30/45/60 appearance gates attainable without trusting client levels. Current green evidence: online appearance/reload/launch flows, four-size appearance regression, 18/18 clicks, zero editor errors, full quick verify, and 107/107 tests.
+- Appearance level 30/45/60 gates now consume authoritative progression; keep the appearance cache refresh on level changes. Appearance production/reload flows remain covered alongside the progression gates above.
 
 - Latest cat-subpage note: `.cat-grid` always carries `cat-tab-{id}` and `data-cat-tab`. Preserve `data-cat-subpanel="focus"`, `data-cat-subpanel="equipment"`, and the exact visible zones `info`, `upgrade`, `skill`, `equip`, and `skin`.
 - Upgrade/skill hide the equipment subpanel and own a full-width focus panel; equipment hides focus and owns a full-width equipment panel; skin keeps the existing full-width wardrobe. Information intentionally remains the only two-column skill/equipment overview.
