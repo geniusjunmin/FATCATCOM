@@ -77,6 +77,10 @@ Invoke-Step "Feature panel presentation contract check" {
     node .\tools\check-feature-panel-presentation-contract.js
 }
 
+Invoke-Step "Feature page hierarchy contract check" {
+    node .\tools\check-feature-page-hierarchy-contract.js
+}
+
 Invoke-Step "Research tree contract check" {
     node .\tools\check-research-tree-contract.js
 }

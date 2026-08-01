@@ -19,12 +19,20 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Signed player authentication, daily order/chest, and five-launch quota are authoritative; preserve these boundaries. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main/cat first screens are aligned; next compare building, shop, inventory, and research against `其他页面.png`. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main/cat/core feature hierarchy is aligned; next compare factory appearance and remaining secondary-panel materials against `其他页面.png`. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Friend cooperation/history/profile extraction is complete; later rounds can move the next cohesive utility renderer while retaining action ownership. |
 
 ## P0 Now
+
+### Completed: Core Feature Page Top Hierarchy
+
+- Compared building, shop, inventory, and research captures directly with `其他页面.png` and removed the four oversized, non-target detail title bars.
+- Kept an accessible 1x1 heading for document structure, retained a visible left back arrow only on building detail, and let shop/inventory/research begin directly at their category strips.
+- Added exact `data-feature-page` and page-specific `data-feature-zone` markers for toolbar, selector, hero, catalog, grid, tree, details, and supporting sections.
+- Extended feature regression with title-size, first-content-gap, close-control, exact-zone, and existing interaction/art guards at all four supported viewports; added the static hierarchy contract to quick verify.
+- Refreshed Cocos scripts, inspected 430x932 and 360x800 captures for all four pages, passed 18/18 UI interactions, zero editor errors, full quick verify, and 104/104 tests.
 
 ### Completed: Friend Cooperation Card Extraction
 

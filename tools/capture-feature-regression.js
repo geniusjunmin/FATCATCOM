@@ -254,6 +254,28 @@ async function isVisible(page, selector) {
                 title: document.querySelector("#fatcat-dom-panel-overlay h2")?.textContent?.trim() || "",
                 domCanvasHidden: document.querySelector("canvas")?.style.opacity === "0",
                 shellCount: document.querySelectorAll("#fatcat-dom-panel-overlay .panel-shell").length,
+                featurePage: document.querySelector("#fatcat-dom-panel-overlay .feature-detail-shell")?.getAttribute("data-feature-page") || "",
+                featureZones: Array.from(document.querySelectorAll("#fatcat-dom-panel-overlay .feature-detail-shell [data-feature-zone]"))
+                    .map(element => element.getAttribute("data-feature-zone"))
+                    .filter((value, index, values) => !!value && values.indexOf(value) === index)
+                    .sort(),
+                featureTitleCompact: (() => {
+                    const title = document.querySelector("#fatcat-dom-panel-overlay .feature-page-title");
+                    if (!title) return false;
+                    const rect = title.getBoundingClientRect();
+                    return rect.width <= 1.5 && rect.height <= 1.5;
+                })(),
+                featureFirstZoneGap: (() => {
+                    const shell = document.querySelector("#fatcat-dom-panel-overlay .feature-detail-shell");
+                    const firstZone = document.querySelector('#fatcat-dom-panel-overlay .feature-detail-shell [data-feature-zone]:not([data-feature-zone="title"])');
+                    if (!shell || !firstZone) return null;
+                    return Math.round((firstZone.getBoundingClientRect().top - shell.getBoundingClientRect().top) * 10) / 10;
+                })(),
+                featureCloseVisible: (() => {
+                    const close = document.querySelector("#fatcat-dom-panel-overlay .panel-close");
+                    return !!close && getComputedStyle(close).display !== "none";
+                })(),
+                featureCloseText: document.querySelector("#fatcat-dom-panel-overlay .panel-close")?.textContent?.trim() || "",
                 buildingChips: document.querySelectorAll("#fatcat-dom-panel-overlay .building-chip").length,
                 buildingHero: !!document.querySelector("#fatcat-dom-panel-overlay .building-detail-hero"),
                 buildingHeroScene: document.querySelector("#fatcat-dom-panel-overlay .building-detail-hero")?.getAttribute("data-building-scene") || "",
@@ -400,6 +422,18 @@ async function isVisible(page, selector) {
             return entry.messages.length > 0 || entry.failedRequests.length > 0;
         }
         if (!entry.visible || entry.state.shellCount !== 1 || !entry.state.title || !entry.state.domCanvasHidden) return true;
+        const expectedZones = {
+            buildings: "conditions,decor,description,effects,floor-selector,hero,roster,title,toolbar,upgrade",
+            shop: "catalog,categories,detail,title",
+            inventory: "categories,detail,grid,title",
+            research: "categories,currency,detail,title,tree",
+        }[entry.panel];
+        if (entry.state.featurePage !== entry.panel
+            || entry.state.featureZones.join(",") !== expectedZones
+            || !entry.state.featureTitleCompact
+            || entry.state.featureFirstZoneGap === null
+            || entry.state.featureFirstZoneGap > 30
+            || (entry.panel === "buildings" ? !entry.state.featureCloseVisible || entry.state.featureCloseText !== "←" : entry.state.featureCloseVisible)) return true;
         if (entry.panel === "buildings") return entry.state.buildingChips !== 6
             || !entry.state.buildingHero
             || !entry.state.buildingHeroScene

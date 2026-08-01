@@ -1543,6 +1543,8 @@ export class BottomNavUI extends Component {
     private renderDomPanel(panelId: MainPanelId): void {
         const overlay = this.ensureDomPanelOverlay();
         if (!overlay) return;
+        overlay.dataset.panelId = panelId;
+        overlay.dataset.panelMode = panelId === "buildings" ? this._buildingPanelMode : "";
 
         const content: Partial<Record<MainPanelId, string>> = {
             buildings: this.renderBuildingPanel(),
@@ -1556,7 +1558,9 @@ export class BottomNavUI extends Component {
             settings: this.renderSettingsPanel(),
         };
         const body = content[panelId] ?? "";
-        overlay.innerHTML = `${body ? `<button class="panel-close" data-action="panelClose">×</button>` : ""}${body}${this.renderDomMessage()}`;
+        const closeText = panelId === "buildings" && this._buildingPanelMode === "detail" ? "←" : "×";
+        const closeLabel = closeText === "←" ? "返回工厂" : "关闭";
+        overlay.innerHTML = `${body ? `<button class="panel-close" data-action="panelClose" aria-label="${closeLabel}">${closeText}</button>` : ""}${body}${this.renderDomMessage()}`;
     }
 
     private renderDomMessage(): string {
@@ -2313,8 +2317,8 @@ export class BottomNavUI extends Component {
             ["生产效率", `${100 + selected.level * 5}%`, `${105 + selected.level * 5}%`],
             ["容量上限", `${selected.scheduleCapacity}`, `${nextCapacity}`],
         ].map(row => `<div class="building-target-row"><span>${row[0]}</span><b>${row[1]}</b><em>➜</em><strong>${row[2]}</strong></div>`).join("");
-        const conditions = `<div class="building-conditions"><b>升级条件</b><div><span>${this.renderCssIcon("deco")}工厂等级达到${levelRequirement}级</span><strong class="${28 >= levelRequirement ? "ok" : "bad"}">${Math.min(28, levelRequirement)}/${levelRequirement}</strong></div><div><span>${this.renderCssIcon("coin")}消耗金币</span><strong class="${ownedCoin >= selected.upgradeCost ? "ok" : "bad"}">${this.formatNumber(ownedCoin)}/${this.formatNumber(selected.upgradeCost)}</strong></div><div><span>${this.renderCssIcon("bean")}咖啡豆储备</span><strong class="ok">${this.formatNumber(ResourceManager.get("bean"))}/2.5K</strong></div></div>`;
-        return `<div class="panel-shell building-shell"><h2>建筑详情</h2><div class="building-panel-tools"><span>楼层管理</span><button data-action="openFactoryAppearance">工厂外观</button></div><div class="building-selector">${selector}</div><div class="building-detail-hero" data-building-id="${selected.id}" data-building-scene="${scene}" style="background-image:linear-gradient(rgba(34,22,15,.04),rgba(34,22,15,.14)),url('${getBuildingRoomAsset(scene)}')"><span class="building-floor-tag">${selected.floor}<small>Lv.${selected.level}</small></span><div class="building-hero-copy"><b>${selected.name}</b><span>Lv.${selected.level}</span><em>生产建筑</em></div></div><div class="building-description">${selected.description}</div>${this.renderBuildingDecorManager(selected.id)}<div class="building-target-effects"><div class="building-target-title"><b>等级效果</b><span>Lv.${selected.level}</span><em>➜</em><span>Lv.${Math.min(selected.maxLevel, selected.level + 1)}</span></div>${effectRows}</div>${conditions}<div class="building-main-upgrade">${this.renderBuildingUpgradeButton(selected.id)}</div><div class="building-roster"><b>值班猫咪 ${selected.assignedCatCount}/${selected.scheduleCapacity}</b>${this.renderAssignedCatRows(selected.id)}${this.renderAvailableCatRows(selected.id)}</div></div>`;
+        const conditions = `<div class="building-conditions" data-feature-zone="conditions"><b>升级条件</b><div><span>${this.renderCssIcon("deco")}工厂等级达到${levelRequirement}级</span><strong class="${28 >= levelRequirement ? "ok" : "bad"}">${Math.min(28, levelRequirement)}/${levelRequirement}</strong></div><div><span>${this.renderCssIcon("coin")}消耗金币</span><strong class="${ownedCoin >= selected.upgradeCost ? "ok" : "bad"}">${this.formatNumber(ownedCoin)}/${this.formatNumber(selected.upgradeCost)}</strong></div><div><span>${this.renderCssIcon("bean")}咖啡豆储备</span><strong class="ok">${this.formatNumber(ResourceManager.get("bean"))}/2.5K</strong></div></div>`;
+        return `<div class="panel-shell building-shell feature-detail-shell" data-feature-page="buildings"><h2 class="feature-page-title" data-feature-zone="title">建筑详情</h2><div class="building-panel-tools" data-feature-zone="toolbar"><span>楼层管理</span><button data-action="openFactoryAppearance">工厂外观</button></div><div class="building-selector" data-feature-zone="floor-selector">${selector}</div><div class="building-detail-hero" data-feature-zone="hero" data-building-id="${selected.id}" data-building-scene="${scene}" style="background-image:linear-gradient(rgba(34,22,15,.04),rgba(34,22,15,.14)),url('${getBuildingRoomAsset(scene)}')"><span class="building-floor-tag">${selected.floor}<small>Lv.${selected.level}</small></span><div class="building-hero-copy"><b>${selected.name}</b><span>Lv.${selected.level}</span><em>生产建筑</em></div></div><div class="building-description" data-feature-zone="description">${selected.description}</div>${this.renderBuildingDecorManager(selected.id)}<div class="building-target-effects" data-feature-zone="effects"><div class="building-target-title"><b>等级效果</b><span>Lv.${selected.level}</span><em>➜</em><span>Lv.${Math.min(selected.maxLevel, selected.level + 1)}</span></div>${effectRows}</div>${conditions}<div class="building-main-upgrade" data-feature-zone="upgrade">${this.renderBuildingUpgradeButton(selected.id)}</div><div class="building-roster" data-feature-zone="roster"><b>值班猫咪 ${selected.assignedCatCount}/${selected.scheduleCapacity}</b>${this.renderAssignedCatRows(selected.id)}${this.renderAvailableCatRows(selected.id)}</div></div>`;
     }
 
     private getActiveFactoryAppearanceId(): string {
@@ -2343,7 +2347,7 @@ export class BottomNavUI extends Component {
     private renderBuildingDecorManager(buildingId: string): string {
         const decorations = this._serverDecorations.filter(decor => decor.buildingId === buildingId);
         if (decorations.length <= 0) {
-            return `<div class="building-decor-manager offline"><div class="building-decor-head"><b>楼层装饰</b><span>联网管理</span></div><p>连接服务器后可摆放、撤下楼层装饰，并同步给来访好友。</p></div>`;
+            return `<div class="building-decor-manager offline" data-feature-zone="decor"><div class="building-decor-head"><b>楼层装饰</b><span>联网管理</span></div><p>连接服务器后可摆放、撤下楼层装饰，并同步给来访好友。</p></div>`;
         }
         const placedScore = decorations
             .filter(decor => decor.isPlaced)
@@ -2354,7 +2358,7 @@ export class BottomNavUI extends Component {
                 <div><b>${decor.name}</b><small>装饰评分 +${decor.score}</small></div>
                 <button class="tag ${decor.isPlaced ? "warn" : ""}" data-action="toggleDecorPlacement" data-id="${decor.decorId}" data-building="${buildingId}">${decor.isPlaced ? "撤下" : "摆放"}</button>
             </div>`).join("");
-        return `<div class="building-decor-manager"><div class="building-decor-head"><b>楼层装饰</b><span>已摆放 ${decorations.filter(decor => decor.isPlaced).length}/${decorations.length} · 评分 ${placedScore}</span></div><div class="building-decor-list">${rows}</div></div>`;
+        return `<div class="building-decor-manager" data-feature-zone="decor"><div class="building-decor-head"><b>楼层装饰</b><span>已摆放 ${decorations.filter(decor => decor.isPlaced).length}/${decorations.length} · 评分 ${placedScore}</span></div><div class="building-decor-list">${rows}</div></div>`;
     }
 
     private renderMiniFloor(id: string): string {
@@ -2489,19 +2493,19 @@ export class BottomNavUI extends Component {
             this._selectedShopProductKey = this.getDefaultShopProductSelection(this._domShopTab);
             detail = this.getShopProductDetail(this._selectedShopProductKey);
         }
-        const tabs = `<div class="tabs shop-tabs">${SHOP_TABS.map(tab => `<button class="tab ${this._domShopTab === tab.id ? "active" : ""}" data-action="shopTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div>`;
+        const tabs = `<div class="tabs shop-tabs" data-feature-zone="categories">${SHOP_TABS.map(tab => `<button class="tab ${this._domShopTab === tab.id ? "active" : ""}" data-action="shopTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div>`;
         const detailMarkup = detail ? this.renderShopProductDetail(detail) : "";
         if (this._domShopTab === "deco") {
             const rows = this._serverDecorCatalog.length > 0
                 ? this._serverDecorCatalog.map(item => this.renderDecorCatalogRow(item)).join("")
                 : this.renderShopPreviewRows("deco", 4);
-            return `<div class="panel-shell shop-shell" data-shop-category="${this._domShopTab}"><h2>商店详情</h2>${tabs}${detailMarkup}<div class="decor-shop-summary"><b>工厂装饰馆</b><span>${NetworkManager.canUseServer ? "永久收藏 · 购买后进入对应楼层仓库" : "连接服务器后可购买永久装饰"}</span></div>${this.renderDecorCollection()}<div class="shop-catalog-viewport"><div class="list shop-list decor-catalog-list">${rows}</div></div></div>`;
+            return `<div class="panel-shell shop-shell feature-detail-shell" data-feature-page="shop" data-shop-category="${this._domShopTab}"><h2 class="feature-page-title" data-feature-zone="title">商店详情</h2>${tabs}${detailMarkup}<div class="decor-shop-summary"><b>工厂装饰馆</b><span>${NetworkManager.canUseServer ? "永久收藏 · 购买后进入对应楼层仓库" : "连接服务器后可购买永久装饰"}</span></div>${this.renderDecorCollection()}<div class="shop-catalog-viewport" data-feature-zone="catalog"><div class="list shop-list decor-catalog-list">${rows}</div></div></div>`;
         }
         const items = ShopManager.getShopItems(this._domShopTab);
         const rows = items.length > 0
             ? items.map(item => this.renderShopRow(item.id)).join("") + this.renderShopPreviewRows(this._domShopTab, Math.max(0, 6 - items.length))
             : this.renderShopPreviewRows(this._domShopTab, 4);
-        return `<div class="panel-shell shop-shell" data-shop-category="${this._domShopTab}"><h2>商店详情</h2>${tabs}${detailMarkup}<div class="shop-catalog-viewport"><div class="list shop-list">${rows}</div></div></div>`;
+        return `<div class="panel-shell shop-shell feature-detail-shell" data-feature-page="shop" data-shop-category="${this._domShopTab}"><h2 class="feature-page-title" data-feature-zone="title">商店详情</h2>${tabs}${detailMarkup}<div class="shop-catalog-viewport" data-feature-zone="catalog"><div class="list shop-list">${rows}</div></div></div>`;
     }
 
     private renderDecorCatalogRow(item: DecorCatalogItemDto): string {
@@ -2651,7 +2655,7 @@ export class BottomNavUI extends Component {
             const decor = this._serverDecorCatalog.find(item => item.decorId === detail.decorId);
             if (decor) action = this.renderDecorPurchaseButton(decor);
         }
-        return `<section class="shop-detail-target" data-selected-key="${detail.key}" data-shop-category="${detail.category}"><span class="shop-detail-art product-${detail.artKind}" data-shop-art="${detail.artKind}" style="background-image:url('${detail.art}')"></span><span class="shop-detail-copy"><small>${this.getShopTabLabel()}</small><b>${detail.name}</b><span>${detail.description}</span><em>${detail.source}</em></span><span class="shop-detail-meta"><b>${detail.priceLabel}</b><small>${detail.limitLabel}</small><span class="shop-detail-action">${action}</span></span></section>`;
+        return `<section class="shop-detail-target" data-feature-zone="detail" data-selected-key="${detail.key}" data-shop-category="${detail.category}"><span class="shop-detail-art product-${detail.artKind}" data-shop-art="${detail.artKind}" style="background-image:url('${detail.art}')"></span><span class="shop-detail-copy"><small>${this.getShopTabLabel()}</small><b>${detail.name}</b><span>${detail.description}</span><em>${detail.source}</em></span><span class="shop-detail-meta"><b>${detail.priceLabel}</b><small>${detail.limitLabel}</small><span class="shop-detail-action">${action}</span></span></section>`;
     }
 
     private getShopPreviewArt(category: string, index: number, icon: string): string {
@@ -2754,7 +2758,7 @@ export class BottomNavUI extends Component {
         const grid = this._domInventoryTab === "all"
             ? this.renderInventoryAllSlots()
             : `${this.renderInventoryItems()}${this.renderInventoryPreviewCards(INVENTORY_PREVIEW_CARDS.length)}`;
-        return `<div class="panel-shell inventory-shell"><h2>背包详情</h2><div class="tabs">${INVENTORY_TABS.map(tab => `<button class="tab ${this._domInventoryTab === tab.id ? "active" : ""}" data-action="inventoryTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list bag-grid">${grid}</div>${detail ? this.renderInventoryDetail(detail) : ""}</div>`;
+        return `<div class="panel-shell inventory-shell feature-detail-shell" data-feature-page="inventory"><h2 class="feature-page-title" data-feature-zone="title">背包详情</h2><div class="tabs" data-feature-zone="categories">${INVENTORY_TABS.map(tab => `<button class="tab ${this._domInventoryTab === tab.id ? "active" : ""}" data-action="inventoryTab" data-tab="${tab.id}">${tab.label}</button>`).join("")}</div><div class="list bag-grid" data-feature-zone="grid">${grid}</div>${detail ? this.renderInventoryDetail(detail) : ""}</div>`;
     }
 
     private getInventoryTabLabel(): string {
@@ -2938,7 +2942,7 @@ export class BottomNavUI extends Component {
         const action = detail.usableItemId
             ? `<button class="tag bag-detail-action" data-action="use" data-id="${detail.usableItemId}" ${detail.count > 0 ? "" : "disabled"}>使用</button>`
             : "";
-        return `<div class="bag-detail-target" data-selected-key="${detail.key}" data-detail-kind="${detail.kind}"><span class="bag-detail-icon asset" style="background-image:url('${detail.art}')"></span><div class="bag-detail-copy"><div class="bag-detail-head"><div><b>${detail.name}</b><span class="bag-detail-badges"><em>${detail.rarity}</em><em>${detail.kind}</em></span></div><span><strong>拥有：${this.formatNumber(detail.count)}</strong>${action}</span></div><p>${detail.description}</p><div class="bag-detail-meta"><span>主要获取：<b>${detail.source}</b></span><em>${detail.status}</em></div></div></div>`;
+        return `<div class="bag-detail-target" data-feature-zone="detail" data-selected-key="${detail.key}" data-detail-kind="${detail.kind}"><span class="bag-detail-icon asset" style="background-image:url('${detail.art}')"></span><div class="bag-detail-copy"><div class="bag-detail-head"><div><b>${detail.name}</b><span class="bag-detail-badges"><em>${detail.rarity}</em><em>${detail.kind}</em></span></div><span><strong>拥有：${this.formatNumber(detail.count)}</strong>${action}</span></div><p>${detail.description}</p><div class="bag-detail-meta"><span>主要获取：<b>${detail.source}</b></span><em>${detail.status}</em></div></div></div>`;
     }
 
     private getItemIconClass(itemId: string): string {
@@ -2958,13 +2962,13 @@ export class BottomNavUI extends Component {
     private renderResearchPanel(): string {
         const configs = ResearchManager.getAllConfigs();
         if (configs.length === 0) {
-            return `<div class="panel-shell research-shell"><h2>研究详情</h2><div class="item">研究配置为空</div></div>`;
+            return `<div class="panel-shell research-shell feature-detail-shell" data-feature-page="research"><h2 class="feature-page-title" data-feature-zone="title">研究详情</h2><div class="item">研究配置为空</div></div>`;
         }
         if (!configs.find(item => item.id === this._selectedResearchId)) {
             this._selectedResearchId = configs[0].id;
         }
         const selected = configs.find(item => item.id === this._selectedResearchId) ?? configs[0];
-        return `<div class="panel-shell research-shell" data-research-node-count="${configs.length}"><h2>研究详情</h2><div class="tabs"><button class="tab active">生产研究</button><button class="tab">经营研究</button><button class="tab">猫咪研究</button><button class="tab">特殊研究</button></div><div class="research-point-strip"><span>咖啡实验室</span><b>研究点 ${this.formatNumber(ResourceManager.get("researchPoint"))}</b></div><div class="list research-view"><div class="tree" data-research-layout="1-2-3-1">${this.renderResearchLines(configs)}${configs.map(config => this.renderResearchNode(config.id)).join("")}</div><div class="research-detail">${this.renderResearchDetail(selected.id)}</div></div></div>`;
+        return `<div class="panel-shell research-shell feature-detail-shell" data-feature-page="research" data-research-node-count="${configs.length}"><h2 class="feature-page-title" data-feature-zone="title">研究详情</h2><div class="tabs" data-feature-zone="categories"><button class="tab active">生产研究</button><button class="tab">经营研究</button><button class="tab">猫咪研究</button><button class="tab">特殊研究</button></div><div class="research-point-strip" data-feature-zone="currency"><span>咖啡实验室</span><b>研究点 ${this.formatNumber(ResourceManager.get("researchPoint"))}</b></div><div class="list research-view"><div class="tree" data-feature-zone="tree" data-research-layout="1-2-3-1">${this.renderResearchLines(configs)}${configs.map(config => this.renderResearchNode(config.id)).join("")}</div><div class="research-detail" data-feature-zone="detail">${this.renderResearchDetail(selected.id)}</div></div></div>`;
     }
 
     private renderResearchLines(configs: ReturnType<typeof ResearchManager.getAllConfigs>): string {

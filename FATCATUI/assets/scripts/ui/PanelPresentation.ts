@@ -1962,4 +1962,51 @@ export const DOM_PANEL_STYLES = `
                     padding:4%;
                 }
             }
+
+            /* Target feature pages enter directly through their tabs or scene.
+               Keep the DOM title for accessibility and regression metadata only. */
+            #fatcat-dom-panel-overlay .feature-detail-shell,
+            #fatcat-dom-panel-overlay.compact .feature-detail-shell,
+            #fatcat-dom-panel-overlay.tall .feature-detail-shell {
+                padding-top:2.1%;
+            }
+            #fatcat-dom-panel-overlay .feature-detail-shell:before { display:none; }
+            #fatcat-dom-panel-overlay .feature-detail-shell > .feature-page-title {
+                position:absolute;
+                width:1px;
+                height:1px;
+                margin:0;
+                padding:0;
+                overflow:hidden;
+                white-space:nowrap;
+                clip-path:inset(50%);
+            }
+            #fatcat-dom-panel-overlay[data-panel-id="shop"] .panel-close,
+            #fatcat-dom-panel-overlay[data-panel-id="inventory"] .panel-close,
+            #fatcat-dom-panel-overlay[data-panel-id="research"] .panel-close {
+                display:none;
+            }
+            #fatcat-dom-panel-overlay[data-panel-id="buildings"][data-panel-mode="detail"] .panel-close {
+                left:3.5%;
+                right:auto;
+                top:2.1%;
+                width:9%;
+                min-width:34px;
+                max-width:42px;
+                border-radius:10px;
+                font-size:24px;
+                line-height:1;
+            }
+            #fatcat-dom-panel-overlay .feature-detail-shell > [data-feature-zone="categories"] {
+                margin-top:0;
+                border-radius:9px;
+            }
+            #fatcat-dom-panel-overlay .feature-detail-shell .building-panel-tools {
+                min-height:36px;
+                margin:0 0 1.2%;
+                padding-left:13%;
+            }
+            #fatcat-dom-panel-overlay .feature-detail-shell .building-selector {
+                border-radius:9px;
+            }
         `;

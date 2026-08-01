@@ -24,6 +24,11 @@ Updated: 2026-08-01
 
 ## Latest Visual Note
 
+- Latest feature-page note: building, shop, inventory, and research use `.feature-detail-shell` with `data-feature-page` and exact semantic `data-feature-zone` markers. Their `feature-page-title` headings are intentionally accessibility-only; do not restore the old visible `XX详情` bars.
+- Only `data-panel-id="buildings"` plus `data-panel-mode="detail"` shows `.panel-close`, rendered as the `←` return control. Shop, inventory, and research deliberately hide it because bottom navigation is the target interaction model. Factory appearance remains outside this building-detail selector and keeps its own return flow.
+- `capture-feature-regression.js` requires the exact zone sets, a title no larger than 1.5px, a first visible zone within 30px, building-only back visibility, and all existing art/action geometry at 414x896, 430x932, 360x800, and 768x1024. `check-feature-page-hierarchy-contract.js` mirrors these rules in quick verify.
+- Current green evidence: focused TypeScript, static presentation/hierarchy contracts, inspected 430x932 and 360x800 captures for all four pages, 18/18 UI clicks, zero Cocos errors, full quick verify, and 104/104 server tests.
+
 - Latest social code-health note: `FriendCooperationCards.ts` now owns the daily cooperation card, boost-history card, profile metadata badges, and reward-label presentation. Keep Manager/DTO reads and relative-time/presence adaptation in `BottomNavUI.ts`.
 - Preserve exactly two `data-cooperation-card` values (`daily-goal`, `boost-history`), three `data-coop-tier` nodes, and one `data-profile-kind` marker per `.friend-profile-meta`. Dynamic friend names, invite codes, and history text must continue through the helper's escaping path.
 - `check-friend-cooperation-cards-contract.js` guards the extraction boundary and runs in quick verify. Current green evidence: Cocos reimport/refresh, four inspected utility screenshots, 18/18 UI click steps, zero Cocos errors, full quick verify, and 104/104 tests.

@@ -7,7 +7,7 @@ Updated: 2026-08-01
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Compare building, shop, inventory, and research panels against `其他页面.png`, then polish the largest visible secondary-panel gap. |
+| Best Next Move | Compare factory appearance and remaining secondary-panel materials against `其他页面.png`, then polish the largest visible gap without changing the guarded feature-page hierarchy. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -21,10 +21,14 @@ Updated: 2026-08-01
 | Economy Model | Covered | Production uses assignment, building level, equipment, research, skills, and mood. |
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
-| Biggest Gap | Visual fidelity | Main factory and cat-detail first screens now match the target hierarchy closely; remaining work is richer secondary social and feature-panel surfaces. |
+| Biggest Gap | Visual fidelity | Main, cat-detail, and the four core feature pages now match the target hierarchy closely; remaining work is richer factory-appearance and secondary social surfaces. |
 | Biggest Risk | Frontend size | `BottomNavUI.ts` is roughly 226K characters after the friend presentation extractions, but still owns several utility and feature render adapters. |
 
 ## Client UI
+
+- Latest feature-page alignment removes the redundant visible `建筑详情` / `商店详情` / `背包详情` / `研究详情` title bars so each page enters directly at its target content. Building detail keeps the target-like left back arrow; shop, inventory, and research hide the unnecessary overlay close control while preserving bottom-nav switching.
+- All four pages now expose `data-feature-page` plus page-specific `data-feature-zone` markers. The title remains a compact accessibility heading, while toolbar/tabs/content begin within 30px of the feature shell top.
+- `capture-feature-regression.js` guards exact zones, title geometry, first-zone spacing, and page-specific close behavior at 414x896, 430x932, 360x800, and 768x1024. Four-size captures were visually inspected; 18/18 navigation, zero Cocos errors, full quick verify, and 104/104 tests pass.
 
 - Latest code-health pass extracts daily cooperation tiers, boost-history rows, and friend profile/presence badges into `FriendCooperationCards.ts`. The helper accepts typed view models, owns dynamic-text escaping, and preserves the final-goal/tier claim actions plus real/system presence classes.
 - `BottomNavUI.ts` remains the Manager/DTO adapter: it calculates time-relative history state, maps authoritative rewards, resolves presence, and supplies the pure renderer. Stable `data-cooperation-card`, `data-coop-tier`, and `data-profile-kind` markers make the boundary visible to four-size regression.
