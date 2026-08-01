@@ -7,7 +7,7 @@ Updated: 2026-08-01
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Make factory-appearance ownership and equip state server-authoritative while preserving the completed target hierarchy and offline fallback. |
+| Best Next Move | Apply equipped factory-appearance bonuses to authoritative production and expose their contribution in settlement previews. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -21,10 +21,14 @@ Updated: 2026-08-01
 | Economy Model | Covered | Production uses assignment, building level, equipment, research, skills, and mood. |
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
-| Biggest Gap | Online authority | Major target UI surfaces now have four-size coverage; factory appearance ownership/equip and several secondary progression states remain client-local. |
+| Biggest Gap | Economy integration | Factory appearance ownership/equip is authoritative; its displayed bonuses are not yet included in server production settlement. |
 | Biggest Risk | Frontend size | `BottomNavUI.ts` is roughly 226K characters after the friend presentation extractions, but still owns several utility and feature render adapters. |
 
 ## Client UI
+
+- Factory appearance ownership and equip state are now server-authoritative. `PlayerFactoryAppearanceState` persists owned/equipped ids through the runtime SQLite schema; application services expose a four-item catalog with level 0/30/45/60 gates and serialize unlock/equip mutations per player.
+- `GET /api/factory/appearances` plus unlock/equip routes flow through client DTOs, `ApiClient`, `SyncManager`, and the new `FactoryAppearanceManager`. The target-aligned page renders server-owned, unlockable, level-locked, and active states online while preserving `SaveManager` offline fallback and mirroring the equipped id for continuity.
+- Verification: Cocos asset-db refresh, focused TypeScript, factory art/sync contracts, online login/reload UI check with two successful appearance snapshots, four-size 430x932/414x896/360x800/768x1024 regression, zero editor errors, full quick verify, and 106/106 server tests pass.
 
 - Latest cat-subpage pass gives upgrade, skill, equipment, and skin dedicated full-width lower work areas while preserving the information tab's compact skill/equipment overview. Upgrade now exposes level progress, authoritative base-production/wage comparisons, next skill threshold, preview, and upgrade action; skill exposes current/next stages and its detail/level actions.
 - The cat grid now carries `data-cat-tab`, focus/equipment ownership markers, five exact `data-cat-tab-zone` values, and `aria-current` on the active side tab. Equipment uses the visible slot row as its primary entry; skin retains authoritative ownership, purchase, preview, and apply behavior.

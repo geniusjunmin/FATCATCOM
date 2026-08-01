@@ -51,6 +51,8 @@ public interface IFatCatRepository
     Task<PlayerCatState?> GetCatStateAsync(Guid playerId, string catKey, CancellationToken cancellationToken);
     Task<List<PlayerCatState>> GetCatStatesAsync(Guid playerId, CancellationToken cancellationToken);
     Task AddCatStateAsync(PlayerCatState cat, CancellationToken cancellationToken);
+    Task<PlayerFactoryAppearanceState?> GetFactoryAppearanceStateAsync(Guid playerId, CancellationToken cancellationToken);
+    Task AddFactoryAppearanceStateAsync(PlayerFactoryAppearanceState state, CancellationToken cancellationToken);
     Task<PlayerBuildingState?> GetBuildingStateAsync(Guid playerId, string buildingKey, CancellationToken cancellationToken);
     Task<List<PlayerBuildingState>> GetBuildingStatesAsync(Guid playerId, CancellationToken cancellationToken);
     Task AddBuildingStateAsync(PlayerBuildingState building, CancellationToken cancellationToken);

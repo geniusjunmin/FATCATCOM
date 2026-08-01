@@ -408,6 +408,42 @@ public sealed class FatCatGameServiceTests
     }
 
     [Fact]
+    public async Task FactoryAppearanceAsync_EnforcesLevelAndPersistsOwnershipAndEquip()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("factory-appearance-device", "FatCat"), CancellationToken.None);
+
+        var initial = await service.GetFactoryAppearanceStateAsync(auth.PlayerId, CancellationToken.None);
+        var locked = await service.UnlockFactoryAppearanceAsync(auth.PlayerId, "classic", CancellationToken.None);
+        var player = await dbContext.Players.FindAsync([auth.PlayerId], CancellationToken.None);
+        Assert.NotNull(player);
+        player!.Level = 60;
+        await dbContext.SaveChangesAsync();
+        var unlocked = await service.UnlockFactoryAppearanceAsync(auth.PlayerId, "steam", CancellationToken.None);
+        var equippedDefault = await service.EquipFactoryAppearanceAsync(auth.PlayerId, "simple", CancellationToken.None);
+        var refreshed = await service.GetFactoryAppearanceStateAsync(auth.PlayerId, CancellationToken.None);
+
+        Assert.NotNull(initial);
+        Assert.Equal("simple", initial!.EquippedAppearanceId);
+        Assert.Equal(["simple"], initial.OwnedAppearanceIds);
+        Assert.False(Assert.Single(initial.Catalog, item => item.AppearanceId == "classic").CanUnlock);
+        Assert.Null(locked);
+        Assert.NotNull(unlocked);
+        Assert.Equal("steam", unlocked!.EquippedAppearanceId);
+        Assert.Contains("steam", unlocked.OwnedAppearanceIds);
+        Assert.True(Assert.Single(unlocked.Catalog, item => item.AppearanceId == "classic").CanUnlock);
+        Assert.NotNull(equippedDefault);
+        Assert.Equal("simple", equippedDefault!.EquippedAppearanceId);
+        Assert.NotNull(refreshed);
+        Assert.Equal("simple", refreshed!.EquippedAppearanceId);
+        Assert.Contains("steam", refreshed.OwnedAppearanceIds);
+        var saved = Assert.Single(dbContext.FactoryAppearanceStates.Where(state => state.PlayerId == auth.PlayerId));
+        Assert.Equal("simple", saved.EquippedAppearanceKey);
+        Assert.Contains("\"steam\"", saved.OwnedAppearanceIdsJson);
+    }
+
+    [Fact]
     public async Task AssignCatAsync_UpdatesAuthoritativeBuildingSchedule()
     {
         await using var dbContext = CreateDbContext();
@@ -1921,6 +1957,9 @@ public sealed class FatCatGameServiceTests
         Assert.Equal(0, launchCount);
         Assert.Equal("[\"default\"]", skinReader.GetString(0));
         Assert.Equal("default", skinReader.GetString(1));
+        await using var verifyAppearanceTable = connection.CreateCommand();
+        verifyAppearanceTable.CommandText = """SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'FactoryAppearanceStates';""";
+        Assert.Equal(1, Convert.ToInt32(await verifyAppearanceTable.ExecuteScalarAsync()));
     }
 
     private static FatCatDbContext CreateDbContext()

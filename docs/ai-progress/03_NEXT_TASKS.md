@@ -18,13 +18,28 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
-| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Make factory-appearance ownership/equip authoritative next; signed auth, daily orders, and launch quota must remain intact. |
+| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Feed equipped appearance bonuses into production preview/settlement with explicit modifier evidence. |
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main, cat five-tab flow, core features, and appearance now have guarded four-size target hierarchy; preserve it while server work advances. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Friend cooperation/history/profile extraction is complete; later rounds can move the next cohesive utility renderer while retaining action ownership. |
 
 ## P0 Now
+
+### Completed: Authoritative Factory Appearance State
+
+- Added persisted player-level appearance ownership/equip state and an old-SQLite-safe runtime table.
+- Added the four-theme level-gated catalog, per-player mutation serialization, state/unlock/equip services, and authenticated HTTP routes.
+- Added client DTO/API/sync/cache integration with online server authority, startup self-login, local equipped-state mirroring, and offline fallback.
+- Updated the existing target-aligned appearance page to render owned, unlockable, level-locked, and active states without changing its five-zone hierarchy.
+- Added service/API/migration/static/online browser coverage; refreshed Cocos and passed four-size screenshots, zero editor errors, full quick verify, and 106/106 tests.
+
+### Next: Authoritative Appearance Bonuses
+
+- Define server-owned modifier values for all four appearance ids and keep them aligned with the UI labels.
+- Include the equipped appearance in production preview and launch settlement calculations without trusting client-supplied percentages.
+- Return modifier-source evidence so the client can explain active bonuses and tests can detect drift.
+- Add idempotent settlement and cross-player isolation coverage, then extend the online appearance test to a level-eligible account fixture.
 
 ### Completed: Cat Secondary Tab Hierarchy
 

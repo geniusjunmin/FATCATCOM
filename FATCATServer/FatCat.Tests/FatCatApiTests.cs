@@ -51,6 +51,7 @@ public sealed class FatCatApiTests
             "/api/mail",
             "/api/save",
             "/api/daily-order",
+            "/api/factory/appearances",
         };
         foreach (var path in privatePaths)
         {
@@ -1242,6 +1243,53 @@ public sealed class FatCatApiTests
             .ToArray();
         Assert.Single(skinTransactions);
         Assert.Equal(-75_000, skinTransactions[0].GetProperty("coinDelta").GetDouble());
+    }
+
+    [Fact]
+    public async Task FactoryAppearanceEndpoints_EnforceLevelAndPersistEquippedTheme()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-factory-appearance-device",
+            companyName = "FatCat",
+        });
+        var playerId = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync())
+            .RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+
+        var initialResponses = await Task.WhenAll(
+            client.GetAsync($"/api/factory/appearances?playerId={playerId}"),
+            client.GetAsync($"/api/factory/appearances?playerId={playerId}"));
+        Assert.All(initialResponses, response => Assert.Equal(HttpStatusCode.OK, response.StatusCode));
+        var initialResponse = initialResponses[0];
+        var initial = JsonDocument.Parse(await initialResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var lockedResponse = await client.PostAsJsonAsync($"/api/factory/appearances/classic/unlock?playerId={playerId}", new { });
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<FatCatDbContext>();
+            var player = await db.Players.FindAsync(playerId);
+            Assert.NotNull(player);
+            player!.Level = 60;
+            await db.SaveChangesAsync();
+        }
+        var unlockResponse = await client.PostAsJsonAsync($"/api/factory/appearances/future/unlock?playerId={playerId}", new { });
+        var unlocked = JsonDocument.Parse(await unlockResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var equipResponse = await client.PostAsJsonAsync($"/api/factory/appearances/simple/equip?playerId={playerId}", new { });
+        var refreshedResponse = await client.GetAsync($"/api/factory/appearances?playerId={playerId}");
+        var refreshed = JsonDocument.Parse(await refreshedResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+
+        Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
+        Assert.Equal("simple", initial.GetProperty("equippedAppearanceId").GetString());
+        Assert.Equal(["simple"], initial.GetProperty("ownedAppearanceIds").EnumerateArray().Select(item => item.GetString()));
+        Assert.Equal(HttpStatusCode.BadRequest, lockedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, unlockResponse.StatusCode);
+        Assert.Equal("future", unlocked.GetProperty("equippedAppearanceId").GetString());
+        Assert.Contains(unlocked.GetProperty("ownedAppearanceIds").EnumerateArray(), item => item.GetString() == "future");
+        Assert.Equal(HttpStatusCode.OK, equipResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, refreshedResponse.StatusCode);
+        Assert.Equal("simple", refreshed.GetProperty("equippedAppearanceId").GetString());
+        Assert.Contains(refreshed.GetProperty("ownedAppearanceIds").EnumerateArray(), item => item.GetString() == "future");
     }
 
     [Fact]

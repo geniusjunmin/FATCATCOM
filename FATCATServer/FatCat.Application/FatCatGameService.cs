@@ -15,6 +15,7 @@ public sealed class FatCatGameService(
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> ResearchUnlockGates = new();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> LaunchSettlementGates = new();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> CatSkinUnlockGates = new();
+    private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> FactoryAppearanceGates = new();
     private static readonly HashSet<string> CatSkinIds = ["default", "apron", "manager", "festival"];
     private static readonly CatSkinCatalogDefinition[] CatSkinCatalog =
     [
@@ -23,6 +24,16 @@ public sealed class FatCatGameService(
         new("manager", "店长披肩", "象征管理岗位的青绿色披肩", "coin", 75_000, true),
         new("festival", "节日礼服", "庆典期间限定的紫金礼服", "diamond", 80, true),
     ];
+    private static readonly FactoryAppearanceDefinition[] FactoryAppearanceCatalog =
+    [
+        new("simple", "简约工厂", "整洁明亮的经典咖啡工厂", 0),
+        new("classic", "经典工坊", "木质暖调与传统烘焙器械", 30),
+        new("steam", "蒸汽工坊", "铜管、锅炉与机械齿轮构成的工坊", 45),
+        new("future", "未来工坊", "自动化设备与清洁能源驱动的工厂", 60),
+    ];
+    private static readonly HashSet<string> FactoryAppearanceIds = FactoryAppearanceCatalog
+        .Select(item => item.AppearanceId)
+        .ToHashSet(StringComparer.Ordinal);
     private const double InitialCoin = 12_450_000;
     private const double InitialBean = 8_240;
     private const double InitialCatFood = 3_510;
@@ -1069,6 +1080,116 @@ public sealed class FatCatGameService(
                 resources.Diamond,
                 resources.ResearchPoint,
                 now.ToUnixTimeMilliseconds());
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    public async Task<FactoryAppearanceStateDto?> GetFactoryAppearanceStateAsync(
+        Guid playerId,
+        CancellationToken cancellationToken)
+    {
+        var player = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
+        if (player is null)
+        {
+            return null;
+        }
+
+        var gate = FactoryAppearanceGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            var state = await EnsureFactoryAppearanceStateAsync(playerId, cancellationToken);
+            var owned = EnsureFactoryAppearanceDefaults(state);
+            await repository.SaveChangesAsync(cancellationToken);
+            return BuildFactoryAppearanceState(player, state, owned);
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    public async Task<FactoryAppearanceStateDto?> UnlockFactoryAppearanceAsync(
+        Guid playerId,
+        string appearanceId,
+        CancellationToken cancellationToken)
+    {
+        appearanceId = NormalizeFactoryAppearanceId(appearanceId);
+        var definition = FactoryAppearanceCatalog.FirstOrDefault(item => item.AppearanceId == appearanceId);
+        if (definition is null)
+        {
+            return null;
+        }
+
+        var gate = FactoryAppearanceGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            var player = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
+            if (player is null)
+            {
+                return null;
+            }
+
+            var state = await EnsureFactoryAppearanceStateAsync(playerId, cancellationToken);
+            var owned = EnsureFactoryAppearanceDefaults(state).ToList();
+            if (!owned.Contains(appearanceId, StringComparer.Ordinal))
+            {
+                if (player.Level < definition.RequiredFactoryLevel)
+                {
+                    return null;
+                }
+                owned.Add(appearanceId);
+            }
+
+            var now = DateTimeOffset.UtcNow;
+            state.OwnedAppearanceIdsJson = JsonSerializer.Serialize(owned);
+            state.EquippedAppearanceKey = appearanceId;
+            state.UpdatedAt = now;
+            await repository.SaveChangesAsync(cancellationToken);
+            return BuildFactoryAppearanceState(player, state, owned);
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    public async Task<FactoryAppearanceStateDto?> EquipFactoryAppearanceAsync(
+        Guid playerId,
+        string appearanceId,
+        CancellationToken cancellationToken)
+    {
+        appearanceId = NormalizeFactoryAppearanceId(appearanceId);
+        if (!FactoryAppearanceIds.Contains(appearanceId))
+        {
+            return null;
+        }
+
+        var gate = FactoryAppearanceGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            var player = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
+            if (player is null)
+            {
+                return null;
+            }
+
+            var state = await EnsureFactoryAppearanceStateAsync(playerId, cancellationToken);
+            var owned = EnsureFactoryAppearanceDefaults(state);
+            if (!owned.Contains(appearanceId, StringComparer.Ordinal))
+            {
+                return null;
+            }
+
+            state.EquippedAppearanceKey = appearanceId;
+            state.UpdatedAt = DateTimeOffset.UtcNow;
+            await repository.SaveChangesAsync(cancellationToken);
+            return BuildFactoryAppearanceState(player, state, owned);
         }
         finally
         {
@@ -2477,6 +2598,84 @@ public sealed class FatCatGameService(
         return normalized;
     }
 
+    private async Task<PlayerFactoryAppearanceState> EnsureFactoryAppearanceStateAsync(
+        Guid playerId,
+        CancellationToken cancellationToken)
+    {
+        var state = await repository.GetFactoryAppearanceStateAsync(playerId, cancellationToken);
+        if (state is not null)
+        {
+            return state;
+        }
+
+        state = new PlayerFactoryAppearanceState
+        {
+            PlayerId = playerId,
+            OwnedAppearanceIdsJson = "[\"simple\"]",
+            EquippedAppearanceKey = "simple",
+            UpdatedAt = DateTimeOffset.UtcNow,
+        };
+        await repository.AddFactoryAppearanceStateAsync(state, cancellationToken);
+        return state;
+    }
+
+    private static IReadOnlyList<string> EnsureFactoryAppearanceDefaults(PlayerFactoryAppearanceState state)
+    {
+        List<string> owned;
+        try
+        {
+            owned = string.IsNullOrWhiteSpace(state.OwnedAppearanceIdsJson)
+                ? []
+                : JsonSerializer.Deserialize<List<string>>(state.OwnedAppearanceIdsJson) ?? [];
+        }
+        catch (JsonException)
+        {
+            owned = [];
+        }
+
+        var normalized = owned
+            .Select(NormalizeFactoryAppearanceId)
+            .Where(FactoryAppearanceIds.Contains)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+        if (!normalized.Contains("simple", StringComparer.Ordinal))
+        {
+            normalized.Insert(0, "simple");
+        }
+        if (!normalized.Contains(state.EquippedAppearanceKey, StringComparer.Ordinal))
+        {
+            state.EquippedAppearanceKey = "simple";
+        }
+        state.OwnedAppearanceIdsJson = JsonSerializer.Serialize(normalized);
+        return normalized;
+    }
+
+    private static string NormalizeFactoryAppearanceId(string? appearanceId)
+    {
+        return string.IsNullOrWhiteSpace(appearanceId) ? "" : appearanceId.Trim().ToLowerInvariant();
+    }
+
+    private static FactoryAppearanceStateDto BuildFactoryAppearanceState(
+        PlayerProfile player,
+        PlayerFactoryAppearanceState state,
+        IReadOnlyList<string> owned)
+    {
+        var catalog = FactoryAppearanceCatalog.Select(item => new FactoryAppearanceCatalogItemDto(
+            item.AppearanceId,
+            item.Name,
+            item.Description,
+            item.RequiredFactoryLevel,
+            owned.Contains(item.AppearanceId, StringComparer.Ordinal),
+            !owned.Contains(item.AppearanceId, StringComparer.Ordinal) && player.Level >= item.RequiredFactoryLevel,
+            state.EquippedAppearanceKey == item.AppearanceId)).ToArray();
+        return new FactoryAppearanceStateDto(
+            state.EquippedAppearanceKey,
+            owned,
+            player.Level,
+            catalog,
+            state.UpdatedAt.ToUnixTimeMilliseconds());
+    }
+
     private int GetEquipmentEffectTotal(PlayerCatState cat, string effectType)
     {
         EnsureCatEquipmentDefaults(cat);
@@ -3640,6 +3839,11 @@ public sealed class FatCatGameService(
         string PriceType,
         int PriceAmount,
         bool Purchasable);
+    private sealed record FactoryAppearanceDefinition(
+        string AppearanceId,
+        string Name,
+        string Description,
+        int RequiredFactoryLevel);
     private sealed record DecorCollectionTierDefinition(
         string TierId,
         int TargetCount,

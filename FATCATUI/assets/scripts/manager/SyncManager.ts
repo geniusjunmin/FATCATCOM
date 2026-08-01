@@ -14,6 +14,8 @@ import { CatManager } from "./CatManager";
 import { ResearchManager } from "./ResearchManager";
 import { ShopManager } from "./ShopManager";
 import { DailyOrderManager } from "./DailyOrderManager";
+import { FactoryAppearanceManager } from "./FactoryAppearanceManager";
+import type { FactoryAppearanceStateDto } from "../net/ApiTypes";
 
 export type SyncSnapshot = {
     mode: "offline" | "ready" | "syncing" | "failed";
@@ -92,6 +94,7 @@ export class SyncManager {
         void this.fetchServerResources();
         void this.fetchServerCats();
         void this.fetchServerCatSkinCatalog();
+        void this.fetchServerFactoryAppearanceState();
         void this.fetchServerBuildings();
         void this.fetchServerResearch();
         void this.fetchServerShopState();
@@ -228,6 +231,7 @@ export class SyncManager {
         await this.fetchServerResources();
         await this.fetchServerCats();
         await this.fetchServerCatSkinCatalog();
+        await this.fetchServerFactoryAppearanceState();
         await this.fetchServerBuildings();
         await this.fetchServerResearch();
         await this.fetchServerShopState();
@@ -317,6 +321,26 @@ export class SyncManager {
             return [];
         }
         CatManager.applyServerSkinCatalog(response.data);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerFactoryAppearanceState(): Promise<FactoryAppearanceStateDto | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        if (!this.canCallServer()) return null;
+        const response = await ApiClient.getFactoryAppearanceState(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "factory_appearance_state_fetch_failed");
+            return null;
+        }
+        FactoryAppearanceManager.applyServerState(response.data);
         this.markReadyAfterServerCall();
         return response.data;
     }
@@ -573,6 +597,44 @@ export class SyncManager {
         }, `server_cat_skin_${skinId}`);
         CatManager.applyServerSkin(response.data.catId, response.data.equippedSkinId, response.data.ownedSkinIds);
         await this.fetchServerCatSkinCatalog(catId);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async unlockServerFactoryAppearance(appearanceId: string): Promise<FactoryAppearanceStateDto | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.unlockFactoryAppearance(NetworkManager.playerId, appearanceId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "factory_appearance_unlock_failed");
+            return null;
+        }
+        FactoryAppearanceManager.applyServerState(response.data);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async equipServerFactoryAppearance(appearanceId: string): Promise<FactoryAppearanceStateDto | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.equipFactoryAppearance(NetworkManager.playerId, appearanceId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "factory_appearance_equip_failed");
+            return null;
+        }
+        FactoryAppearanceManager.applyServerState(response.data);
         this.markReadyAfterServerCall();
         return response.data;
     }

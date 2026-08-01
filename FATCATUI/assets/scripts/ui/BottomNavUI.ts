@@ -16,6 +16,7 @@ import { SyncManager } from "../manager/SyncManager";
 import { FriendBoostManager } from "../manager/FriendBoostManager";
 import { FriendCoopManager } from "../manager/FriendCoopManager";
 import { DailyOrderManager } from "../manager/DailyOrderManager";
+import { FactoryAppearanceManager } from "../manager/FactoryAppearanceManager";
 import { CatSkinCatalogItemDto, DecorCatalogItemDto, DecorCollectionDto, DecorCollectionTierDto, DecorStateDto, FriendActivityDto, FriendDto, FriendProfileDto, FriendRequestDto, FriendRoomDto, FriendSearchResultDto, LeaderboardDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { CatModel, WeightStage } from "../model/CatModel";
 import { TaskType } from "../model/TaskModel";
@@ -1457,6 +1458,9 @@ export class BottomNavUI extends Component {
             success = true;
         } else if (action === "openFactoryAppearance") {
             this._buildingPanelMode = "appearance";
+            if (NetworkManager.canUseServer && !FactoryAppearanceManager.getServerState()) {
+                await SyncManager.fetchServerFactoryAppearanceState();
+            }
             this._selectedFactoryAppearanceId = this.getActiveFactoryAppearanceId();
             success = true;
         } else if (action === "closeFactoryAppearance") {
@@ -1470,7 +1474,15 @@ export class BottomNavUI extends Component {
             }
         } else if (action === "applyFactoryAppearance") {
             const appearance = FACTORY_APPEARANCES.find(item => item.id === id);
-            if (appearance?.unlocked) {
+            const serverState = FactoryAppearanceManager.getServerState();
+            if (appearance && NetworkManager.canUseServer && serverState) {
+                success = !!await SyncManager.equipServerFactoryAppearance(appearance.id);
+                if (success) {
+                    this._selectedFactoryAppearanceId = appearance.id;
+                } else {
+                    actionMessageOverride = `${appearance.name}启用失败，请检查联网状态与所有权。`;
+                }
+            } else if (appearance?.unlocked) {
                 SaveManager.update(data => {
                     data.featureState.factoryAppearanceId = appearance.id;
                 });
@@ -1478,6 +1490,18 @@ export class BottomNavUI extends Component {
                 success = true;
             } else {
                 actionMessageOverride = appearance ? `${appearance.name}尚未解锁。` : "工厂外观不存在。";
+            }
+        } else if (action === "unlockFactoryAppearance") {
+            const appearance = FACTORY_APPEARANCES.find(item => item.id === id);
+            if (appearance && NetworkManager.canUseServer) {
+                success = !!await SyncManager.unlockServerFactoryAppearance(appearance.id);
+                if (success) {
+                    this._selectedFactoryAppearanceId = appearance.id;
+                } else {
+                    actionMessageOverride = `${appearance.name}尚未达到解锁条件。`;
+                }
+            } else {
+                actionMessageOverride = "连接服务器后可验证等级并解锁外观。";
             }
         } else if (action === "assignCat") {
             const buildingId = button.dataset.building || this._selectedDomBuildingId;
@@ -2322,26 +2346,44 @@ export class BottomNavUI extends Component {
     }
 
     private getActiveFactoryAppearanceId(): string {
+        const serverState = FactoryAppearanceManager.getServerState();
+        if (NetworkManager.canUseServer && serverState) {
+            return FACTORY_APPEARANCES.some(item => item.id === serverState.equippedAppearanceId)
+                ? serverState.equippedAppearanceId
+                : "simple";
+        }
         const savedId = SaveManager.data.featureState.factoryAppearanceId ?? "simple";
         return FACTORY_APPEARANCES.some(item => item.id === savedId && item.unlocked) ? savedId : "simple";
     }
 
     private renderFactoryAppearancePanel(): string {
         const activeId = this.getActiveFactoryAppearanceId();
+        const serverState = FactoryAppearanceManager.getServerState();
+        const useServerState = NetworkManager.canUseServer && !!serverState;
         const selected = FACTORY_APPEARANCES.find(item => item.id === this._selectedFactoryAppearanceId) ?? FACTORY_APPEARANCES[0];
         this._selectedFactoryAppearanceId = selected.id;
         const cards = FACTORY_APPEARANCES.map(item => {
-            const state = item.id === activeId ? "active" : item.unlocked ? "available" : "locked";
+            const catalogItem = serverState?.catalog.find(entry => entry.appearanceId === item.id);
+            const owned = useServerState ? !!catalogItem?.owned : item.unlocked;
+            const canUnlock = useServerState && !!catalogItem?.canUnlock;
+            const state = item.id === activeId ? "active" : owned ? "available" : "locked";
             const selectedClass = item.id === selected.id ? "selected" : "";
-            return `<button class="factory-appearance-card ${state} ${selectedClass}" data-action="selectFactoryAppearance" data-id="${item.id}" data-appearance-id="${item.id}" data-appearance-state="${state}" aria-pressed="${item.id === selected.id}"><span class="factory-appearance-thumb" style="background-image:url('${getFactoryAppearanceAsset(item.id)}')"></span><b>${item.name}</b><small>${item.id === activeId ? "使用中" : item.unlockLabel}</small></button>`;
+            const statusLabel = item.id === activeId ? "使用中" : owned ? "已拥有" : canUnlock ? "可解锁" : item.unlockLabel;
+            return `<button class="factory-appearance-card ${state} ${canUnlock ? "unlockable" : ""} ${selectedClass}" data-action="selectFactoryAppearance" data-id="${item.id}" data-appearance-id="${item.id}" data-appearance-state="${state}" aria-pressed="${item.id === selected.id}"><span class="factory-appearance-thumb" style="background-image:url('${getFactoryAppearanceAsset(item.id)}')"></span><b>${item.name}</b><small>${statusLabel}</small></button>`;
         }).join("");
         const bonuses = selected.bonuses.map(bonus => `<span><i>${this.renderCssIcon(bonus.icon)}</i><small>${bonus.label}</small><b>${bonus.value}</b></span>`).join("");
+        const selectedCatalogItem = serverState?.catalog.find(entry => entry.appearanceId === selected.id);
+        const selectedOwned = useServerState ? !!selectedCatalogItem?.owned : selected.unlocked;
+        const selectedCanUnlock = useServerState && !!selectedCatalogItem?.canUnlock;
         const action = selected.id === activeId
             ? `<button class="factory-appearance-apply active" disabled>使用中</button>`
-            : selected.unlocked
+            : selectedOwned
                 ? `<button class="factory-appearance-apply" data-action="applyFactoryAppearance" data-id="${selected.id}">启用外观</button>`
+                : selectedCanUnlock
+                    ? `<button class="factory-appearance-apply" data-action="unlockFactoryAppearance" data-id="${selected.id}">解锁并启用</button>`
                 : `<button class="factory-appearance-apply locked" disabled>${selected.unlockLabel}</button>`;
-        return `<div class="panel-shell building-shell factory-appearance-shell" data-appearance-page="factory"><h2 class="factory-appearance-title" data-appearance-zone="title">工厂外观</h2><div class="factory-appearance-stage" data-appearance-zone="preview" data-selected-appearance="${selected.id}" data-active-appearance="${activeId}" role="img" aria-label="${selected.name}：${selected.description}" style="background-image:linear-gradient(rgba(25,22,18,.02),rgba(25,22,18,.1)),url('${getFactoryAppearanceAsset(selected.id)}')"><div class="factory-appearance-toolbar" data-appearance-zone="return"><button data-action="closeFactoryAppearance" aria-label="返回建筑详情">←</button></div></div><div class="factory-appearance-cards" data-appearance-zone="themes">${cards}</div><section class="factory-appearance-bonuses" data-appearance-zone="bonuses"><div><b>外观属性加成</b><small>${selected.name} · ${selected.id === activeId ? "当前使用" : selected.unlocked ? "可使用" : selected.unlockLabel}</small></div><div class="factory-appearance-bonus-grid">${bonuses}</div>${action}</section></div>`;
+        const selectedStatus = selected.id === activeId ? "当前使用" : selectedOwned ? "可使用" : selectedCanUnlock ? "已满足解锁条件" : selected.unlockLabel;
+        return `<div class="panel-shell building-shell factory-appearance-shell" data-appearance-page="factory"><h2 class="factory-appearance-title" data-appearance-zone="title">工厂外观</h2><div class="factory-appearance-stage" data-appearance-zone="preview" data-selected-appearance="${selected.id}" data-active-appearance="${activeId}" role="img" aria-label="${selected.name}：${selected.description}" style="background-image:linear-gradient(rgba(25,22,18,.02),rgba(25,22,18,.1)),url('${getFactoryAppearanceAsset(selected.id)}')"><div class="factory-appearance-toolbar" data-appearance-zone="return"><button data-action="closeFactoryAppearance" aria-label="返回建筑详情">←</button></div></div><div class="factory-appearance-cards" data-appearance-zone="themes">${cards}</div><section class="factory-appearance-bonuses" data-appearance-zone="bonuses"><div><b>外观属性加成</b><small>${selected.name} · ${selectedStatus}</small></div><div class="factory-appearance-bonus-grid">${bonuses}</div>${action}</section></div>`;
     }
 
     private renderBuildingDecorManager(buildingId: string): string {

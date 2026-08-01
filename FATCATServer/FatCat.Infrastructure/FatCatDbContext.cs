@@ -22,6 +22,7 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
     public DbSet<PlayerResourceTransaction> ResourceTransactions => Set<PlayerResourceTransaction>();
     public DbSet<PlayerShopPurchaseHistory> ShopPurchaseHistories => Set<PlayerShopPurchaseHistory>();
     public DbSet<PlayerCatState> CatStates => Set<PlayerCatState>();
+    public DbSet<PlayerFactoryAppearanceState> FactoryAppearanceStates => Set<PlayerFactoryAppearanceState>();
     public DbSet<PlayerBuildingState> BuildingStates => Set<PlayerBuildingState>();
     public DbSet<PlayerDecorState> DecorStates => Set<PlayerDecorState>();
     public DbSet<PlayerDecorCollectionState> DecorCollectionStates => Set<PlayerDecorCollectionState>();
@@ -174,6 +175,15 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
         await Database.ExecuteSqlRawAsync("""
             CREATE UNIQUE INDEX IF NOT EXISTS "IX_CatStates_PlayerId_CatKey"
             ON "CatStates" ("PlayerId", "CatKey");
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "FactoryAppearanceStates" (
+                "PlayerId" TEXT NOT NULL CONSTRAINT "PK_FactoryAppearanceStates" PRIMARY KEY,
+                "OwnedAppearanceIdsJson" TEXT NOT NULL DEFAULT '["simple"]',
+                "EquippedAppearanceKey" TEXT NOT NULL DEFAULT 'simple',
+                "UpdatedAt" TEXT NOT NULL,
+                CONSTRAINT "FK_FactoryAppearanceStates_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
+            );
             """, cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS "BuildingStates" (
@@ -564,6 +574,17 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.HasOne(cat => cat.Player)
                 .WithMany()
                 .HasForeignKey(cat => cat.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlayerFactoryAppearanceState>(entity =>
+        {
+            entity.HasKey(state => state.PlayerId);
+            entity.Property(state => state.OwnedAppearanceIdsJson).HasColumnType("TEXT");
+            entity.Property(state => state.EquippedAppearanceKey).HasMaxLength(80).HasDefaultValue("simple");
+            entity.HasOne(state => state.Player)
+                .WithOne()
+                .HasForeignKey<PlayerFactoryAppearanceState>(state => state.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

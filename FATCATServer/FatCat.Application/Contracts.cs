@@ -178,6 +178,22 @@ public sealed record CatSkinUnlockResponse(
     double ResearchPointBalance,
     long ServerTime);
 
+public sealed record FactoryAppearanceCatalogItemDto(
+    string AppearanceId,
+    string Name,
+    string Description,
+    int RequiredFactoryLevel,
+    bool Owned,
+    bool CanUnlock,
+    bool Equipped);
+
+public sealed record FactoryAppearanceStateDto(
+    string EquippedAppearanceId,
+    IReadOnlyList<string> OwnedAppearanceIds,
+    int PlayerLevel,
+    IReadOnlyList<FactoryAppearanceCatalogItemDto> Catalog,
+    long ServerTime);
+
 public sealed record CatAssignmentRequest(string? BuildingId);
 
 public sealed record CatAssignmentResponse(

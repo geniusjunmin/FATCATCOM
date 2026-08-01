@@ -24,6 +24,12 @@ Updated: 2026-08-01
 
 ## Latest Visual Note
 
+- Factory appearances are now server-authoritative through `PlayerFactoryAppearanceState`, `FactoryAppearanceStateDto`, `/api/factory/appearances`, and `FactoryAppearanceManager`. Online UI must read server ownership/equip state; offline mode may use `featureState.factoryAppearanceId` as fallback only.
+- Unlock levels are fixed to simple 0, classic 30, steam 45, and future 60. Unlock automatically equips the appearance and mutations use `FactoryAppearanceGates`; preserve this concurrency boundary when adding rewards or costs.
+- Preserve `data-appearance-page="factory"` and the exact `title`, `preview`, `return`, `themes`, and `bonuses` zones. `check-factory-appearance-sync-contract.js`, `check-factory-appearance-online-ui.js`, and `capture-factory-appearance-regression.js` are the focused gates.
+- Next server task is to make the displayed appearance bonuses affect authoritative production/settlement. Do not calculate or submit those percentages from the client.
+- Current green evidence: Cocos scripts refresh, online snapshot/reload, four-size appearance regression, zero editor errors, full quick verify, and 106/106 tests.
+
 - Latest cat-subpage note: `.cat-grid` always carries `cat-tab-{id}` and `data-cat-tab`. Preserve `data-cat-subpanel="focus"`, `data-cat-subpanel="equipment"`, and the exact visible zones `info`, `upgrade`, `skill`, `equip`, and `skin`.
 - Upgrade/skill hide the equipment subpanel and own a full-width focus panel; equipment hides focus and owns a full-width equipment panel; skin keeps the existing full-width wardrobe. Information intentionally remains the only two-column skill/equipment overview.
 - Side tabs use exactly one `aria-current="page"`. Do not restore the persistent “已切换到…页” message: it obscured the story indefinitely. The click gate deliberately selects `.equipment-panel .equip-row .equip-slot:not(.locked)` because the old summary button is hidden in equipment mode.

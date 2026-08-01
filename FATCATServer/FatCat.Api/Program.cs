@@ -461,6 +461,41 @@ app.MapPost("/api/cats/{catId}/skins/{skinId}/unlock", async (
         : Results.Ok(ApiEnvelope<CatSkinUnlockResponse>.Success(result));
 });
 
+app.MapGet("/api/factory/appearances", async (
+    Guid playerId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.GetFactoryAppearanceStateAsync(playerId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<FactoryAppearanceStateDto>.Fail("factory_appearance_state_not_found"))
+        : Results.Ok(ApiEnvelope<FactoryAppearanceStateDto>.Success(result));
+});
+
+app.MapPost("/api/factory/appearances/{appearanceId}/unlock", async (
+    Guid playerId,
+    string appearanceId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.UnlockFactoryAppearanceAsync(playerId, appearanceId, cancellationToken);
+    return result is null
+        ? Results.BadRequest(ApiEnvelope<FactoryAppearanceStateDto>.Fail("factory_appearance_unlock_failed"))
+        : Results.Ok(ApiEnvelope<FactoryAppearanceStateDto>.Success(result));
+});
+
+app.MapPost("/api/factory/appearances/{appearanceId}/equip", async (
+    Guid playerId,
+    string appearanceId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.EquipFactoryAppearanceAsync(playerId, appearanceId, cancellationToken);
+    return result is null
+        ? Results.BadRequest(ApiEnvelope<FactoryAppearanceStateDto>.Fail("factory_appearance_equip_failed"))
+        : Results.Ok(ApiEnvelope<FactoryAppearanceStateDto>.Success(result));
+});
+
 app.MapPost("/api/cats/{catId}/assignment", async (
     Guid playerId,
     string catId,

@@ -212,6 +212,24 @@ export type CatSkinUnlockResponse = {
     serverTime: number;
 };
 
+export type FactoryAppearanceCatalogItemDto = {
+    appearanceId: string;
+    name: string;
+    description: string;
+    requiredFactoryLevel: number;
+    owned: boolean;
+    canUnlock: boolean;
+    equipped: boolean;
+};
+
+export type FactoryAppearanceStateDto = {
+    equippedAppearanceId: string;
+    ownedAppearanceIds: string[];
+    playerLevel: number;
+    catalog: FactoryAppearanceCatalogItemDto[];
+    serverTime: number;
+};
+
 export type CatAssignmentResponse = {
     catId: string;
     assignedBuildingId: string;

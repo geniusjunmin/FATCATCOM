@@ -555,6 +555,17 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         await dbContext.CatStates.AddAsync(cat, cancellationToken);
     }
 
+    public Task<PlayerFactoryAppearanceState?> GetFactoryAppearanceStateAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        return dbContext.FactoryAppearanceStates
+            .FirstOrDefaultAsync(state => state.PlayerId == playerId, cancellationToken);
+    }
+
+    public async Task AddFactoryAppearanceStateAsync(PlayerFactoryAppearanceState state, CancellationToken cancellationToken)
+    {
+        await dbContext.FactoryAppearanceStates.AddAsync(state, cancellationToken);
+    }
+
     public Task<PlayerBuildingState?> GetBuildingStateAsync(Guid playerId, string buildingKey, CancellationToken cancellationToken)
     {
         return dbContext.BuildingStates
