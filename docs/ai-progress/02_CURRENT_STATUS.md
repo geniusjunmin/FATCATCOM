@@ -7,7 +7,7 @@ Updated: 2026-08-01
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Compare cat upgrade, skill, equipment, and skin subpages against `猫咪详情页面.png`, then polish the largest visible secondary-tab gap. |
+| Best Next Move | Make factory-appearance ownership and equip state server-authoritative while preserving the completed target hierarchy and offline fallback. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -21,10 +21,14 @@ Updated: 2026-08-01
 | Economy Model | Covered | Production uses assignment, building level, equipment, research, skills, and mood. |
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
-| Biggest Gap | Visual fidelity | Main, cat information, core feature pages, and factory appearance now match the target hierarchy closely; remaining work is deeper cat tabs and secondary social surfaces. |
+| Biggest Gap | Online authority | Major target UI surfaces now have four-size coverage; factory appearance ownership/equip and several secondary progression states remain client-local. |
 | Biggest Risk | Frontend size | `BottomNavUI.ts` is roughly 226K characters after the friend presentation extractions, but still owns several utility and feature render adapters. |
 
 ## Client UI
+
+- Latest cat-subpage pass gives upgrade, skill, equipment, and skin dedicated full-width lower work areas while preserving the information tab's compact skill/equipment overview. Upgrade now exposes level progress, authoritative base-production/wage comparisons, next skill threshold, preview, and upgrade action; skill exposes current/next stages and its detail/level actions.
+- The cat grid now carries `data-cat-tab`, focus/equipment ownership markers, five exact `data-cat-tab-zone` values, and `aria-current` on the active side tab. Equipment uses the visible slot row as its primary entry; skin retains authoritative ownership, purchase, preview, and apply behavior.
+- Tab switching no longer leaves a permanent confirmation message over the story card. `capture-cat-regression.js` now captures information, upgrade, skill, equipment, and skin at all four supported sizes and guards full-width ownership, title gap, containment, visible zones, actions, art, and hidden toast state. Inspected 430x932 and 360x800 captures, 18/18 interactions, zero Cocos errors, full quick verify, and 104/104 tests pass.
 
 - Latest factory-appearance pass replaces the unsuitable tall default preview with generated `appearance_simple_square_v1.jpg`, a 768x768 six-floor cutaway composed specifically for the target's near-square preview stage. `UiAssetRegistry.ts` and the generated DOM Data URI bridge now resolve this asset for the simple theme.
 - The page now enters directly at a square artwork stage with an overlaid return arrow, followed by four theme cards and the attribute/action panel. The redundant visible title, outer close button, duplicate name toolbar, preview caption, and non-target archive block were removed while preserving selection, persistence, lock, and apply behavior.

@@ -113,6 +113,10 @@ Invoke-Step "Cat overlay presentation contract check" {
     node .\tools\check-cat-overlay-presentation-contract.js
 }
 
+Invoke-Step "Cat subpage hierarchy contract check" {
+    node .\tools\check-cat-subpage-hierarchy-contract.js
+}
+
 Invoke-Step "Cat skin art contract check" {
     node .\tools\check-cat-skin-art.js
 }

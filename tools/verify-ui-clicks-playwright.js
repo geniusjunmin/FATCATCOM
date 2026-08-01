@@ -56,7 +56,7 @@ async function visible(page, selector) {
 
     await page.click('#fatcat-dom-cat-overlay [data-action="tab"][data-tab="equip"]');
     await page.waitForTimeout(120);
-    await page.click('#fatcat-dom-cat-overlay [data-action="equipItem"]');
+    await page.click('#fatcat-dom-cat-overlay .equipment-panel .equip-row .equip-slot[data-action="equipItem"]:not(.locked)');
     await page.waitForTimeout(160);
     steps.push({
         step: "cat-equip-action",

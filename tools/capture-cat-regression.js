@@ -21,6 +21,60 @@ async function isVisible(page, selector) {
     }, selector);
 }
 
+async function captureCatTab(page, tab, file) {
+    await page.click(`#fatcat-dom-cat-overlay [data-action="tab"][data-tab="${tab}"]`);
+    await page.waitForTimeout(350);
+    await page.screenshot({ path: file, fullPage: false });
+    return page.evaluate(() => {
+        const grid = document.querySelector("#fatcat-dom-cat-overlay .cat-grid");
+        const focus = grid?.querySelector('[data-cat-subpanel="focus"]');
+        const equipment = grid?.querySelector('[data-cat-subpanel="equipment"]');
+        const visible = (element) => {
+            if (!element) return false;
+            const rect = element.getBoundingClientRect();
+            const style = getComputedStyle(element);
+            return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+        };
+        const primary = visible(focus) ? focus : visible(equipment) ? equipment : null;
+        const gridRect = grid?.getBoundingClientRect();
+        const primaryRect = primary?.getBoundingClientRect();
+        const primaryTitleRect = primary?.querySelector(":scope > b")?.getBoundingClientRect();
+        const primaryContentRect = Array.from(primary?.querySelectorAll("[data-cat-tab-zone]") ?? [])
+            .find(visible)
+            ?.getBoundingClientRect();
+        return {
+            tab: grid?.getAttribute("data-cat-tab") ?? "",
+            activeTab: document.querySelector("#fatcat-dom-cat-overlay .side-tab.active")?.getAttribute("data-tab") ?? "",
+            currentTabs: document.querySelectorAll('#fatcat-dom-cat-overlay .side-tab[aria-current="page"]').length,
+            visibleZones: Array.from(grid?.querySelectorAll("[data-cat-tab-zone]") ?? [])
+                .filter(visible)
+                .map(element => element.getAttribute("data-cat-tab-zone")),
+            focusVisible: visible(focus),
+            equipmentVisible: visible(equipment),
+            primaryWidthRatio: gridRect && primaryRect ? Math.round(primaryRect.width / gridRect.width * 1000) / 1000 : 0,
+            primaryContained: !!(gridRect && primaryRect
+                && primaryRect.left >= gridRect.left - 1
+                && primaryRect.right <= gridRect.right + 1),
+            subpanelTitleGap: primaryTitleRect && primaryContentRect
+                ? Math.round((primaryContentRect.top - primaryTitleRect.bottom) * 10) / 10
+                : null,
+            contentContained: !!(primaryRect && primaryContentRect
+                && primaryContentRect.left >= primaryRect.left - 1
+                && primaryContentRect.right <= primaryRect.right + 1
+                && primaryContentRect.top >= primaryRect.top - 1
+                && primaryContentRect.bottom <= primaryRect.bottom + 1),
+            upgradeEffects: grid?.querySelectorAll(".cat-upgrade-effects > span").length ?? 0,
+            upgradeActions: grid?.querySelectorAll(".cat-upgrade-actions button").length ?? 0,
+            skillStages: grid?.querySelectorAll(".cat-skill-next > span").length ?? 0,
+            skillActions: grid?.querySelectorAll(".cat-skill-actions button").length ?? 0,
+            equipSlots: grid?.querySelectorAll(".equip-row .equip-slot").length ?? 0,
+            equipPacks: grid?.querySelectorAll(".equip-bag .equip-pack").length ?? 0,
+            equipBagVisible: visible(grid?.querySelector(".equip-bag")),
+            tabMessageVisible: visible(document.querySelector("#fatcat-dom-cat-overlay .cat-msg")),
+        };
+    });
+}
+
 (async () => {
     fs.mkdirSync(outDir, { recursive: true });
     const browser = await chromium.launch({ executablePath: edgePath });
@@ -153,10 +207,12 @@ async function isVisible(page, selector) {
         state.overlayVisible = await isVisible(page, "#fatcat-dom-cat-overlay");
         state.storyVisible = await isVisible(page, "#fatcat-dom-cat-overlay .cat-story");
         state.storyButtonVisible = await isVisible(page, '#fatcat-dom-cat-overlay .story-button[data-action="storyWall"]');
-        await page.click('#fatcat-dom-cat-overlay [data-action="tab"][data-tab="equip"]');
-        await page.waitForTimeout(350);
+        const upgradeFile = path.join(outDir, `cat-upgrade-${width}x${height}-edge.png`);
+        const upgradeState = await captureCatTab(page, "upgrade", upgradeFile);
+        const skillFile = path.join(outDir, `cat-skill-${width}x${height}-edge.png`);
+        const skillState = await captureCatTab(page, "skill", skillFile);
         const equipFile = path.join(outDir, `cat-equip-${width}x${height}-edge.png`);
-        await page.screenshot({ path: equipFile, fullPage: false });
+        const equipTabState = await captureCatTab(page, "equip", equipFile);
         const equipState = {
             bagVisible: await isVisible(page, "#fatcat-dom-cat-overlay .equip-bag"),
             upgradeVisible: await isVisible(page, "#fatcat-dom-cat-overlay .equip-upgrade"),
@@ -174,6 +230,7 @@ async function isVisible(page, selector) {
         await page.waitForTimeout(250);
         const skinFile = path.join(outDir, `cat-skin-${width}x${height}-edge.png`);
         await page.screenshot({ path: skinFile, fullPage: false });
+        const skinTabState = await captureCatTab(page, "skin", skinFile);
         const skinState = await page.evaluate(() => ({
             wardrobeVisible: !!document.querySelector("#fatcat-dom-cat-overlay .skin-wardrobe"),
             skinCards: document.querySelectorAll("#fatcat-dom-cat-overlay .skin-card-target").length,
@@ -214,7 +271,7 @@ async function isVisible(page, selector) {
             equippedSkinId: document.querySelector("#fatcat-dom-cat-overlay .skin-card-target.equipped")?.getAttribute("data-skin-id") ?? "",
         }));
 
-        results.push({ size: `${width}x${height}`, file, equipFile, skinFile, messages, failedRequests, state, equipState, skinState, lockedSkinState });
+        results.push({ size: `${width}x${height}`, file, upgradeFile, skillFile, equipFile, skinFile, messages, failedRequests, state, upgradeState, skillState, equipTabState, equipState, skinTabState, skinState, lockedSkinState });
         await page.close();
     }
 
@@ -256,11 +313,66 @@ async function isVisible(page, selector) {
         || entry.state.embeddedEquipIconArt < 4
         || entry.state.recruitBadgeKey !== "recruit-badge-v1"
         || !entry.state.recruitBadgeEmbedded
+        || entry.upgradeState.tab !== "upgrade"
+        || entry.upgradeState.activeTab !== "upgrade"
+        || entry.upgradeState.currentTabs !== 1
+        || entry.upgradeState.visibleZones.join(",") !== "upgrade"
+        || !entry.upgradeState.focusVisible
+        || entry.upgradeState.equipmentVisible
+        || entry.upgradeState.primaryWidthRatio < 0.95
+        || !entry.upgradeState.primaryContained
+        || entry.upgradeState.subpanelTitleGap === null
+        || entry.upgradeState.subpanelTitleGap < -1
+        || !entry.upgradeState.contentContained
+        || entry.upgradeState.upgradeEffects !== 3
+        || entry.upgradeState.upgradeActions !== 2
+        || entry.upgradeState.tabMessageVisible
+        || entry.skillState.tab !== "skill"
+        || entry.skillState.activeTab !== "skill"
+        || entry.skillState.currentTabs !== 1
+        || entry.skillState.visibleZones.join(",") !== "skill"
+        || !entry.skillState.focusVisible
+        || entry.skillState.equipmentVisible
+        || entry.skillState.primaryWidthRatio < 0.95
+        || !entry.skillState.primaryContained
+        || entry.skillState.subpanelTitleGap === null
+        || entry.skillState.subpanelTitleGap < -1
+        || !entry.skillState.contentContained
+        || entry.skillState.skillStages !== 2
+        || entry.skillState.skillActions !== 2
+        || entry.skillState.tabMessageVisible
+        || entry.equipTabState.tab !== "equip"
+        || entry.equipTabState.activeTab !== "equip"
+        || entry.equipTabState.currentTabs !== 1
+        || entry.equipTabState.visibleZones.join(",") !== "equip"
+        || entry.equipTabState.focusVisible
+        || !entry.equipTabState.equipmentVisible
+        || entry.equipTabState.primaryWidthRatio < 0.95
+        || !entry.equipTabState.primaryContained
+        || entry.equipTabState.subpanelTitleGap === null
+        || entry.equipTabState.subpanelTitleGap < -1
+        || !entry.equipTabState.contentContained
+        || !entry.equipTabState.equipBagVisible
+        || entry.equipTabState.equipSlots !== 4
+        || entry.equipTabState.equipPacks < 2
+        || entry.equipTabState.tabMessageVisible
         || !entry.equipState.bagVisible
         || !entry.equipState.upgradeVisible
         || entry.equipState.packRarityBadges < 2
         || entry.equipState.packBonusPills < 2
         || entry.equipState.embeddedPackIconArt < 2
+        || entry.skinTabState.tab !== "skin"
+        || entry.skinTabState.activeTab !== "skin"
+        || entry.skinTabState.currentTabs !== 1
+        || entry.skinTabState.visibleZones.join(",") !== "skin"
+        || !entry.skinTabState.focusVisible
+        || entry.skinTabState.equipmentVisible
+        || entry.skinTabState.primaryWidthRatio < 0.95
+        || !entry.skinTabState.primaryContained
+        || entry.skinTabState.subpanelTitleGap === null
+        || entry.skinTabState.subpanelTitleGap < -1
+        || !entry.skinTabState.contentContained
+        || entry.skinTabState.tabMessageVisible
         || !entry.skinState.wardrobeVisible
         || entry.skinState.skinCards < 4
         || entry.skinState.selectedCards < 1

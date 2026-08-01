@@ -18,13 +18,21 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
-| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Signed player authentication, daily order/chest, and five-launch quota are authoritative; preserve these boundaries. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main/core features/appearance are aligned; next compare cat upgrade, skill, equipment, and skin tabs against `猫咪详情页面.png`. |
+| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Make factory-appearance ownership/equip authoritative next; signed auth, daily orders, and launch quota must remain intact. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main, cat five-tab flow, core features, and appearance now have guarded four-size target hierarchy; preserve it while server work advances. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
 | Code Health | P1 | Reduce frontend maintenance risk. | Friend cooperation/history/profile extraction is complete; later rounds can move the next cohesive utility renderer while retaining action ownership. |
 
 ## P0 Now
+
+### Completed: Cat Secondary Tab Hierarchy
+
+- Added explicit selected-tab, focus/equipment ownership, active accessibility, and five semantic zone markers to the cat lower work area.
+- Rebuilt upgrade as a full-width level/progression card using real base-production and wage values, and rebuilt skill as a full-width current/next-stage card with preserved detail and level actions.
+- Promoted equipment to a full-width visible slot/backpack/upgrade flow and retained the full-width authoritative skin wardrobe; the information tab alone keeps the compact two-panel overview.
+- Removed the permanent tab-switch message that obscured the story card and updated the click gate to enter equipment through a visible slot rather than a now-hidden summary action.
+- Expanded cat regression from three to five screen states at 414x896, 430x932, 360x800, and 768x1024, adding exact zone, width, title-gap, containment, action-count, and toast guards. Inspected narrow/standard captures, passed 18/18 clicks, zero editor errors, full quick verify, and 104/104 tests.
 
 ### Completed: Factory Appearance Target Alignment
 

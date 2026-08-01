@@ -1430,5 +1430,186 @@ export function getDomCatStyles(catWorkshopDataUri: string): string {
             #fatcat-dom-cat-overlay .cat-grid.skin-mode .skin-card-target {
                 min-height:70px;
             }
+
+            /* Secondary cat tabs own the full lower work area. The information
+               tab alone keeps the compact skill/equipment overview pairing. */
+            #fatcat-dom-cat-overlay .cat-grid.cat-tab-upgrade,
+            #fatcat-dom-cat-overlay .cat-grid.cat-tab-skill,
+            #fatcat-dom-cat-overlay .cat-grid.cat-tab-equip,
+            #fatcat-dom-cat-overlay.compact .cat-grid.cat-tab-upgrade,
+            #fatcat-dom-cat-overlay.compact .cat-grid.cat-tab-skill,
+            #fatcat-dom-cat-overlay.compact .cat-grid.cat-tab-equip,
+            #fatcat-dom-cat-overlay.tablet .cat-grid.cat-tab-upgrade,
+            #fatcat-dom-cat-overlay.tablet .cat-grid.cat-tab-skill,
+            #fatcat-dom-cat-overlay.tablet .cat-grid.cat-tab-equip {
+                grid-template-columns:minmax(0,1fr);
+            }
+            #fatcat-dom-cat-overlay .cat-grid.cat-tab-upgrade .equipment-panel,
+            #fatcat-dom-cat-overlay .cat-grid.cat-tab-skill .equipment-panel,
+            #fatcat-dom-cat-overlay .cat-grid.cat-tab-equip .focus-panel {
+                display:none;
+            }
+            #fatcat-dom-cat-overlay .cat-grid.cat-tab-upgrade .focus-panel,
+            #fatcat-dom-cat-overlay .cat-grid.cat-tab-skill .focus-panel,
+            #fatcat-dom-cat-overlay .cat-grid.cat-tab-equip .equipment-panel {
+                min-height:clamp(148px,42vw,196px);
+            }
+            #fatcat-dom-cat-overlay .cat-upgrade-target,
+            #fatcat-dom-cat-overlay .cat-skill-target {
+                display:grid;
+                grid-template-columns:22% minmax(0,1fr);
+                grid-template-rows:auto auto auto;
+                gap:3% 3.5%;
+                min-height:calc(100% - 26px);
+                padding:2.2%;
+                box-sizing:border-box;
+                border:1px solid rgba(117,76,38,.16);
+                border-radius:12px;
+                background:rgba(255,251,233,.58);
+                box-shadow:inset 0 0 0 2px rgba(255,255,255,.22);
+            }
+            #fatcat-dom-cat-overlay .cat-upgrade-medal,
+            #fatcat-dom-cat-overlay .cat-skill-medal {
+                display:block;
+                grid-row:1;
+                width:100%;
+                aspect-ratio:1;
+                border:3px solid #a36a22;
+                border-radius:13px;
+                background-color:#dca84e;
+                background-position:center;
+                background-repeat:no-repeat;
+                background-size:82%;
+                box-shadow:inset 0 0 0 3px rgba(255,224,113,.5),0 3px 0 rgba(79,45,18,.24),0 0 12px rgba(234,166,40,.2);
+            }
+            #fatcat-dom-cat-overlay .cat-upgrade-summary,
+            #fatcat-dom-cat-overlay .cat-skill-summary {
+                min-width:0;
+                color:#6c472c;
+            }
+            #fatcat-dom-cat-overlay .cat-upgrade-summary > small,
+            #fatcat-dom-cat-overlay .cat-skill-summary > small {
+                display:block;
+                color:#8a603d;
+                font-weight:900;
+            }
+            #fatcat-dom-cat-overlay .cat-upgrade-summary > strong,
+            #fatcat-dom-cat-overlay .cat-skill-summary > strong {
+                display:block;
+                margin-top:1%;
+                color:#482b19;
+                font-size:142%;
+                line-height:1.05;
+            }
+            #fatcat-dom-cat-overlay .cat-upgrade-summary strong em,
+            #fatcat-dom-cat-overlay .cat-skill-summary strong em {
+                color:#825b39;
+                font-size:68%;
+                font-style:normal;
+            }
+            #fatcat-dom-cat-overlay .cat-upgrade-summary p,
+            #fatcat-dom-cat-overlay .cat-skill-summary p {
+                margin:2% 0 0;
+                line-height:1.2;
+            }
+            #fatcat-dom-cat-overlay .cat-upgrade-summary .mini-progress {
+                height:10px;
+                margin:3% 0 0;
+            }
+            #fatcat-dom-cat-overlay .cat-upgrade-effects,
+            #fatcat-dom-cat-overlay .cat-skill-next {
+                grid-column:1 / 3;
+                display:grid;
+                align-items:stretch;
+                gap:1.5%;
+            }
+            #fatcat-dom-cat-overlay .cat-upgrade-effects {
+                grid-template-columns:repeat(3,minmax(0,1fr));
+            }
+            #fatcat-dom-cat-overlay .cat-upgrade-effects > span,
+            #fatcat-dom-cat-overlay .cat-skill-next > span {
+                display:flex;
+                min-width:0;
+                min-height:34px;
+                padding:2% 3%;
+                box-sizing:border-box;
+                border-radius:9px;
+                background:rgba(239,211,155,.48);
+                color:#765033;
+                flex-direction:column;
+                justify-content:center;
+                box-shadow:inset 0 0 0 1px rgba(110,72,38,.12);
+            }
+            #fatcat-dom-cat-overlay .cat-upgrade-effects small,
+            #fatcat-dom-cat-overlay .cat-skill-next small {
+                overflow:hidden;
+                text-overflow:ellipsis;
+                white-space:nowrap;
+            }
+            #fatcat-dom-cat-overlay .cat-upgrade-effects b,
+            #fatcat-dom-cat-overlay .cat-skill-next b { color:#4b2e1b; }
+            #fatcat-dom-cat-overlay .cat-upgrade-actions,
+            #fatcat-dom-cat-overlay .cat-skill-actions {
+                grid-column:1 / 3;
+                display:grid;
+                grid-template-columns:34% 1fr;
+                gap:3%;
+                width:74%;
+                justify-self:center;
+            }
+            #fatcat-dom-cat-overlay .cat-upgrade-actions .mini-action,
+            #fatcat-dom-cat-overlay .cat-skill-actions .mini-action {
+                width:100%;
+                min-width:0;
+                min-height:30px;
+                padding:2% 3%;
+            }
+            #fatcat-dom-cat-overlay .cat-upgrade-actions em {
+                margin-left:4%;
+                color:#fff3a5;
+                font-style:normal;
+            }
+            #fatcat-dom-cat-overlay .cat-skill-next {
+                position:relative;
+                grid-template-columns:1fr 8% 1fr;
+            }
+            #fatcat-dom-cat-overlay .cat-skill-next > i {
+                align-self:center;
+                color:#8a5b2c;
+                font-size:150%;
+                font-style:normal;
+                font-weight:900;
+                text-align:center;
+            }
+            #fatcat-dom-cat-overlay .cat-skill-next > em {
+                grid-column:1 / 4;
+                color:#7b5435;
+                font-style:normal;
+                text-align:center;
+            }
+            #fatcat-dom-cat-overlay .cat-grid.cat-tab-equip .equip-layout.detail-mode {
+                display:block;
+                height:auto;
+            }
+            #fatcat-dom-cat-overlay .cat-grid.cat-tab-equip .equip-layout.detail-mode .equip-row {
+                margin-top:0;
+            }
+            #fatcat-dom-cat-overlay .cat-grid.cat-tab-equip .equip-layout.detail-mode .equip-bag {
+                margin-top:0;
+            }
+            @media (max-width:390px) {
+                #fatcat-dom-cat-overlay.compact .cat-upgrade-target,
+                #fatcat-dom-cat-overlay.compact .cat-skill-target {
+                    grid-template-columns:20% minmax(0,1fr);
+                    gap:2% 3%;
+                    padding:1.8%;
+                }
+                #fatcat-dom-cat-overlay.compact .cat-upgrade-summary p,
+                #fatcat-dom-cat-overlay.compact .cat-skill-summary p { display:none; }
+                #fatcat-dom-cat-overlay.compact .cat-upgrade-effects > span,
+                #fatcat-dom-cat-overlay.compact .cat-skill-next > span { min-height:30px; }
+                #fatcat-dom-cat-overlay.compact .cat-upgrade-actions,
+                #fatcat-dom-cat-overlay.compact .cat-skill-actions { width:82%; }
+            }
         `;
 }

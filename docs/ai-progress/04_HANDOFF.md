@@ -24,6 +24,12 @@ Updated: 2026-08-01
 
 ## Latest Visual Note
 
+- Latest cat-subpage note: `.cat-grid` always carries `cat-tab-{id}` and `data-cat-tab`. Preserve `data-cat-subpanel="focus"`, `data-cat-subpanel="equipment"`, and the exact visible zones `info`, `upgrade`, `skill`, `equip`, and `skin`.
+- Upgrade/skill hide the equipment subpanel and own a full-width focus panel; equipment hides focus and owns a full-width equipment panel; skin keeps the existing full-width wardrobe. Information intentionally remains the only two-column skill/equipment overview.
+- Side tabs use exactly one `aria-current="page"`. Do not restore the persistent “已切换到…页” message: it obscured the story indefinitely. The click gate deliberately selects `.equipment-panel .equip-row .equip-slot:not(.locked)` because the old summary button is hidden in equipment mode.
+- `capture-cat-regression.js` now produces five states per viewport, including new `cat-upgrade-*` and `cat-skill-*` images. It guards exact visible zone, full-width ratio >= 0.95, non-negative title gap, content containment, action/card counts, no tab toast, and all prior equipment/skin authority behavior at four sizes.
+- Current green evidence: focused TypeScript, cat presentation/subpage contracts, inspected 430x932 and 360x800 five-tab captures, 18/18 UI clicks, zero Cocos errors, full quick verify, and 104/104 tests.
+
 - Latest factory-appearance note: `factory_appearances/appearance_simple_square_v1.jpg` is the default preview source. It was generated with the built-in image tool from `主页面.png` and `其他页面.png`, then resized to a 768x768 quality-92 JPEG. The required composition is one complete six-floor coffee factory, roof and ground visible, warm hand-painted rooms, blue sky, and village backdrop.
 - Preserve `data-appearance-page="factory"` and the exact zones `title`, `preview`, `return`, `themes`, and `bonuses`. The title is intentionally accessibility-only; the outer `.panel-close` is hidden in building `appearance` mode because `closeFactoryAppearance` is overlaid inside the preview stage.
 - The screenshot gate visits all four themes but reselects `simple` before capture. It requires a 0.98-1.02 stage aspect, embedded JPEG, return control inside the stage, four unique backgrounds, one selected/active card, three locked cards, return to building detail, and action clearance above nav at all four sizes.
