@@ -129,6 +129,13 @@ import {
     renderFriendRequestCard,
     renderFriendSearchCard,
 } from "./FriendSocialCards";
+import {
+    formatFriendCoopRewardLabel,
+    renderFriendBoostHistoryCard,
+    renderFriendCoopGoalCard,
+    renderFriendProfileMeta,
+    type FriendProfileMetaView,
+} from "./FriendCooperationCards";
 import { renderFriendVisitReportCard } from "./FriendVisitReportCard";
 import { renderSettingsAccountCard } from "./SettingsAccountCard";
 import { renderServerStatusCard } from "./SettingsStatusCard";
@@ -1322,7 +1329,7 @@ export class BottomNavUI extends Component {
             const response = await SyncManager.claimServerFriendCoopTier(id);
             success = response?.claimed === true;
             actionMessageOverride = success
-                ? `协作档位奖励已领取：${this.getFriendCoopRewardLabel(response?.rewardType ?? "", response?.rewardAmount ?? 0)}。`
+                ? `协作档位奖励已领取：${formatFriendCoopRewardLabel(response?.rewardType ?? "", response?.rewardAmount ?? 0, value => this.formatNumber(value))}。`
                 : response?.limitedReason === "already_claimed" ? "这个协作档位今天已经领取。" : "当前助力次数尚未达到该档位。";
         } else if (action === "addFriend") {
             const friendPlayerId = typeof window !== "undefined"
@@ -1664,6 +1671,32 @@ export class BottomNavUI extends Component {
         const playerHintNew = playerIdNew === "未连接" ? playerIdNew : `${playerIdNew.slice(0, 8)}...${playerIdNew.slice(-6)}`;
         const friendToolsNew = `<div class="friend-tools"><span>我的ID：${playerHintNew}</span><button class="tag" data-action="sendFriendRequest">发送申请</button><button class="tag warn" data-action="addFriend">直接添加</button></div>`;
         const maxIncome = Math.max(1, ...friends.map(friend => friend.income));
+        const coopGoalCard = renderFriendCoopGoalCard({
+            progress: coopGoal.progress,
+            target: coopGoal.target,
+            tiers: coopGoal.tiers.map(tier => ({
+                tierId: tier.tierId,
+                target: tier.target,
+                rewardText: formatFriendCoopRewardLabel(tier.rewardType, tier.rewardAmount, value => this.formatNumber(value)),
+                claimable: tier.claimable,
+                claimed: tier.claimed,
+            })),
+        });
+        const boostHistoryCard = renderFriendBoostHistoryCard({
+            activeBoostPercent: boostHistory.activeBoostPercent,
+            maxBoostPercent: boostHistory.maxBoostPercent,
+            activeContributionCount: boostHistory.activeContributionCount,
+            entries: boostHistory.entries.map(entry => {
+                const minutes = Math.max(0, Math.ceil((entry.expiresAt - Date.now()) / 60000));
+                return {
+                    sourceName: entry.sourceName,
+                    timeText: this.formatFriendReportTime(entry.createdAt),
+                    stateText: entry.active ? `剩余 ${minutes} 分钟` : "已结束",
+                    boostPercent: entry.boostPercent,
+                    active: entry.active,
+                };
+            }),
+        });
         if (!friends.some(friend => friend.id === this._selectedFriendSnapshotId)) {
             this._selectedFriendSnapshotId = friends[0]?.id ?? "";
         }
@@ -1678,7 +1711,7 @@ export class BottomNavUI extends Component {
                 name: friend.name,
                 level: friend.level,
                 incomeText: `${this.formatNumber(friend.income)}/秒`,
-                profileMarkup: this.renderFriendProfileMeta(friend),
+                profileMarkup: renderFriendProfileMeta(this.getFriendProfileMetaView(friend)),
                 incomePercent: width,
                 statusText: friend.status,
                 visitText: lastVisit ? `访问 ${lastVisit}` : "待访问",
@@ -1689,40 +1722,7 @@ export class BottomNavUI extends Component {
                 canHelp: !!friend.profile?.isRealPlayer,
             };
         }));
-        return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${this.renderFriendCoopGoalCard(coopGoal)}${this.renderFriendBoostHistoryCard(boostHistory)}${this.renderFriendVisitScene(friends)}${this.renderFriendVisitReport(friends)}${this.renderFriendFactoryDetail(friends)}${this.renderFriendSnapshotCard(friends, maxIncome)}${friendList}${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
-    }
-
-    private renderFriendCoopGoalCard(goal: ReturnType<typeof FriendCoopManager.getState>): string {
-        const percent = Math.max(0, Math.min(100, Math.floor(goal.progress / Math.max(1, goal.target) * 100)));
-        const claimedCount = goal.tiers.filter(tier => tier.claimed).length;
-        const claimableCount = goal.tiers.filter(tier => tier.claimable).length;
-        const state = claimableCount > 0 ? `${claimableCount} 档可领取` : claimedCount === goal.tiers.length ? "今日全部完成" : `还需 ${Math.max(0, goal.target - goal.progress)} 次助力`;
-        const tiers = goal.tiers.map(tier => {
-            const action = tier.claimed
-                ? `<button disabled>已领取</button>`
-                : tier.claimable
-                    ? `<button class="ready" data-action="${tier.tierId === "assist_3" ? "claimFriendCoopGoal" : "claimFriendCoopTier"}" data-id="${tier.tierId}">领取</button>`
-                    : `<button disabled>${goal.progress}/${tier.target}</button>`;
-            return `<div class="coop-tier ${tier.claimed ? "claimed" : tier.claimable ? "claimable" : "locked"}"><span>${tier.target} 次助力</span><b>${this.getFriendCoopRewardLabel(tier.rewardType, tier.rewardAmount)}</b>${action}</div>`;
-        }).join("");
-        return `<div class="friend-coop-card ${claimableCount > 0 ? "ready" : ""}"><div class="coop-icon">协</div><div class="coop-copy"><b>每日好友协作</b><em>真实好友助力逐档解锁，进度每日重置。</em><div class="coop-meter"><i style="width:${percent}%"></i></div><span>${goal.progress}/${goal.target} · ${state}</span></div><div class="coop-tiers">${tiers}</div></div>`;
-    }
-
-    private getFriendCoopRewardLabel(rewardType: string, rewardAmount: number): string {
-        const label = rewardType === "diamond" ? "钻石" : rewardType === "researchPoint" ? "研究点" : "金币";
-        return `${label} +${this.formatNumber(rewardAmount)}`;
-    }
-
-    private renderFriendBoostHistoryCard(history: ReturnType<typeof FriendBoostManager.getHistory>): string {
-        const entries = history.entries.slice(0, 6);
-        const rows = entries.length > 0
-            ? entries.map(entry => {
-                const minutes = Math.max(0, Math.ceil((entry.expiresAt - Date.now()) / 60000));
-                const state = entry.active ? `剩余 ${minutes} 分钟` : "已结束";
-                return `<div class="boost-history-row ${entry.active ? "active" : "expired"}"><span class="boost-source-avatar">${entry.sourceName.slice(0, 1)}</span><div><b>${entry.sourceName}</b><em>${this.formatFriendReportTime(entry.createdAt)} · ${state}</em></div><strong>+${entry.boostPercent}%</strong></div>`;
-            }).join("")
-            : `<div class="boost-history-empty">尚无好友助力记录，邀请真实好友为工厂接力。</div>`;
-        return `<section class="friend-boost-history"><div class="boost-history-head"><div><b>助力接力记录</b><span>每次 +10%，当前最多叠加 ${history.maxBoostPercent}%</span></div><strong>${history.activeBoostPercent}%<small>${history.activeContributionCount} 人生效</small></strong></div><div class="boost-history-list">${rows}</div></section>`;
+        return `<div class="panel-shell utility-shell friends-shell"><h2>好友</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("friend")}')"></span><div><b>好友工厂</b><br>${sourceLabelNew}：访问、送礼和好友申请会同步到 .NET 服务端。</div><span class="feature-badge ${pendingRequests > 0 ? "alert" : ""}">申请<br>${pendingRequests}</span></div>${friendToolsNew}${this.renderFriendSearchCard()}<div class="feature-mini"><span>好友<b>${friends.length}</b></span><span>待处理<b>${pendingRequests}</b></span><span>已发送<b>${sentPending}</b></span></div>${coopGoalCard}${boostHistoryCard}${this.renderFriendVisitScene(friends)}${this.renderFriendVisitReport(friends)}${this.renderFriendFactoryDetail(friends)}${this.renderFriendSnapshotCard(friends, maxIncome)}${friendList}${this.renderFriendRequestPreview()}${this.renderLeaderboardPreview()}${this.renderFriendActivityPreview()}</div>`;
     }
 
     private renderFriendSnapshotCard(friends: FriendPanelRow[], maxIncome: number): string {
@@ -1738,7 +1738,7 @@ export class BottomNavUI extends Component {
             friendLevel: selected.level,
             friendIncomeText: `${this.formatNumber(selected.income)}/秒`,
             friendStatus: selected.status,
-            profileMarkup: this.renderFriendProfileMeta(selected),
+            profileMarkup: renderFriendProfileMeta(this.getFriendProfileMetaView(selected)),
             canHelp: !!selected.profile?.isRealPlayer,
             incomePercent: width,
             rewardText: `+${this.formatNumber(rewardPreview)}金币`,
@@ -1786,7 +1786,7 @@ export class BottomNavUI extends Component {
             friendLevel: friend.level,
             friendIncomeText: `${this.formatNumber(friend.income)}/秒`,
             friendStatus: friend.status,
-            profileMarkup: this.renderFriendProfileMeta(friend),
+            profileMarkup: renderFriendProfileMeta(this.getFriendProfileMetaView(friend)),
             canHelp: !!friend.profile?.isRealPlayer,
             sourceText: source,
             topFloorText: topRoom?.floor ?? "--",
@@ -1815,7 +1815,7 @@ export class BottomNavUI extends Component {
             friendLevel: friend.level,
             friendIncomeText: `${this.formatNumber(friend.income)}/秒`,
             friendStatus: friend.status,
-            profileMarkup: this.renderFriendProfileMeta(friend),
+            profileMarkup: renderFriendProfileMeta(this.getFriendProfileMetaView(friend)),
             canHelp: !!friend.profile?.isRealPlayer,
             backdropArt: this.getDomAssetDataUri(GeneratedBackgroundAssets.friendFactoryVisit),
             mascotArt: this.getCatFullArtAsset("c_001"),
@@ -1830,10 +1830,15 @@ export class BottomNavUI extends Component {
         });
     }
 
-    private renderFriendProfileMeta(friend: FriendPanelRow): string {
+    private getFriendProfileMetaView(friend: FriendPanelRow): FriendProfileMetaView {
         const profile = friend.profile;
         if (!profile) {
-            return `<div class="friend-profile-meta system-player"><span>系统好友</span><span class="presence-state system">常驻</span><span>本地数据</span></div>`;
+            return {
+                isRealPlayer: false,
+                presenceStatus: "system",
+                presenceText: "常驻",
+                details: ["本地数据"],
+            };
         }
         const presenceStatus = profile.isRealPlayer
             ? this.getFriendPresenceStatus(profile)
@@ -1845,7 +1850,12 @@ export class BottomNavUI extends Component {
             system: "系统好友",
         };
         const invite = profile.inviteCode || "无邀请码";
-        return `<div class="friend-profile-meta ${profile.isRealPlayer ? "real-player" : "system-player"}"><span>${profile.isRealPlayer ? "真人好友" : "系统好友"}</span><span class="presence-state ${presenceStatus}">${presenceLabels[presenceStatus]}</span><span>猫 ${profile.unlockedCatCount}</span><span>建筑 Lv.${profile.totalBuildingLevel}</span><span>${invite}</span></div>`;
+        return {
+            isRealPlayer: profile.isRealPlayer,
+            presenceStatus,
+            presenceText: presenceLabels[presenceStatus],
+            details: [`猫 ${profile.unlockedCatCount}`, `建筑 Lv.${profile.totalBuildingLevel}`, invite],
+        };
     }
 
     private getFriendPresenceStatus(profile: FriendProfileDto): "online" | "recent" | "offline" | "system" {

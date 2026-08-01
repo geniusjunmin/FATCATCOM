@@ -222,6 +222,10 @@ Invoke-Step "Friend social cards contract check" {
     node .\tools\check-friend-social-cards-contract.js
 }
 
+Invoke-Step "Friend cooperation cards contract check" {
+    node .\tools\check-friend-cooperation-cards-contract.js
+}
+
 Invoke-Step "Leaderboard contract check" {
     node .\tools\check-leaderboard-contract.js
 }

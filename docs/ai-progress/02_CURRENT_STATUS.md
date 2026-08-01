@@ -7,7 +7,7 @@ Updated: 2026-08-01
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Extract the remaining friend cooperation/history/profile render adapters from `BottomNavUI.ts`, then polish the next largest secondary-panel gap against the root references. |
+| Best Next Move | Compare building, shop, inventory, and research panels against `其他页面.png`, then polish the largest visible secondary-panel gap. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -22,9 +22,13 @@ Updated: 2026-08-01
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
 | Biggest Gap | Visual fidelity | Main factory and cat-detail first screens now match the target hierarchy closely; remaining work is richer secondary social and feature-panel surfaces. |
-| Biggest Risk | Frontend size | `BottomNavUI.ts` is down to roughly 224K characters after extracting friend factory and social cards, but still owns too many feature render adapters. |
+| Biggest Risk | Frontend size | `BottomNavUI.ts` is roughly 226K characters after the friend presentation extractions, but still owns several utility and feature render adapters. |
 
 ## Client UI
+
+- Latest code-health pass extracts daily cooperation tiers, boost-history rows, and friend profile/presence badges into `FriendCooperationCards.ts`. The helper accepts typed view models, owns dynamic-text escaping, and preserves the final-goal/tier claim actions plus real/system presence classes.
+- `BottomNavUI.ts` remains the Manager/DTO adapter: it calculates time-relative history state, maps authoritative rewards, resolves presence, and supplies the pure renderer. Stable `data-cooperation-card`, `data-coop-tier`, and `data-profile-kind` markers make the boundary visible to four-size regression.
+- The dedicated extraction contract plus updated cooperation, history, real-friend, and presence contracts prevent renderer ownership from returning to the controller. Cocos reimport/refresh, four inspected utility screenshots, 18-step navigation, zero editor errors, full quick verify, and 104/104 tests pass.
 
 - Latest main-factory hierarchy pass marks eight stable first-screen zones across player identity, resources, roof, floors, side tools, operations, and navigation. The six floor cards now expose ordered floor indexes, each production card exposes scene/rate/label/value roles, and all four bottom operations have stable semantic markers.
 - `HudPresentation.ts`, `FactoryOverlayPresentation.ts`, and `NavPresentation.ts` sharpen the target-like medal/resource hierarchy, riveted roof sign, floor labels, dark production cards, operation strip, and compact bottom navigation without obscuring the 852px six-floor source art. The long `咖啡豆消耗` label now caps at 8px because 768px browser viewports still use the centered compact game canvas.

@@ -24,6 +24,10 @@ Updated: 2026-08-01
 
 ## Latest Visual Note
 
+- Latest social code-health note: `FriendCooperationCards.ts` now owns the daily cooperation card, boost-history card, profile metadata badges, and reward-label presentation. Keep Manager/DTO reads and relative-time/presence adaptation in `BottomNavUI.ts`.
+- Preserve exactly two `data-cooperation-card` values (`daily-goal`, `boost-history`), three `data-coop-tier` nodes, and one `data-profile-kind` marker per `.friend-profile-meta`. Dynamic friend names, invite codes, and history text must continue through the helper's escaping path.
+- `check-friend-cooperation-cards-contract.js` guards the extraction boundary and runs in quick verify. Current green evidence: Cocos reimport/refresh, four inspected utility screenshots, 18/18 UI click steps, zero Cocos errors, full quick verify, and 104/104 tests.
+
 - Latest main-factory note: preserve the eight `data-main-zone` values, `data-floor-index="0..5"`, six `data-bonus-scene` values, and the four `data-operation` markers. They define the target first-screen hierarchy independently of decorative CSS.
 - Main responsive sizing follows the centered game canvas, not the outer browser width. At a 768x1024 browser viewport the factory root is still `compact tall`; narrow production-label typography must therefore keep a bounded pixel maximum. The `咖啡豆消耗` label currently caps at 8px and all child text fits.
 - `capture-main-regression.js` records root classes and the longest production label's computed style in addition to geometry and interaction checks. Current green evidence: four inspected main screenshots, 24/24 floor-detail routes, 18/18 UI click steps, zero Cocos errors, full quick verify, and 104/104 server tests.

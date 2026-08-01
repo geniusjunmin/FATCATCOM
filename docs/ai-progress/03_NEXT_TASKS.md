@@ -19,12 +19,20 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
 | Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Signed player authentication, daily order/chest, and five-launch quota are authoritative; preserve these boundaries. |
-| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Equipment/recruit bitmap thumbnails are complete; next preserve geometry while doing final main/cat micro-alignment or richer social/visit UI polish. |
+| UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main/cat first screens are aligned; next compare building, shop, inventory, and research against `其他页面.png`. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
-| Code Health | P1 | Reduce frontend maintenance risk. | Shared presentation plus panel/factory/cat overlay CSS extractions are done; continue by extracting cohesive render responsibilities from `BottomNavUI.ts` while retaining action ownership. |
+| Code Health | P1 | Reduce frontend maintenance risk. | Friend cooperation/history/profile extraction is complete; later rounds can move the next cohesive utility renderer while retaining action ownership. |
 
 ## P0 Now
+
+### Completed: Friend Cooperation Card Extraction
+
+- Added `FriendCooperationCards.ts` with typed view models for the daily three-tier cooperation goal, boost-contribution history, and real/system friend profile badges.
+- Kept network/Manager reads, presence resolution, relative-time calculation, and resource formatting in `BottomNavUI.ts`; moved only pure markup, bounded number display, and dynamic-text escaping.
+- Preserved `claimFriendCoopGoal` and `claimFriendCoopTier` actions while adding stable cooperation, tier, and profile markers.
+- Updated four existing social contracts, added a dedicated extraction-boundary contract to quick verify, and extended utility regression with exact card/profile marker checks.
+- Reimported/refreshed Cocos assets, inspected all four friend screenshots, passed 18 UI click steps, zero Cocos errors, full quick verify, and 104/104 tests.
 
 ### Completed: Main Factory First-Screen Hierarchy Alignment
 

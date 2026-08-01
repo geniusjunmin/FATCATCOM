@@ -24,6 +24,7 @@ const boostManager = read("FATCATUI/assets/scripts/manager/FriendBoostManager.ts
 const eventBus = read("FATCATUI/assets/scripts/core/EventBus.ts");
 const syncManager = read("FATCATUI/assets/scripts/manager/SyncManager.ts");
 const bottomNav = read("FATCATUI/assets/scripts/ui/BottomNavUI.ts");
+const cooperationCards = read("FATCATUI/assets/scripts/ui/FriendCooperationCards.ts");
 const factoryStyles = read("FATCATUI/assets/scripts/ui/FactoryOverlayPresentation.ts");
 const panelStyles = read("FATCATUI/assets/scripts/ui/PanelPresentation.ts");
 const serviceTests = read("FATCATServer/FatCat.Tests/FatCatGameServiceTests.cs");
@@ -42,7 +43,8 @@ requireText("client history API", apiClient, "getFriendBoostHistory");
 requireText("clock normalized history", boostManager, "applyHistory");
 requireText("history changed event", eventBus, "FRIEND_BOOST_HISTORY_CHANGED");
 requireText("login and SSE refresh", syncManager, "fetchServerFriendBoostHistory");
-requireText("friend history card", bottomNav, "renderFriendBoostHistoryCard");
+requireText("friend history card delegation", bottomNav, "renderFriendBoostHistoryCard({");
+requireText("friend history card renderer", cooperationCards, "export function renderFriendBoostHistoryCard");
 requireText("factory source chips", bottomNav, "boost-sources");
 requireText("compact factory sources", factoryStyles, ".boost-sources i:nth-child(n+3)");
 requireText("responsive history rows", panelStyles, ".boost-history-row");

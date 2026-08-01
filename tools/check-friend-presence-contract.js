@@ -23,6 +23,7 @@ const apiTypes = read("FATCATUI/assets/scripts/net/ApiTypes.ts");
 const apiClient = read("FATCATUI/assets/scripts/net/ApiClient.ts");
 const syncManager = read("FATCATUI/assets/scripts/manager/SyncManager.ts");
 const bottomNav = read("FATCATUI/assets/scripts/ui/BottomNavUI.ts");
+const cooperationCards = read("FATCATUI/assets/scripts/ui/FriendCooperationCards.ts");
 const panelStyles = read("FATCATUI/assets/scripts/ui/PanelPresentation.ts");
 const serviceTests = read("FATCATServer/FatCat.Tests/FatCatGameServiceTests.cs");
 const apiTests = read("FATCATServer/FatCat.Tests/FatCatApiTests.cs");
@@ -45,7 +46,8 @@ requireText("global heartbeat throttle", syncManager, "Date.now() - this._lastPr
 requireText("heartbeat cache player scope", syncManager, "_lastPresencePlayerId === NetworkManager.playerId");
 requireText("45 second heartbeat", bottomNav, "now + 45000");
 requireText("30 second friend refresh", bottomNav, "now + 30000");
-requireText("presence state rendering", bottomNav, "presence-state ${presenceStatus}");
+requireText("presence view-model adapter", bottomNav, "getFriendPresenceStatus(profile)");
+requireText("presence state rendering", cooperationCards, "presence-state ${view.presenceStatus}");
 requireText("online presence style", panelStyles, ".presence-state.online");
 requireText("recent presence style", panelStyles, ".presence-state.recent");
 requireText("offline presence style", panelStyles, ".presence-state.offline");
