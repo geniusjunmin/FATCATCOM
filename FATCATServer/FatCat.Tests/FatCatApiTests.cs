@@ -51,6 +51,7 @@ public sealed class FatCatApiTests
             "/api/mail",
             "/api/save",
             "/api/daily-order",
+            "/api/achievements",
             "/api/factory/appearances",
         };
         foreach (var path in privatePaths)
@@ -1856,6 +1857,9 @@ public sealed class FatCatApiTests
         Assert.Equal("already_claimed", second.GetProperty("limitedReason").GetString());
         Assert.Equal(first.GetProperty("coinBalance").GetDouble(), second.GetProperty("coinBalance").GetDouble());
         Assert.Equal(first.GetProperty("researchPointBalance").GetDouble(), second.GetProperty("researchPointBalance").GetDouble());
+        Assert.Equal(400, first.GetProperty("experienceGained").GetInt32());
+        Assert.Equal(3060, first.GetProperty("playerProgression").GetProperty("exp").GetInt32());
+        Assert.Equal(400, first.GetProperty("order").GetProperty("rewardExperience").GetInt32());
     }
 
     [Fact]
@@ -1898,6 +1902,66 @@ public sealed class FatCatApiTests
         Assert.Equal(210, resources.GetProperty("researchPoint").GetDouble());
         Assert.Single(transactions.EnumerateArray(), transaction =>
             transaction.GetProperty("sourceType").GetString() == "daily_order_claim");
+    }
+
+    [Fact]
+    public async Task Achievement_ConcurrentClaimsGrantExperienceAndLevelRewardExactlyOnce()
+    {
+        await using var factory = new FatCatApiFactory();
+        var client = factory.CreateClient();
+        var authResponse = await client.PostAsJsonAsync("/api/auth/guest", new
+        {
+            deviceId = "api-achievement-race-device",
+            companyName = "Achievement Cafe",
+        });
+        var playerId = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync())
+            .RootElement.GetProperty("data").GetProperty("playerId").GetGuid();
+
+        var initialResponse = await client.GetAsync($"/api/achievements?playerId={playerId}");
+        var initial = JsonDocument.Parse(await initialResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
+        Assert.Equal(1, initial.GetArrayLength());
+        Assert.Equal(1, initial[0].GetProperty("progress").GetInt32());
+        Assert.False(initial[0].GetProperty("claimable").GetBoolean());
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<FatCatDbContext>();
+            foreach (var cat in db.CatStates.Where(cat => cat.PlayerId == playerId))
+            {
+                cat.IsUnlocked = true;
+            }
+            await db.SaveChangesAsync();
+        }
+
+        var responses = await Task.WhenAll(
+            client.PostAsJsonAsync($"/api/achievements/task_ach_1/claim?playerId={playerId}", new { }),
+            client.PostAsJsonAsync($"/api/achievements/task_ach_1/claim?playerId={playerId}", new { }));
+        var results = await Task.WhenAll(responses.Select(async response =>
+            JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("data")));
+        var playerResponse = await client.GetAsync($"/api/player/me?playerId={playerId}");
+        var player = JsonDocument.Parse(await playerResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var resourcesResponse = await client.GetAsync($"/api/resources?playerId={playerId}");
+        var resources = JsonDocument.Parse(await resourcesResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+        var transactionsResponse = await client.GetAsync($"/api/resources/transactions?playerId={playerId}&limit=10");
+        var transactions = JsonDocument.Parse(await transactionsResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("data");
+
+        Assert.All(responses, response => Assert.Equal(HttpStatusCode.OK, response.StatusCode));
+        var claimed = Assert.Single(results, result => result.GetProperty("claimed").GetBoolean());
+        Assert.Single(results, result => !result.GetProperty("claimed").GetBoolean());
+        Assert.Equal(800, claimed.GetProperty("experienceGained").GetInt32());
+        Assert.Equal(29, claimed.GetProperty("playerProgression").GetProperty("level").GetInt32());
+        Assert.Equal(160, claimed.GetProperty("playerProgression").GetProperty("exp").GetInt32());
+        Assert.Equal(5_000, claimed.GetProperty("levelUpReward").GetProperty("coin").GetInt32());
+        Assert.Equal(29, player.GetProperty("level").GetInt32());
+        Assert.Equal(160, player.GetProperty("exp").GetInt32());
+        Assert.Equal(12_455_000, resources.GetProperty("coin").GetDouble());
+        Assert.Equal(2_585, resources.GetProperty("diamond").GetDouble());
+        Assert.Equal(420, resources.GetProperty("researchPoint").GetDouble());
+        var transaction = Assert.Single(transactions.EnumerateArray(), item =>
+            item.GetProperty("sourceType").GetString() == "achievement_claim");
+        Assert.Equal(800, transaction.GetProperty("experienceDelta").GetInt32());
+        Assert.Equal(29, transaction.GetProperty("playerProgression").GetProperty("level").GetInt32());
     }
 
     [Fact]

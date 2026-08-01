@@ -483,6 +483,47 @@ public sealed class EfFatCatRepository(FatCatDbContext dbContext) : IFatCatRepos
         return true;
     }
 
+    public Task<List<PlayerAchievementClaim>> GetAchievementClaimsAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        return dbContext.AchievementClaims
+            .Where(claim => claim.PlayerId == playerId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> TryAddAchievementClaimAsync(
+        Guid playerId,
+        string achievementKey,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        if (dbContext.Database.IsSqlite())
+        {
+            var id = Guid.NewGuid();
+            var inserted = await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO "AchievementClaims" ("Id", "PlayerId", "AchievementKey", "ClaimedAt")
+                VALUES ({id}, {playerId}, {achievementKey}, {now})
+                ON CONFLICT ("PlayerId", "AchievementKey") DO NOTHING;
+                """, cancellationToken);
+            return inserted == 1;
+        }
+
+        if (await dbContext.AchievementClaims.AnyAsync(
+            claim => claim.PlayerId == playerId && claim.AchievementKey == achievementKey,
+            cancellationToken))
+        {
+            return false;
+        }
+
+        await dbContext.AchievementClaims.AddAsync(new PlayerAchievementClaim
+        {
+            PlayerId = playerId,
+            AchievementKey = achievementKey,
+            ClaimedAt = now,
+        }, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     public Task<PlayerSettings?> GetSettingsAsync(Guid playerId, CancellationToken cancellationToken)
     {
         return dbContext.PlayerSettings.FirstOrDefaultAsync(settings => settings.PlayerId == playerId, cancellationToken);

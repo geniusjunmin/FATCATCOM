@@ -35,6 +35,15 @@ export type PlayerProgressionDto = {
     levelCap: number;
 };
 
+export type LevelUpRewardDto = {
+    fromLevel: number;
+    toLevel: number;
+    levelsGained: number;
+    coin: number;
+    diamond: number;
+    researchPoint: number;
+};
+
 export type SaveSyncRequest = {
     clientVersion: number;
     localUpdatedAt: number;
@@ -64,6 +73,7 @@ export type DailyOrderDto = {
     claimed: boolean;
     rewardCoin: number;
     rewardResearchPoint: number;
+    rewardExperience: number;
     launchesUsed: number;
     launchLimit: number;
     launchesRemaining: number;
@@ -80,6 +90,38 @@ export type DailyOrderClaimResponse = {
     diamondBalance: number;
     researchPointBalance: number;
     limitedReason?: string | null;
+    experienceGained: number;
+    playerProgression?: PlayerProgressionDto;
+    levelUpReward?: LevelUpRewardDto;
+};
+
+export type AchievementDto = {
+    id: string;
+    name: string;
+    description: string;
+    goalType: string;
+    progress: number;
+    target: number;
+    claimable: boolean;
+    claimed: boolean;
+    rewardCoin: number;
+    rewardDiamond: number;
+    rewardResearchPoint: number;
+    rewardExperience: number;
+};
+
+export type AchievementClaimResponse = {
+    claimed: boolean;
+    achievement: AchievementDto;
+    coinBalance: number;
+    beanBalance: number;
+    catFoodBalance: number;
+    diamondBalance: number;
+    researchPointBalance: number;
+    limitedReason?: string | null;
+    experienceGained: number;
+    playerProgression?: PlayerProgressionDto;
+    levelUpReward?: LevelUpRewardDto;
 };
 
 export type MailDto = {
@@ -696,6 +738,7 @@ export type LaunchResponse = {
     modifierSources?: ProductionModifierSourceDto[];
     experienceGained: number;
     playerProgression?: PlayerProgressionDto;
+    levelUpReward?: LevelUpRewardDto;
 };
 
 export type BootstrapDto = {

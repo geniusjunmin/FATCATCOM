@@ -50,7 +50,7 @@ assertContains("client player DTO", apiTypes, "export type PlayerDto");
 assertContains("client progression DTO", apiTypes, "export type PlayerProgressionDto");
 assertContains("client player API", apiClient, "getPlayer(playerId: string)");
 assertContains("login player fetch", sync, "await this.fetchServerPlayer()");
-assertContains("launch progression apply", sync, "applyServerProgression(response.data.playerProgression)");
+assertContains("launch progression apply", sync, "applyProgressionResponse(response.data.playerProgression)");
 assertContains("progression event publication", sync, "GameEvents.PLAYER_PROGRESSION_CHANGED");
 assertContains("progression event contract", eventBus, 'PLAYER_PROGRESSION_CHANGED: "player-progression:changed"');
 assertContains("level unlock refresh", sync, "void this.fetchServerFactoryAppearanceState()");

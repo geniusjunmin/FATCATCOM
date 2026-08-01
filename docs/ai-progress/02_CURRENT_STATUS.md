@@ -7,7 +7,7 @@ Updated: 2026-08-01
 | Item | Current Truth |
 | --- | --- |
 | Project Mode | UI fidelity push plus server-authoritative economy hardening. |
-| Best Next Move | Expand authoritative experience sources to daily orders and achievements, then add explicit level-up rewards and feedback. |
+| Best Next Move | Make inventory ownership server-authoritative so achievement and task rewards can grant real items without client-only state. |
 | Safe Baseline | `tools/quick-verify.ps1` is green at the latest recorded checkpoint. |
 | Must Preserve | Offline fallback, online resource authority, Cocos asset refresh after frontend edits, four-size mobile layout discipline. |
 | Watch Closely | `BottomNavUI.ts` size, z-index on cat roster, HUD overflow on narrow screens, API port conflicts, and query-string player identity. |
@@ -21,14 +21,16 @@ Updated: 2026-08-01
 | Economy Model | Covered | Production uses assignment, building level, equipment, research, skills, mood, and the equipped factory appearance. |
 | Config Safety | Guarded | Server balance is generated from client config and checked for drift plus effect coverage. |
 | Verification | Green | `tools/quick-verify.ps1` and targeted online/UI scripts are the current gates. |
-| Biggest Gap | Progression rewards | Launches now advance authoritative level/experience, but orders, achievements, and level-up reward grants are not connected yet. |
+| Biggest Gap | Inventory reward authority | Currency and progression rewards are authoritative, but general item ownership and item-pack rewards still live only in the client save. |
 | Biggest Risk | Frontend size | `BottomNavUI.ts` is roughly 226K characters after the friend presentation extractions, but still owns several utility and feature render adapters. |
 
 ## Client UI
 
-- Player progression is now server-authoritative. `PlayerProgressionRules` owns the level-28 target default, level-60 cap, `400 + level * 100` threshold curve, and launch experience rate; accepted non-replayed launches award experience while replayed request ids return their original progression snapshot.
-- `GET /api/player/me` and launch responses expose level, experience, current threshold, cap, and level-up deltas. Runtime SQLite migration preserves old profiles and launch records; the client caches the player snapshot, mirrors it into `SaveManager`, emits `PLAYER_PROGRESSION_CHANGED`, redraws native/DOM HUDs, and refreshes appearance unlocks after a level change.
-- Verification: focused TypeScript, progression/HUD contracts, online launch progression (`2560 -> 2810` for a ten-second launch), four-size 414x896/430x932/360x800/768x1024 main regression, 18/18 UI clicks, full quick verify, and 115/115 server tests pass.
+- Player progression and its first three experience sources are now server-authoritative. `PlayerProgressionRules` owns the level-28 target default, level-60 cap, `400 + level * 100` threshold curve, launch experience, daily-order `400 EXP`, and achievement `800 EXP`.
+- Every crossed level automatically grants `5000` coin, `5` diamonds, and `20` research points. `RewardedThroughLevel` is persisted and migrated without retroactive legacy grants; launch records and resource transactions snapshot experience, post-action progression, and level rewards so replay and reconnect cannot duplicate or rewrite the result.
+- `task_ach_1` is the first persistent server achievement. `GET /api/achievements` and `POST /api/achievements/{achievementId}/claim` expose five-cat progress, an atomic one-time claim, `200` research points, and progression reward evidence. Launch, daily-order, and achievement mutations share `PlayerProgressionGates` per player.
+- `SyncManager` caches server achievements, applies authoritative balances/progression after claims, emits `ACHIEVEMENTS_CHANGED`, and keeps the existing offline task fallback. The achievement panel exposes authority/count/claimable markers and reports crossed levels plus bonus currencies immediately in the HUD.
+- Verification: focused TypeScript, clean Cocos editor errors, progression/reward contracts, online launch and achievement claims, inspected achievement screenshots, four-size 414x896/430x932/360x800/768x1024 main and utility regressions, 18/18 UI clicks, full quick verify, and 120/120 server tests pass.
 
 - Equipped factory appearances now affect authoritative production preview and launch settlement. The server owns all four bonus catalogs; simple applies gross `+10%`, wage `-5%`, classic gross `+8%`, steam gross `+22%` plus bean cost `-6%`, and future gross `+27%`. Bonuses for systems not yet represented in production remain catalog-only and are marked `productionEffective=false`.
 - `ProductionModifierSourceDto` explains the active appearance contribution in previews and launch responses. Launch records snapshot the equipped appearance id and serialized modifier sources, so an idempotent replay still reports the original settlement after the player switches themes. The client renders server bonus DTOs online and includes the appearance name in launch feedback.
@@ -147,7 +149,7 @@ Updated: 2026-08-01
 - Verification: auth contract, real API smoke, daily launch browser flow, real friend flow, SSE notifications, help/presence/cooperation/boost history, decor collection/shop/placement, 18-step clicks, four-size main/cat captures, full quick verify, and 99/99 tests pass.
 
 - The static `今日剩余次数：5/5` strip is now authoritative. `PlayerDailyOrderState.LaunchCount` is runtime-migrated onto SQLite and resets with the UTC daily order row; DTOs expose used, limit, and remaining counts.
-- `TryAdvanceDailyLaunchAsync` conditionally consumes one of five launches and advances order progress on the same persisted row. `LaunchSettlementGates` serializes each player's settlement, while launch-record lookup happens before quota consumption so a replay after exhaustion still returns the original accepted result.
+- `TryAdvanceDailyLaunchAsync` conditionally consumes one of five launches and advances order progress on the same persisted row. `PlayerProgressionGates` serializes launch, order, and achievement progression settlement per player, while launch-record lookup happens before quota consumption so a replay after exhaustion still returns the original accepted result.
 - Six concurrent unique launch requests produce exactly five accepted settlements and one `daily_launch_limit_reached` response. The rejected request changes no launch record, resource transaction, order progress, or balance.
 - `LaunchResponse.dailyOrder` updates the client without a follow-up request. Offline saves migrate `launchesUsed/launchLimit`, reset on the local UTC day, and check quota before local production settlement.
 - The main launch button exposes used/limit/remaining markers, renders live `5/5` through `0/5`, and enters a disabled desaturated state at zero. The transparent hotspot remains harmless because `handleLaunch()` also guards exhaustion.

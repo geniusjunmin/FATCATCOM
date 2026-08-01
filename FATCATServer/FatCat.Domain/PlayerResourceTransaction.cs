@@ -17,6 +17,10 @@ public sealed class PlayerResourceTransaction
     public double CatFoodBalance { get; set; }
     public double DiamondBalance { get; set; }
     public double ResearchPointBalance { get; set; }
+    public int ExperienceDelta { get; set; }
+    public int PlayerLevelAfter { get; set; }
+    public int PlayerExpAfter { get; set; }
+    public int PlayerExpToNextAfter { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public PlayerProfile? Player { get; set; }
 }

@@ -56,4 +56,5 @@ export const GameEvents = {
     FRIEND_BOOST_HISTORY_CHANGED: "friend:boost-history-changed",
     DAILY_ORDER_CHANGED: "daily-order:changed",
     PLAYER_PROGRESSION_CHANGED: "player-progression:changed",
+    ACHIEVEMENTS_CHANGED: "achievements:changed",
 } as const;

@@ -1552,6 +1552,13 @@ public sealed class FatCatGameServiceTests
         Assert.Equal(launch.LaunchId, replay.LaunchId);
         Assert.Equal(launch.ExperienceGained, replay.ExperienceGained);
         Assert.Equal(launch.PlayerProgression, replay.PlayerProgression);
+        Assert.NotNull(launch.LevelUpReward);
+        Assert.Equal(28, launch.LevelUpReward!.FromLevel);
+        Assert.Equal(29, launch.LevelUpReward.ToLevel);
+        Assert.Equal(5_000, launch.LevelUpReward.Coin);
+        Assert.Equal(5, launch.LevelUpReward.Diamond);
+        Assert.Equal(20, launch.LevelUpReward.ResearchPoint);
+        Assert.Equal(launch.LevelUpReward, replay.LevelUpReward);
         Assert.NotNull(refreshed);
         Assert.Equal(29, refreshed!.Level);
         Assert.Equal(150, refreshed.Exp);
@@ -1561,6 +1568,21 @@ public sealed class FatCatGameServiceTests
         Assert.Equal(29, record.PlayerLevelAfter);
         Assert.Equal(150, record.PlayerExpAfter);
         Assert.Equal(3300, record.PlayerExpToNextAfter);
+        Assert.Equal(28, record.LevelRewardFromLevel);
+        Assert.Equal(29, record.LevelRewardToLevel);
+        Assert.Equal(5_000, record.LevelRewardCoin);
+        Assert.Equal(5, record.LevelRewardDiamond);
+        Assert.Equal(20, record.LevelRewardResearchPoint);
+        Assert.Equal(29, player.RewardedThroughLevel);
+        var resources = await dbContext.ResourceStates.FindAsync([auth.PlayerId], CancellationToken.None);
+        Assert.NotNull(resources);
+        Assert.Equal(12_457_467, resources!.Coin);
+        Assert.Equal(2_585, resources.Diamond);
+        Assert.Equal(220, resources.ResearchPoint);
+        var transaction = Assert.Single(dbContext.ResourceTransactions.Where(item => item.PlayerId == auth.PlayerId));
+        Assert.Equal(7_467, transaction.CoinDelta);
+        Assert.Equal(250, transaction.ExperienceDelta);
+        Assert.Equal(29, transaction.PlayerLevelAfter);
     }
 
     [Fact]
@@ -1889,6 +1911,87 @@ public sealed class FatCatGameServiceTests
         var transaction = Assert.Single(dbContext.ResourceTransactions.Where(item => item.SourceType == "daily_order_claim"));
         Assert.Equal(1000, transaction.CoinDelta);
         Assert.Equal(10, transaction.ResearchPointDelta);
+        Assert.Equal(400, transaction.ExperienceDelta);
+        Assert.Equal(28, transaction.PlayerLevelAfter);
+        Assert.Equal(2960, transaction.PlayerExpAfter);
+        Assert.Equal(400, first.ExperienceGained);
+        Assert.NotNull(first.PlayerProgression);
+        Assert.Equal(2960, first.PlayerProgression!.Exp);
+        Assert.Null(first.LevelUpReward);
+    }
+
+    [Fact]
+    public async Task DailyOrder_ClaimCrossesLevelAndGrantsPersistedLevelReward()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("daily-order-level-device", "FatCat"), CancellationToken.None);
+        await service.GetDailyOrderAsync(auth.PlayerId, CancellationToken.None);
+        var state = await dbContext.DailyOrderStates.FindAsync([auth.PlayerId], CancellationToken.None);
+        var player = await dbContext.Players.FindAsync([auth.PlayerId], CancellationToken.None);
+        Assert.NotNull(state);
+        Assert.NotNull(player);
+        state!.Progress = 60;
+        player!.Exp = 3000;
+        await dbContext.SaveChangesAsync();
+
+        var result = await service.ClaimDailyOrderAsync(auth.PlayerId, CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.True(result!.Claimed);
+        Assert.Equal(400, result.ExperienceGained);
+        Assert.Equal(29, result.PlayerProgression!.Level);
+        Assert.Equal(200, result.PlayerProgression.Exp);
+        Assert.NotNull(result.LevelUpReward);
+        Assert.Equal(5_000, result.LevelUpReward!.Coin);
+        Assert.Equal(12_456_000, result.CoinBalance);
+        Assert.Equal(2_585, result.DiamondBalance);
+        Assert.Equal(230, result.ResearchPointBalance);
+        Assert.Equal(29, player.RewardedThroughLevel);
+    }
+
+    [Fact]
+    public async Task Achievement_RequiresGoalAndClaimsExperienceAndLevelRewardOnce()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new FatCatGameService(new EfFatCatRepository(dbContext));
+        var auth = await service.AuthGuestAsync(new AuthGuestRequest("achievement-device", "FatCat"), CancellationToken.None);
+
+        var initial = await service.GetAchievementsAsync(auth.PlayerId, CancellationToken.None);
+        var blocked = await service.ClaimAchievementAsync(auth.PlayerId, "task_ach_1", CancellationToken.None);
+        Assert.NotNull(initial);
+        Assert.False(Assert.Single(initial!).Claimable);
+        Assert.NotNull(blocked);
+        Assert.False(blocked!.Claimed);
+        Assert.Equal("achievement_not_complete", blocked.LimitedReason);
+
+        foreach (var cat in dbContext.CatStates.Where(cat => cat.PlayerId == auth.PlayerId))
+        {
+            cat.IsUnlocked = true;
+        }
+        await dbContext.SaveChangesAsync();
+
+        var first = await service.ClaimAchievementAsync(auth.PlayerId, "task_ach_1", CancellationToken.None);
+        var second = await service.ClaimAchievementAsync(auth.PlayerId, "task_ach_1", CancellationToken.None);
+
+        Assert.NotNull(first);
+        Assert.True(first!.Claimed);
+        Assert.Equal(800, first.ExperienceGained);
+        Assert.Equal(29, first.PlayerProgression!.Level);
+        Assert.Equal(160, first.PlayerProgression.Exp);
+        Assert.NotNull(first.LevelUpReward);
+        Assert.Equal(12_455_000, first.CoinBalance);
+        Assert.Equal(2_585, first.DiamondBalance);
+        Assert.Equal(420, first.ResearchPointBalance);
+        Assert.NotNull(second);
+        Assert.False(second!.Claimed);
+        Assert.Equal("already_claimed", second.LimitedReason);
+        Assert.Single(dbContext.AchievementClaims.Where(claim => claim.PlayerId == auth.PlayerId));
+        var transaction = Assert.Single(dbContext.ResourceTransactions.Where(item => item.SourceType == "achievement_claim"));
+        Assert.Equal(800, transaction.ExperienceDelta);
+        Assert.Equal(5_000, transaction.CoinDelta);
+        Assert.Equal(5, transaction.DiamondDelta);
+        Assert.Equal(220, transaction.ResearchPointDelta);
     }
 
     [Fact]
@@ -2076,19 +2179,26 @@ public sealed class FatCatGameServiceTests
         verifyAppearanceTable.CommandText = """SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'FactoryAppearanceStates';""";
         Assert.Equal(1, Convert.ToInt32(await verifyAppearanceTable.ExecuteScalarAsync()));
         await using var verifyPlayerProgressionColumns = connection.CreateCommand();
-        verifyPlayerProgressionColumns.CommandText = """SELECT COUNT(*) FROM pragma_table_info('Players') WHERE name IN ('Level', 'Exp', 'ExpToNext');""";
-        Assert.Equal(3, Convert.ToInt32(await verifyPlayerProgressionColumns.ExecuteScalarAsync()));
+        verifyPlayerProgressionColumns.CommandText = """SELECT COUNT(*) FROM pragma_table_info('Players') WHERE name IN ('Level', 'Exp', 'ExpToNext', 'RewardedThroughLevel');""";
+        Assert.Equal(4, Convert.ToInt32(await verifyPlayerProgressionColumns.ExecuteScalarAsync()));
         await using var verifyPlayerProgression = connection.CreateCommand();
-        verifyPlayerProgression.CommandText = """SELECT "Level", "Exp", "ExpToNext" FROM "Players" WHERE "Id" = $playerId;""";
+        verifyPlayerProgression.CommandText = """SELECT "Level", "Exp", "ExpToNext", "RewardedThroughLevel" FROM "Players" WHERE "Id" = $playerId;""";
         verifyPlayerProgression.Parameters.AddWithValue("$playerId", playerId.ToString());
         await using var progressionReader = await verifyPlayerProgression.ExecuteReaderAsync();
         Assert.True(await progressionReader.ReadAsync());
         Assert.Equal(28, progressionReader.GetInt32(0));
         Assert.Equal(2560, progressionReader.GetInt32(1));
         Assert.Equal(3200, progressionReader.GetInt32(2));
+        Assert.Equal(28, progressionReader.GetInt32(3));
         await using var verifyLaunchSnapshotColumns = connection.CreateCommand();
-        verifyLaunchSnapshotColumns.CommandText = """SELECT COUNT(*) FROM pragma_table_info('LaunchRecords') WHERE name IN ('EquippedFactoryAppearanceKey', 'ModifierSourcesJson', 'ExperienceGained', 'PlayerLevelAfter', 'PlayerExpAfter', 'PlayerExpToNextAfter');""";
-        Assert.Equal(6, Convert.ToInt32(await verifyLaunchSnapshotColumns.ExecuteScalarAsync()));
+        verifyLaunchSnapshotColumns.CommandText = """SELECT COUNT(*) FROM pragma_table_info('LaunchRecords') WHERE name IN ('EquippedFactoryAppearanceKey', 'ModifierSourcesJson', 'ExperienceGained', 'PlayerLevelAfter', 'PlayerExpAfter', 'PlayerExpToNextAfter', 'LevelRewardFromLevel', 'LevelRewardToLevel', 'LevelRewardCoin', 'LevelRewardDiamond', 'LevelRewardResearchPoint');""";
+        Assert.Equal(11, Convert.ToInt32(await verifyLaunchSnapshotColumns.ExecuteScalarAsync()));
+        await using var verifyTransactionProgressionColumns = connection.CreateCommand();
+        verifyTransactionProgressionColumns.CommandText = """SELECT COUNT(*) FROM pragma_table_info('ResourceTransactions') WHERE name IN ('ExperienceDelta', 'PlayerLevelAfter', 'PlayerExpAfter', 'PlayerExpToNextAfter');""";
+        Assert.Equal(4, Convert.ToInt32(await verifyTransactionProgressionColumns.ExecuteScalarAsync()));
+        await using var verifyAchievementTable = connection.CreateCommand();
+        verifyAchievementTable.CommandText = """SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'AchievementClaims';""";
+        Assert.Equal(1, Convert.ToInt32(await verifyAchievementTable.ExecuteScalarAsync()));
     }
 
     private static FatCatDbContext CreateDbContext()

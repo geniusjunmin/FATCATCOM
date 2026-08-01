@@ -13,7 +13,7 @@ public sealed class FatCatGameService(
     private readonly BalanceConfig balance = balanceConfig ?? BalanceConfig.Default;
     private readonly SocialEventBroker socialEvents = socialEventBroker ?? new SocialEventBroker();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> ResearchUnlockGates = new();
-    private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> LaunchSettlementGates = new();
+    private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> PlayerProgressionGates = new();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> CatSkinUnlockGates = new();
     private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> FactoryAppearanceGates = new();
     private static readonly HashSet<string> CatSkinIds = ["default", "apron", "manager", "festival"];
@@ -58,6 +58,19 @@ public sealed class FatCatGameService(
     private static readonly HashSet<string> FactoryAppearanceIds = FactoryAppearanceCatalog
         .Select(item => item.AppearanceId)
         .ToHashSet(StringComparer.Ordinal);
+    private static readonly AchievementDefinition[] AchievementCatalog =
+    [
+        new(
+            "task_ach_1",
+            "猫咪收藏家",
+            "解锁 5 只猫咪",
+            "unlock_cat",
+            5,
+            0,
+            0,
+            200,
+            800),
+    ];
     private const double InitialCoin = 12_450_000;
     private const double InitialBean = 8_240;
     private const double InitialCatFood = 3_510;
@@ -174,7 +187,7 @@ public sealed class FatCatGameService(
         return new BootstrapDto(
             "fatcat-config-2026-06-13",
             1,
-            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "friend-coop-tiers", "daily-order", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "player-progression", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "cat-skin-equip", "cat-skin-unlock", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
+            ["auth", "save-sync", "mail-shell", "friend-shell", "friend-invite", "friend-decor", "decor-shop", "decor-collection", "friend-realtime-events", "friend-production-boost", "friend-boost-history", "friend-coop-goal", "friend-coop-tiers", "daily-order", "achievements", "leaderboard", "settings-shell", "production-preview", "server-production-preview", "launch-settlement", "player-progression", "level-up-rewards", "resource-state", "resource-snapshot", "shop-state", "cat-upgrade", "cat-feed", "cat-unlock", "cat-snapshot", "cat-skin-equip", "cat-skin-unlock", "equipment-upgrade", "research-state", "research-unlock", "building-state", "building-upgrade"]);
     }
 
     public async Task<ResourceStateDto?> GetResourcesAsync(Guid playerId, CancellationToken cancellationToken)
@@ -218,10 +231,26 @@ public sealed class FatCatGameService(
 
     public async Task<DailyOrderClaimResponse?> ClaimDailyOrderAsync(Guid playerId, CancellationToken cancellationToken)
     {
-        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        var gate = PlayerProgressionGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            return await ClaimDailyOrderCoreAsync(playerId, cancellationToken);
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    private async Task<DailyOrderClaimResponse?> ClaimDailyOrderCoreAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        var player = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
+        if (player is null)
         {
             return null;
         }
+        NormalizePlayerProgression(player);
 
         var now = DateTimeOffset.UtcNow;
         var orderDate = ToUtcDate(now);
@@ -238,23 +267,29 @@ public sealed class FatCatGameService(
             now,
             cancellationToken);
         var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
+        ExperienceSettlement? experienceSettlement = null;
         if (claimed)
         {
-            resources.Coin += DailyOrderRewardCoin;
-            resources.ResearchPoint += DailyOrderRewardResearchPoint;
+            experienceSettlement = ApplyExperienceSettlement(player, DailyOrderRewardExperience);
+            resources.Coin += DailyOrderRewardCoin + experienceSettlement.Value.LevelUpReward.Coin;
+            resources.Diamond += experienceSettlement.Value.LevelUpReward.Diamond;
+            resources.ResearchPoint += DailyOrderRewardResearchPoint + experienceSettlement.Value.LevelUpReward.ResearchPoint;
             resources.UpdatedAt = now;
+            player.UpdatedAt = now;
             await AddResourceTransactionAsync(
                 playerId,
                 "daily_order_claim",
                 orderDate.ToString(),
                 null,
-                DailyOrderRewardCoin,
+                DailyOrderRewardCoin + experienceSettlement.Value.LevelUpReward.Coin,
                 0,
                 0,
-                0,
-                DailyOrderRewardResearchPoint,
+                experienceSettlement.Value.LevelUpReward.Diamond,
+                DailyOrderRewardResearchPoint + experienceSettlement.Value.LevelUpReward.ResearchPoint,
                 resources,
-                cancellationToken);
+                cancellationToken,
+                DailyOrderRewardExperience,
+                experienceSettlement.Value.Progression);
             await repository.SaveChangesAsync(cancellationToken);
         }
 
@@ -277,7 +312,126 @@ public sealed class FatCatGameService(
             resources.CatFood,
             resources.Diamond,
             resources.ResearchPoint,
-            claimed ? null : order.Claimed ? "already_claimed" : "order_not_complete");
+            claimed ? null : order.Claimed ? "already_claimed" : "order_not_complete",
+            claimed ? DailyOrderRewardExperience : 0,
+            ToPlayerProgressionDto(player),
+            experienceSettlement is null ? null : ToLevelUpRewardDto(experienceSettlement.Value.LevelUpReward));
+    }
+
+    public async Task<IReadOnlyList<AchievementDto>?> GetAchievementsAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        if (await repository.FindPlayerByIdAsync(playerId, cancellationToken) is null)
+        {
+            return null;
+        }
+
+        var claimedIds = (await repository.GetAchievementClaimsAsync(playerId, cancellationToken))
+            .Select(claim => claim.AchievementKey)
+            .ToHashSet(StringComparer.Ordinal);
+        var progress = await GetAchievementProgressAsync(playerId, cancellationToken);
+        return AchievementCatalog
+            .Select(definition => ToAchievementDto(definition, progress.GetValueOrDefault(definition.GoalType), claimedIds.Contains(definition.Id)))
+            .ToArray();
+    }
+
+    public async Task<AchievementClaimResponse?> ClaimAchievementAsync(
+        Guid playerId,
+        string achievementId,
+        CancellationToken cancellationToken)
+    {
+        var gate = PlayerProgressionGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            return await ClaimAchievementCoreAsync(playerId, achievementId, cancellationToken);
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    private async Task<AchievementClaimResponse?> ClaimAchievementCoreAsync(
+        Guid playerId,
+        string achievementId,
+        CancellationToken cancellationToken)
+    {
+        var player = await repository.FindPlayerByIdAsync(playerId, cancellationToken);
+        var definition = AchievementCatalog.FirstOrDefault(item => item.Id == achievementId?.Trim());
+        if (player is null || definition is null)
+        {
+            return null;
+        }
+        NormalizePlayerProgression(player);
+
+        var progressByType = await GetAchievementProgressAsync(playerId, cancellationToken);
+        var progress = progressByType.GetValueOrDefault(definition.GoalType);
+        var existingClaims = await repository.GetAchievementClaimsAsync(playerId, cancellationToken);
+        var alreadyClaimed = existingClaims.Any(claim => claim.AchievementKey == definition.Id);
+        var resources = await EnsureResourceStateAsync(playerId, cancellationToken);
+        if (alreadyClaimed || progress < definition.Target)
+        {
+            return new AchievementClaimResponse(
+                false,
+                ToAchievementDto(definition, progress, alreadyClaimed),
+                resources.Coin,
+                resources.Bean,
+                resources.CatFood,
+                resources.Diamond,
+                resources.ResearchPoint,
+                alreadyClaimed ? "already_claimed" : "achievement_not_complete",
+                PlayerProgression: ToPlayerProgressionDto(player));
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var claimed = await repository.TryAddAchievementClaimAsync(playerId, definition.Id, now, cancellationToken);
+        if (!claimed)
+        {
+            return new AchievementClaimResponse(
+                false,
+                ToAchievementDto(definition, progress, true),
+                resources.Coin,
+                resources.Bean,
+                resources.CatFood,
+                resources.Diamond,
+                resources.ResearchPoint,
+                "already_claimed",
+                PlayerProgression: ToPlayerProgressionDto(player));
+        }
+
+        var experienceSettlement = ApplyExperienceSettlement(player, definition.RewardExperience);
+        resources.Coin += definition.RewardCoin + experienceSettlement.LevelUpReward.Coin;
+        resources.Diamond += definition.RewardDiamond + experienceSettlement.LevelUpReward.Diamond;
+        resources.ResearchPoint += definition.RewardResearchPoint + experienceSettlement.LevelUpReward.ResearchPoint;
+        resources.UpdatedAt = now;
+        player.UpdatedAt = now;
+        await AddResourceTransactionAsync(
+            playerId,
+            "achievement_claim",
+            definition.Id,
+            null,
+            definition.RewardCoin + experienceSettlement.LevelUpReward.Coin,
+            0,
+            0,
+            definition.RewardDiamond + experienceSettlement.LevelUpReward.Diamond,
+            definition.RewardResearchPoint + experienceSettlement.LevelUpReward.ResearchPoint,
+            resources,
+            cancellationToken,
+            definition.RewardExperience,
+            experienceSettlement.Progression);
+        await repository.SaveChangesAsync(cancellationToken);
+
+        return new AchievementClaimResponse(
+            true,
+            ToAchievementDto(definition, progress, true),
+            resources.Coin,
+            resources.Bean,
+            resources.CatFood,
+            resources.Diamond,
+            resources.ResearchPoint,
+            ExperienceGained: definition.RewardExperience,
+            PlayerProgression: ToPlayerProgressionDto(player),
+            LevelUpReward: ToLevelUpRewardDto(experienceSettlement.LevelUpReward));
     }
 
     public ProductionPreviewResponse PreviewProduction(ProductionPreviewRequest request)
@@ -398,7 +552,7 @@ public sealed class FatCatGameService(
 
     public async Task<LaunchResponse> LaunchAsync(Guid playerId, LaunchRequest request, CancellationToken cancellationToken)
     {
-        var gate = LaunchSettlementGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
+        var gate = PlayerProgressionGates.GetOrAdd(playerId, static _ => new SemaphoreSlim(1, 1));
         await gate.WaitAsync(cancellationToken);
         try
         {
@@ -492,25 +646,30 @@ public sealed class FatCatGameService(
                 player);
         }
 
-        resources.Coin = Math.Max(0, resources.Coin + coinGained);
-        resources.Bean = Math.Max(0, resources.Bean - beanSpent);
-        resources.UpdatedAt = now;
         var experienceGained = PlayerProgressionRules.GetLaunchExperience(productiveSeconds);
-        var progression = PlayerProgressionRules.AddExperience(player.Level, player.Exp, experienceGained);
-        ApplyPlayerProgression(player, progression);
+        var experienceSettlement = ApplyExperienceSettlement(player, experienceGained);
+        var progression = experienceSettlement.Progression;
+        var levelUpReward = experienceSettlement.LevelUpReward;
+        resources.Coin = Math.Max(0, resources.Coin + coinGained + levelUpReward.Coin);
+        resources.Bean = Math.Max(0, resources.Bean - beanSpent);
+        resources.Diamond += levelUpReward.Diamond;
+        resources.ResearchPoint += levelUpReward.ResearchPoint;
+        resources.UpdatedAt = now;
         player.UpdatedAt = now;
         await AddResourceTransactionAsync(
             playerId,
             "launch",
             clientRequestId,
             clientRequestId,
-            coinGained,
+            coinGained + levelUpReward.Coin,
             -beanSpent,
             0,
-            0,
-            0,
+            levelUpReward.Diamond,
+            levelUpReward.ResearchPoint,
             resources,
-            cancellationToken);
+            cancellationToken,
+            experienceGained,
+            progression);
         var record = new PlayerLaunchRecord
         {
             PlayerId = playerId,
@@ -530,6 +689,11 @@ public sealed class FatCatGameService(
             PlayerLevelAfter = progression.Level,
             PlayerExpAfter = progression.Experience,
             PlayerExpToNextAfter = progression.ExperienceToNext,
+            LevelRewardFromLevel = levelUpReward.FromLevel,
+            LevelRewardToLevel = levelUpReward.ToLevel,
+            LevelRewardCoin = levelUpReward.Coin,
+            LevelRewardDiamond = levelUpReward.Diamond,
+            LevelRewardResearchPoint = levelUpReward.ResearchPoint,
             CreatedAt = now,
         };
         await repository.AddLaunchRecordAsync(record, cancellationToken);
@@ -2374,14 +2538,19 @@ public sealed class FatCatGameService(
     private static bool NormalizePlayerProgression(PlayerProfile player)
     {
         var progression = PlayerProgressionRules.Normalize(player.Level, player.Exp);
+        var rewardedThroughLevel = player.RewardedThroughLevel <= 0
+            ? progression.Level
+            : Math.Clamp(player.RewardedThroughLevel, 1, progression.Level);
         if (player.Level == progression.Level
             && player.Exp == progression.Experience
-            && player.ExpToNext == progression.ExperienceToNext)
+            && player.ExpToNext == progression.ExperienceToNext
+            && player.RewardedThroughLevel == rewardedThroughLevel)
         {
             return false;
         }
 
         ApplyPlayerProgression(player, progression);
+        player.RewardedThroughLevel = rewardedThroughLevel;
         return true;
     }
 
@@ -2411,6 +2580,62 @@ public sealed class FatCatGameService(
             player.Exp,
             player.ExpToNext,
             PlayerProgressionRules.LevelCap);
+    }
+
+    private static ExperienceSettlement ApplyExperienceSettlement(PlayerProfile player, int experienceGained)
+    {
+        var before = PlayerProgressionRules.Normalize(player.Level, player.Exp);
+        var progression = PlayerProgressionRules.AddExperience(before.Level, before.Experience, experienceGained);
+        var rewardedThrough = Math.Max(Math.Clamp(player.RewardedThroughLevel, 1, before.Level), before.Level);
+        var levelUpReward = PlayerProgressionRules.GetLevelUpReward(rewardedThrough, progression.Level);
+        ApplyPlayerProgression(player, progression);
+        player.RewardedThroughLevel = Math.Max(player.RewardedThroughLevel, progression.Level);
+        return new ExperienceSettlement(progression, levelUpReward);
+    }
+
+    private static LevelUpRewardDto? ToLevelUpRewardDto(PlayerLevelUpReward reward)
+    {
+        return reward.HasReward
+            ? new LevelUpRewardDto(
+                reward.FromLevel,
+                reward.ToLevel,
+                reward.LevelsGained,
+                reward.Coin,
+                reward.Diamond,
+                reward.ResearchPoint)
+            : null;
+    }
+
+    private async Task<Dictionary<string, int>> GetAchievementProgressAsync(Guid playerId, CancellationToken cancellationToken)
+    {
+        foreach (var catId in balance.CatDefinitions.Keys)
+        {
+            await EnsureCatStateAsync(playerId, catId, cancellationToken);
+        }
+        var unlockedCats = (await repository.GetCatStatesAsync(playerId, cancellationToken))
+            .Count(cat => cat.IsUnlocked);
+        return new Dictionary<string, int>(StringComparer.Ordinal)
+        {
+            ["unlock_cat"] = unlockedCats,
+        };
+    }
+
+    private static AchievementDto ToAchievementDto(AchievementDefinition definition, int progress, bool claimed)
+    {
+        var normalizedProgress = Math.Clamp(progress, 0, definition.Target);
+        return new AchievementDto(
+            definition.Id,
+            definition.Name,
+            definition.Description,
+            definition.GoalType,
+            normalizedProgress,
+            definition.Target,
+            normalizedProgress >= definition.Target && !claimed,
+            claimed,
+            definition.RewardCoin,
+            definition.RewardDiamond,
+            definition.RewardResearchPoint,
+            definition.RewardExperience);
     }
 
     private static LaunchResponse CreateRejectedLaunch(
@@ -2473,6 +2698,15 @@ public sealed class FatCatGameService(
                 record.PlayerExpToNextAfter,
                 PlayerProgressionRules.LevelCap)
             : ToPlayerProgressionDto(player);
+        var levelUpReward = record.LevelRewardToLevel > record.LevelRewardFromLevel
+            ? new LevelUpRewardDto(
+                record.LevelRewardFromLevel,
+                record.LevelRewardToLevel,
+                record.LevelRewardToLevel - record.LevelRewardFromLevel,
+                record.LevelRewardCoin,
+                record.LevelRewardDiamond,
+                record.LevelRewardResearchPoint)
+            : null;
         return new LaunchResponse(
             record.LaunchKey,
             true,
@@ -2493,7 +2727,8 @@ public sealed class FatCatGameService(
             EquippedFactoryAppearanceId: record.EquippedFactoryAppearanceKey,
             ModifierSources: ReadProductionModifierSources(record.ModifierSourcesJson),
             ExperienceGained: record.ExperienceGained,
-            PlayerProgression: progression);
+            PlayerProgression: progression,
+            LevelUpReward: levelUpReward);
     }
 
     private static IReadOnlyList<ProductionModifierSourceDto> ReadProductionModifierSources(string? json)
@@ -2540,7 +2775,15 @@ public sealed class FatCatGameService(
             transaction.CatFoodBalance,
             transaction.DiamondBalance,
             transaction.ResearchPointBalance,
-            transaction.CreatedAt.ToUnixTimeMilliseconds());
+            transaction.CreatedAt.ToUnixTimeMilliseconds(),
+            transaction.ExperienceDelta,
+            transaction.PlayerLevelAfter > 0
+                ? new PlayerProgressionDto(
+                    transaction.PlayerLevelAfter,
+                    transaction.PlayerExpAfter,
+                    transaction.PlayerExpToNextAfter,
+                    PlayerProgressionRules.LevelCap)
+                : null);
     }
 
     private static DailyOrderDto ToDailyOrderDto(PlayerDailyOrderState state, DateTimeOffset now)
@@ -2554,6 +2797,7 @@ public sealed class FatCatGameService(
             state.IsClaimed,
             DailyOrderRewardCoin,
             DailyOrderRewardResearchPoint,
+            DailyOrderRewardExperience,
             Math.Clamp(state.LaunchCount, 0, DailyLaunchLimit),
             DailyLaunchLimit,
             Math.Max(0, DailyLaunchLimit - state.LaunchCount),
@@ -2572,7 +2816,9 @@ public sealed class FatCatGameService(
         double diamondDelta,
         double researchPointDelta,
         PlayerResourceState resources,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int experienceDelta = 0,
+        PlayerProgressionState? progression = null)
     {
         await repository.AddResourceTransactionAsync(new PlayerResourceTransaction
         {
@@ -2590,6 +2836,10 @@ public sealed class FatCatGameService(
             CatFoodBalance = resources.CatFood,
             DiamondBalance = resources.Diamond,
             ResearchPointBalance = resources.ResearchPoint,
+            ExperienceDelta = Math.Max(0, experienceDelta),
+            PlayerLevelAfter = progression?.Level ?? 0,
+            PlayerExpAfter = progression?.Experience ?? 0,
+            PlayerExpToNextAfter = progression?.ExperienceToNext ?? 0,
             CreatedAt = DateTimeOffset.UtcNow,
         }, cancellationToken);
     }
@@ -3977,6 +4227,7 @@ public sealed class FatCatGameService(
     private const int DailyOrderTarget = 60;
     private const int DailyOrderRewardCoin = 1_000;
     private const int DailyOrderRewardResearchPoint = 10;
+    private const int DailyOrderRewardExperience = 400;
     private const int DailyLaunchLimit = 5;
     private static readonly TimeSpan FriendHelpDuration = TimeSpan.FromMinutes(30);
     private sealed record ShopItemDefinition(string ShopItemId, string ItemId, string PriceType, int PriceAmount, int LimitDaily);
@@ -4023,6 +4274,19 @@ public sealed class FatCatGameService(
         string RewardType,
         int RewardAmount,
         int TierBit);
+    private sealed record AchievementDefinition(
+        string Id,
+        string Name,
+        string Description,
+        string GoalType,
+        int Target,
+        int RewardCoin,
+        int RewardDiamond,
+        int RewardResearchPoint,
+        int RewardExperience);
+    private readonly record struct ExperienceSettlement(
+        PlayerProgressionState Progression,
+        PlayerLevelUpReward LevelUpReward);
     private sealed record ProductionModifiers(
         int GrossCoinPercent,
         int GrossCoinAdd,

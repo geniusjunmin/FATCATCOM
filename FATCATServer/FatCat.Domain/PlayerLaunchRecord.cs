@@ -19,6 +19,11 @@ public sealed class PlayerLaunchRecord
     public int PlayerLevelAfter { get; set; }
     public int PlayerExpAfter { get; set; }
     public int PlayerExpToNextAfter { get; set; }
+    public int LevelRewardFromLevel { get; set; }
+    public int LevelRewardToLevel { get; set; }
+    public int LevelRewardCoin { get; set; }
+    public int LevelRewardDiamond { get; set; }
+    public int LevelRewardResearchPoint { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public PlayerProfile? Player { get; set; }
 }

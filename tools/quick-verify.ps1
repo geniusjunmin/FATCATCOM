@@ -149,6 +149,10 @@ Invoke-Step "Player progression contract check" {
     node .\tools\check-player-progression-contract.js
 }
 
+Invoke-Step "Progression rewards contract check" {
+    node .\tools\check-progression-rewards-contract.js
+}
+
 Invoke-Step "Nav presentation contract check" {
     node .\tools\check-nav-presentation-contract.js
 }

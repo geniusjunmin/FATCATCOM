@@ -1,7 +1,7 @@
 import { GameConfig } from "../core/GameConfig";
 import { EventBus, GameEvents } from "../core/EventBus";
 import { ApiClient } from "../net/ApiClient";
-import { BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatSkinCatalogItemDto, CatSkinEquipResponse, CatSkinUnlockResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerDto, PlayerPresenceDto, PlayerProgressionDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, ServerStatusDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
+import { AchievementClaimResponse, AchievementDto, BuildingStateDto, BuildingUpgradeResponse, CatAssignmentResponse, CatFeedResponse, CatSkinCatalogItemDto, CatSkinEquipResponse, CatSkinUnlockResponse, CatStateDto, CatUnlockResponse, CatUpgradeResponse, ClaimMailResponse, DailyOrderClaimResponse, DailyOrderDto, DecorCatalogItemDto, DecorCollectionClaimResponse, DecorCollectionDto, DecorPurchaseResponse, DecorStateDto, EquipmentUpgradeResponse, FriendActionResponse, FriendActivityDto, FriendBoostHistoryDto, FriendBoostStateDto, FriendCoopClaimResponse, FriendCoopGoalDto, FriendCoopTierClaimResponse, FriendDto, FriendHelpResponse, FriendRequestDto, FriendSearchResultDto, LaunchResponse, LeaderboardDto, MailDto, PlayerDto, PlayerPresenceDto, PlayerProgressionDto, PlayerSocialProfileDto, ProductionPreviewRequest, ProductionPreviewResponse, ResearchStateDto, ResearchUnlockResponse, ResourceStateDto, ServerStatusDto, SettingsDto, ShopPurchaseResponse, ShopStateDto, SocialRealtimeEventDto } from "../net/ApiTypes";
 import { FeatureSaveData, GameSaveData } from "../model/SaveData";
 import { SaveManager } from "./SaveManager";
 import { NetworkManager } from "./NetworkManager";
@@ -38,6 +38,7 @@ export class SyncManager {
     private static _serverStatus: ServerStatusDto | null = null;
     private static _serverStatusCheckedAt = 0;
     private static _serverPlayer: PlayerDto | null = null;
+    private static _serverAchievements: AchievementDto[] = [];
     private static _socialEventSource: EventSource | null = null;
     private static _socialEventPlayerId = "";
 
@@ -65,6 +66,10 @@ export class SyncManager {
 
     public static getServerPlayer(): PlayerDto | null {
         return this._serverPlayer ? { ...this._serverPlayer } : null;
+    }
+
+    public static getServerAchievements(): AchievementDto[] {
+        return this._serverAchievements.map(achievement => ({ ...achievement }));
     }
 
     public static getFeatureStateDto(): FeatureSaveData {
@@ -95,6 +100,7 @@ export class SyncManager {
         NetworkManager.setPlayerId(response.data.playerId);
         if (this._serverPlayer?.id !== response.data.playerId) {
             this._serverPlayer = null;
+            this._serverAchievements = [];
         }
         NetworkManager.markReady();
         this._snapshot.mode = "ready";
@@ -116,6 +122,7 @@ export class SyncManager {
         void this.fetchServerFriendBoostHistory();
         void this.fetchServerFriendCoopGoal();
         void this.fetchServerDailyOrder();
+        void this.fetchServerAchievements();
         this.startSocialEventStream();
         return true;
     }
@@ -250,6 +257,7 @@ export class SyncManager {
         await this.fetchServerFriendActivities();
         await this.fetchServerLeaderboard();
         await this.fetchServerDailyOrder();
+        await this.fetchServerAchievements();
         this.refreshPendingFeatureChanges();
         this.emitSyncChanged();
         return true;
@@ -319,6 +327,54 @@ export class SyncManager {
             diamond: response.data.diamondBalance,
             researchPoint: response.data.researchPointBalance,
         }, "server_daily_order_claim");
+        this.applyProgressionResponse(response.data.playerProgression);
+        this.markReadyAfterServerCall();
+        return response.data;
+    }
+
+    public static async fetchServerAchievements(): Promise<AchievementDto[]> {
+        if (!this.canCallServer()) return [];
+        const response = await ApiClient.getAchievements(NetworkManager.playerId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "achievements_fetch_failed");
+            return [];
+        }
+        this._serverAchievements = response.data.map(achievement => ({ ...achievement }));
+        EventBus.emit(GameEvents.ACHIEVEMENTS_CHANGED, this.getServerAchievements());
+        this.markReadyAfterServerCall();
+        return this.getServerAchievements();
+    }
+
+    public static async claimServerAchievement(achievementId: string): Promise<AchievementClaimResponse | null> {
+        if (!NetworkManager.canUseServer) {
+            this.setOffline();
+            return null;
+        }
+        if (!NetworkManager.playerId) {
+            const loggedIn = await this.tryGuestLogin();
+            if (!loggedIn) return null;
+        }
+        const response = await ApiClient.claimAchievement(NetworkManager.playerId, achievementId);
+        if (!response.ok || !response.data) {
+            this.markFailed(response.error ?? "achievement_claim_failed");
+            return null;
+        }
+        const updated = response.data.achievement;
+        const existingIndex = this._serverAchievements.findIndex(achievement => achievement.id === updated.id);
+        if (existingIndex >= 0) {
+            this._serverAchievements[existingIndex] = { ...updated };
+        } else {
+            this._serverAchievements.push({ ...updated });
+        }
+        ResourceManager.applyServerSnapshot({
+            coin: response.data.coinBalance,
+            bean: response.data.beanBalance,
+            catFood: response.data.catFoodBalance,
+            diamond: response.data.diamondBalance,
+            researchPoint: response.data.researchPointBalance,
+        }, `server_achievement_${achievementId}`);
+        this.applyProgressionResponse(response.data.playerProgression);
+        EventBus.emit(GameEvents.ACHIEVEMENTS_CHANGED, this.getServerAchievements());
         this.markReadyAfterServerCall();
         return response.data;
     }
@@ -521,6 +577,7 @@ export class SyncManager {
             diamond: response.data.diamondBalance,
             researchPoint: response.data.researchPointBalance,
         }, `server_cat_unlock_${catId}`);
+        void this.fetchServerAchievements();
         this.markReadyAfterServerCall();
         return response.data;
     }
@@ -1206,12 +1263,7 @@ export class SyncManager {
             }
             return response.data ?? null;
         }
-        const levelChanged = response.data.playerProgression
-            ? this.applyServerProgression(response.data.playerProgression)
-            : false;
-        if (levelChanged) {
-            void this.fetchServerFactoryAppearanceState();
-        }
+        this.applyProgressionResponse(response.data.playerProgression);
         this.markReadyAfterServerCall();
         return response.data;
     }
@@ -1260,6 +1312,13 @@ export class SyncManager {
         }
         EventBus.emit(GameEvents.PLAYER_PROGRESSION_CHANGED, { ...progression });
         return previousLevel !== progression.level;
+    }
+
+    private static applyProgressionResponse(progression?: PlayerProgressionDto): void {
+        if (!progression) return;
+        if (this.applyServerProgression(progression)) {
+            void this.fetchServerFactoryAppearanceState();
+        }
     }
 
     private static onSaveUpdated = (): void => {

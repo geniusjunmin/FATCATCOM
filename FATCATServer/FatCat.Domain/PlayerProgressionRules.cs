@@ -5,12 +5,26 @@ public readonly record struct PlayerProgressionState(
     int Experience,
     int ExperienceToNext);
 
+public readonly record struct PlayerLevelUpReward(
+    int FromLevel,
+    int ToLevel,
+    int Coin,
+    int Diamond,
+    int ResearchPoint)
+{
+    public int LevelsGained => Math.Max(0, ToLevel - FromLevel);
+    public bool HasReward => LevelsGained > 0;
+}
+
 public static class PlayerProgressionRules
 {
     public const int InitialLevel = 28;
     public const int InitialExperience = 2560;
     public const int LevelCap = 60;
     public const int LaunchExperiencePerSecond = 25;
+    public const int LevelRewardCoin = 5_000;
+    public const int LevelRewardDiamond = 5;
+    public const int LevelRewardResearchPoint = 20;
 
     public static int GetExperienceToNext(int level)
     {
@@ -57,5 +71,18 @@ public static class PlayerProgressionRules
         }
 
         return Normalize(normalized.Level, normalized.Experience + experienceGained);
+    }
+
+    public static PlayerLevelUpReward GetLevelUpReward(int rewardedThroughLevel, int currentLevel)
+    {
+        var fromLevel = Math.Clamp(rewardedThroughLevel, 1, LevelCap);
+        var toLevel = Math.Clamp(currentLevel, fromLevel, LevelCap);
+        var levelsGained = toLevel - fromLevel;
+        return new PlayerLevelUpReward(
+            fromLevel,
+            toLevel,
+            levelsGained * LevelRewardCoin,
+            levelsGained * LevelRewardDiamond,
+            levelsGained * LevelRewardResearchPoint);
     }
 }

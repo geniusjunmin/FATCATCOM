@@ -21,6 +21,14 @@ public sealed record PlayerProgressionDto(
     int ExpToNext,
     int LevelCap);
 
+public sealed record LevelUpRewardDto(
+    int FromLevel,
+    int ToLevel,
+    int LevelsGained,
+    int Coin,
+    int Diamond,
+    int ResearchPoint);
+
 public sealed record ResourceStateDto(
     double Coin,
     double Bean,
@@ -44,7 +52,9 @@ public sealed record ResourceTransactionDto(
     double CatFoodBalance,
     double DiamondBalance,
     double ResearchPointBalance,
-    long CreatedAt);
+    long CreatedAt,
+    int ExperienceDelta = 0,
+    PlayerProgressionDto? PlayerProgression = null);
 
 public sealed record BootstrapDto(string ConfigVersion, int MinClientVersion, string[] ServerFeatures);
 
@@ -592,6 +602,7 @@ public sealed record DailyOrderDto(
     bool Claimed,
     int RewardCoin,
     int RewardResearchPoint,
+    int RewardExperience,
     int LaunchesUsed,
     int LaunchLimit,
     int LaunchesRemaining,
@@ -606,7 +617,37 @@ public sealed record DailyOrderClaimResponse(
     double CatFoodBalance,
     double DiamondBalance,
     double ResearchPointBalance,
-    string? LimitedReason = null);
+    string? LimitedReason = null,
+    int ExperienceGained = 0,
+    PlayerProgressionDto? PlayerProgression = null,
+    LevelUpRewardDto? LevelUpReward = null);
+
+public sealed record AchievementDto(
+    string Id,
+    string Name,
+    string Description,
+    string GoalType,
+    int Progress,
+    int Target,
+    bool Claimable,
+    bool Claimed,
+    int RewardCoin,
+    int RewardDiamond,
+    int RewardResearchPoint,
+    int RewardExperience);
+
+public sealed record AchievementClaimResponse(
+    bool Claimed,
+    AchievementDto Achievement,
+    double CoinBalance,
+    double BeanBalance,
+    double CatFoodBalance,
+    double DiamondBalance,
+    double ResearchPointBalance,
+    string? LimitedReason = null,
+    int ExperienceGained = 0,
+    PlayerProgressionDto? PlayerProgression = null,
+    LevelUpRewardDto? LevelUpReward = null);
 
 public sealed record LaunchRequest(
     string? ClientRequestId,
@@ -635,4 +676,5 @@ public sealed record LaunchResponse(
     string EquippedFactoryAppearanceId = "simple",
     IReadOnlyList<ProductionModifierSourceDto>? ModifierSources = null,
     int ExperienceGained = 0,
-    PlayerProgressionDto? PlayerProgression = null);
+    PlayerProgressionDto? PlayerProgression = null,
+    LevelUpRewardDto? LevelUpReward = null);

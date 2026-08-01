@@ -17,6 +17,7 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
     public DbSet<PlayerFriendBoostContribution> FriendBoostContributions => Set<PlayerFriendBoostContribution>();
     public DbSet<PlayerCoopGoalState> CoopGoalStates => Set<PlayerCoopGoalState>();
     public DbSet<PlayerDailyOrderState> DailyOrderStates => Set<PlayerDailyOrderState>();
+    public DbSet<PlayerAchievementClaim> AchievementClaims => Set<PlayerAchievementClaim>();
     public DbSet<PlayerSettings> PlayerSettings => Set<PlayerSettings>();
     public DbSet<PlayerResourceState> ResourceStates => Set<PlayerResourceState>();
     public DbSet<PlayerResourceTransaction> ResourceTransactions => Set<PlayerResourceTransaction>();
@@ -51,6 +52,16 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             "ExpToNext",
             $"""ALTER TABLE "Players" ADD COLUMN "ExpToNext" INTEGER NOT NULL DEFAULT {PlayerProgressionRules.GetExperienceToNext(PlayerProgressionRules.InitialLevel)};""",
             cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "Players",
+            "RewardedThroughLevel",
+            $"""ALTER TABLE "Players" ADD COLUMN "RewardedThroughLevel" INTEGER NOT NULL DEFAULT {PlayerProgressionRules.InitialLevel};""",
+            cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            UPDATE "Players"
+            SET "RewardedThroughLevel" = "Level"
+            WHERE "RewardedThroughLevel" < "Level";
+            """, cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS "ResourceStates" (
                 "PlayerId" TEXT NOT NULL CONSTRAINT "PK_ResourceStates" PRIMARY KEY,
@@ -136,6 +147,31 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             "PlayerExpToNextAfter",
             """ALTER TABLE "LaunchRecords" ADD COLUMN "PlayerExpToNextAfter" INTEGER NOT NULL DEFAULT 0;""",
             cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "LaunchRecords",
+            "LevelRewardFromLevel",
+            """ALTER TABLE "LaunchRecords" ADD COLUMN "LevelRewardFromLevel" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "LaunchRecords",
+            "LevelRewardToLevel",
+            """ALTER TABLE "LaunchRecords" ADD COLUMN "LevelRewardToLevel" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "LaunchRecords",
+            "LevelRewardCoin",
+            """ALTER TABLE "LaunchRecords" ADD COLUMN "LevelRewardCoin" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "LaunchRecords",
+            "LevelRewardDiamond",
+            """ALTER TABLE "LaunchRecords" ADD COLUMN "LevelRewardDiamond" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "LaunchRecords",
+            "LevelRewardResearchPoint",
+            """ALTER TABLE "LaunchRecords" ADD COLUMN "LevelRewardResearchPoint" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS "ResourceTransactions" (
                 "Id" TEXT NOT NULL CONSTRAINT "PK_ResourceTransactions" PRIMARY KEY,
@@ -160,6 +196,39 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
         await Database.ExecuteSqlRawAsync("""
             CREATE INDEX IF NOT EXISTS "IX_ResourceTransactions_PlayerId_CreatedAt"
             ON "ResourceTransactions" ("PlayerId", "CreatedAt");
+            """, cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "ResourceTransactions",
+            "ExperienceDelta",
+            """ALTER TABLE "ResourceTransactions" ADD COLUMN "ExperienceDelta" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "ResourceTransactions",
+            "PlayerLevelAfter",
+            """ALTER TABLE "ResourceTransactions" ADD COLUMN "PlayerLevelAfter" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "ResourceTransactions",
+            "PlayerExpAfter",
+            """ALTER TABLE "ResourceTransactions" ADD COLUMN "PlayerExpAfter" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            "ResourceTransactions",
+            "PlayerExpToNextAfter",
+            """ALTER TABLE "ResourceTransactions" ADD COLUMN "PlayerExpToNextAfter" INTEGER NOT NULL DEFAULT 0;""",
+            cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE TABLE IF NOT EXISTS "AchievementClaims" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_AchievementClaims" PRIMARY KEY,
+                "PlayerId" TEXT NOT NULL,
+                "AchievementKey" TEXT NOT NULL,
+                "ClaimedAt" TEXT NOT NULL,
+                CONSTRAINT "FK_AchievementClaims_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE
+            );
+            """, cancellationToken);
+        await Database.ExecuteSqlRawAsync("""
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_AchievementClaims_PlayerId_AchievementKey"
+            ON "AchievementClaims" ("PlayerId", "AchievementKey");
             """, cancellationToken);
         await Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS "ShopPurchaseHistories" (
@@ -442,6 +511,7 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.Property(player => player.Level).HasDefaultValue(PlayerProgressionRules.InitialLevel);
             entity.Property(player => player.Exp).HasDefaultValue(PlayerProgressionRules.InitialExperience);
             entity.Property(player => player.ExpToNext).HasDefaultValue(PlayerProgressionRules.GetExperienceToNext(PlayerProgressionRules.InitialLevel));
+            entity.Property(player => player.RewardedThroughLevel).HasDefaultValue(PlayerProgressionRules.InitialLevel);
         });
 
         modelBuilder.Entity<PlayerSaveSnapshot>(entity =>
@@ -519,6 +589,17 @@ public sealed class FatCatDbContext(DbContextOptions<FatCatDbContext> options) :
             entity.HasOne(state => state.Player)
                 .WithOne()
                 .HasForeignKey<PlayerDailyOrderState>(state => state.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlayerAchievementClaim>(entity =>
+        {
+            entity.HasKey(claim => claim.Id);
+            entity.HasIndex(claim => new { claim.PlayerId, claim.AchievementKey }).IsUnique();
+            entity.Property(claim => claim.AchievementKey).HasMaxLength(120);
+            entity.HasOne(claim => claim.Player)
+                .WithMany()
+                .HasForeignKey(claim => claim.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

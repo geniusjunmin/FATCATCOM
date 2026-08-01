@@ -8,6 +8,7 @@ public sealed class PlayerProfile
     public int Level { get; set; } = PlayerProgressionRules.InitialLevel;
     public int Exp { get; set; } = PlayerProgressionRules.InitialExperience;
     public int ExpToNext { get; set; } = PlayerProgressionRules.GetExperienceToNext(PlayerProgressionRules.InitialLevel);
+    public int RewardedThroughLevel { get; set; } = PlayerProgressionRules.InitialLevel;
     public int FriendBoostPercent { get; set; }
     public DateTimeOffset? FriendBoostUntil { get; set; }
     public string FriendBoostedBy { get; set; } = "";

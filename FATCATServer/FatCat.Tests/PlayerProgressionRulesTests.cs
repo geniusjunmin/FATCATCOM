@@ -45,4 +45,27 @@ public sealed class PlayerProgressionRulesTests
     {
         Assert.Equal(expected, PlayerProgressionRules.GetLaunchExperience(productiveSeconds));
     }
+
+    [Fact]
+    public void GetLevelUpReward_WhenMultipleLevelsCrossed_ScalesEveryCurrencyExactlyOnce()
+    {
+        var reward = PlayerProgressionRules.GetLevelUpReward(28, 30);
+
+        Assert.True(reward.HasReward);
+        Assert.Equal(2, reward.LevelsGained);
+        Assert.Equal(10_000, reward.Coin);
+        Assert.Equal(10, reward.Diamond);
+        Assert.Equal(40, reward.ResearchPoint);
+    }
+
+    [Fact]
+    public void GetLevelUpReward_WhenLevelDidNotChange_ReturnsEmptyReward()
+    {
+        var reward = PlayerProgressionRules.GetLevelUpReward(28, 28);
+
+        Assert.False(reward.HasReward);
+        Assert.Equal(0, reward.Coin);
+        Assert.Equal(0, reward.Diamond);
+        Assert.Equal(0, reward.ResearchPoint);
+    }
 }

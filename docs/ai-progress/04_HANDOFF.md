@@ -24,11 +24,14 @@ Updated: 2026-08-01
 
 ## Latest Visual Note
 
-- Player level/experience is now authoritative. `PlayerProgressionRules` owns level-28 defaults, the level-60 cap, `400 + level * 100` thresholds, normalization, and launch experience (`floor(productiveSeconds * 25)`, minimum one for positive production time).
-- Accepted non-replayed launches persist and return `ExperienceGained`, `PlayerLevelAfter`, `PlayerExpAfter`, and `PlayerExpToNextAfter`. Preserve those snapshots: replaying a `clientRequestId` must not award experience twice or report newer profile values.
-- `SyncManager` fetches `/api/player/me`, caches `PlayerDto`, mirrors progression into `SaveManager`, and emits `PLAYER_PROGRESSION_CHANGED`; DOM/native HUDs and appearance unlock states consume that path. Preserve `data-player-authority`, level/experience/cap attributes, and offline fallback.
-- Focused gates are `check-player-progression-contract.js`, `check-player-progression-online.js`, `check-hud-presentation-contract.js`, and `capture-main-regression.js`. Current green evidence: online `2560 -> 2810`, four-size main screenshots, 18/18 clicks, full quick verify, and 115/115 tests.
-- Next server task is authoritative experience from daily orders/achievements plus idempotent level-up rewards and visible reward feedback.
+- Player progression is authoritative. `PlayerProgressionRules` owns level-28 defaults, the level-60 cap, `400 + level * 100` thresholds, launch experience (`floor(productiveSeconds * 25)`), daily-order `400 EXP`, achievement `800 EXP`, and per-level rewards of `5000` coin, `5` diamonds, and `20` research points.
+- `PlayerProfile.RewardedThroughLevel` is the one-time reward cursor. Runtime migration advances legacy cursors to their existing level to prevent retroactive grants. Do not remove this cursor or award level rewards outside `ApplyExperienceSettlement`.
+- Launch records preserve reward from/to levels and reward currencies. `PlayerResourceTransaction` preserves experience delta and the complete post-action progression snapshot. Replays must return those original values rather than current profile values.
+- `PlayerProgressionGates` is intentionally shared by launch, daily-order claim, and achievement claim. Keep new experience-bearing actions behind this per-player gate until progression/resource persistence is made a single database transaction.
+- `task_ach_1` is server-owned through persistent `PlayerAchievementClaim`, `GET /api/achievements`, and `POST /api/achievements/{achievementId}/claim`. The claim requires five unlocked cats and atomically grants `200` research plus `800 EXP`; concurrent duplicate claims return the existing claimed state.
+- `SyncManager` caches achievements, emits `ACHIEVEMENTS_CHANGED`, applies server balances/progression, and preserves offline fallback. Keep `data-achievement-authority`, `data-achievement-count`, and `data-achievement-claimable` stable.
+- Focused gates are `check-player-progression-contract.js`, `check-progression-rewards-contract.js`, `check-player-progression-online.js`, `check-progression-rewards-online.js`, `capture-main-regression.js`, and `capture-utility-regression.js`. Current evidence: online `2560 -> 2810`, online achievement `Lv.28 2560 -> Lv.29 160`, four-size screenshots, 18/18 clicks, full quick verify, and 120/120 tests.
+- Next server task is authoritative inventory ownership and item grant/consume flows so shop and achievement rewards can stop relying on client-only item counts.
 
 - Factory appearances are server-authoritative through `PlayerFactoryAppearanceState`, `/api/factory/appearances`, and `FactoryAppearanceManager`. Online UI must use server ownership, equipped state, and bonus DTOs; offline mode may use local config/state only as fallback.
 - The effective production mapping is simple gross `+10%` and wage `-5%`, classic gross `+8%`, steam gross `+22%` and bean cost `-6%`, future gross `+27%`. Catalog-only storage/research/mood/bean-output bonuses carry `productionEffective=false` until those systems have authoritative modifier semantics.
@@ -155,7 +158,7 @@ Updated: 2026-08-01
 ## Latest UI Note
 
 - Daily launch quota is authoritative on the same row as daily orders. `PlayerDailyOrderState.LaunchCount` defaults/migrates to 0, resets by UTC date, and is exposed as `launchesUsed`, `launchLimit`, and `launchesRemaining`.
-- `TryAdvanceDailyLaunchAsync` performs one conditional SQLite update for both quota consumption and order progress. `LaunchSettlementGates` serializes settlement by player. Preserve the ordering: normalize request → find existing record → validate production/beans → consume quota → write resources/ledger/record.
+- `TryAdvanceDailyLaunchAsync` performs one conditional SQLite update for both quota consumption and order progress. The shared `PlayerProgressionGates` serializes launch, daily-order, and achievement progression settlement by player. Preserve the launch ordering: normalize request → find existing record → validate production/beans → consume quota → write resources/ledger/record.
 - Replayed `clientRequestId` values bypass quota consumption and return their old launch even when remaining is zero. Six concurrent unique API requests yield five accepted and one `daily_launch_limit_reached`; final ledger count is five.
 - `LaunchResponse.dailyOrder` is applied by `SyncManager` for both accepted and server-rejected responses. A gameplay rejection keeps network status ready rather than pretending the server connection failed.
 - Offline `DailyOrderSaveData` now includes `launchesUsed/launchLimit`; old saves migrate to `0/5`. `handleLaunch()` checks remaining before local settlement, and the DOM launch plus count expose stable quota attributes.

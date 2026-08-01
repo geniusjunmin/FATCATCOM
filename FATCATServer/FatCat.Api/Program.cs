@@ -272,6 +272,29 @@ app.MapPost("/api/daily-order/claim", async (
         : Results.Ok(ApiEnvelope<DailyOrderClaimResponse>.Success(result));
 });
 
+app.MapGet("/api/achievements", async (
+    Guid playerId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var achievements = await service.GetAchievementsAsync(playerId, cancellationToken);
+    return achievements is null
+        ? Results.NotFound(ApiEnvelope<IReadOnlyList<AchievementDto>>.Fail("player_not_found"))
+        : Results.Ok(ApiEnvelope<IReadOnlyList<AchievementDto>>.Success(achievements));
+});
+
+app.MapPost("/api/achievements/{achievementId}/claim", async (
+    Guid playerId,
+    string achievementId,
+    FatCatGameService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.ClaimAchievementAsync(playerId, achievementId, cancellationToken);
+    return result is null
+        ? Results.NotFound(ApiEnvelope<AchievementClaimResponse>.Fail("achievement_not_found"))
+        : Results.Ok(ApiEnvelope<AchievementClaimResponse>.Success(result));
+});
+
 app.MapGet("/api/save", async (
     Guid playerId,
     FatCatGameService service,

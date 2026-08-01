@@ -36,7 +36,7 @@ requireText("daily claim DTO", contracts, "DailyOrderClaimResponse");
 requireText("daily state service", service, "GetDailyOrderAsync");
 requireText("daily reward ledger", service, '"daily_order_claim"');
 requireText("launch progression", service, "TryAdvanceDailyLaunchAsync");
-requireText("serialized launch settlement", service, "LaunchSettlementGates");
+requireText("shared serialized progression settlement", service, "PlayerProgressionGates");
 requireText("launch quota rejection", service, '"daily_launch_limit_reached"');
 requireText("reference initial progress", service, "DailyOrderInitialProgress = 56");
 requireText("daily target", service, "DailyOrderTarget = 60");

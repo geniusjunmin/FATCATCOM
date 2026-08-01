@@ -341,6 +341,8 @@ export class BottomNavUI extends Component {
         EventBus.on(GameEvents.DAILY_ORDER_CHANGED, this.onDailyOrderChanged);
         EventBus.off(GameEvents.PLAYER_PROGRESSION_CHANGED, this.onPlayerProgressionChanged);
         EventBus.on(GameEvents.PLAYER_PROGRESSION_CHANGED, this.onPlayerProgressionChanged);
+        EventBus.off(GameEvents.ACHIEVEMENTS_CHANGED, this.onAchievementsChanged);
+        EventBus.on(GameEvents.ACHIEVEMENTS_CHANGED, this.onAchievementsChanged);
 
         // Ensure navigation is on top of everything
         this.node.parent?.setSiblingIndex(999);
@@ -378,6 +380,7 @@ export class BottomNavUI extends Component {
         EventBus.off(GameEvents.FRIEND_BOOST_HISTORY_CHANGED, this.onFriendBoostHistoryChanged);
         EventBus.off(GameEvents.DAILY_ORDER_CHANGED, this.onDailyOrderChanged);
         EventBus.off(GameEvents.PLAYER_PROGRESSION_CHANGED, this.onPlayerProgressionChanged);
+        EventBus.off(GameEvents.ACHIEVEMENTS_CHANGED, this.onAchievementsChanged);
         if (this._waitingForAppReady) {
             EventBus.off(GameEvents.APP_READY, this.onAppReady);
             this._waitingForAppReady = false;
@@ -436,6 +439,12 @@ export class BottomNavUI extends Component {
         this.renderDomHudOverlay(true);
         if (this._buildingPanelMode === "appearance" && this.currentPanel === "buildings") {
             this.renderDomPanel("buildings");
+        }
+    };
+
+    private onAchievementsChanged = (): void => {
+        if (this.currentPanel === "achievements") {
+            this.renderDomPanel("achievements");
         }
     };
 
@@ -631,7 +640,10 @@ export class BottomNavUI extends Component {
                 const appearanceSource = serverLaunch.modifierSources?.find(source => source.sourceType === "factory_appearance");
                 const progression = serverLaunch.playerProgression;
                 const levelText = progression ? ` · Lv.${progression.level}` : "";
-                this._factoryMessage = `服务端发射完成：+${this.formatNumber(serverLaunch.coinGained)} 金币，-${this.formatNumber(serverLaunch.beanSpent)} 咖啡豆，净收益 ${this.formatRate(serverLaunch.netCoinPerSecond)}/秒${appearanceSource ? ` · ${appearanceSource.name}` : ""}${serverLaunch.experienceGained > 0 ? ` · 经验 +${serverLaunch.experienceGained}` : ""}${levelText}`;
+                const rewardText = serverLaunch.levelUpReward
+                    ? ` · 升级奖励 ${this.formatNumber(serverLaunch.levelUpReward.coin)} 金币 / ${serverLaunch.levelUpReward.diamond} 钻石`
+                    : "";
+                this._factoryMessage = `服务端发射完成：+${this.formatNumber(serverLaunch.coinGained)} 金币，-${this.formatNumber(serverLaunch.beanSpent)} 咖啡豆，净收益 ${this.formatRate(serverLaunch.netCoinPerSecond)}/秒${appearanceSource ? ` · ${appearanceSource.name}` : ""}${serverLaunch.experienceGained > 0 ? ` · 经验 +${serverLaunch.experienceGained}` : ""}${levelText}${rewardText}`;
             } else if (serverLaunch && !serverLaunch.accepted) {
                 this._factoryMessage = serverLaunch.rejectedReason === "daily_launch_limit_reached"
                     ? "次数已用完 · 明日再来"
@@ -672,7 +684,8 @@ export class BottomNavUI extends Component {
             this.renderDomFactoryOverlay();
             const result = await SyncManager.claimServerDailyOrder();
             if (result?.claimed) {
-                this._factoryMessage = `订单宝箱：+${result.order.rewardCoin} 金币，+${result.order.rewardResearchPoint} 研究点`;
+                const levelReward = result.levelUpReward;
+                this._factoryMessage = `订单宝箱：+${result.order.rewardCoin} 金币，+${result.order.rewardResearchPoint} 研究点，经验 +${result.experienceGained}${levelReward ? ` · 升至 Lv.${levelReward.toLevel}，额外 ${this.formatNumber(levelReward.coin)} 金币 / ${levelReward.diamond} 钻石` : ""}`;
             } else if (result?.limitedReason === "already_claimed") {
                 this._factoryMessage = "今日订单宝箱已经领取";
             } else if (result?.limitedReason === "order_not_complete") {
@@ -1180,7 +1193,22 @@ export class BottomNavUI extends Component {
                     : "请先连接服务器再管理楼层装饰。";
             }
         } else if (action === "claimTask") {
-            success = TaskManager.claimReward(id);
+            if (this.currentPanel === "achievements" && NetworkManager.canUseServer) {
+                const result = await SyncManager.claimServerAchievement(id);
+                success = !!result?.claimed;
+                if (result?.claimed) {
+                    const levelReward = result.levelUpReward;
+                    actionMessageOverride = `成就奖励已领取：经验 +${result.experienceGained}，研究点 +${result.achievement.rewardResearchPoint}${levelReward ? `，升至 Lv.${levelReward.toLevel}，额外获得 ${this.formatNumber(levelReward.coin)} 金币、${levelReward.diamond} 钻石` : ""}`;
+                } else if (result?.limitedReason === "already_claimed") {
+                    actionMessageOverride = "该成就奖励已经领取。";
+                } else if (result?.limitedReason === "achievement_not_complete") {
+                    actionMessageOverride = "成就目标尚未完成。";
+                } else {
+                    actionMessageOverride = "成就领取失败，请稍后重试。";
+                }
+            } else {
+                success = TaskManager.claimReward(id);
+            }
         } else if (action === "claimMail") {
             const serverClaim = NetworkManager.canUseServer && NetworkManager.playerId
                 ? await SyncManager.claimServerMail(id)
@@ -1657,14 +1685,31 @@ export class BottomNavUI extends Component {
     }
 
     private renderAchievementPanel(): string {
-        const tasks = TaskManager.getActiveTasks();
-        const achievements = tasks.filter(({ config }) => config.type === TaskType.ACHIEVEMENT);
-        const unlockedCats = CatManager.getAllConfigs().filter(config => CatManager.getCatData(config.id).isUnlocked).length;
+        const serverAchievements = SyncManager.getServerAchievements();
+        const usesServerAuthority = serverAchievements.length > 0;
+        const localAchievements = TaskManager.getActiveTasks().filter(({ config }) => config.type === TaskType.ACHIEVEMENT);
+        const unlockedCats = usesServerAuthority
+            ? serverAchievements.find(achievement => achievement.goalType === "unlock_cat")?.progress ?? 0
+            : CatManager.getAllConfigs().filter(config => CatManager.getCatData(config.id).isUnlocked).length;
         const totalCats = CatManager.getAllConfigs().length;
-        const totalTasks = tasks.length;
-        const claimable = tasks.filter(({ config, data }) => data.currentValue >= config.goalValue && !data.isClaimed).length;
-        const rows = achievements.length > 0
-            ? achievements.map(({ config, data }) => this.renderFeatureProgressCard(
+        const totalTasks = usesServerAuthority ? serverAchievements.length : localAchievements.length;
+        const claimable = usesServerAuthority
+            ? serverAchievements.filter(achievement => achievement.claimable).length
+            : localAchievements.filter(({ config, data }) => data.currentValue >= config.goalValue && !data.isClaimed).length;
+        const rows = usesServerAuthority
+            ? serverAchievements.map(achievement => this.renderFeatureProgressCard(
+                "achievement",
+                achievement.name,
+                achievement.description,
+                achievement.progress,
+                achievement.target,
+                `经验 ${achievement.rewardExperience} · 研究点 ${achievement.rewardResearchPoint}${achievement.rewardCoin > 0 ? ` · 金币 ${this.formatNumber(achievement.rewardCoin)}` : ""}${achievement.rewardDiamond > 0 ? ` · 钻石 ${achievement.rewardDiamond}` : ""}`,
+                achievement.claimable
+                    ? `<button class="tag" data-action="claimTask" data-id="${achievement.id}">领取</button>`
+                    : `<span class="tag ${achievement.claimed ? "" : "warn"}">${achievement.claimed ? "已领取" : "进行中"}</span>`
+            )).join("")
+            : localAchievements.length > 0
+                ? localAchievements.map(({ config, data }) => this.renderFeatureProgressCard(
                 "achievement",
                 config.name,
                 config.description,
@@ -1672,9 +1717,9 @@ export class BottomNavUI extends Component {
                 config.goalValue,
                 this.formatTaskReward(config.rewards),
                 data.currentValue >= config.goalValue && !data.isClaimed ? `<button class="tag" data-action="claimTask" data-id="${config.id}">领取</button>` : `<span class="tag ${data.isClaimed ? "" : "warn"}">${data.isClaimed ? "已领取" : "进行中"}</span>`
-            )).join("")
-            : `<div class="feature-card">成就墙正在扩建，后续会加入更多长期目标。</div>`;
-        return `<div class="panel-shell utility-shell achievement-shell"><h2>成就墙</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("achievement")}')"></span><div><b>肥猫咖啡荣誉室</b><br>记录长期目标、收集进度和可领取奖励。</div><span class="feature-badge">可领取<br>${claimable}</span></div><div class="feature-mini"><span>猫咪收集<b>${unlockedCats}/${totalCats}</b></span><span>任务总数<b>${totalTasks}</b></span><span>钻石库存<b>${this.formatNumber(ResourceManager.get("diamond"))}</b></span></div><div class="feature-list">${rows}</div></div>`;
+                )).join("")
+                : `<div class="feature-card">成就墙正在扩建，后续会加入更多长期目标。</div>`;
+        return `<div class="panel-shell utility-shell achievement-shell" data-achievement-authority="${usesServerAuthority ? "server" : "offline"}" data-achievement-count="${totalTasks}" data-achievement-claimable="${claimable}"><h2>成就墙</h2><div class="feature-hero"><span class="feature-icon" style="background-image:url('${this.getFeatureIconAsset("achievement")}')"></span><div><b>肥猫咖啡荣誉室</b><br>记录长期目标、收集进度和可领取奖励。</div><span class="feature-badge">可领取<br>${claimable}</span></div><div class="feature-mini"><span>猫咪收集<b>${unlockedCats}/${totalCats}</b></span><span>成就总数<b>${totalTasks}</b></span><span>钻石库存<b>${this.formatNumber(ResourceManager.get("diamond"))}</b></span></div><div class="feature-list">${rows}</div></div>`;
     }
 
     private renderMailPanel(): string {

@@ -18,7 +18,7 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 
 | Lane | Priority | Objective | Next Move |
 | --- | --- | --- | --- |
-| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Expand experience sources and add server-owned level-up rewards without weakening idempotency. |
+| Server Economy | P0 | Keep authoritative production and resource mutation reliable. | Persist inventory ownership and route item grants/consumption through authenticated, idempotent server actions. |
 | UI Fidelity | P0 | Move visible screens closer to the target UI images. | Main, cat five-tab flow, core features, and appearance now have guarded four-size target hierarchy; preserve it while server work advances. |
 | Regression Gates | P0 | Prevent old click/layout/economy bugs from returning. | Use `tools/quick-verify.ps1` plus targeted Playwright/API scripts. |
 | Multiplayer Base | P1 | Prepare the game for connected multi-user play. | Profiles, presence, owner decor acquisition/placement/collection, visits/gifts, persisted incoming/boost history, tiered cooperation, SSE events, requests, activity, and leaderboard are wired. |
@@ -50,13 +50,21 @@ Each normal continuation round should finish a visible, verifiable batch. Aim fo
 - Connected `ApiClient`, `SyncManager`, `SaveManager`, DOM/native HUDs, and appearance refresh through a dedicated progression event while retaining offline fallback.
 - Added domain/service/API/concurrency/static/online/four-size coverage; passed `2560 -> 2810` online progression, 18/18 clicks, full quick verify, and 115/115 server tests.
 
-### Next: Experience Sources And Level-Up Rewards
+### Completed: Experience Sources And Level-Up Rewards
 
-- Award server-owned experience for daily-order claims and achievement claims while preserving each action's existing idempotency boundary.
-- Define a compact level-up reward catalog and persist one-time reward grants so reconnects and concurrent claims cannot duplicate currency.
-- Return experience, crossed levels, and granted rewards in action responses and the resource transaction ledger.
-- Surface level-up feedback in the main HUD and immediately refresh level-gated appearance states without blocking offline play.
-- Add boundary, replay, concurrency, migration, API, online UI, and four-size regression coverage before adding further progression sources.
+- Added server-owned `400 EXP` daily-order and `800 EXP` five-cat achievement rewards behind the shared per-player progression gate.
+- Added automatic per-level rewards of `5000` coin, `5` diamonds, and `20` research points with a persisted one-time reward cursor and legacy-safe migration.
+- Added experience, post-action progression, and level-reward snapshots to responses, launch records, and the resource transaction ledger.
+- Added persistent atomic achievement claims, authenticated achievement routes, client cache/events, online authority markers, and immediate HUD/appearance refresh.
+- Added domain, service, migration, API, concurrency, static, online UI, four-size, click, and full-suite coverage; 120/120 server tests pass.
+
+### Next: Authoritative Inventory And Reward Items
+
+- Persist per-player item counts and seed/migrate the current owned inventory without trusting client quantities online.
+- Add authenticated inventory snapshot, grant, and consume application contracts with idempotent transaction evidence.
+- Route shop item purchases and the achievement small-coin-pack reward through the authoritative inventory model.
+- Update `SyncManager` and the backpack page to render server counts online, preserve offline fallback, and refresh after every item mutation.
+- Add service/API/concurrency/migration tests, an online purchase-use-reload flow, and four-size inventory screenshots before expanding the achievement catalog.
 
 ### Completed: Cat Secondary Tab Hierarchy
 
